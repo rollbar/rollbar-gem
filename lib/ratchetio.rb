@@ -68,7 +68,7 @@ module Ratchetio
       request.body = payload
       response = http.request(request)
 
-      if respons.code == '200'
+      if response.code == '200'
         logger.info "[Ratchet.io] Success"
       else
         logger.warning "[Ratchet.io] Got unexpected status code from Ratchet.io api: " + response.code
