@@ -16,7 +16,7 @@ Or install it yourself as:
 
     $ gem install ratchetio
 
-Then, create a file config/initializers/ratchetio.rb containing the following:
+Then, create the file `config/initializers/ratchetio.rb` in your rails app containing the following:
 
 ```
 require 'ratchetio/rails'
@@ -24,10 +24,6 @@ Ratchetio.configure do |config|
   config.access_token = 'YOUR_RATCHETIO_PROJECT_ACCESS_TOKEN'
 end
 ```
-
-## Usage
-
-This gem installs an exception handler into Rails. You don't need to do anything else for it to work.
 
 ## Contributing
 
