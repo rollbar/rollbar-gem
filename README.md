@@ -1,6 +1,6 @@
 # Ratchetio
 
-Ruby gem for Ratchet.io
+Ruby gem for Ratchet.io, for reporting exceptions in Rails 3 to Ratchet.io. Requires a Ratchet.io account (you can sign up for free).
 
 ## Installation
 
@@ -16,9 +16,18 @@ Or install it yourself as:
 
     $ gem install ratchetio
 
+Then, create a file config/initializers/ratchetio.rb containing the following:
+
+```
+require 'ratchetio/rails'
+Ratchetio.configure do |config|
+  config.access_token = 'YOUR_RATCHETIO_PROJECT_ACCESS_TOKEN'
+end
+```
+
 ## Usage
 
-TODO: Write usage instructions here
+This gem installs an exception handler into Rails. You don't need to do anything else for it to work.
 
 ## Contributing
 
