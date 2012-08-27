@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["brian@ratchet.io"]
   gem.description   = %q{Official ruby gem for Ratchet.io}
   gem.summary       = %q{Reports exceptions to Ratchet.io}
-  gem.homepage      = "https://ratchet.io/"
+  gem.homepage      = "https://github.com/ratchetio/ratchetio"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
