@@ -4,7 +4,7 @@ require File.expand_path('../lib/ratchetio/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Brian Rue"]
   gem.email         = ["brian@ratchet.io"]
-  gem.description   = %q{Official ruby gem for Ratchet.io}
+  gem.description   = %q{Rails plugin to catch and send exceptions to Ratchet.io}
   gem.summary       = %q{Reports exceptions to Ratchet.io}
   gem.homepage      = "https://github.com/ratchetio/ratchetio-gem"
 
