@@ -1,4 +1,5 @@
 require 'net/http'
+require 'socket'
 require 'uri'
 
 require 'ratchetio/version'
@@ -18,7 +19,7 @@ module Ratchetio
       @configuration ||= Configuration.new
     end
 
-    def report_exception(env, exception)
+    def report_request_exception(env, exception, request_data)
       data = base_data
 
       # parse backtrace
@@ -26,24 +27,23 @@ module Ratchetio
       exception.backtrace.each { |frame|
         # parse the line
         match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-        frames.push({ "filename" => match[1], "lineno" => match[2].to_i, "method" => match[3] })
+        frames.push({ :filename => match[1], :lineno => match[2].to_i, :method => match[3] })
       }
       # reverse so that the order is as ratchet expects
       frames.reverse!
       
-      data["body"] = {
-        "trace" => {
-          "frames" => frames,
-          "exception" => {
-            "class" => exception.class.name,
-            "message" => exception.message
+      data[:body] = {
+        :trace => {
+          :frames => frames,
+          :exception => {
+            :class => exception.class.name,
+            :message => exception.message
           }
         }
       }
 
-      # todo: request data
-
-      data["server"] = server_data
+      data[:server] = server_data
+      data[:request] = request_data
       
       payload = build_payload(data)
       send_payload(payload)
@@ -55,8 +55,12 @@ module Ratchetio
 
   private
 
+    def logger
+      configuration.logger
+    end
+
     def send_payload(payload)
-      puts "---- sending payload ----"
+      logger.info "[Ratchet.io] Sending payload"
 
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -64,17 +68,19 @@ module Ratchetio
       request.body = payload
       response = http.request(request)
 
-      if response.code != '200'
-        puts "Got unexpected status code from Ratchet.io api: " + response.code
-        puts "Response:"
-        puts response.body
+      if respons.code == '200'
+        logger.info "[Ratchet.io] Success"
+      else
+        logger.warning "[Ratchet.io] Got unexpected status code from Ratchet.io api: " + response.code
+        logger.info "[Ratchet.io] Response:"
+        logger.info response.body
       end
     end
 
     def build_payload(data)
       payload = {
-        "access_token" => configuration.access_token,
-        "data" => data
+        :access_token => configuration.access_token,
+        :data => data
       }
       ActiveSupport::JSON.encode(payload)
     end
@@ -82,28 +88,34 @@ module Ratchetio
     def base_data(level="error")
       config = configuration
       {
-        "timestamp" => Time.now.to_i,
-        "environment" => config.environment,
-        "level" => level,
-        "language" => "ruby",
-        "framework" => config.framework,
-        "notifier" => {
-          "name" => "ratchetio-gem",
-          "version" => VERSION
+        :timestamp => Time.now.to_i,
+        :environment => config.environment,
+        :level => level,
+        :language => "ruby",
+        :framework => config.framework,
+        :notifier => {
+          :name => "ratchetio-gem",
+          :version => VERSION
         }
       }
     end
 
     def server_data
       config = configuration
-      data = {}
+      data = {
+        :host => Socket.gethostname
+      }
       if config.root
-        data["root"] = config.root.to_s
+        data[:root] = config.root.to_s
       end
       if config.branch
-        data["branch"] = config.branch
+        data[:branch] = config.branch
       end
       data
+    end
+
+    def request_data
+      {}
     end
   end
 end

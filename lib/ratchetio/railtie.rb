@@ -17,7 +17,6 @@ module Ratchetio
       ActiveSupport.on_load(:action_controller) do
         # lazily load action_controller methods
         require 'ratchetio/rails/controller_methods'
-
         include Ratchetio::Rails::ControllerMethods
       end
 
