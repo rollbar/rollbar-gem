@@ -71,7 +71,7 @@ module Ratchetio
       if response.code == '200'
         logger.info "[Ratchet.io] Success"
       else
-        logger.warning "[Ratchet.io] Got unexpected status code from Ratchet.io api: " + response.code
+        logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: " + response.code
         logger.info "[Ratchet.io] Response:"
         logger.info response.body
       end
