@@ -1,9 +1,10 @@
-require 'ratchetio'
 require 'rails'
+require 'ratchetio'
 
 module Ratchetio
   class Railtie < ::Rails::Railtie
     rake_tasks do
+      require 'ratchetio/rake_tasks'
     end
 
     config.after_initialize do
