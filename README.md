@@ -16,14 +16,16 @@ Or install it yourself as:
 
     $ gem install ratchetio
 
-Then, create the file `config/initializers/ratchetio.rb` in your rails app containing the following:
+Then, run the following command from your rails root:
 
-```
-require 'ratchetio/rails'
-Ratchetio.configure do |config|
-  config.access_token = 'YOUR_RATCHETIO_PROJECT_ACCESS_TOKEN'
-end
-```
+    $ rails generate ratchetio YOUR_RATCHETIO_PROJECT_ACCESS_TOKEN
+
+That will create the file `config/initializers/ratchetio.rb`, which holds the configuration values (currently just your access token) and is all you need to use Ratchet.io with Rails.
+
+## Help / Support
+
+If you run into any issues, please email me at brian@ratchet.io
+
 
 ## Contributing
 
