@@ -22,6 +22,12 @@ Then, run the following command from your rails root:
 
 That will create the file `config/initializers/ratchetio.rb`, which holds the configuration values (currently just your access token) and is all you need to use Ratchet.io with Rails.
 
+To confirm that it worked, run:
+
+    $ rake ratchetio:test
+
+This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Ratchet.io dashboard.
+
 ## Help / Support
 
 If you run into any issues, please email me at brian@ratchet.io
