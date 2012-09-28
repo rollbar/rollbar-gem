@@ -14,6 +14,22 @@ module Ratchetio
         }
       end
 
+      def ratchetio_person_data
+        user = begin current_user rescue current_member end
+        # include id, username, email if non-empty
+        user.attributes.select do |k, v|
+          if v.blank?
+            false
+          elsif ['id', 'username', 'email'].include? k
+            true
+          else
+            false
+          end
+        end.symbolize_keys
+      rescue NoMethodError, NameError
+        {}
+      end
+
       private
 
       def ratchetio_request_url
