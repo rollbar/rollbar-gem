@@ -4,7 +4,7 @@ module Ratchetio
     
       def ratchetio_request_data
         { 
-          :params => params.to_hash,
+          :params => ratchetio_filter_params(params),
           :url => ratchetio_request_url,
           :user_ip => ratchetio_user_ip,
           :headers => ratchetio_request_headers,
@@ -31,6 +31,27 @@ module Ratchetio
       end
 
       private
+
+      def ratchetio_filter_params(params)
+        filtered = {}
+        params.to_hash.each_pair do |k,v|
+          if v.is_a? ActionDispatch::Http::UploadedFile
+            # only save content_type, original_filename, and length
+            begin
+              filtered[k] = { 
+                :content_type => v.content_type, 
+                :original_filename => v.original_filename, 
+                :size => v.tempfile.size 
+              }
+            rescue
+              filtered[k] = "Uploaded file"
+            end
+          else
+            filtered[k] = v
+          end
+        end
+        filtered
+      end
 
       def ratchetio_request_url
         url = "#{request.protocol}#{request.host}"
