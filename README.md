@@ -42,22 +42,26 @@ end
 
 If you're reporting an exception in the context of a request and are in a controller, you can pass along the same request and person context as the global exception handler, like so:
 
-    begin
-      foo = bar
-    rescue Exception => e
-      Ratchetio.report_exception(e, ratchetio_request_data, ratchetio_person_data)
-    end
+```ruby
+begin
+  foo = bar
+rescue Exception => e
+  Ratchetio.report_exception(e, ratchetio_request_data, ratchetio_person_data)
+end
+```
 
 You can also log individual messages:
 
-    # logs at the 'warning' level. all levels: debug, info, warning, error, critical
-    Ratchetio.report_message("Unexpected input", "warning")
+```ruby
+# logs at the 'warning' level. all levels: debug, info, warning, error, critical
+Ratchetio.report_message("Unexpected input", "warning")
 
-    # default level is "info"
-    Ratchetio.report_message("Login successful")
+# default level is "info"
+Ratchetio.report_message("Login successful")
 
-    # can also include additional data as a hash in the final param
-    Ratchetio.report_message("Login successful", "info", :user => @user)
+# can also include additional data as a hash in the final param
+Ratchetio.report_message("Login successful", "info", :user => @user)
+```
 
 
 ## Person tracking
