@@ -32,11 +32,13 @@ This will raise an exception within a test request; if it works, you'll see a st
 
 To report a caught exception to Ratchet, simply call `Ratchetio.report_exception`:
 
-    begin
-      foo = bar
-    rescue Exception => e
-      Ratchetio.report_exception(e)
-    end
+```ruby
+begin
+  foo = bar
+rescue Exception => e
+  Ratchetio.report_exception(e)
+end
+```
 
 If you're reporting an exception in the context of a request and are in a controller, you can pass along the same request and person context as the global exception handler, like so:
 
