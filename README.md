@@ -28,6 +28,36 @@ To confirm that it worked, run:
 
 This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Ratchet.io dashboard.
 
+## Manually reporting exceptions and messages
+
+To report a caught exception to Ratchet, simply call `Ratchetio.report_exception`:
+
+    begin
+      foo = bar
+    rescue Exception => e
+      Ratchetio.report_exception(e)
+    end
+
+If you're reporting an exception in the context of a request and are in a controller, you can pass along the same request and person context as the global exception handler, like so:
+
+    begin
+      foo = bar
+    rescue Exception => e
+      Ratchetio.report_exception(e, ratchetio_request_data, ratchetio_person_data)
+    end
+
+You can also log individual messages:
+
+    # logs at the 'warning' level. all levels: debug, info, warning, error, critical
+    Ratchetio.report_message("Unexpected input", "warning")
+
+    # default level is "info"
+    Ratchetio.report_message("Login successful")
+
+    # can also include additional data as a hash in the final param
+    Ratchetio.report_message("Login successful", "info", :user => @user)
+
+
 ## Person tracking
 
 Ratchet will send information about the current user (called a "person" in Ratchet parlance) along with each error report, when available. This works by trying the `current_user` and `current_member` controller methods. The return value should be an object with an `id` property and, optionally, `username` and `email` properties.

@@ -19,7 +19,45 @@ module Ratchetio
       @configuration ||= Configuration.new
     end
 
-    def report_request_exception(env, exception, request_data, person_data)
+    def report_exception(exception, request_data={}, person_data={})
+      begin
+        data = exception_data(exception)
+        if request_data
+          data[:request] = request_data
+        end
+        if person_data
+          data[:person] = person_data
+        end
+
+        payload = build_payload(data)
+        send_payload(payload)
+      rescue
+        logger.error "[Ratchet.io] Error reporting exception to Ratchet.io"
+      end
+    end
+
+    def report_message(message, level="info", extra_data={})
+      begin
+        data = base_data(level)
+        
+        data[:body] = {
+          :message => {
+            :body => message.to_s
+          }
+        }
+        data[:body][:message].merge!(extra_data)
+        data[:server] = server_data
+        
+        payload = build_payload(data)
+        send_payload(payload)
+      rescue
+        logger.error "[Ratchet.io] Error reporting message to Ratchet.io"
+      end
+    end
+
+  private
+
+    def exception_data(exception)
       data = base_data
 
       # parse backtrace
@@ -43,18 +81,9 @@ module Ratchetio
       }
 
       data[:server] = server_data
-      data[:request] = request_data
-      data[:person] = person_data
-
-      payload = build_payload(data)
-      send_payload(payload)
+      
+      data
     end
-
-    def report_message()
-      # TODO
-    end
-
-  private
 
     def logger
       configuration.logger
