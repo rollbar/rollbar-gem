@@ -31,8 +31,8 @@ module Ratchetio
 
         payload = build_payload(data)
         send_payload(payload)
-      rescue
-        logger.error "[Ratchet.io] Error reporting exception to Ratchet.io"
+      rescue Exception => e
+        logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
       end
     end
 
@@ -50,8 +50,8 @@ module Ratchetio
         
         payload = build_payload(data)
         send_payload(payload)
-      rescue
-        logger.error "[Ratchet.io] Error reporting message to Ratchet.io"
+      rescue Exception => e
+        logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
       end
     end
 
@@ -69,7 +69,11 @@ module Ratchetio
       }
       # reverse so that the order is as ratchet expects
       frames.reverse!
-      
+
+      if filtered_level = configuration.exception_level_filters[exception.class.name]
+        data[:level] = filtered_level
+      end
+
       data[:body] = {
         :trace => {
           :frames => frames,
