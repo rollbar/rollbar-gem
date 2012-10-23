@@ -70,7 +70,8 @@ module Ratchetio
       # reverse so that the order is as ratchet expects
       frames.reverse!
 
-      if filtered_level = configuration.exception_level_filters[exception.class.name]
+      filtered_level = configuration.exception_level_filters[exception.class.name]
+      if filtered_level
         data[:level] = filtered_level
       end
 

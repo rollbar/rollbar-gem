@@ -75,6 +75,18 @@ alias_method :my_user_method, :current_user
 helper_method :my_user_method
 ```
 
+
+## Exception level filters
+
+By default, all exceptions reported through `Ratchetio.report_exception()` are reporeted at the "error" level, except for the following, which are reported at "warning" level:
+
+- ActiveRecord::RecordNotFound
+- AbstractController::ActionNotFound
+- ActionController::RoutingError
+
+If you'd like to customize this list, see the example code in `config/initializers/ratchetio.rb`. Supported levels: "critical", "error", "warning", "info", "debug".
+
+
 ## Help / Support
 
 If you run into any issues, please email me at brian@ratchet.io
