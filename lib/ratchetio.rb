@@ -31,8 +31,8 @@ module Ratchetio
 
         payload = build_payload(data)
         send_payload(payload)
-      rescue
-        logger.error "[Ratchet.io] Error reporting exception to Ratchet.io"
+      rescue Exception => e
+        logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
       end
     end
 
@@ -50,8 +50,8 @@ module Ratchetio
         
         payload = build_payload(data)
         send_payload(payload)
-      rescue
-        logger.error "[Ratchet.io] Error reporting message to Ratchet.io"
+      rescue Exception => e
+        logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
       end
     end
 
