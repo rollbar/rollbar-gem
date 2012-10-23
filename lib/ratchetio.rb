@@ -69,7 +69,11 @@ module Ratchetio
       }
       # reverse so that the order is as ratchet expects
       frames.reverse!
-      
+
+      if filtered_level = configuration.exception_level_filters[exception.class.name]
+        data[:level] = filtered_level
+      end
+
       data[:body] = {
         :trace => {
           :frames => frames,

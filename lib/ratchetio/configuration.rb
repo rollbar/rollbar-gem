@@ -7,6 +7,7 @@ module Ratchetio
     attr_accessor :branch
     attr_accessor :framework
     attr_accessor :endpoint
+    attr_accessor :exception_level_filters
 
     attr_accessor :logger
 
@@ -15,6 +16,8 @@ module Ratchetio
     def initialize
       @endpoint = DEFAULT_ENDPOINT
       @framework = 'Plain'
+      @exception_level_filters = {
+      }
     end
 
     # allow params to be read like a hash
