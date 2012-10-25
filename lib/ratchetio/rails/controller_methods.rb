@@ -10,6 +10,7 @@ module Ratchetio
           :headers => ratchetio_request_headers,
           :GET => request.GET.to_hash,
           # leaving out POST for now
+          :session => ratchetio_session_data,
           :method => request.method,
         }
       end
@@ -85,6 +86,14 @@ module Ratchetio
           end
         end
         headers
+      end
+
+      def ratchetio_session_data
+        if session.respond_to?(:to_hash)
+          session.to_hash
+        else
+          session.data
+        end
       end
 
     end
