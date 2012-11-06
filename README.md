@@ -89,7 +89,7 @@ If you'd like to customize this list, see the example code in `config/initialize
 
 ## Help / Support
 
-If you run into any issues, please email me at brian@ratchet.io
+If you run into any issues, please email me at support@ratchet.io
 
 ## Contributing
 
