@@ -16,17 +16,15 @@ module Ratchetio
       end
 
       def ratchetio_person_data
-        user = begin current_user rescue current_member end
+        user = begin send(Ratchetio.configuration.person_method) rescue current_user end
         # include id, username, email if non-empty
-        user.attributes.select do |k, v|
-          if v.blank?
-            false
-          elsif ['id', 'username', 'email'].include? k
-            true
-          else
-            false
-          end
-        end.symbolize_keys
+        if user
+          { :id => user.id,
+            :username => user.send(Ratchetio.configuration.person_username_method),
+            :email => user.send(Ratchetio.configuration.person_email_method) }
+        else
+          {}
+        end
       rescue NoMethodError, NameError
         {}
       end
