@@ -9,6 +9,7 @@ module Ratchetio
     attr_accessor :endpoint
     attr_accessor :exception_level_filters
     attr_accessor :person_method
+    attr_accessor :person_id_method
     attr_accessor :person_username_method
     attr_accessor :person_email_method
 
@@ -24,7 +25,8 @@ module Ratchetio
         'AbstractController::ActionNotFound' => 'warning',
         'ActionController::RoutingError' => 'warning'
       }
-      @person_method = "current_member"
+      @person_method = "current_user"
+      @person_id_method = "id"
       @person_username_method = "username"
       @person_email_method = "email"
     end

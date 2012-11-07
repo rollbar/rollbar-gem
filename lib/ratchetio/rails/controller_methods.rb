@@ -16,12 +16,14 @@ module Ratchetio
       end
 
       def ratchetio_person_data
-        user = begin send(Ratchetio.configuration.person_method) rescue current_user end
+        user = send(Ratchetio.configuration.person_method)
         # include id, username, email if non-empty
         if user
-          { :id => user.id,
-            :username => user.send(Ratchetio.configuration.person_username_method),
-            :email => user.send(Ratchetio.configuration.person_email_method) }
+          { 
+            :id => begin user.send(Ratchetio.configuration.person_id_method) rescue nil end,
+            :username => begin user.send(Ratchetio.configuration.person_username_method) rescue nil end,
+            :email => begin user.send(Ratchetio.configuration.person_email_method) rescue nil end
+          }
         else
           {}
         end
