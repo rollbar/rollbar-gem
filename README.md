@@ -66,15 +66,15 @@ Ratchetio.report_message("Login successful", "info", :user => @user)
 
 ## Person tracking
 
-Ratchet will send information about the current user (called a "person" in Ratchet parlance) along with each error report, when available. This works by calling the `current\_user` controller method. The return value should be an object with an `id` method and, optionally, `username` and `email` methods.
+Ratchet will send information about the current user (called a "person" in Ratchet parlance) along with each error report, when available. This works by calling the `current_user` controller method. The return value should be an object with an `id` method and, optionally, `username` and `email` methods.
 
-If the gem should call a controller method besides `current\_user`, add the following in `config/initializers/ratchetio.rb`:
+If the gem should call a controller method besides `current_user`, add the following in `config/initializers/ratchetio.rb`:
 
 ```ruby
   config.person_method = "my_current_user"
 ```
 
-If the methods to extract the `id`, `username`, and `email` from the object returned by the `person\_method` have other names, configure like so in `config/initializers/ratchetio.rb`:
+If the methods to extract the `id`, `username`, and `email` from the object returned by the `person_method` have other names, configure like so in `config/initializers/ratchetio.rb`:
 
 ```ruby
   config.person_id_method = "user_id"  # default is "id"
@@ -85,7 +85,7 @@ If the methods to extract the `id`, `username`, and `email` from the object retu
 
 ## Exception level filters
 
-By default, all exceptions reported through `Ratchetio.report\_exception()` are reporeted at the "error" level, except for the following, which are reported at "warning" level:
+By default, all exceptions reported through `Ratchetio.report_exception()` are reporeted at the "error" level, except for the following, which are reported at "warning" level:
 
 - ActiveRecord::RecordNotFound
 - AbstractController::ActionNotFound
