@@ -59,7 +59,7 @@ Ratchetio.report_message("Unexpected input", "warning")
 # default level is "info"
 Ratchetio.report_message("Login successful")
 
-# can also include additional data as a hash in the final param
+# can also include additional data as a hash in the final param. :body is reserved.
 Ratchetio.report_message("Login successful", "info", :user => @user)
 ```
 
