@@ -47,6 +47,8 @@ module Ratchetio
             rescue
               filtered[k] = "Uploaded file"
             end
+          elsif v.is_a? Hash
+            filtered[k] = ratchetio_filter_params v
           else
             filtered[k] = v
           end
