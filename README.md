@@ -91,12 +91,12 @@ By default, all exceptions reported through `Ratchetio.report_exception()` are r
 - AbstractController::ActionNotFound
 - ActionController::RoutingError
 
-If you'd like to customize this list, see the example code in `config/initializers/ratchetio.rb`. Supported levels: "critical", "error", "warning", "info", "debug".
+If you'd like to customize this list, see the example code in `config/initializers/ratchetio.rb`. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all.
 
 
 ## Help / Support
 
-If you run into any issues, please email me at support@ratchet.io
+If you run into any issues, please email us at `support@ratchet.io`
 
 ## Contributing
 

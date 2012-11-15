@@ -21,7 +21,13 @@ module Ratchetio
 
     def report_exception(exception, request_data={}, person_data={})
       begin
-        data = exception_data(exception)
+        filtered_level = configuration.exception_level_filters[exception.class.name]
+        if filtered_level == 'ignore'
+          # ignored - do nothing
+          return
+        end
+
+        data = exception_data(exception, filtered_level)
         if request_data
           data[:request] = request_data
         end
@@ -57,8 +63,12 @@ module Ratchetio
 
   private
 
-    def exception_data(exception)
+    def exception_data(exception, force_level = nil)
       data = base_data
+      
+      if force_level
+        data[:level] = force_level
+      end
 
       # parse backtrace
       frames = []
@@ -69,11 +79,6 @@ module Ratchetio
       }
       # reverse so that the order is as ratchet expects
       frames.reverse!
-
-      filtered_level = configuration.exception_level_filters[exception.class.name]
-      if filtered_level
-        data[:level] = filtered_level
-      end
 
       data[:body] = {
         :trace => {

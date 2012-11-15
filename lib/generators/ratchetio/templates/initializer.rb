@@ -14,5 +14,7 @@ Ratchetio.configure do |config|
   # change the level that exception is reported at. Note that if an exception
   # has already been reported and logged the level will need to be changed
   # via the ratchet.io interface.
+  # Valid levels: 'critical', 'error', 'warning', 'info', 'debug', 'ignore'
+  # 'ignore' will cause the exception to not be reported at all.
   # config.exception_level_filters.merge!('MyCriticalException' => 'critical')
 end
