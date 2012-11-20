@@ -7,16 +7,14 @@ module Ratchetio
         end
 
         def render_exception_with_ratchetio(env, exception)
-          # wrap everything in a begin-rescue block
           begin
             controller = env['action_controller.instance']
             request_data = controller.try(:ratchetio_request_data)
             person_data = controller.try(:ratchetio_person_data)
             Ratchetio.report_exception(exception, request_data, person_data)
-          rescue Exception => exc
+          rescue => e
             # TODO use logger here?
-            puts "[Ratchet.io] Exception while reporting exception to Ratchet.io: " 
-            puts exc
+            puts "[Ratchet.io] Exception while reporting exception to Ratchet.io: #{e}" 
           end
 
           # now continue as normal

@@ -20,9 +20,9 @@ module Ratchetio
         # include id, username, email if non-empty
         if user
           { 
-            :id => begin user.send(Ratchetio.configuration.person_id_method) rescue nil end,
-            :username => begin user.send(Ratchetio.configuration.person_username_method) rescue nil end,
-            :email => begin user.send(Ratchetio.configuration.person_email_method) rescue nil end
+            :id => user.send(Ratchetio.configuration.person_id_method) rescue nil,
+            :username => user.send(Ratchetio.configuration.person_username_method) rescue nil,
+            :email => user.send(Ratchetio.configuration.person_email_method) rescue nil
           }
         else
           {}
@@ -45,7 +45,7 @@ module Ratchetio
                 :size => v.tempfile.size 
               }
             rescue
-              filtered[k] = "Uploaded file"
+              filtered[k] = 'Uploaded file'
             end
           elsif v.is_a? Hash
             filtered[k] = ratchetio_filter_params v
@@ -67,11 +67,11 @@ module Ratchetio
 
       def ratchetio_user_ip
         # priority: X-Real-Ip, then X-Forwarded-For, then request.remote_ip
-        real_ip = request.env["HTTP_X_REAL_IP"]
+        real_ip = request.env['HTTP_X_REAL_IP']
         if real_ip
           return real_ip
         end
-        forwarded_for = request.env["HTTP_X_FORWARDED_FOR"]
+        forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
         if forwarded_for
           return forwarded_for
         end

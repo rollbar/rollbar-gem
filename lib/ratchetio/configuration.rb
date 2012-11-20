@@ -2,20 +2,19 @@ module Ratchetio
   class Configuration
 
     attr_accessor :access_token
-    attr_accessor :environment
-    attr_accessor :root
     attr_accessor :branch
-    attr_accessor :framework
     attr_accessor :endpoint
     attr_accessor :exception_level_filters
+    attr_accessor :environment
+    attr_accessor :framework
+    attr_accessor :logger
     attr_accessor :person_method
     attr_accessor :person_id_method
     attr_accessor :person_username_method
     attr_accessor :person_email_method
+    attr_accessor :root
 
-    attr_accessor :logger
-
-    DEFAULT_ENDPOINT = "https://submit.ratchet.io/api/1/item/"
+    DEFAULT_ENDPOINT = 'https://submit.ratchet.io/api/1/item/'
 
     def initialize
       @endpoint = DEFAULT_ENDPOINT
@@ -25,10 +24,10 @@ module Ratchetio
         'AbstractController::ActionNotFound' => 'warning',
         'ActionController::RoutingError' => 'warning'
       }
-      @person_method = "current_user"
-      @person_id_method = "id"
-      @person_username_method = "username"
-      @person_email_method = "email"
+      @person_method = 'current_user'
+      @person_id_method = 'id'
+      @person_username_method = 'username'
+      @person_email_method = 'email'
     end
 
     # allow params to be read like a hash

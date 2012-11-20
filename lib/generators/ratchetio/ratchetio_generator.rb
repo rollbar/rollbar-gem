@@ -4,7 +4,7 @@ require 'rails/generators/named_base'
 module Ratchetio
   module Generators
     class RatchetioGenerator < ::Rails::Generators::Base
-      argument :access_token, :type => :string, :banner => "access_token"
+      argument :access_token, :type => :string, :banner => 'access_token'
 
       source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
 
