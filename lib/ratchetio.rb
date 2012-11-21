@@ -95,16 +95,13 @@ module Ratchetio
     def exception_data(exception, force_level = nil)
       data = base_data
       
-      if force_level
-        data[:level] = force_level
-      end
+      data[:level] = force_level if force_level
 
       # parse backtrace
-      frames = []
-      exception.backtrace.each { |frame|
+      frames = exception.backtrace.map { |frame|
         # parse the line
         match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-        frames.push({ :filename => match[1], :lineno => match[2].to_i, :method => match[3] })
+        { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
       }
       # reverse so that the order is as ratchet expects
       frames.reverse!
