@@ -3,8 +3,6 @@ require 'spec_helper'
 
 describe Ratchetio do
 
-  it 'controller methods'
-  
   context 'report_exception' do
     before(:each) do
       configure
