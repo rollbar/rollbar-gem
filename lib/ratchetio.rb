@@ -11,6 +11,7 @@ module Ratchetio
     attr_writer :configuration
     
     # Configures the gem.
+    # 
     # Call on app startup to set the `access_token` (required) and other config params.
     # In a Rails app, this is called by `config/initializers/ratchetio.rb` which is generated
     # with `rails generate ratchetio access-token-here`
@@ -61,7 +62,7 @@ module Ratchetio
       logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
     end
 
-    # Reports a message to Ratchet.io
+    # Reports an arbitrary message to Ratchet.io
     #
     # @example
     #   Ratchetio.report_message("User login failed", 'info', :user_id => 123)
