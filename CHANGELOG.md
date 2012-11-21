@@ -1,5 +1,11 @@
 # Change Log
 
+**0.4.3**
+- Add RSpec test suite. A few minor code changes.
+
+**0.4.2**
+- Add "ignore" filter level to completely ignore exceptions by class.
+
 **0.4.1**
 - Recursively filter files out of the params hash. Thanks to [trisweb](https://github.com/trisweb) for the pull request.
 

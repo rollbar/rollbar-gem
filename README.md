@@ -105,3 +105,5 @@ If you run into any issues, please email us at `support@ratchet.io`
 3. Commit your changes (`git commit -am 'Added some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+We're using RSpec for testing. Run the test suite with `rake spec`. Tests for pull requests are appreciated but not required. (If you don't include a test, we'll write one before merging.)
