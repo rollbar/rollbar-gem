@@ -74,6 +74,16 @@ module Ratchetio
     # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as 
     #   it is reserved.
     def report_message(message, level = 'info', extra_data = {})
+      data = message_data(message, level, extra_data)
+      payload = build_payload(data)
+      send_payload(payload)
+    rescue => e
+      logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+    end
+
+    private
+
+    def message_data(message, level, extra_data)
       data = base_data(level)
       
       data[:body] = {
@@ -84,13 +94,8 @@ module Ratchetio
       data[:body][:message].merge!(extra_data)
       data[:server] = server_data
       
-      payload = build_payload(data)
-      send_payload(payload)
-    rescue => e
-      logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+      data
     end
-
-    private
 
     def exception_data(exception, force_level = nil)
       data = base_data
@@ -182,4 +187,3 @@ module Ratchetio
   
   end
 end
-
