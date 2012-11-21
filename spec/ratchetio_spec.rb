@@ -4,9 +4,7 @@ require 'spec_helper'
 describe Ratchetio do
 
   it 'controller methods'
-  it 'report_message in the context of a request'
-  it 'report_exception in the context of a request'
-
+  
   context 'report_exception' do
     before(:each) do
       configure
@@ -227,9 +225,9 @@ describe Ratchetio do
     Ratchetio.configure do |config|
       # special test access token
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
-      config.logger ||= ::Rails.logger
-      config.environment ||= ::Rails.env
-      config.root ||= ::Rails.root
+      config.logger = ::Rails.logger
+      config.environment = ::Rails.env
+      config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
     end
   end
