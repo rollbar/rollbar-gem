@@ -20,9 +20,9 @@ module Ratchetio
         # include id, username, email if non-empty
         if user
           { 
-            :id => user.send(Ratchetio.configuration.person_id_method) rescue nil,
-            :username => user.send(Ratchetio.configuration.person_username_method) rescue nil,
-            :email => user.send(Ratchetio.configuration.person_email_method) rescue nil
+            :id => begin user.send(Ratchetio.configuration.person_id_method) rescue nil end,
+            :username => begin user.send(Ratchetio.configuration.person_username_method) rescue nil end,
+            :email => begin user.send(Ratchetio.configuration.person_email_method) rescue nil end
           }
         else
           {}
