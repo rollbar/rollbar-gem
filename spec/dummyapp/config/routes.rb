@@ -1,4 +1,4 @@
-Dummyapp::Application.routes.draw do
+Dummy::Application.routes.draw do
   authenticated :user do
     root :to => 'home#index'
   end
