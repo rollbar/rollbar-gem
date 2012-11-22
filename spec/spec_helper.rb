@@ -1,6 +1,3 @@
-#require 'rspec'
-#require 'ratchetio'
-
 require 'rubygems'
 
 ENV['RAILS_ENV'] ||= 'test'
@@ -18,7 +15,7 @@ RSpec.configure do |config|
 
   config.use_transactional_fixtures = true
   config.order = "random"
-  
+
   config.before(:suite) do
     FactoryGirl.reload
     DatabaseCleaner.strategy = :truncation
