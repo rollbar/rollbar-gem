@@ -1,5 +1,8 @@
 # Change Log
 
+**0.4.4**
+- Add `enabled` runtime config flag. When `false`, no data (messages or exceptions) will be reported.
+
 **0.4.3**
 - Add RSpec test suite. A few minor code changes.
 

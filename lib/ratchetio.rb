@@ -46,6 +46,10 @@ module Ratchetio
     # @param person_data [Hash] Data describing the affected person. Should be the result of calling
     #   `ratchetio_person_data`
     def report_exception(exception, request_data = nil, person_data = nil)
+      unless configuration.enabled
+        return
+      end
+
       filtered_level = configuration.exception_level_filters[exception.class.name]
       if filtered_level == 'ignore'
         # ignored - do nothing
@@ -74,6 +78,10 @@ module Ratchetio
     # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as 
     #   it is reserved.
     def report_message(message, level = 'info', extra_data = {})
+      unless configuration.enabled
+        return
+      end
+      
       data = message_data(message, level, extra_data)
       payload = build_payload(data)
       send_payload(payload)

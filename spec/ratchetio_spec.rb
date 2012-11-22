@@ -24,6 +24,19 @@ describe Ratchetio do
       Ratchetio.report_exception(@exception)
     end
 
+    it 'should not report anything when disabled' do
+      logger_mock.should_not_receive(:info).with('[Ratchet.io] Sending payload')
+      Ratchetio.configure do |config|
+        config.enabled = false
+      end
+      
+      Ratchetio.report_exception(@exception)
+      
+      Ratchetio.configure do |config|
+        config.enabled = true
+      end
+    end
+
     it 'should report exceptions with request and person data' do
       logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
       request_data = {
@@ -74,6 +87,19 @@ describe Ratchetio do
     it 'should report simple messages' do
       logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
       Ratchetio.report_message("Test message")
+    end
+
+    it 'should not report anything when disabled' do
+      logger_mock.should_not_receive(:info).with('[Ratchet.io] Sending payload')
+      Ratchetio.configure do |config|
+        config.enabled = false
+      end
+      
+      Ratchetio.report_message("Test message that should be ignored")
+      
+      Ratchetio.configure do |config|
+        config.enabled = true
+      end
     end
 
     it 'should report messages with extra data' do

@@ -3,6 +3,7 @@ module Ratchetio
 
     attr_accessor :access_token
     attr_accessor :branch
+    attr_accessor :enabled
     attr_accessor :endpoint
     attr_accessor :exception_level_filters
     attr_accessor :environment
@@ -17,6 +18,7 @@ module Ratchetio
     DEFAULT_ENDPOINT = 'https://submit.ratchet.io/api/1/item/'
 
     def initialize
+      @enabled = true
       @endpoint = DEFAULT_ENDPOINT
       @framework = 'Plain'
       @exception_level_filters = {
