@@ -25,6 +25,7 @@ module Ratchetio
       @enabled = true
       @endpoint = DEFAULT_ENDPOINT
       @framework = 'Plain'
+      @logger = Logger.new(STDERR)
       @exception_level_filters = {
         'ActiveRecord::RecordNotFound' => 'warning',
         'AbstractController::ActionNotFound' => 'warning',
