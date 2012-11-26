@@ -188,8 +188,8 @@ describe Ratchetio do
       
       # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
       # http://yehudakatz.com/2010/01/02/the-craziest-fing-bug-ive-ever-seen/
-      trace[:exception][:class].should match(/NameError|NoMethodError/)
-      trace[:exception][:message].should match(/^undefined local variable or method `bar'/)
+      trace[:exception][:class].should match(/^(NameError|NoMethodError)$/)
+      trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
     end
   end
   
