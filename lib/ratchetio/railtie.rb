@@ -9,7 +9,6 @@ module Ratchetio
 
     config.after_initialize do
       Ratchetio.configure do |config|
-        puts "using rails logger"
         config.logger ||= ::Rails.logger
         config.environment ||= ::Rails.env
         config.root ||= ::Rails.root
