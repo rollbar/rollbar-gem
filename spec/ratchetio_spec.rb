@@ -183,8 +183,10 @@ describe Ratchetio do
         frame[:lineno].should be_a_kind_of(Fixnum)
       end
       
-      trace[:exception][:class].should == 'NameError'
-      trace[:exception][:message].should match(/^undefined local variable or method `bar' for/)
+      # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
+      # http://yehudakatz.com/2010/01/02/the-craziest-fing-bug-ive-ever-seen/
+      trace[:exception][:class].should match(/NameError|NoMethodError/)
+      trace[:exception][:message].should match(/^undefined local variable or method `bar'/)
     end
   end
   
