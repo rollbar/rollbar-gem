@@ -1,3 +1,4 @@
+require 'logger'
 require 'socket'
 require 'spec_helper'
 
@@ -193,9 +194,29 @@ describe Ratchetio do
   end
   
   context 'logger' do
-    it 'should have its logger configured' do
+    before(:each) do
+      reset_configuration
+    end
+
+    it 'should have use the Rails logger when configured to do so' do
       configure
       Ratchetio.send(:logger).should == ::Rails.logger
+    end
+
+    it 'should use the default_logger when no logger is set' do
+      logger = Logger.new(STDERR)
+      Ratchetio.configure do |config|
+        config.default_logger = lambda { logger }
+      end
+      Ratchetio.send(:logger).should == logger
+    end
+
+    it 'should have a default default_logger' do
+      Ratchetio.send(:logger).should_not be_nil
+    end
+
+    after(:each) do
+      reset_configuration
     end
   end
   
@@ -252,11 +273,38 @@ describe Ratchetio do
   def configure
     Ratchetio.configure do |config|
       # special test access token
-      config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+      config.access_token = test_access_token
       config.logger = ::Rails.logger
       config.environment = ::Rails.env
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
+    end
+  end
+
+  def test_access_token
+    'aaaabbbbccccddddeeeeffff00001111'
+  end
+
+  def reset_configuration
+    Ratchetio.configure do |config|
+      config.access_token = nil
+      config.branch = nil
+      config.default_logger = lambda { Logger.new(STDERR) }
+      config.enabled = true
+      config.endpoint = Ratchetio::Configuration::DEFAULT_ENDPOINT
+      config.environment = nil
+      config.exception_level_filters = {
+        'ActiveRecord::RecordNotFound' => 'warning',
+        'AbstractController::ActionNotFound' => 'warning',
+        'ActionController::RoutingError' => 'warning'
+      }
+      config.framework = 'Plain'
+      config.logger = nil
+      config.person_method = 'current_user'
+      config.person_id_method = 'id'
+      config.person_username_method = 'username'
+      config.person_email_method = 'email'
+      config.root = nil
     end
   end
 

@@ -135,6 +135,10 @@ module Ratchetio
     end
 
     def logger
+      # init if not set
+      unless configuration.logger
+        configuration.logger = configuration.default_logger.call
+      end
       configuration.logger
     end
 

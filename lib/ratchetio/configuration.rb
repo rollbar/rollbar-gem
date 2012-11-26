@@ -1,12 +1,15 @@
+require 'logger'
+
 module Ratchetio
   class Configuration
 
     attr_accessor :access_token
     attr_accessor :branch
+    attr_accessor :default_logger
     attr_accessor :enabled
     attr_accessor :endpoint
-    attr_accessor :exception_level_filters
     attr_accessor :environment
+    attr_accessor :exception_level_filters
     attr_accessor :framework
     attr_accessor :logger
     attr_accessor :person_method
@@ -18,6 +21,7 @@ module Ratchetio
     DEFAULT_ENDPOINT = 'https://submit.ratchet.io/api/1/item/'
 
     def initialize
+      @default_logger = lambda { Logger.new(STDERR) }
       @enabled = true
       @endpoint = DEFAULT_ENDPOINT
       @framework = 'Plain'

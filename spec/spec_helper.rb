@@ -5,7 +5,7 @@ require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
 
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| puts f; require f }
+Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|
   config.color_enabled = true
