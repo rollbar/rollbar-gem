@@ -116,7 +116,7 @@ describe HomeController do
 
   describe "GET 'index'" do
     it "should be successful and report a message" do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       get 'index'
       response.should be_success
     end
@@ -124,7 +124,7 @@ describe HomeController do
 
   describe "GET 'report_exception'" do
     it "should raise a NameError and report an exception" do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
 
       get 'report_exception'
       response.should be_success

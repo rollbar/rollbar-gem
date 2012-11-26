@@ -20,12 +20,12 @@ describe Ratchetio do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should report exceptions without person or request data' do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.report_exception(@exception)
     end
 
     it 'should not report anything when disabled' do
-      logger_mock.should_not_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_not_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.configure do |config|
         config.enabled = false
       end
@@ -38,7 +38,7 @@ describe Ratchetio do
     end
 
     it 'should report exceptions with request and person data' do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       request_data = {
         :params => { :foo => "bar" },
         :url => 'http://localhost/',
@@ -85,12 +85,12 @@ describe Ratchetio do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should report simple messages' do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.report_message("Test message")
     end
 
     it 'should not report anything when disabled' do
-      logger_mock.should_not_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_not_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.configure do |config|
         config.enabled = false
       end
@@ -103,7 +103,7 @@ describe Ratchetio do
     end
 
     it 'should report messages with extra data' do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.report_message("Test message with extra data", 'debug', :foo => "bar",
                                :hash => { :a => 123, :b => "xyz" })
     end
@@ -179,8 +179,10 @@ describe Ratchetio do
       frames.should be_a_kind_of(Array)
       frames.each do |frame|
         frame[:filename].should be_a_kind_of(String)
-        frame[:method].should be_a_kind_of(String)
         frame[:lineno].should be_a_kind_of(Fixnum)
+        if frame[:method]
+          frame[:method].should be_a_kind_of(String)
+        end
       end
       
       # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
