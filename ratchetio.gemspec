@@ -15,7 +15,6 @@ Gem::Specification.new do |gem|
   gem.version       = Ratchetio::VERSION
 
   gem.add_development_dependency 'rails', '~> 3.2.9'
-  gem.add_development_dependency 'sqlite3'
   gem.add_development_dependency 'devise', '>= 2.1.2'
   gem.add_development_dependency 'rspec-rails', '~> 2.12.0'
   gem.add_development_dependency 'database_cleaner', '>= 0.9.1'
