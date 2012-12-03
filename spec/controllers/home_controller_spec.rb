@@ -4,6 +4,10 @@ describe HomeController do
   
   before(:each) do
     Ratchetio.configure do |config|
+      config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+      config.environment = ::Rails.env
+      config.root = ::Rails.root
+      config.framework = "Rails: #{::Rails::VERSION::STRING}"
       config.logger = logger_mock
     end
   end
