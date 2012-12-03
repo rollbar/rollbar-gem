@@ -4,7 +4,8 @@ require 'uri'
 
 require 'ratchetio/version'
 require 'ratchetio/configuration'
-require 'ratchetio/railtie'
+require 'ratchetio/railtie' if defined?(Rails)
+require 'ratchetio/goalie' if defined?(Goalie)
 
 module Ratchetio
   class << self

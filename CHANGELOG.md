@@ -1,5 +1,8 @@
 # Change Log
 
+**0.4.6**
+- Add support to play nicely with Goalie.
+
 **0.4.5**
 - Add `default_logger` config option. It should be a lambda that will return the logger to use if no other logger is configured (i.e. no logger is set by the Railtie hook). Default: `lambda { Logger.new(STDERR) }`
 
