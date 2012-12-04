@@ -17,6 +17,7 @@ module Ratchetio
     attr_accessor :person_username_method
     attr_accessor :person_email_method
     attr_accessor :root
+    attr_accessor :scrub_fields
 
     DEFAULT_ENDPOINT = 'https://submit.ratchet.io/api/1/item/'
 
@@ -34,6 +35,7 @@ module Ratchetio
       @person_id_method = 'id'
       @person_username_method = 'username'
       @person_email_method = 'email'
+      @scrub_fields = [:passwd, :password, :secret]
     end
 
     # allow params to be read like a hash

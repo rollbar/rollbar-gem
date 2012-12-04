@@ -285,27 +285,4 @@ describe Ratchetio do
     'aaaabbbbccccddddeeeeffff00001111'
   end
 
-  def reset_configuration
-    Ratchetio.configure do |config|
-      config.access_token = nil
-      config.branch = nil
-      config.default_logger = lambda { Logger.new(STDERR) }
-      config.enabled = true
-      config.endpoint = Ratchetio::Configuration::DEFAULT_ENDPOINT
-      config.environment = nil
-      config.exception_level_filters = {
-        'ActiveRecord::RecordNotFound' => 'warning',
-        'AbstractController::ActionNotFound' => 'warning',
-        'ActionController::RoutingError' => 'warning'
-      }
-      config.framework = 'Plain'
-      config.logger = nil
-      config.person_method = 'current_user'
-      config.person_id_method = 'id'
-      config.person_username_method = 'username'
-      config.person_email_method = 'email'
-      config.root = nil
-    end
-  end
-
 end

@@ -1,5 +1,8 @@
 # Change Log
 
+**0.4.7**
+- Sensitive params now scrubbed out of requests. Param name list is customizable via the `scrub_fields` config option.
+
 **0.4.6**
 - Add support to play nicely with Goalie.
 

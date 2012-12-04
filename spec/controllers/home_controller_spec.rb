@@ -3,6 +3,7 @@ require 'spec_helper'
 describe HomeController do
   
   before(:each) do
+    reset_configuration
     Ratchetio.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
       config.environment = ::Rails.env
@@ -87,6 +88,42 @@ describe HomeController do
         filtered_file[:content_type].should == file_hash[:type]
         filtered_file[:original_filename].should == file_hash[:filename]
         filtered_file[:size].should == file_hash[:tempfile].size
+      end
+      
+      it "should scrub the default scrub_fields" do
+        params = {
+          :passwd => "hidden",
+          :password => "hidden",
+          :secret => "hidden",
+          :notpass => "visible"
+        }
+        
+        filtered = controller.send(:ratchetio_filter_params, params)
+        
+        filtered[:passwd].should == "******"
+        filtered[:password].should == "******"
+        filtered[:secret].should == "******"
+        filtered[:notpass].should == "visible"
+      end
+      
+      it "should scrub custom scrub_fields" do
+        Ratchetio.configure do |config|
+          config.scrub_fields = [:notpass, :secret]
+        end
+        
+        params = {
+          :passwd => "visible",
+          :password => "visible",
+          :secret => "hidden",
+          :notpass => "hidden"
+        }
+        
+        filtered = controller.send(:ratchetio_filter_params, params)
+        
+        filtered[:passwd].should == "visible"
+        filtered[:password].should == "visible"
+        filtered[:secret].should == "******"
+        filtered[:notpass].should == "******"
       end
     end
 

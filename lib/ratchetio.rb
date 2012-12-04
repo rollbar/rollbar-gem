@@ -24,6 +24,11 @@ module Ratchetio
     def configure
       yield(configuration)
     end
+    
+    def reconfigure
+      @configuration = Configuration.new
+      yield(configuration)
+    end
 
     # Returns the configuration object.
     #
@@ -148,8 +153,11 @@ module Ratchetio
 
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      
+      if uri.scheme == 'https'
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
 
       request = Net::HTTP::Post.new(uri.request_uri)
       request.body = payload

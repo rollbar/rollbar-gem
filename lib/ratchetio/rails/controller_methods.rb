@@ -35,6 +35,7 @@ module Ratchetio
 
       def ratchetio_filter_params(params)
         filtered = {}
+        
         params.to_hash.each_pair do |k,v|
           if v.is_a? ActionDispatch::Http::UploadedFile
             # only save content_type, original_filename, and length
@@ -49,6 +50,8 @@ module Ratchetio
             end
           elsif v.is_a? Hash
             filtered[k] = ratchetio_filter_params v
+          elsif Ratchetio.configuration.scrub_fields.include? k
+            filtered[k] = "*" * v.length
           else
             filtered[k] = v
           end
