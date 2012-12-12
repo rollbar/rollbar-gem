@@ -164,9 +164,15 @@ module Ratchetio
     
     def write_payload(payload)
       if configuration.use_async
-        @file_semaphore.lock
+        @file_semaphore.synchronize {
+          do_write_payload(payload)
+        }
+      else
+        do_write_payload(payload)
       end
-      
+    end
+    
+    def do_write_payload(payload)
       logger.info '[Ratchet.io] Writing payload to file'
       
       begin
@@ -179,10 +185,6 @@ module Ratchetio
         logger.info "[Ratchet.io] Success"
       rescue IOError => e
         logger.error "[Ratchet.io] Error opening/writing to file: #{e}"
-      end
-      
-      if configuration.use_async
-        @file_semaphore.unlock
       end
     end
     
