@@ -103,7 +103,9 @@ By default, all messages are reported synchronously. You can enable asynchronous
   config.use_async = true
 ```
 
-Ratchet uses [girl_friday](https://github.com/mperham/girl_friday) to handle asynchronous reporting, and falls back to Threading if girl_friday is not installed. You can supply your own handler using `config.async_handler`. For example:
+Ratchet uses [girl_friday](https://github.com/mperham/girl_friday) to handle asynchronous reporting when installed, and falls back to Threading if girl_friday is not installed.
+
+You can supply your own handler using `config.async_handler`. The handler should schedule the payload for later processing (i.e. with a delayed_job, in a resque queue, etc.) and should itself return immediately. For example:
 
 ```ruby
   config.async_handler = Proc.new { |payload|
@@ -114,16 +116,17 @@ Ratchet uses [girl_friday](https://github.com/mperham/girl_friday) to handle asy
 Make sure you pass `payload` to `Ratchetio.process_payload` in your own implementation.
 
 
+## Using with ratchet-agent
 
-## Writing to a file
-
-You can configure Ratchet to write to a file instead of sending the payload to Ratchet servers directly. [ratchet-agent](https://github.com/ratchetio/ratchet-agent) can then be hooked up to this file to actually send the payload across. To enable file writing, add the following in `config/initializers/ratchetio.rb`:
+For even more asynchrony, you can configure the gem to write to a file instead of sending the payload to Ratchet servers directly. [ratchet-agent](https://github.com/ratchetio/ratchet-agent) can then be hooked up to this file to actually send the payload across. To enable, add the following in `config/initializers/ratchetio.rb`:
 
 ```ruby
   config.write_to_file = true
+  # optional, defaults to "#{AppName}.ratchet"
   config.filepath = '/path/to/file.ratchet' #should end in '.ratchet' for use with ratchet-agent
 ```
 
+For this to work, you'll also need to set up ratchet-agent--see its docs for details.
 
 
 ## Help / Support

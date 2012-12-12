@@ -2,7 +2,7 @@
 
 **0.4.8**
 - Add ability to send reports asynchronously, using girl_friday or Threading by default.
-- Add ability to save reports to a file instead of sending across to Ratchet servers.
+- Add ability to save reports to a file (for use with ratchet-agent) instead of sending across to Ratchet servers.
 
 **0.4.7**
 - Sensitive params now scrubbed out of requests. Param name list is customizable via the `scrub_fields` config option.
