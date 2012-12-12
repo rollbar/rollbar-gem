@@ -13,6 +13,7 @@ module Ratchetio
         config.environment ||= ::Rails.env
         config.root ||= ::Rails.root
         config.framework = "Rails: #{::Rails::VERSION::STRING}"
+        config.filepath ||= ::Rails.application.class.parent_name + '.ratchet'
       end
 
       ActiveSupport.on_load(:action_controller) do

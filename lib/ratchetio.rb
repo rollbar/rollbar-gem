@@ -1,11 +1,13 @@
 require 'net/https'
 require 'socket'
+require 'thread'
 require 'uri'
 
 require 'ratchetio/version'
 require 'ratchetio/configuration'
 require 'ratchetio/railtie' if defined?(Rails)
 require 'ratchetio/goalie' if defined?(Goalie)
+require "girl_friday" if defined?(GirlFriday)
 
 module Ratchetio
   class << self
@@ -67,7 +69,7 @@ module Ratchetio
       data[:person] = person_data if person_data
 
       payload = build_payload(data)
-      send_payload(payload)
+      schedule_payload(payload)
     rescue => e
       logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
     end
@@ -90,9 +92,21 @@ module Ratchetio
       
       data = message_data(message, level, extra_data)
       payload = build_payload(data)
-      send_payload(payload)
+      schedule_payload(payload)
     rescue => e
       logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+    end
+
+    def process_payload(payload)
+      begin
+        if configuration.write_to_file
+          write_payload(payload)
+        else
+          send_payload(payload)
+        end
+      rescue => e
+        logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+      end
     end
 
     private
@@ -147,10 +161,28 @@ module Ratchetio
       end
       configuration.logger
     end
-
+    
+    def write_payload(payload)
+      @file_semaphore.synchronize {
+        logger.info '[Ratchet.io] Writing payload to file'
+        
+        begin
+          unless @file
+            @file = File.open(configuration.filepath, "a")
+          end
+          
+          @file.puts payload
+          @file.flush
+          logger.info "[Ratchet.io] Success"
+        rescue IOError => e
+          logger.error "[Ratchet.io] Error opening/writing to file: #{e}"
+        end
+      }
+    end
+    
     def send_payload(payload)
       logger.info '[Ratchet.io] Sending payload'
-
+    
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
       
@@ -168,6 +200,26 @@ module Ratchetio
       else
         logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: #{response.code}"
         logger.info "[Ratchet.io] Response: #{response.body}"
+      end
+    end
+    
+    def schedule_payload(payload)
+      logger.info '[Ratchet.io] Scheduling payload'
+      
+      if configuration.use_async
+        unless configuration.async_handler
+          configuration.async_handler = method(:default_async_handler)
+        end
+        
+        if configuration.write_to_file
+          unless @file_semaphore
+            @file_semaphore = Mutex.new
+          end
+        end
+        
+        configuration.async_handler.call(payload)
+      else
+        process_payload(payload)
       end
     end
 
@@ -205,6 +257,20 @@ module Ratchetio
       
       data
     end
-  
+    
+    def default_async_handler(payload)
+      if defined?(GirlFriday)
+        unless @queue
+          @queue = GirlFriday::WorkQueue.new(nil, :size => 5) do |payload|
+            process_payload(payload)
+          end
+        end
+        
+        @queue.push(payload)
+      else
+        logger.warn '[Ratchet.io] girl_friday not found to handle async call, falling back to Thread'
+        Thread.new { process_payload(payload) }
+      end
+    end
   end
 end

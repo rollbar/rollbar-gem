@@ -125,6 +125,107 @@ describe Ratchetio do
       end
     end
   end
+  
+  context 'payload_destination' do
+    before(:each) do
+      configure
+      Ratchetio.configure do |config|
+        config.logger = logger_mock
+        config.filepath = 'test.ratchet'
+      end
+      
+      begin
+        foo = bar
+      rescue => e
+        @exception = e
+      end
+    end
+    
+    let(:logger_mock) { double("Rails.logger").as_null_object }
+    
+    it 'should send the payload over the network by default' do
+      logger_mock.should_not_receive(:info).with('[Ratchet.io] Writing payload to file')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
+      Ratchetio.report_exception(@exception)
+    end
+    
+    it 'should save the payload to a file if set' do
+      logger_mock.should_not_receive(:info).with('[Ratchet.io] Sending payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Writing payload to file')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
+      
+      filepath = ''
+      
+      Ratchetio.configure do |config|
+        config.write_to_file = true
+        filepath = config.filepath
+      end
+      
+      Ratchetio.report_exception(@exception)
+      
+      File.exist?(filepath).should == true
+      File.read(filepath).should include test_access_token
+      File.delete(filepath)
+      
+      Ratchetio.configure do |config|
+        config.write_to_file = false
+      end
+    end
+  end
+  
+  context 'asynchronous_handling' do
+    before(:each) do
+      configure
+      Ratchetio.configure do |config|
+        config.logger = logger_mock
+      end
+      
+      begin
+        foo = bar
+      rescue => e
+        @exception = e
+      end
+    end
+    
+    let(:logger_mock) { double("Rails.logger").as_null_object }
+    
+    it 'should send the payload using the default asynchronous handler girl_friday' do
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
+      
+      Ratchetio.configure do |config|
+        config.use_async = true
+        GirlFriday::WorkQueue::immediate!
+      end
+      
+      Ratchetio.report_exception(@exception)
+      
+      Ratchetio.configure do |config|
+        config.use_async = false
+        GirlFriday::WorkQueue::queue!
+      end
+    end
+    
+    it 'should send the payload using a user-supplied asynchronous handler' do
+      logger_mock.should_receive(:info).with('Custom async handler called')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
+      
+      Ratchetio.configure do |config|
+        config.use_async = true
+        config.async_handler = Proc.new { |payload|
+          logger_mock.info 'Custom async handler called'
+          Ratchetio.process_payload(payload)
+        }
+      end
+      
+      Ratchetio.report_exception(@exception)
+      
+      Ratchetio.configure do |config|
+        config.use_async = false
+        config.async_handler = Ratchetio.method(:default_async_handler)
+      end
+    end
+  end
 
   context 'message_data' do
     before(:each) do

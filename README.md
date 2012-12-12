@@ -85,13 +85,45 @@ If the methods to extract the `id`, `username`, and `email` from the object retu
 
 ## Exception level filters
 
-By default, all exceptions reported through `Ratchetio.report_exception()` are reporeted at the "error" level, except for the following, which are reported at "warning" level:
+By default, all exceptions reported through `Ratchetio.report_exception()` are reported at the "error" level, except for the following, which are reported at "warning" level:
 
 - ActiveRecord::RecordNotFound
 - AbstractController::ActionNotFound
 - ActionController::RoutingError
 
 If you'd like to customize this list, see the example code in `config/initializers/ratchetio.rb`. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all.
+
+
+
+## Asynchronous reporting
+
+By default, all messages are reported synchronously. You can enable asynchronous reporting by adding the following in `config/initializers/ratchetio.rb`:
+
+```ruby
+  config.use_async = true
+```
+
+Ratchet uses [girl_friday](https://github.com/mperham/girl_friday) to handle asynchronous reporting, and falls back to Threading if girl_friday is not installed. You can supply your own handler using `config.async_handler`. For example:
+
+```ruby
+  config.async_handler = Proc.new { |payload|
+    Thread.new { Ratchetio.process_payload(payload) }
+  }
+```
+
+Make sure you pass `payload` to `Ratchetio.process_payload` in your own implementation.
+
+
+
+## Writing to a file
+
+You can configure Ratchet to write to a file instead of sending the payload to Ratchet servers directly. [ratchet-agent](https://github.com/ratchetio/ratchet-agent) can then be hooked up to this file to actually send the payload across. To enable file writing, add the following in `config/initializers/ratchetio.rb`:
+
+```ruby
+  config.write_to_file = true
+  config.filepath = '/path/to/file.ratchet' #should end in '.ratchet' for use with ratchet-agent
+```
+
 
 
 ## Help / Support
