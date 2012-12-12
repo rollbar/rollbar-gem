@@ -163,21 +163,27 @@ module Ratchetio
     end
     
     def write_payload(payload)
-      @file_semaphore.synchronize {
-        logger.info '[Ratchet.io] Writing payload to file'
-        
-        begin
-          unless @file
-            @file = File.open(configuration.filepath, "a")
-          end
-          
-          @file.puts payload
-          @file.flush
-          logger.info "[Ratchet.io] Success"
-        rescue IOError => e
-          logger.error "[Ratchet.io] Error opening/writing to file: #{e}"
+      if configuration.use_async
+        @file_semaphore.lock
+      end
+      
+      logger.info '[Ratchet.io] Writing payload to file'
+      
+      begin
+        unless @file
+          @file = File.open(configuration.filepath, "a")
         end
-      }
+        
+        @file.puts payload
+        @file.flush
+        logger.info "[Ratchet.io] Success"
+      rescue IOError => e
+        logger.error "[Ratchet.io] Error opening/writing to file: #{e}"
+      end
+      
+      if configuration.use_async
+        @file_semaphore.unlock
+      end
     end
     
     def send_payload(payload)
