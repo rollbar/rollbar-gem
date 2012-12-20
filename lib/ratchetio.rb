@@ -257,7 +257,7 @@ module Ratchetio
         }
       }
       
-      if defined?(SecureRandom)
+      if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
         data[:uuid] = SecureRandom.uuid
       end
       
