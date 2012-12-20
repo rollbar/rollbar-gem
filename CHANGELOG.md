@@ -1,5 +1,8 @@
 # Change Log
 
+**0.4.10**
+- Fix compatability issue with ruby 1.8
+
 **0.4.9**
 - Start including a UUID in reported exceptions
 - Fix issue with scrub_fields, and add `:password_confirmation` to the default list
