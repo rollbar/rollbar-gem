@@ -40,7 +40,7 @@ module Ratchetio
       @person_id_method = 'id'
       @person_username_method = 'username'
       @person_email_method = 'email'
-      @scrub_fields = [:passwd, :password, :secret]
+      @scrub_fields = [:passwd, :password, :password_confirmation, :secret]
       @use_async = false
       @async_handler = nil
     end

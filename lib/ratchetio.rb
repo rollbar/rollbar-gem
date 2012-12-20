@@ -1,13 +1,15 @@
 require 'net/https'
+require 'securerandom' if defined?(SecureRandom)
 require 'socket'
 require 'thread'
 require 'uri'
 
-require 'ratchetio/version'
-require 'ratchetio/configuration'
-require 'ratchetio/railtie' if defined?(Rails)
-require 'ratchetio/goalie' if defined?(Goalie)
 require "girl_friday" if defined?(GirlFriday)
+
+require 'ratchetio/configuration'
+require 'ratchetio/goalie' if defined?(Goalie)
+require 'ratchetio/railtie' if defined?(Rails)
+require 'ratchetio/version'
 
 module Ratchetio
   class << self
@@ -39,7 +41,7 @@ module Ratchetio
       @configuration ||= Configuration.new
     end
 
-    # Reports an exception to Ratchet.io
+    # Reports an exception to Ratchet.io. Returns the exception data hash.
     #
     # @example
     #   begin
@@ -70,8 +72,10 @@ module Ratchetio
 
       payload = build_payload(data)
       schedule_payload(payload)
+      data
     rescue => e
       logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
+      nil
     end
 
     # Reports an arbitrary message to Ratchet.io
@@ -241,7 +245,7 @@ module Ratchetio
 
     def base_data(level = 'error')
       config = configuration
-      {
+      data = {
         :timestamp => Time.now.to_i,
         :environment => config.environment,
         :level => level,
@@ -252,6 +256,12 @@ module Ratchetio
           :version => VERSION
         }
       }
+      
+      if defined?(SecureRandom)
+        data[:uuid] = SecureRandom.uuid
+      end
+      
+      data
     end
 
     def server_data

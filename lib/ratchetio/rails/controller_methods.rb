@@ -50,7 +50,7 @@ module Ratchetio
             end
           elsif v.is_a? Hash
             filtered[k] = ratchetio_filter_params v
-          elsif Ratchetio.configuration.scrub_fields.include? k
+          elsif Ratchetio.configuration.scrub_fields.include? k.to_sym
             filtered[k] = "*" * v.length
           else
             filtered[k] = v
@@ -95,7 +95,7 @@ module Ratchetio
 
       def ratchetio_session_data
         if session.respond_to?(:to_hash)
-          session.to_hash
+          ratchetio_filter_params(session.to_hash)
         else
           session.data
         end

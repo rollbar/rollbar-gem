@@ -1,5 +1,9 @@
 # Change Log
 
+**0.4.9**
+- Start including a UUID in reported exceptions
+- Fix issue with scrub_fields, and add `:password_confirmation` to the default list
+
 **0.4.8**
 - Add ability to send reports asynchronously, using girl_friday or Threading by default.
 - Add ability to save reports to a file (for use with ratchet-agent) instead of sending across to Ratchet servers.
