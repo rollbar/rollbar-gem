@@ -73,6 +73,17 @@ describe Ratchetio do
         config.exception_level_filters = saved_filters
       end
     end
+
+    it 'should report exception objects with no backtrace' do
+      payload = nil
+      Ratchetio.stub(:schedule_payload) do |*args|
+        payload = JSON.parse( args[0] )
+      end
+      Ratchetio.report_exception(StandardError.new("oops"))
+      payload["data"]["body"]["trace"]["frames"].should == []
+      payload["data"]["body"]["trace"]["exception"]["class"].should == "StandardError"
+      payload["data"]["body"]["trace"]["exception"]["message"].should == "oops"
+    end
   end
   
   context 'report_message' do
