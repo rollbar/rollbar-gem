@@ -1,5 +1,8 @@
 # Change Log
 
+**0.5.0**
+- Add support to report exceptions raised in delayed_job.
+
 **0.4.10**
 - Fix compatability issue with ruby 1.8
 
