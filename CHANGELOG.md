@@ -1,5 +1,8 @@
 # Change Log
 
+**0.5.1**
+- Save the exception uuid in `env['ratchetio.exception_uuid']` for display in user-facing error pages.
+
 **0.5.0**
 - Add support to report exceptions raised in delayed_job.
 
