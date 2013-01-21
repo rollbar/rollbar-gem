@@ -97,6 +97,7 @@ describe Ratchetio do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should report simple messages' do
+      logger_mock.should_receive(:info).with('[Ratchet.io] Scheduling payload')
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.report_message("Test message")
     end
