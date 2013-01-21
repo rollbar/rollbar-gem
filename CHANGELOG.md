@@ -3,6 +3,9 @@
 **0.5.0**
 - Add support to report exceptions raised in delayed_job.
 
+**0.4.11**
+- Allow exceptions with no backtrace (e.g. StandardError subclasses)
+
 **0.4.10**
 - Fix compatability issue with ruby 1.8
 
