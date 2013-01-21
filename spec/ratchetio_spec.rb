@@ -85,10 +85,12 @@ describe Ratchetio do
       payload["data"]["body"]["trace"]["exception"]["message"].should == "oops"
     end
 
-    it 'should return the exception data with a uuid' do
-      Ratchetio.stub(:schedule_payload) do |*args| end
-      exception_data = Ratchetio.report_exception(StandardError.new("oops"))
-      exception_data[:uuid].should_not be_nil
+    it 'should return the exception data with a uuid, on platforms with SecureRandom' do
+      if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
+        Ratchetio.stub(:schedule_payload) do |*args| end
+        exception_data = Ratchetio.report_exception(StandardError.new("oops"))
+        exception_data[:uuid].should_not be_nil
+      end
     end
   end
   
