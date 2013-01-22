@@ -3,7 +3,7 @@ class HomeController < ApplicationController
     @users = User.all
 
     Ratchetio.report_message("Test message from controller with no data", "debug")
-    Ratchetio.report_message("Test message from controller with extra data", "debug", 
+    Ratchetio.report_message("Test message from controller with extra data", "debug",
                              :foo => "bar", :num_users => @users.length)
   end
 
