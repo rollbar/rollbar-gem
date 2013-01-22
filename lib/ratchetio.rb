@@ -7,7 +7,7 @@ require 'uri'
 require "girl_friday" if defined?(GirlFriday)
 
 require 'ratchetio/configuration'
-require 'ratchetio/delayed_job' if defined?(Delayed)
+require 'ratchetio/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
 require 'ratchetio/goalie' if defined?(Goalie)
 require 'ratchetio/railtie' if defined?(Rails)
 require 'ratchetio/version'
