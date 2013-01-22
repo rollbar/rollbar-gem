@@ -244,6 +244,7 @@ describe Ratchetio do
 
     it 'should send the payload using a user-supplied asynchronous handler' do
       logger_mock.should_receive(:info).with('Custom async handler called')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
 
       Ratchetio.configure do |config|
