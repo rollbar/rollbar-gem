@@ -94,6 +94,16 @@ By default, all exceptions reported through `Ratchetio.report_exception()` are r
 If you'd like to customize this list, see the example code in `config/initializers/ratchetio.rb`. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all.
 
 
+## Silencing exceptions at runtime
+
+If you just want to disable exception reporting for a single block, use `Ratchetio.silenced`:
+
+```ruby
+Ratchetio.silenced {
+  foo = bar  # will not be reported
+}
+```
+
 
 ## Asynchronous reporting
 

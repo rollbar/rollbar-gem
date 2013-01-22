@@ -1,5 +1,8 @@
 # Change Log
 
+**0.5.3**
+- Add `Ratchetio.silenced`; which allows disabling reporting for a given block. See README for usage.
+
 **0.5.2**
 - Fix compat issue with delayed_job below version 3. Exceptions raised by delayed_job below version 3 will not be automatically caught; upgrade to v3 or catch and report by hand. 
 
