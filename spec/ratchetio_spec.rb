@@ -10,14 +10,14 @@ describe Ratchetio do
       Ratchetio.configure do |config|
         config.logger = logger_mock
       end
-      
+
       begin
         foo = bar
       rescue => e
         @exception = e
       end
     end
-   
+
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should report exceptions without person or request data' do
@@ -30,9 +30,9 @@ describe Ratchetio do
       Ratchetio.configure do |config|
         config.enabled = false
       end
-      
+
       Ratchetio.report_exception(@exception)
-      
+
       Ratchetio.configure do |config|
         config.enabled = true
       end
@@ -66,12 +66,28 @@ describe Ratchetio do
       logger_mock.should_not_receive(:info)
       logger_mock.should_not_receive(:warn)
       logger_mock.should_not_receive(:error)
-      
+
       Ratchetio.report_exception(@exception)
-      
+
       Ratchetio.configure do |config|
         config.exception_level_filters = saved_filters
       end
+    end
+
+    it 'should not report exceptions when silenced' do
+      Ratchetio.should_not_receive :schedule_payload
+
+      begin
+        test_var = 1
+        Ratchetio.silenced do
+          test_var = 2
+          raise
+        end
+      rescue => e
+        Ratchetio.report_exception(e)
+      end
+
+      test_var.should == 2
     end
 
     it 'should report exception objects with no backtrace' do
@@ -93,7 +109,7 @@ describe Ratchetio do
       end
     end
   end
-  
+
   context 'report_message' do
     before(:each) do
       configure
@@ -101,7 +117,7 @@ describe Ratchetio do
         config.logger = logger_mock
       end
     end
-    
+
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should report simple messages' do
@@ -115,9 +131,9 @@ describe Ratchetio do
       Ratchetio.configure do |config|
         config.enabled = false
       end
-      
+
       Ratchetio.report_message("Test message that should be ignored")
-      
+
       Ratchetio.configure do |config|
         config.enabled = true
       end
@@ -145,7 +161,7 @@ describe Ratchetio do
       end
     end
   end
-  
+
   context 'payload_destination' do
     before(:each) do
       configure
@@ -153,83 +169,83 @@ describe Ratchetio do
         config.logger = logger_mock
         config.filepath = 'test.ratchet'
       end
-      
+
       begin
         foo = bar
       rescue => e
         @exception = e
       end
     end
-    
+
     let(:logger_mock) { double("Rails.logger").as_null_object }
-    
+
     it 'should send the payload over the network by default' do
       logger_mock.should_not_receive(:info).with('[Ratchet.io] Writing payload to file')
       logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
       Ratchetio.report_exception(@exception)
     end
-    
+
     it 'should save the payload to a file if set' do
       logger_mock.should_not_receive(:info).with('[Ratchet.io] Sending payload')
       logger_mock.should_receive(:info).with('[Ratchet.io] Writing payload to file')
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
-      
+
       filepath = ''
-      
+
       Ratchetio.configure do |config|
         config.write_to_file = true
         filepath = config.filepath
       end
-      
+
       Ratchetio.report_exception(@exception)
-      
+
       File.exist?(filepath).should == true
       File.read(filepath).should include test_access_token
       File.delete(filepath)
-      
+
       Ratchetio.configure do |config|
         config.write_to_file = false
       end
     end
   end
-  
+
   context 'asynchronous_handling' do
     before(:each) do
       configure
       Ratchetio.configure do |config|
         config.logger = logger_mock
       end
-      
+
       begin
         foo = bar
       rescue => e
         @exception = e
       end
     end
-    
+
     let(:logger_mock) { double("Rails.logger").as_null_object }
-    
+
     it 'should send the payload using the default asynchronous handler girl_friday' do
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
-      
+
       Ratchetio.configure do |config|
         config.use_async = true
         GirlFriday::WorkQueue::immediate!
       end
-      
+
       Ratchetio.report_exception(@exception)
-      
+
       Ratchetio.configure do |config|
         config.use_async = false
         GirlFriday::WorkQueue::queue!
       end
     end
-    
+
     it 'should send the payload using a user-supplied asynchronous handler' do
       logger_mock.should_receive(:info).with('Custom async handler called')
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
-      
+
       Ratchetio.configure do |config|
         config.use_async = true
         config.async_handler = Proc.new { |payload|
@@ -237,9 +253,9 @@ describe Ratchetio do
           Ratchetio.process_payload(payload)
         }
       end
-      
+
       Ratchetio.report_exception(@exception)
-      
+
       Ratchetio.configure do |config|
         config.use_async = false
         config.async_handler = Ratchetio.method(:default_async_handler)
@@ -264,16 +280,16 @@ describe Ratchetio do
       user_id = 123
       name = "Tester"
 
-      data = Ratchetio.send(:message_data, @message_body, 'info', 
+      data = Ratchetio.send(:message_data, @message_body, 'info',
                             :user_id => user_id, :name => name)
-      
+
       message = data[:body][:message]
       message[:body].should == @message_body
       message[:user_id].should == user_id
       message[:name].should == name
     end
   end
-  
+
   context 'exception_data' do
     before(:each) do
       configure
@@ -283,7 +299,7 @@ describe Ratchetio do
         @exception = e
       end
     end
-    
+
     it 'should accept force_level' do
       level = 'critical'
       data = Ratchetio.send(:exception_data, @exception, level)
@@ -292,11 +308,11 @@ describe Ratchetio do
 
     it 'should build valid exception data' do
       data = Ratchetio.send(:exception_data, @exception)
-      
+
       data[:level].should_not be_nil
-      
+
       trace = data[:body][:trace]
-      
+
       frames = trace[:frames]
       frames.should be_a_kind_of(Array)
       frames.each do |frame|
@@ -306,14 +322,14 @@ describe Ratchetio do
           frame[:method].should be_a_kind_of(String)
         end
       end
-      
+
       # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
       # http://yehudakatz.com/2010/01/02/the-craziest-fing-bug-ive-ever-seen/
       trace[:exception][:class].should match(/^(NameError|NoMethodError)$/)
       trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
     end
   end
-  
+
   context 'logger' do
     before(:each) do
       reset_configuration
@@ -340,7 +356,7 @@ describe Ratchetio do
       reset_configuration
     end
   end
-  
+
   context 'build_payload' do
     it 'should build valid json' do
       json = Ratchetio.send(:build_payload, {:foo => {:bar => "baz"}})
@@ -357,7 +373,7 @@ describe Ratchetio do
     it 'should have the correct notifier name' do
       Ratchetio.send(:base_data)[:notifier][:name].should == 'ratchetio-gem'
     end
-    
+
     it 'should have the correct notifier version' do
       Ratchetio.send(:base_data)[:notifier][:version].should == Ratchetio::VERSION
     end

@@ -10,6 +10,7 @@ coverage
 doc/
 log/
 lib/bundler/man
+vendor/bundle
 pkg
 rdoc
 spec/reports
