@@ -18,4 +18,8 @@ class HomeController < ApplicationController
   def cause_exception
     foo = bar
   end
+
+  def current_user
+    User.find_by_encrypted_password(cookies[:session_id])
+  end
 end
