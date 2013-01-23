@@ -18,16 +18,19 @@ module Ratchetio
 
       ActiveSupport.on_load(:action_controller) do
         # lazily load action_controller methods
+        require 'ratchetio/rails/request_data_extractor'
         require 'ratchetio/rails/controller_methods'
         include Ratchetio::Rails::ControllerMethods
       end
 
       if defined?(::ActionDispatch::DebugExceptions)
         # rails 3.2.x
+        require 'ratchetio/rails/request_data_extractor'
         require 'ratchetio/rails/middleware/exception_catcher'
         ::ActionDispatch::DebugExceptions.send(:include, Ratchetio::Rails::Middleware::ExceptionCatcher)
       elsif defined?(::ActionDispatch::ShowExceptions)
         # rails 3.0.x and 3.1.x
+        require 'ratchetio/rails/request_data_extractor'
         require 'ratchetio/rails/middleware/exception_catcher'
         ::ActionDispatch::ShowExceptions.send(:include, Ratchetio::Rails::Middleware::ExceptionCatcher)
       end

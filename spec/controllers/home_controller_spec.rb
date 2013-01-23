@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe HomeController do
-  
+
   before(:each) do
     reset_configuration
     Ratchetio.configure do |config|
@@ -12,7 +12,7 @@ describe HomeController do
       config.logger = logger_mock
     end
   end
-    
+
   let(:logger_mock) { double("Rails.logger").as_null_object }
 
   context "ratchetio controller methods" do
@@ -43,14 +43,14 @@ describe HomeController do
           :tempfile => "dummy"
         }
         file = ActionDispatch::Http::UploadedFile.new(file_hash)
-        
+
         params = {
           :name => name,
           :a_file => file
         }
 
-        filtered = controller.send(:ratchetio_filter_params, params)
-        
+        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+
         filtered[:name].should == name
         filtered[:a_file].should be_a_kind_of(Hash)
         filtered[:a_file][:content_type].should == file_hash[:type]
@@ -67,7 +67,7 @@ describe HomeController do
           :tempfile => "dummy"
         }
         file = ActionDispatch::Http::UploadedFile.new(file_hash)
-        
+
         params = {
           :name => name,
           :wrapper => {
@@ -78,18 +78,18 @@ describe HomeController do
           }
         }
 
-        filtered = controller.send(:ratchetio_filter_params, params)
-        
+        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+
         filtered[:name].should == name
         filtered[:wrapper][:wrapper2][:foo].should == "bar"
-        
+
         filtered_file = filtered[:wrapper][:wrapper2][:a_file]
         filtered_file.should be_a_kind_of(Hash)
         filtered_file[:content_type].should == file_hash[:type]
         filtered_file[:original_filename].should == file_hash[:filename]
         filtered_file[:size].should == file_hash[:tempfile].size
       end
-      
+
       it "should scrub the default scrub_fields" do
         params = {
           :passwd => "hidden",
@@ -97,29 +97,29 @@ describe HomeController do
           :secret => "hidden",
           :notpass => "visible"
         }
-        
-        filtered = controller.send(:ratchetio_filter_params, params)
-        
+
+        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+
         filtered[:passwd].should == "******"
         filtered[:password].should == "******"
         filtered[:secret].should == "******"
         filtered[:notpass].should == "visible"
       end
-      
+
       it "should scrub custom scrub_fields" do
         Ratchetio.configure do |config|
           config.scrub_fields = [:notpass, :secret]
         end
-        
+
         params = {
           :passwd => "visible",
           :password => "visible",
           :secret => "hidden",
           :notpass => "hidden"
         }
-        
-        filtered = controller.send(:ratchetio_filter_params, params)
-        
+
+        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+
         filtered[:passwd].should == "visible"
         filtered[:password].should == "visible"
         filtered[:secret].should == "******"
@@ -132,7 +132,7 @@ describe HomeController do
         req = controller.request
         req.host = 'ratchet.io'
 
-        controller.send(:ratchetio_request_url).should == 'http://ratchet.io'
+        controller.send(:ratchetio_request_data)[:url].should == 'http://ratchet.io'
       end
     end
 
@@ -140,16 +140,16 @@ describe HomeController do
       it "should use X-Real-Ip when set" do
         controller.request.env["HTTP_X_REAL_IP"] = '1.1.1.1'
         controller.request.env["HTTP_X_FORWARDED_FOR"] = '1.2.3.4'
-        controller.send(:ratchetio_user_ip).should == '1.1.1.1'
+        controller.send(:ratchetio_request_data)[:user_ip].should == '1.1.1.1'
       end
 
       it "should use X-Forwarded-For when set" do
         controller.request.env["HTTP_X_FORWARDED_FOR"] = '1.2.3.4'
-        controller.send(:ratchetio_user_ip).should == '1.2.3.4'
+        controller.send(:ratchetio_request_data)[:user_ip].should == '1.2.3.4'
       end
 
       it "should use the remote_addr when neither is set" do
-        controller.send(:ratchetio_user_ip).should == '0.0.0.0'
+        controller.send(:ratchetio_request_data)[:user_ip].should == '0.0.0.0'
       end
     end
 
@@ -175,12 +175,31 @@ describe HomeController do
   # TODO need to figure out how to make a test request that uses enough of the middleware
   # that it invokes the ratchetio exception catcher. just plain "get 'some_url'" doesn't
   # seem to work.
-  it "should report uncaught exceptions"
-  
+  context "with error hiding deep inside" do
+    before(:each) do
+      ActionDispatch::Cookies::CookieJar.send(:define_method, :[]) do |name|
+        instance_variable_get(:@cookies)[name - 1] # Failure be here
+      end
+    end
+
+    after(:each) do
+      ActionDispatch::Cookies::CookieJar.send(:define_method, :[]) do |name|
+        instance_variable_get(:@cookies)[name] # Fix be here
+      end
+    end
+
+    it "should report uncaught exceptions" do
+      expect {
+        get 'current_user'
+        Ratchetio.should_receive(:report_exception).once
+      }.to raise_exception
+    end
+  end
+
   after(:each) do
     Ratchetio.configure do |config|
       config.logger = ::Rails.logger
     end
   end
-  
+
 end
