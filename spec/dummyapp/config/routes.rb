@@ -10,5 +10,5 @@ Dummy::Application.routes.draw do
 
   match "/cause_exception" => "home#cause_exception"
   match "/report_exception" => "home#report_exception"
-  match "/current_user" => "home#current_user", as: 'current_user'
+  match "/current_user" => "home#current_user"
 end
