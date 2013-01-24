@@ -1,5 +1,8 @@
 # Change Log
 
+**0.5.4**
+- Added new default scrub params
+
 **0.5.3**
 - Add `Ratchetio.silenced`; which allows disabling reporting for a given block. See README for usage.
 
