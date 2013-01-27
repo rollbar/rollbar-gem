@@ -227,6 +227,8 @@ describe Ratchetio do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should send the payload using the default asynchronous handler girl_friday' do
+      logger_mock.should_receive(:info).with('[Ratchet.io] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Ratchet.io] Sending payload')
       logger_mock.should_receive(:info).with('[Ratchet.io] Success')
 
       Ratchetio.configure do |config|
