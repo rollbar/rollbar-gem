@@ -93,7 +93,7 @@ describe Ratchetio do
     it 'should report exception objects with no backtrace' do
       payload = nil
       Ratchetio.stub(:schedule_payload) do |*args|
-        payload = JSON.parse( args[0] )
+        payload = MultiJson.load(args[0])
       end
       Ratchetio.report_exception(StandardError.new("oops"))
       payload["data"]["body"]["trace"]["frames"].should == []
@@ -363,15 +363,13 @@ describe Ratchetio do
   context 'build_payload' do
     it 'should build valid json' do
       json = Ratchetio.send(:build_payload, {:foo => {:bar => "baz"}})
-      hash = ActiveSupport::JSON.decode(json)
+      hash = MultiJson.load(json)
       hash["data"]["foo"]["bar"].should == "baz"
     end
   end
 
   context 'base_data' do
-    before(:each) do
-      configure
-    end
+    before(:each) { configure }
 
     it 'should have the correct notifier name' do
       Ratchetio.send(:base_data)[:notifier][:name].should == 'ratchetio-gem'

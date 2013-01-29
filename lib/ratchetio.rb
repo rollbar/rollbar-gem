@@ -277,7 +277,7 @@ module Ratchetio
         :access_token => configuration.access_token,
         :data => data
       }
-      ActiveSupport::JSON.encode(payload)
+      MultiJson.dump(payload)
     end
 
     def base_data(level = 'error')
