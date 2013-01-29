@@ -8,6 +8,7 @@ require "girl_friday" if defined?(GirlFriday)
 
 require 'ratchetio/configuration'
 require 'ratchetio/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
+require 'ratchetio/sidekiq' if defined?(Sidekiq)
 require 'ratchetio/goalie' if defined?(Goalie)
 require 'ratchetio/railtie' if defined?(Rails)
 require 'ratchetio/version'
