@@ -1,5 +1,9 @@
 # Change Log
 
+**0.6.0**
+- Change so that request data is gathered from the rack environment instead of a controller
+- Add Sidekiq middleware for catching workers' exceptions
+
 **0.5.4**
 - Added new default scrub params
 
