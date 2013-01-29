@@ -6,15 +6,20 @@ require 'uri'
 
 require "girl_friday" if defined?(GirlFriday)
 
+require 'ratchetio/version'
 require 'ratchetio/configuration'
+require 'ratchetio/request_data_extractor'
+require 'ratchetio/exception_reporter'
+
 require 'ratchetio/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
 require 'ratchetio/goalie' if defined?(Goalie)
+require 'ratchetio/rack' if defined?(Rack)
 require 'ratchetio/railtie' if defined?(Rails)
-require 'ratchetio/version'
 
 module Ratchetio
   class << self
     attr_writer :configuration
+    attr_reader :last_report
 
     # Configures the gem.
     #
@@ -57,24 +62,21 @@ module Ratchetio
     # @param person_data [Hash] Data describing the affected person. Should be the result of calling
     #   `ratchetio_person_data`
     def report_exception(exception, request_data = nil, person_data = nil)
-      unless configuration.enabled
-        return
-      end
-
-      if ignored?(exception)
-        return
-      end
+      return 'disabled' unless configuration.enabled
+      return 'ignored' if ignored?(exception)
 
       data = exception_data(exception, filtered_level(exception))
       data[:request] = request_data if request_data
       data[:person] = person_data if person_data
+
+      @last_report = data
 
       payload = build_payload(data)
       schedule_payload(payload)
       data
     rescue => e
       logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
-      nil
+      'error'
     end
 
     # Reports an arbitrary message to Ratchet.io

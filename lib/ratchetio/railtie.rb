@@ -22,16 +22,15 @@ module Ratchetio
         include Ratchetio::Rails::ControllerMethods
       end
 
-      if defined?(::ActionDispatch::DebugExceptions)
-        # rails 3.2.x
-        require 'ratchetio/rails/middleware/exception_catcher'
-        ::ActionDispatch::DebugExceptions.send(:include, Ratchetio::Rails::Middleware::ExceptionCatcher)
-      elsif defined?(::ActionDispatch::ShowExceptions)
-        # rails 3.0.x and 3.1.x
-        require 'ratchetio/rails/middleware/exception_catcher'
-        ::ActionDispatch::ShowExceptions.send(:include, Ratchetio::Rails::Middleware::ExceptionCatcher)
+      if defined?(ActionDispatch::DebugExceptions)
+        # Rails 3.2.x
+        require 'ratchetio/middleware/rails/show_exceptions'
+        ActionDispatch::DebugExceptions.send(:include, Ratchetio::Middleware::Rails::ShowExceptions)
+      elsif defined?(ActionDispatch::ShowExceptions)
+        # Rails 3.0.x and 3.1.x
+        require 'ratchetio/middleware/rails/show_exceptions'
+        ActionDispatch::ShowExceptions.send(:include, Ratchetio::Middleware::Rails::ShowExceptions)
       end
-
     end
   end
 end
