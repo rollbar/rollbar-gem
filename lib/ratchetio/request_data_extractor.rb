@@ -16,7 +16,7 @@ module Ratchetio
       cookies = ratchetio_filtered_params(sensitive_params, ratchetio_request_cookies(env))
       get_params = ratchetio_filtered_params(sensitive_params, ratchetio_get_params(env))
       post_params = ratchetio_filtered_params(sensitive_params, ratchetio_post_params(env))
-
+    
       {
         :params => get_params.merge(post_params).merge(request_params),
         :url => ratchetio_url(env),
@@ -55,7 +55,7 @@ module Ratchetio
     end
 
     def ratchetio_user_ip(env)
-      env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR']
+      (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR']).to_s
     end
 
     def ratchetio_request_params(env)
