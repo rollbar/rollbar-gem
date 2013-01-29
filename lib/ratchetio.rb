@@ -12,6 +12,7 @@ require 'ratchetio/request_data_extractor'
 require 'ratchetio/exception_reporter'
 
 require 'ratchetio/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
+require 'ratchetio/sidekiq' if defined?(Sidekiq)
 require 'ratchetio/goalie' if defined?(Goalie)
 require 'ratchetio/rack' if defined?(Rack)
 require 'ratchetio/railtie' if defined?(Rails)
