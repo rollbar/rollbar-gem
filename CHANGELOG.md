@@ -1,7 +1,11 @@
 # Change Log
 
+**0.6.1**
+- Added a log message containing a link to the instance. Copy-paste the link into your browser to view its details in Ratchet.
+- Ratchetio.report_message now returns 'ignored' or 'error' instead of nil when a message is not reported for one of those reasons, for consistency with Ratchetio.report_exception.
+
 **0.6.0**
-- BREAKING CHANGE: Ratchetio.report_exception now returns 'ignored', 'disabled', or 'error' instead of nil when the exception is not reported for one of those reasons. It still returns the payload upon success.
+- POSSIBLE BREAKING CHANGE: Ratchetio.report_exception now returns 'ignored', 'disabled', or 'error' instead of nil when the exception is not reported for one of those reasons. It still returns the payload upon success.
 - Request data is now parsed from the rack environment instead of from within the controller, addressing issue #10.
 - Add Sidekiq middleware for catching workers' exceptions
 - Replaced activesupport dependency with multi_json

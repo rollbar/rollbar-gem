@@ -74,6 +74,7 @@ module Ratchetio
 
       payload = build_payload(data)
       schedule_payload(payload)
+      log_instance_link(data)
       data
     rescue => e
       logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
@@ -92,15 +93,16 @@ module Ratchetio
     # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as
     #   it is reserved.
     def report_message(message, level = 'info', extra_data = {})
-      unless configuration.enabled
-        return
-      end
+      return 'disabled' unless configuration.enabled
 
       data = message_data(message, level, extra_data)
       payload = build_payload(data)
       schedule_payload(payload)
+      log_instance_link(data)
+      data
     rescue => e
       logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+      'error'
     end
 
     # Turns off reporting for the given block.
@@ -131,6 +133,10 @@ module Ratchetio
     end
 
     private
+
+    def log_instance_link(data)
+      logger.info "[Ratchet.io] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
+    end
 
     def ignored?(exception)
       if filtered_level(exception) == 'ignore'

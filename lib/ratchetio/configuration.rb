@@ -4,14 +4,14 @@ module Ratchetio
   class Configuration
 
     attr_accessor :access_token
+    attr_accessor :async_handler
     attr_accessor :branch
     attr_accessor :default_logger
     attr_accessor :enabled
     attr_accessor :endpoint
-    attr_accessor :write_to_file
-    attr_accessor :filepath
     attr_accessor :environment
     attr_accessor :exception_level_filters
+    attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :logger
     attr_accessor :person_method
@@ -21,21 +21,23 @@ module Ratchetio
     attr_accessor :root
     attr_accessor :scrub_fields
     attr_accessor :use_async
-    attr_accessor :async_handler
+    attr_accessor :web_base
+    attr_accessor :write_to_file
 
     DEFAULT_ENDPOINT = 'https://submit.ratchet.io/api/1/item/'
+    DEFAULT_WEB_BASE = 'https://ratchet.io'
 
     def initialize
+      @async_handler = nil
       @default_logger = lambda { Logger.new(STDERR) }
       @enabled = true
       @endpoint = DEFAULT_ENDPOINT
-      @write_to_file = false
-      @framework = 'Plain'
       @exception_level_filters = {
         'ActiveRecord::RecordNotFound' => 'warning',
         'AbstractController::ActionNotFound' => 'warning',
         'ActionController::RoutingError' => 'warning'
       }
+      @framework = 'Plain'
       @person_method = 'current_user'
       @person_id_method = 'id'
       @person_username_method = 'username'
@@ -43,7 +45,8 @@ module Ratchetio
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation]
       @use_async = false
-      @async_handler = nil
+      @web_base = DEFAULT_WEB_BASE
+      @write_to_file = false
     end
 
     # allow params to be read like a hash
