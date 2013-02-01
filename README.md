@@ -126,11 +126,6 @@ You can supply your own handler using `config.async_handler`. The handler should
 Make sure you pass `payload` to `Ratchetio.process_payload` in your own implementation.
 
 
-## Using with Goalie
-
-If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pages, you may need to explicitly add `require 'goalie'` to `config/application.rb` (in addition to `require goalie/rails`) so that the monkeypatch will work. (This will be obvious if it is needed because your app won't start up: you'll see a cryptic error message about `Goalie::CustomErrorPages.render_exception` not being defined.)
-
-
 ## Using with ratchet-agent
 
 For even more asynchrony, you can configure the gem to write to a file instead of sending the payload to Ratchet servers directly. [ratchet-agent](https://github.com/ratchetio/ratchet-agent) can then be hooked up to this file to actually send the payload across. To enable, add the following in `config/initializers/ratchetio.rb`:
@@ -142,6 +137,11 @@ For even more asynchrony, you can configure the gem to write to a file instead o
 ```
 
 For this to work, you'll also need to set up ratchet-agent--see its docs for details.
+
+
+## Using with Goalie
+
+If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pages, you may need to explicitly add `require 'goalie'` to `config/application.rb` (in addition to `require 'goalie/rails'`) so that the monkeypatch will work. (This will be obvious if it is needed because your app won't start up: you'll see a cryptic error message about `Goalie::CustomErrorPages.render_exception` not being defined.)
 
 
 ## Using with Resque
