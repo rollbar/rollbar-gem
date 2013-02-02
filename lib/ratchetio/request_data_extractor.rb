@@ -109,7 +109,7 @@ module Ratchetio
     end
 
     def sensitive_params_list(env)
-      Ratchetio.configuration.scrub_fields |= Array(env['action_dispatch.parameter_filter'])
+      Ratchetio.configuration.scrub_fields ||= Array(env['action_dispatch.parameter_filter'])
     end
   end
 end
