@@ -13,10 +13,11 @@ module Ratchetio
     def extract_request_data_from_rack(env)
       sensitive_params = sensitive_params_list(env)
       request_params = ratchetio_request_params(env)
+      session =  ratchetio_filtered_params(sensitive_params, env['rack.session.options'])
       cookies = ratchetio_filtered_params(sensitive_params, ratchetio_request_cookies(env))
       get_params = ratchetio_filtered_params(sensitive_params, ratchetio_get_params(env))
       post_params = ratchetio_filtered_params(sensitive_params, ratchetio_post_params(env))
-    
+
       {
         :params => get_params.merge(post_params).merge(request_params),
         :url => ratchetio_url(env),
@@ -25,7 +26,7 @@ module Ratchetio
         :GET => get_params,
         :POST => post_params,
         :cookies => cookies,
-        :session => env['rack.session.options'],
+        :session => session,
         :method => ratchetio_request_method(env)
       }
     end
