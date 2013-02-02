@@ -91,11 +91,11 @@ module Ratchetio
 
     def ratchetio_filtered_params(sensitive_params, params)
       params.inject({}) do |result, (key, value)|
-        if key.to_sym.in?(sensitive_params)
+        if sensitive_params && sensitive_params.include?(key.to_sym)
           result[key] = '*' * (value.length rescue 8)
         elsif value.is_a?(Hash)
           result[key] = ratchetio_filtered_params(sensitive_params, value)
-        elsif value.class.name.in?(ATTACHMENT_CLASSES)
+        elsif ATTACHMENT_CLASSES.include?(value.class.name)
           result[key] = {
             :content_type => value.content_type,
             :original_filename => value.original_filename,

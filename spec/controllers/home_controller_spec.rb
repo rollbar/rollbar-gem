@@ -106,9 +106,7 @@ describe HomeController do
       end
 
       it "should scrub custom scrub_fields" do
-        Ratchetio.configure do |config|
-          config.scrub_fields = [:notpass, :secret]
-        end
+        Ratchetio.configuration.stub(:scrub_fields).and_return [:notpass, :secret]
 
         params = {
           :passwd => "visible",
@@ -123,6 +121,20 @@ describe HomeController do
         filtered[:password].should == "visible"
         filtered[:secret].should == "******"
         filtered[:notpass].should == "******"
+      end
+
+      it "should not scrub when scrub_fields is empty" do
+        Ratchetio.configuration.stub(:scrub_fields).and_return(nil)
+
+        params = {
+          :passwd => "visible",
+          :password => "visible"
+        }
+
+        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+
+        filtered[:passwd].should == "visible"
+        filtered[:password].should == "visible"
       end
     end
 
