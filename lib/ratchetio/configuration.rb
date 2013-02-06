@@ -50,6 +50,11 @@ module Ratchetio
       @write_to_file = false
       @use_eventmachine = false
     end
+    
+    def use_eventmachine=(value)
+      require 'em-http-request' if value
+      @use_eventmachine = value
+    end
 
     # allow params to be read like a hash
     def [](option)
