@@ -235,9 +235,7 @@ module Ratchetio
       end
     end
 
-    def send_payload_using_eventmachine(payload)
-      logger.info '[Ratchet.io] Sending payload'
-      
+    def send_payload_using_eventmachine(payload)      
       req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => payload)
       req.callback do
         if req.response_header.status == 200
