@@ -243,12 +243,13 @@ module Ratchetio
         if req.response_header.status == 200
           logger.info '[Ratchet.io] Success'
         else
-          logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: #{response.code}"
-          logger.info "[Ratchet.io] Response: #{response.body}"          
+          logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: #{req.response_header.status}"
+          logger.info "[Ratchet.io] Response: #{req.response}"          
         end
       end
       req.errback do
-        logger.warn "[Ratchet.io] Call to API failed"
+        logger.warn "[Ratchet.io] Call to API failed, status code: #{req.response_header.status}"
+        logger.info "[Ratchet.io] Error's response: #{req.response}"    
       end
     end
 
