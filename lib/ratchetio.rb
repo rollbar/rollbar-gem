@@ -235,9 +235,29 @@ module Ratchetio
       end
     end
 
+    def send_payload_using_eventmachine(payload)      
+      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => payload)
+      req.callback do
+        if req.response_header.status == 200
+          logger.info '[Ratchet.io] Success'
+        else
+          logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: #{req.response_header.status}"
+          logger.info "[Ratchet.io] Response: #{req.response}"          
+        end
+      end
+      req.errback do
+        logger.warn "[Ratchet.io] Call to API failed, status code: #{req.response_header.status}"
+        logger.info "[Ratchet.io] Error's response: #{req.response}"    
+      end
+    end
+
     def send_payload(payload)
       logger.info '[Ratchet.io] Sending payload'
-
+      
+      if configuration.use_eventmachine
+        send_payload_using_eventmachine(payload)
+        return
+      end
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
 

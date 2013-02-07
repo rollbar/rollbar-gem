@@ -21,6 +21,7 @@ module Ratchetio
     attr_accessor :root
     attr_accessor :scrub_fields
     attr_accessor :use_async
+    attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
 
@@ -47,6 +48,12 @@ module Ratchetio
       @use_async = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
+      @use_eventmachine = false
+    end
+    
+    def use_eventmachine=(value)
+      require 'em-http-request' if value
+      @use_eventmachine = value
     end
 
     # allow params to be read like a hash
