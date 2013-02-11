@@ -14,9 +14,9 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Ratchetio::VERSION
 
-  gem.add_runtime_dependency 'multi_json', '~> 1.5.0'
+  gem.add_runtime_dependency 'multi_json', '~> 1.5.1'
 
-  gem.add_development_dependency 'rails', '~> 3.2.11'
+  gem.add_development_dependency 'rails', '~> 3.2.12'
   gem.add_development_dependency 'devise', '>= 2.1.2'
   gem.add_development_dependency 'rspec-rails', '~> 2.12.0'
   gem.add_development_dependency 'database_cleaner', '>= 0.9.1'
