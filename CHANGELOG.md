@@ -1,5 +1,11 @@
 # Change Log
 
+**0.6.4**
+- Bump multi_json dependency version to 1.6.0
+
+**0.6.3**
+- Bump multi_json dependency version to 1.5.1
+
 **0.6.2**
 - Added EventMachine support
 
