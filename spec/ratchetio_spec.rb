@@ -151,8 +151,8 @@ describe Ratchetio do
       c = { :b => b }
       a[:c] = c
 
-      logger_mock.should_receive(:error).with('[Ratchet.io] Error reporting message to Ratchet.io: object references itself')
-      Ratchetio.report_message("Test message with extra data", 'debug', a)
+      logger_mock.should_receive(:error).with('[Ratchet.io] Error reporting message to Ratchet.io: nesting of 100 is too deep')
+      Ratchetio.report_message("Test message with circular extra data", 'debug', a)
     end
 
     after(:each) do
