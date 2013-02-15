@@ -15,6 +15,7 @@ require 'ratchetio/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugin
 require 'ratchetio/sidekiq' if defined?(Sidekiq)
 require 'ratchetio/goalie' if defined?(Goalie)
 require 'ratchetio/rack' if defined?(Rack)
+require 'ratchetio/rake' if defined?(Rake)
 require 'ratchetio/railtie' if defined?(Rails)
 
 module Ratchetio
