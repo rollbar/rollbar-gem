@@ -1,5 +1,8 @@
 # Change Log
 
+**0.7.0**
+- Exceptions in Rake tasks are now automatically reported.
+
 **0.6.4**
 - Bump multi_json dependency version to 1.6.0
 
