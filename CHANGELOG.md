@@ -1,5 +1,8 @@
 # Change Log
 
+**0.7.1**
+- Fix ratchetio:test rake task when project base controller is not called ApplicationController
+
 **0.7.0**
 - Exceptions in Rake tasks are now automatically reported.
 
