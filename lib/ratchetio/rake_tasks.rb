@@ -12,8 +12,6 @@ namespace :ratchetio do
       config.logger = Rails.logger
     end
 
-    require './app/controllers/application_controller'
-
     class RatchetioTestingException < RuntimeError; end
 
     unless Ratchetio.configuration.access_token
@@ -21,9 +19,14 @@ namespace :ratchetio do
       exit
     end
 
+    begin
+      require './app/controllers/application_controller'
+    rescue LoadError
+    end
+
     unless defined?(ApplicationController)
-      puts "No ApplicationController found"
-      exit
+      puts "No ApplicationController found, using ActionController::Base instead"
+      class ApplicationController < ActionController::Base; end
     end
 
     puts "Setting up the controller."
