@@ -356,3 +356,5 @@ module Rollbar
     end
   end
 end
+
+Ratchetio = Rollbar
