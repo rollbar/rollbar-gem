@@ -1,8 +1,8 @@
-require 'ratchetio/rails'
-Ratchetio.configure do |config|
+require 'rollbar/rails'
+Rollbar.configure do |config|
   config.access_token = <%= access_token_expr %>
 
-  # By default, Ratchetio will try to call the `current_user` controller method
+  # By default, Rollbar will try to call the `current_user` controller method
   # to fetch the logged-in user object, and then call that object's `id`,
   # `username`, and `email` methods to fetch those properties. To customize:
   # config.person_method = "my_current_user"
@@ -13,7 +13,7 @@ Ratchetio.configure do |config|
   # Add exception class names to the exception_level_filters hash to
   # change the level that exception is reported at. Note that if an exception
   # has already been reported and logged the level will need to be changed
-  # via the ratchet.io interface.
+  # via the rollbar interface.
   # Valid levels: 'critical', 'error', 'warning', 'info', 'debug', 'ignore'
   # 'ignore' will cause the exception to not be reported at all.
   # config.exception_level_filters.merge!('MyCriticalException' => 'critical')
@@ -23,6 +23,6 @@ Ratchetio.configure do |config|
   # config.use_async = true
   # Supply your own async handler:
   # config.async_handler = Proc.new { |payload|
-  #  Thread.new { Ratchetio.process_payload(payload) }
+  #  Thread.new { Rollbar.process_payload(payload) }
   # }
 end

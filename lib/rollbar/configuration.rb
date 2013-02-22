@@ -1,6 +1,6 @@
 require 'logger'
 
-module Ratchetio
+module Rollbar
   class Configuration
 
     attr_accessor :access_token
@@ -25,8 +25,8 @@ module Ratchetio
     attr_accessor :web_base
     attr_accessor :write_to_file
 
-    DEFAULT_ENDPOINT = 'https://submit.ratchet.io/api/1/item/'
-    DEFAULT_WEB_BASE = 'https://ratchet.io'
+    DEFAULT_ENDPOINT = 'https://api.rollbar.com/api/1/item/'
+    DEFAULT_WEB_BASE = 'https://rollbar.com'
 
     def initialize
       @async_handler = nil

@@ -2,8 +2,8 @@ class HomeController < ApplicationController
   def index
     @users = User.all
 
-    Ratchetio.report_message("Test message from controller with no data", "debug")
-    Ratchetio.report_message("Test message from controller with extra data", "debug",
+    Rollbar.report_message("Test message from controller with no data", "debug")
+    Rollbar.report_message("Test message from controller with extra data", "debug",
                              :foo => "bar", :num_users => @users.length)
   end
 
@@ -11,7 +11,7 @@ class HomeController < ApplicationController
     begin
       foo = bar
     rescue => e
-      Ratchetio.report_exception(e, ratchetio_request_data, ratchetio_person_data)
+      Rollbar.report_exception(e, rollbar_request_data, rollbar_person_data)
     end
   end
 

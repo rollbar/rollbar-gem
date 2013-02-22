@@ -5,7 +5,7 @@ describe HomeController do
 
   before(:each) do
     reset_configuration
-    Ratchetio.configure do |config|
+    Rollbar.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
       config.environment = ::Rails.env
       config.root = ::Rails.root
@@ -18,7 +18,7 @@ describe HomeController do
     it "should report uncaught exceptions" do
       expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
 
-      exception_info = Ratchetio.last_report[:body][:trace][:exception]
+      exception_info = Rollbar.last_report[:body][:trace][:exception]
       exception_info[:class].should == 'ArgumentError'
       exception_info[:message].should == 'invalid %-encoding (8%B)'
     end
@@ -40,7 +40,7 @@ describe HomeController do
     it "should report uncaught exceptions" do
       expect{ get 'current_user' }.to raise_exception
 
-      exception_info = Ratchetio.last_report[:body][:trace][:exception]
+      exception_info = Rollbar.last_report[:body][:trace][:exception]
       exception_info[:class].should == 'NoMethodError'
       # exception_info[:message].should == 'undefined method `-\' for "1":String'
     end

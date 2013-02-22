@@ -1,18 +1,18 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/ratchetio/version', __FILE__)
+require File.expand_path('../lib/rollbar/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Brian Rue"]
-  gem.email         = ["brian@ratchet.io"]
-  gem.description   = %q{Rails plugin to catch and send exceptions to Ratchet.io}
-  gem.summary       = %q{Reports exceptions to Ratchet.io}
-  gem.homepage      = "https://github.com/ratchetio/ratchetio-gem"
+  gem.email         = ["brian@rollbar.com"]
+  gem.description   = %q{Rails plugin to catch and send exceptions to Rollbar}
+  gem.summary       = %q{Reports exceptions to Rollbar}
+  gem.homepage      = "https://github.com/rollbar/rollbar-gem"
 
   gem.files         = `git ls-files`.split($\)
   gem.test_files    = gem.files.grep(%r{^(spec)/})
-  gem.name          = "ratchetio"
+  gem.name          = "rollbar"
   gem.require_paths = ["lib"]
-  gem.version       = Ratchetio::VERSION
+  gem.version       = Rollbar::VERSION
 
   gem.add_runtime_dependency 'multi_json', '~> 1.6.0'
 

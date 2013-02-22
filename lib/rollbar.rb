@@ -6,19 +6,19 @@ require 'uri'
 
 require "girl_friday" if defined?(GirlFriday)
 
-require 'ratchetio/version'
-require 'ratchetio/configuration'
-require 'ratchetio/request_data_extractor'
-require 'ratchetio/exception_reporter'
+require 'rollbar/version'
+require 'rollbar/configuration'
+require 'rollbar/request_data_extractor'
+require 'rollbar/exception_reporter'
 
-require 'ratchetio/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
-require 'ratchetio/sidekiq' if defined?(Sidekiq)
-require 'ratchetio/goalie' if defined?(Goalie)
-require 'ratchetio/rack' if defined?(Rack)
-require 'ratchetio/rake' if defined?(Rake)
-require 'ratchetio/railtie' if defined?(Rails)
+require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
+require 'rollbar/sidekiq' if defined?(Sidekiq)
+require 'rollbar/goalie' if defined?(Goalie)
+require 'rollbar/rack' if defined?(Rack)
+require 'rollbar/rake' if defined?(Rake)
+require 'rollbar/railtie' if defined?(Rails)
 
-module Ratchetio
+module Rollbar
   class << self
     attr_writer :configuration
     attr_reader :last_report
@@ -26,11 +26,11 @@ module Ratchetio
     # Configures the gem.
     #
     # Call on app startup to set the `access_token` (required) and other config params.
-    # In a Rails app, this is called by `config/initializers/ratchetio.rb` which is generated
-    # with `rails generate ratchetio access-token-here`
+    # In a Rails app, this is called by `config/initializers/rollbar.rb` which is generated
+    # with `rails generate rollbar access-token-here`
     #
     # @example
-    #   Ratchetio.configure do |config|
+    #   Rollbar.configure do |config|
     #     config.access_token = 'abcdefg'
     #   end
     def configure
@@ -44,25 +44,25 @@ module Ratchetio
 
     # Returns the configuration object.
     #
-    # @return [Ratchetio::Configuration] The configuration object
+    # @return [Rollbar::Configuration] The configuration object
     def configuration
       @configuration ||= Configuration.new
     end
 
-    # Reports an exception to Ratchet.io. Returns the exception data hash.
+    # Reports an exception to Rollbar. Returns the exception data hash.
     #
     # @example
     #   begin
     #     foo = bar
     #   rescue => e
-    #     Ratchetio.report_exception(e)
+    #     Rollbar.report_exception(e)
     #   end
     #
     # @param exception [Exception] The exception object to report
     # @param request_data [Hash] Data describing the request. Should be the result of calling
-    #   `ratchetio_request_data`.
+    #   `rollbar_request_data`.
     # @param person_data [Hash] Data describing the affected person. Should be the result of calling
-    #   `ratchetio_person_data`
+    #   `rollbar_person_data`
     def report_exception(exception, request_data = nil, person_data = nil)
       return 'disabled' unless configuration.enabled
       return 'ignored' if ignored?(exception)
@@ -78,17 +78,17 @@ module Ratchetio
       log_instance_link(data)
       data
     rescue => e
-      logger.error "[Ratchet.io] Error reporting exception to Ratchet.io: #{e}"
+      logger.error "[Rollbar] Error reporting exception to Rollbar: #{e}"
       'error'
     end
 
-    # Reports an arbitrary message to Ratchet.io
+    # Reports an arbitrary message to Rollbar
     #
     # @example
-    #   Ratchetio.report_message("User login failed", 'info', :user_id => 123)
+    #   Rollbar.report_message("User login failed", 'info', :user_id => 123)
     #
     # @param message [String] The message body. This will be used to identify the message within
-    #   Ratchet. For best results, avoid putting variables in the message body; pass them as
+    #   Rollbar. For best results, avoid putting variables in the message body; pass them as
     #   `extra_data` instead.
     # @param level [String] The level. One of: 'critical', 'error', 'warning', 'info', 'debug'
     # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as
@@ -102,21 +102,21 @@ module Ratchetio
       log_instance_link(data)
       data
     rescue => e
-      logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+      logger.error "[Rollbar] Error reporting message to Rollbar: #{e}"
       'error'
     end
 
     # Turns off reporting for the given block.
     #
     # @example
-    #   Ratchetio.silenced { raise }
+    #   Rollbar.silenced { raise }
     #
     # @yield Block which exceptions won't be reported.
     def silenced
       begin
         yield
       rescue => e
-        e.instance_variable_set(:@_ratchet_do_not_report, true)
+        e.instance_variable_set(:@_rollbar_do_not_report, true)
         raise
       end
     end
@@ -129,14 +129,14 @@ module Ratchetio
           send_payload(payload)
         end
       rescue => e
-        logger.error "[Ratchet.io] Error reporting message to Ratchet.io: #{e}"
+        logger.error "[Rollbar] Error reporting message to Rollbar: #{e}"
       end
     end
 
     private
 
     def log_instance_link(data)
-      logger.info "[Ratchet.io] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
+      logger.info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
     end
 
     def ignored?(exception)
@@ -144,7 +144,7 @@ module Ratchetio
         return true
       end
 
-      if exception.instance_variable_get(:@_ratchet_do_not_report)
+      if exception.instance_variable_get(:@_rollbar_do_not_report)
         return true
       end
 
@@ -181,7 +181,7 @@ module Ratchetio
           match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
           { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
         }
-        # reverse so that the order is as ratchet expects
+        # reverse so that the order is as rollbar expects
         frames.reverse!
       else
         frames = []
@@ -221,7 +221,7 @@ module Ratchetio
     end
 
     def do_write_payload(payload)
-      logger.info '[Ratchet.io] Writing payload to file'
+      logger.info '[Rollbar] Writing payload to file'
 
       begin
         unless @file
@@ -230,9 +230,9 @@ module Ratchetio
 
         @file.puts payload
         @file.flush
-        logger.info "[Ratchet.io] Success"
+        logger.info "[Rollbar] Success"
       rescue IOError => e
-        logger.error "[Ratchet.io] Error opening/writing to file: #{e}"
+        logger.error "[Rollbar] Error opening/writing to file: #{e}"
       end
     end
 
@@ -240,20 +240,20 @@ module Ratchetio
       req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => payload)
       req.callback do
         if req.response_header.status == 200
-          logger.info '[Ratchet.io] Success'
+          logger.info '[Rollbar] Success'
         else
-          logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: #{req.response_header.status}"
-          logger.info "[Ratchet.io] Response: #{req.response}"          
+          logger.warn "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
+          logger.info "[Rollbar] Response: #{req.response}"          
         end
       end
       req.errback do
-        logger.warn "[Ratchet.io] Call to API failed, status code: #{req.response_header.status}"
-        logger.info "[Ratchet.io] Error's response: #{req.response}"    
+        logger.warn "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+        logger.info "[Rollbar] Error's response: #{req.response}"    
       end
     end
 
     def send_payload(payload)
-      logger.info '[Ratchet.io] Sending payload'
+      logger.info '[Rollbar] Sending payload'
       
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
@@ -272,15 +272,15 @@ module Ratchetio
       response = http.request(request)
 
       if response.code == '200'
-        logger.info '[Ratchet.io] Success'
+        logger.info '[Rollbar] Success'
       else
-        logger.warn "[Ratchet.io] Got unexpected status code from Ratchet.io api: #{response.code}"
-        logger.info "[Ratchet.io] Response: #{response.body}"
+        logger.warn "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
+        logger.info "[Rollbar] Response: #{response.body}"
       end
     end
 
     def schedule_payload(payload)
-      logger.info '[Ratchet.io] Scheduling payload'
+      logger.info '[Rollbar] Scheduling payload'
 
       if configuration.use_async
         unless configuration.async_handler
@@ -316,7 +316,7 @@ module Ratchetio
         :language => 'ruby',
         :framework => config.framework,
         :notifier => {
-          :name => 'ratchetio-gem',
+          :name => 'rollbar-gem',
           :version => VERSION
         }
       }
@@ -350,7 +350,7 @@ module Ratchetio
 
         @queue.push(payload)
       else
-        logger.warn '[Ratchet.io] girl_friday not found to handle async call, falling back to Thread'
+        logger.warn '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
         Thread.new { process_payload(payload) }
       end
     end

@@ -1,5 +1,8 @@
 # Change Log
 
+**0.8.0**
+- Rename to rollbar
+
 **0.7.1**
 - Fix ratchetio:test rake task when project base controller is not called ApplicationController
 

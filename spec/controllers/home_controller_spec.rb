@@ -5,7 +5,7 @@ describe HomeController do
 
   before(:each) do
     reset_configuration
-    Ratchetio.configure do |config|
+    Rollbar.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
       config.environment = ::Rails.env
       config.root = ::Rails.root
@@ -14,10 +14,10 @@ describe HomeController do
     end
   end
 
-  context "ratchetio controller methods" do
+  context "rollbar controller methods" do
     # TODO run these for a a more-real request
     it "should build valid request data" do
-      data = @controller.ratchetio_request_data
+      data = @controller.rollbar_request_data
       data.should have_key(:params)
       data.should have_key(:url)
       data.should have_key(:user_ip)
@@ -28,11 +28,11 @@ describe HomeController do
     end
 
     it "should build empty person data when no one is logged-in" do
-      data = @controller.ratchetio_person_data
+      data = @controller.rollbar_person_data
       data.should == {}
     end
 
-    context "ratchetio_filter_params" do
+    context "rollbar_filter_params" do
       it "should filter files" do
         name = "John Doe"
         file_hash = {
@@ -48,7 +48,7 @@ describe HomeController do
           :a_file => file
         }
 
-        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
 
         filtered[:name].should == name
         filtered[:a_file].should be_a_kind_of(Hash)
@@ -77,7 +77,7 @@ describe HomeController do
           }
         }
 
-        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
 
         filtered[:name].should == name
         filtered[:wrapper][:wrapper2][:foo].should == "bar"
@@ -97,7 +97,7 @@ describe HomeController do
           :notpass => "visible"
         }
 
-        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
 
         filtered[:passwd].should == "******"
         filtered[:password].should == "******"
@@ -106,7 +106,7 @@ describe HomeController do
       end
 
       it "should scrub custom scrub_fields" do
-        Ratchetio.configure do |config|
+        Rollbar.configure do |config|
           config.scrub_fields = [:notpass, :secret]
         end
 
@@ -117,7 +117,7 @@ describe HomeController do
           :notpass => "hidden"
         }
 
-        filtered = controller.send(:ratchetio_filtered_params, Ratchetio.configuration.scrub_fields, params)
+        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
 
         filtered[:passwd].should == "visible"
         filtered[:password].should == "visible"
@@ -126,29 +126,29 @@ describe HomeController do
       end
     end
 
-    context "ratchetio_request_url" do
+    context "rollbar_request_url" do
       it "should build simple http urls" do
         req = controller.request
-        req.host = 'ratchet.io'
+        req.host = 'rollbar.com'
 
-        controller.send(:ratchetio_request_data)[:url].should == 'http://ratchet.io'
+        controller.send(:rollbar_request_data)[:url].should == 'http://rollbar.com'
       end
     end
 
-    context "ratchetio_user_ip" do
+    context "rollbar_user_ip" do
       it "should use X-Real-Ip when set" do
         controller.request.env["HTTP_X_REAL_IP"] = '1.1.1.1'
         controller.request.env["HTTP_X_FORWARDED_FOR"] = '1.2.3.4'
-        controller.send(:ratchetio_request_data)[:user_ip].should == '1.1.1.1'
+        controller.send(:rollbar_request_data)[:user_ip].should == '1.1.1.1'
       end
 
       it "should use X-Forwarded-For when set" do
         controller.request.env["HTTP_X_FORWARDED_FOR"] = '1.2.3.4'
-        controller.send(:ratchetio_request_data)[:user_ip].should == '1.2.3.4'
+        controller.send(:rollbar_request_data)[:user_ip].should == '1.2.3.4'
       end
 
       it "should use the remote_addr when neither is set" do
-        controller.send(:ratchetio_request_data)[:user_ip].should == '0.0.0.0'
+        controller.send(:rollbar_request_data)[:user_ip].should == '0.0.0.0'
       end
     end
 
@@ -156,7 +156,7 @@ describe HomeController do
 
   describe "GET 'index'" do
     it "should be successful and report a message" do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
       get 'index'
       response.should be_success
     end
@@ -164,7 +164,7 @@ describe HomeController do
 
   describe "GET 'report_exception'" do
     it "should raise a NameError and report an exception" do
-      logger_mock.should_receive(:info).with('[Ratchet.io] Success')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       get 'report_exception'
       response.should be_success
@@ -172,7 +172,7 @@ describe HomeController do
   end
 
   after(:each) do
-    Ratchetio.configure do |config|
+    Rollbar.configure do |config|
       config.logger = ::Rails.logger
     end
   end

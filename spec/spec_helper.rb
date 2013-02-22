@@ -30,6 +30,6 @@ RSpec.configure do |config|
 end
 
 def reset_configuration
-  Ratchetio.reconfigure do |config|
+  Rollbar.reconfigure do |config|
   end
 end

@@ -8,21 +8,21 @@ module Goalie
       exception_data = nil
       begin
         controller = env['action_controller.instance']
-        request_data = controller.try(:ratchetio_request_data)
-        person_data = controller.try(:ratchetio_person_data)
-        exception_data = Ratchetio.report_exception(exception, request_data, person_data)
+        request_data = controller.try(:rollbar_request_data)
+        person_data = controller.try(:rollbar_person_data)
+        exception_data = Rollbar.report_exception(exception, request_data, person_data)
       rescue => e
         # TODO use logger here?
-        puts "[Ratchet.io] Exception while reporting exception to Ratchet.io: #{e}" 
+        puts "[Rollbar] Exception while reporting exception to Rollbar: #{e}" 
       end
       
       # if an exception was reported, save uuid in the env
       # so it can be displayed to the user on the error page
       if exception_data
         begin
-          env['ratchetio.exception_uuid'] = exception_data[:uuid]
+          env['rollbar.exception_uuid'] = exception_data[:uuid]
         rescue => e
-          puts "[Ratchet.io] Exception saving uuid in env: #{e}"
+          puts "[Rollbar] Exception saving uuid in env: #{e}"
         end
       end
 

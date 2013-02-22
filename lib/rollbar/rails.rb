@@ -1,6 +1,6 @@
-require 'ratchetio'
+require 'rollbar'
 
-module Ratchetio
+module Rollbar
   module Rails
     def self.initialize
       rails_logger = if defined?(::Rails.logger)
@@ -9,7 +9,7 @@ module Ratchetio
                        RAILS_DEFAULT_LOGGER
                      end
 
-      Ratchetio.configure do |config|
+      Rollbar.configure do |config|
         config.logger = rails_logger
         config.environment = defined?(::Rails.env) && ::Rails.env || defined?(RAILS_ENV) && RAILS_ENV
         config.root = defined?(::Rails.root) && ::Rails.root || defined?(RAILS_ROOT) && RAILS_ROOT
@@ -19,4 +19,4 @@ module Ratchetio
   end
 end
 
-Ratchetio::Rails.initialize
+Rollbar::Rails.initialize

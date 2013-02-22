@@ -2,11 +2,11 @@
 
 module Delayed
   module Plugins
-    class Ratchetio < Plugin
+    class Rollbar < Plugin
       module ReportErrors
         def error(job, error)
           # send the job object as the 'request data'
-          ::Ratchetio.report_exception(error, job)
+          ::Rollbar.report_exception(error, job)
           super if defined?(super)
         end
       end
@@ -22,4 +22,4 @@ module Delayed
   end
 end
 
-Delayed::Worker.plugins << Delayed::Plugins::Ratchetio
+Delayed::Worker.plugins << Delayed::Plugins::Rollbar
