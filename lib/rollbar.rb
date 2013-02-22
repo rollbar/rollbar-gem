@@ -357,4 +357,5 @@ module Rollbar
   end
 end
 
+# Setting Ratchtio as an alias to Rollbar for ratchetio-gem backwards compatibility
 Ratchetio = Rollbar
