@@ -23,6 +23,16 @@ module Rollbar
         extract_request_data_from_rack(request.env)
       end
 
+      # for backwards compatabilty with the old ratchetio-gem
+      def ratchetio_person_data
+        rollbar_person_data
+      end
+
+      # for backwards compatabilty with the old ratchetio-gem
+      def ratchetio_request_data
+        rollbar_request_data
+      end
+
     end
   end
 end
