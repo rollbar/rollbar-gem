@@ -1,5 +1,11 @@
 # Change Log
 
+**0.8.2**
+- Adding back rake task exception reporting after fixing load order issue
+
+**0.8.1**
+- Reverting rake task exception reporting until we can track down a load order issue reported by a few users
+
 **0.8.0**
 - Rename to rollbar
 
