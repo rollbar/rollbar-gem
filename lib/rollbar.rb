@@ -15,7 +15,6 @@ require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
 require 'rollbar/sidekiq' if defined?(Sidekiq)
 require 'rollbar/goalie' if defined?(Goalie)
 require 'rollbar/rack' if defined?(Rack)
-require 'rollbar/rake' if defined?(Rake)
 require 'rollbar/railtie' if defined?(Rails)
 
 module Rollbar
