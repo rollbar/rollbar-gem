@@ -4,7 +4,7 @@
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar'
+    gem 'rollbar', '~> 0.8.2'
 
 And remove:
 
