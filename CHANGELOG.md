@@ -1,5 +1,8 @@
 # Change Log
 
+**0.8.3**
+- Relax multi_json dependency to 1.5.0
+
 **0.8.2**
 - Adding back rake task exception reporting after fixing load order issue
 
