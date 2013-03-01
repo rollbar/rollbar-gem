@@ -34,12 +34,18 @@ module Rollbar
     #     config.access_token = 'abcdefg'
     #   end
     def configure
+      configuration.enabled = true
       yield(configuration)
     end
 
     def reconfigure
       @configuration = Configuration.new
+      @configuration.enabled = true
       yield(configuration)
+    end
+
+    def unconfigure
+      @configuration = nil
     end
 
     # Returns the configuration object.

@@ -38,6 +38,13 @@ describe Rollbar do
       end
     end
 
+    it 'should not be enabled when not configured' do
+      Rollbar.unconfigure
+      
+      Rollbar.configuration.enabled.should == false
+      Rollbar.report_exception(@exception).should == 'disabled'
+    end
+
     it 'should report exceptions with request and person data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       request_data = {
