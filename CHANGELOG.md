@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.1**
+- Add support to play nicely with Better Errors.
+
 **0.9.0**
 - Behavior change: start configuration as `@enabled = false`, and set to true when `configure` is called. This addresses an issue using Rollbar without the environment initialized. Such reports would always fail (since there would be no access token), but now they won't be attempted.
 

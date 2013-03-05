@@ -17,6 +17,7 @@ require 'rollbar/goalie' if defined?(Goalie)
 require 'rollbar/rack' if defined?(Rack)
 require 'rollbar/rake' if defined?(Rake)
 require 'rollbar/railtie' if defined?(Rails)
+require 'rollbar/better_errors' if defined?(BetterErrors)
 
 module Rollbar
   class << self
