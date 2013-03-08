@@ -413,6 +413,29 @@ describe Rollbar do
       data[:branch].should == 'master'
     end
   end
+    
+  context "project_gems" do
+    it "should include gem paths for specified project gems in the payload" do
+      gems = ['rack', 'rspec-rails']
+      gem_paths = []
+      
+      Rollbar.configure do |config|
+        config.project_gems = gems
+      end
+      
+      gems.each {|gem|
+        gem_paths.push(Gem::Specification.find_by_name(gem).gem_dir)
+      }
+      
+      data = Rollbar.send(:message_data, 'test', 'info', {})
+      data[:project_package_paths].kind_of?(Array).should == true
+      data[:project_package_paths].length.should == gem_paths.length
+      
+      data[:project_package_paths].each_with_index{|path, index|
+        path.should == gem_paths[index]
+      }
+    end
+  end
 
   # configure with some basic params
   def configure

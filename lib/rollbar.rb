@@ -322,6 +322,7 @@ module Rollbar
         :level => level,
         :language => 'ruby',
         :framework => config.framework,
+        :project_package_paths => config.project_gem_paths,
         :notifier => {
           :name => 'rollbar-gem',
           :version => VERSION
