@@ -164,7 +164,7 @@ set(:rollbar_env) { stage }
 
 In the Rollbar interface, stacktraces are shown with in-project code expanded and other code collapsed. Stack frames are counted as in-project if they occur in a file that is inside of the `configuration.root` (automatically set to `Rails.root` if you're using Rails). The collapsed sections can be expanded by clicking on them.
 
-If you want code from some specific gems to be expanded by default, you can configure this in `config/initializers/rollbar.rb`:
+If you want code from some specific gems to start expanded as well, you can configure this in `config/initializers/rollbar.rb`:
 
 ```ruby
 Rollbar.configure do |config |
