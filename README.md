@@ -160,6 +160,20 @@ set(:rollbar_env) { stage }
 ```
 
 
+## Counting specific gems as in-project code
+
+In the Rollbar interface, stacktraces are shown with in-project code expanded and other code collapsed. Stack frames are counted as in-project if they occur in a file that is inside of the `configuration.root` (automatically set to `Rails.root` if you're using Rails). The collapsed sections can be expanded by clicking on them.
+
+If you want code from some specific gems to be expanded by default, you can configure this in `config/initializers/rollbar.rb`:
+
+```ruby
+Rollbar.configure do |config |
+  config.access_token = '...'
+  config.project_gems = ['my_custom_gem', 'my_other_gem']
+end
+```
+
+
 ## Using with Goalie
 
 If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pages, you may need to explicitly add `require 'goalie'` to `config/application.rb` (in addition to `require 'goalie/rails'`) so that the monkeypatch will work. (This will be obvious if it is needed because your app won't start up: you'll see a cryptic error message about `Goalie::CustomErrorPages.render_exception` not being defined.)
