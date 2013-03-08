@@ -1,6 +1,6 @@
 # Rollbar [![Build Status](https://secure.travis-ci.org/rollbar/rollbar-gem.png?branch=master)](https://travis-ci.org/rollbar/rollbar-gem)
 
-Ruby gem for Rollbar, for reporting exceptions in Rails 3 to Rollbar. Requires a Rollbar account (you can sign up for free).
+Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https://rollbar.com). Requires a Rollbar account (you can [sign up for free](https://rollbar.com/signup)). Basic integration in a Rails 3 app should only take a few minutes.
 
 ## Installation
 
