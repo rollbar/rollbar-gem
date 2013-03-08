@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.2**
+- Added [Capistrano integration](https://github.com/rollbar/rollbar-gem/pull/27)
+
 **0.9.1**
 - Add support to play nicely with Better Errors.
 
