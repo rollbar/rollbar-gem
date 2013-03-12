@@ -181,7 +181,7 @@ If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pa
 
 ## Using with Resque
 
-Check out [resque-ratchetio](https://github.com/CrowdFlower/resque-ratchetio) for using Rollbar as a failure backend for Resque.
+Check out [resque-rollbar](https://github.com/CrowdFlower/resque-rollbar) for using Rollbar as a failure backend for Resque.
 
 
 ## Help / Support
