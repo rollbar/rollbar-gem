@@ -184,6 +184,11 @@ If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pa
 Check out [resque-rollbar](https://github.com/CrowdFlower/resque-rollbar) for using Rollbar as a failure backend for Resque.
 
 
+## Using with Zeus
+
+Some users have reported problems with Zeus when `rake` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding `gem 'rake'` to your `Gemfile`. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information. 
+
+
 ## Help / Support
 
 If you run into any issues, please email us at `support@rollbar.com`
