@@ -4,7 +4,8 @@ require 'socket'
 require 'thread'
 require 'uri'
 
-require "girl_friday" if defined?(GirlFriday)
+require 'girl_friday' if defined?(GirlFriday)
+require 'multi_json'
 
 require 'rollbar/version'
 require 'rollbar/configuration'
@@ -143,7 +144,7 @@ module Rollbar
     private
 
     def log_instance_link(data)
-      logger.info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
+      logger.info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
     end
 
     def ignored?(exception)

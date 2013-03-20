@@ -1,5 +1,9 @@
 # Change Log
 
+**0.9.4**
+- Fixed issue using rollbar-gem outside of Rails
+- Clarified the "details: " link log message
+
 **0.9.3**
 - Added configuration setting to specify gems that should be considered part of the Rollbar project, making frames from these gems show up automatically uncollapsed in tracebacks appearing on the website.
 
