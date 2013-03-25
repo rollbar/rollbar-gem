@@ -20,7 +20,23 @@ Then, run the following command from your rails root:
 
     $ rails generate rollbar YOUR_ROLLBAR_PROJECT_ACCESS_TOKEN
 
-That will create the file `config/initializers/rollbar.rb`, which holds the configuration values (currently just your access token) and is all you need to use Rollbar with Rails.
+That will create the file `config/initializers/rollbar.rb`, which holds the configuration values (currently just your access token).
+
+If you want to store your access token outside of your repo, run the same command without arguments:
+
+    $ rails generate rollbar
+
+Then, create an environment variable `ROLLBAR_ACCESS_TOKEN` and set it to your server-side access token.
+
+    $ export ROLLBAR_ACCESS_TOKEN=YOUR_ROLLBAR_PROJECT_ACCESS_TOKEN
+
+or
+   
+    $ heroku config:add ROLLBAR_ACCESS_TOKEN=YOUR_ROLLBAR_PROJECT_ACCESS_TOKEN
+
+if you are using Heroku.
+
+That's all you need to use Rollbar with Rails.
 
 To confirm that it worked, run:
 
