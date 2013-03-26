@@ -8,7 +8,7 @@ describe :rollbar do
 
     it "generates a Rollbar initializer with ENV" do
       subject.should generate("config/initializers/rollbar.rb") { |content|
-        content.should =~ /ROLLBAR_ACCESS_TOKEN/
+        content.should =~ /config.access_token = ENV\['ROLLBAR_ACCESS_TOKEN'\]/
       }
     end
   end
@@ -17,6 +17,7 @@ describe :rollbar do
     it "generates a Rollbar initializer with access token" do
       subject.should generate("config/initializers/rollbar.rb") do |content|
         content.should =~ /aaaabbbbccccddddeeeeffff00001111/
+        content.should =~ /config.access_token = 'aaaabbbbccccddddeeeeffff00001111'/
       end
     end
   end

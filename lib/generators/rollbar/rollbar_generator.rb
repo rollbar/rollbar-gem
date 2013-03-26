@@ -4,7 +4,7 @@ require 'rails/generators/named_base'
 module Rollbar
   module Generators
     class RollbarGenerator < ::Rails::Generators::Base
-      argument :access_token, :type => :string, :banner => 'access_token', :default => "ENV['ROLLBAR_ACCESS_TOKEN']"
+      argument :access_token, :type => :string, :banner => 'access_token', :default => :use_env_sentinel
 
       source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
 
@@ -16,8 +16,14 @@ module Rollbar
           exit
         end
 
-        if access_token.match(/ENV/)
-          say "You'll need to add an environment variable ROLLBAR_ACCESS_TOKEN with your access token."
+        if access_token === :use_env_sentinel
+          say "Generator run without an access token; assuming you want to configure using an environment variable."
+          say "You'll need to add an environment variable ROLLBAR_ACCESS_TOKEN with your access token:"
+          say "\n$ export ROLLBAR_ACCESS_TOKEN=yourtokenhere"
+          say "\nIf that's not what you wanted to do:"
+          say "\n$ rm config/initializers/rollbar.rb"
+          say "$ rails generate rollbar yourtokenhere"
+          say "\n"
         else
           say "access token: " << access_token
         end
@@ -28,25 +34,12 @@ module Rollbar
         # TODO run rake test task
       end
 
-      #def add_options!(opt)
-      #  opt.on('-a', '--access-token=token', String, "Your Rollbar project access token") { |v| options[:access_token] = v }
-      #end
-#
-#      def manifest
-#        if !access_token_configured? && !options[:access_token]
-#          puts "access_token is required. Pass --access-token=YOUR_ACCESS_TOKEN"
-#          exit
-#        end
-#        
-#        record do |m|
-#          m.template 'initializer.rb', 'config/initializers/rollbar.rb',
-#            :assigns => { :access_token => access_token_expr }
-#          # TODO run rake test task
-#        end
-#      end
-
       def access_token_expr
-        "'#{access_token}'"
+        if access_token === :use_env_sentinel
+          "ENV['ROLLBAR_ACCESS_TOKEN']"
+        else
+          "'#{access_token}'"
+        end
       end
 
       def access_token_configured?
