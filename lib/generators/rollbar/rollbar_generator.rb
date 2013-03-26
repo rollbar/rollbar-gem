@@ -4,19 +4,23 @@ require 'rails/generators/named_base'
 module Rollbar
   module Generators
     class RollbarGenerator < ::Rails::Generators::Base
-      argument :access_token, :type => :string, :banner => 'access_token'
+      argument :access_token, :type => :string, :banner => 'access_token', :default => "ENV['ROLLBAR_ACCESS_TOKEN']"
 
       source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
 
       def create_initializer
-        puts "creating initializer..."
+        say "creating initializer..."
         if access_token_configured?
-          puts "It looks like you've already configured Rollbar."
-          puts "To re-create the config file, remove it first: config/initializers/rollbar.rb"
+          say "It looks like you've already configured Rollbar."
+          say "To re-create the config file, remove it first: config/initializers/rollbar.rb"
           exit
         end
 
-        puts "access token: " << access_token
+        if access_token.match(/ENV/)
+          say "You'll need to add an environment variable ROLLBAR_ACCESS_TOKEN with your access token."
+        else
+          say "access token: " << access_token
+        end
 
         template 'initializer.rb', 'config/initializers/rollbar.rb',
           :assigns => { :access_token => access_token_expr }
