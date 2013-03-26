@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.5**
+- Support for configuring the access token with an environment variable.
+
 **0.9.4**
 - Fixed issue using rollbar-gem outside of Rails
 - Clarified the "details: " link log message
