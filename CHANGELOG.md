@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.6**
+- Fix for Rails 4 support
+
 **0.9.5**
 - Support for configuring the access token with an environment variable.
 
