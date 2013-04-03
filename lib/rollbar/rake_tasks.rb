@@ -44,12 +44,12 @@ namespace :rollbar do
         nil
       end
     end
-    
+
     class RollbarTestController < ApplicationController; end
 
     Rails.application.routes_reloader.execute_if_updated
     Rails.application.routes.draw do
-      match 'verify' => 'application#verify', :as => 'verify'
+      get 'verify' => 'application#verify', :as => 'verify'
     end
 
     puts "Processing..."
