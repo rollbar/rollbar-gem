@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.7**
+- Use `include?` instead of `in?` for filtering (see [#34](https://github.com/rollbar/rollbar-gem/pull/34))
+
 **0.9.6**
 - Fix for Rails 4 support
 
