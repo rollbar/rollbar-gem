@@ -32,7 +32,7 @@ module Rollbar
               request = Net::HTTP::Post.new(uri.request_uri)
               request.body = JSON.dump(params)
 
-              Net::HTTP.start(uri.hostname, uri.port, :use_ssl => true) do |http|
+              Net::HTTP.start(uri.host, uri.port, :use_ssl => true) do |http|
                 http.request(request)
               end
             end
