@@ -1,5 +1,9 @@
 # Change Log
 
+**0.9.9**
+- Fix capistrano recipe on 1.9.2 ([#36](https://github.com/rollbar/rollbar-gem/pull/36))
+- Add example of disable "test" env to initializer template
+
 **0.9.8**
 - Fix bug introduced in 0.9.0 where setting `config.enabled = false` in `config/initializers/rollbar.rb` would be overwritten by subsequent calls to `Rollbar.configure` (as happens normally when using inside Rails).
 
