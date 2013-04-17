@@ -38,8 +38,27 @@ describe Rollbar do
       end
     end
 
+    it 'should be enabled when freshly configured' do
+      Rollbar.configuration.enabled.should == true
+    end
+
     it 'should not be enabled when not configured' do
       Rollbar.unconfigure
+      
+      Rollbar.configuration.enabled.should be_nil
+      Rollbar.report_exception(@exception).should == 'disabled'
+    end
+
+    it 'should stay disabled if configure is called again' do
+      Rollbar.unconfigure
+
+      # configure once, setting enabled to false.
+      Rollbar.configure do |config|
+        config.enabled = false
+      end
+
+      # now configure again (perhaps to change some other values)
+      Rollbar.configure do |config| end
       
       Rollbar.configuration.enabled.should == false
       Rollbar.report_exception(@exception).should == 'disabled'
@@ -439,7 +458,7 @@ describe Rollbar do
 
   # configure with some basic params
   def configure
-    Rollbar.configure do |config|
+    Rollbar.reconfigure do |config|
       # special test access token
       config.access_token = test_access_token
       config.logger = ::Rails.logger

@@ -33,7 +33,7 @@ module Rollbar
     def initialize
       @async_handler = nil
       @default_logger = lambda { Logger.new(STDERR) }
-      @enabled = false  # set to true when configure is called
+      @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
       @exception_level_filters = {
         'ActiveRecord::RecordNotFound' => 'warning',

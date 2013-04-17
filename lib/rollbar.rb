@@ -36,7 +36,10 @@ module Rollbar
     #     config.access_token = 'abcdefg'
     #   end
     def configure
-      configuration.enabled = true
+      # if configuration.enabled has not been set yet (is still 'nil'), set to true.
+      if configuration.enabled.nil?
+        configuration.enabled = true
+      end
       yield(configuration)
     end
 

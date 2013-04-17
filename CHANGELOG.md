@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.8**
+- Fix bug introduced in 0.9.0 where setting `config.enabled = false` in `config/initializers/rollbar.rb` would be overwritten by subsequent calls to `Rollbar.configure` (as happens normally when using inside Rails).
+
 **0.9.7**
 - Use `include?` instead of `in?` for filtering (see [#34](https://github.com/rollbar/rollbar-gem/pull/34))
 
