@@ -1,5 +1,9 @@
 # Change Log
 
+**0.9.10**
+- Add :secret_token to default scrub_fields list
+- Session params are now scrubbed
+
 **0.9.9**
 - Fix capistrano recipe on 1.9.2 ([#36](https://github.com/rollbar/rollbar-gem/pull/36))
 - Add example of disable "test" env to initializer template
