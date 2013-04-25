@@ -16,6 +16,7 @@ module Rollbar
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(env))
       get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(env))
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(env))
+      session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
     
       {
         :params => get_params.merge(post_params).merge(request_params),
@@ -25,7 +26,7 @@ module Rollbar
         :GET => get_params,
         :POST => post_params,
         :cookies => cookies,
-        :session => env['rack.session.options'],
+        :session => session,
         :method => rollbar_request_method(env)
       }
     end
@@ -90,21 +91,25 @@ module Rollbar
     end
 
     def rollbar_filtered_params(sensitive_params, params)
-      params.inject({}) do |result, (key, value)|
-        if sensitive_params.include?(key.to_sym)
-          result[key] = '*' * (value.length rescue 8)
-        elsif value.is_a?(Hash)
-          result[key] = rollbar_filtered_params(sensitive_params, value)
-        elsif ATTACHMENT_CLASSES.include?(value.class.name)
-          result[key] = {
-            :content_type => value.content_type,
-            :original_filename => value.original_filename,
-            :size => value.tempfile.size
-          } rescue 'Uploaded file'
-        else
-          result[key] = value
+      if params.nil?
+        {}
+      else
+        params.inject({}) do |result, (key, value)|
+          if sensitive_params.include?(key.to_sym)
+            result[key] = '*' * (value.length rescue 8)
+          elsif value.is_a?(Hash)
+            result[key] = rollbar_filtered_params(sensitive_params, value)
+          elsif ATTACHMENT_CLASSES.include?(value.class.name)
+            result[key] = {
+              :content_type => value.content_type,
+              :original_filename => value.original_filename,
+              :size => value.tempfile.size
+            } rescue 'Uploaded file'
+          else
+            result[key] = value
+          end
+          result
         end
-        result
       end
     end
 

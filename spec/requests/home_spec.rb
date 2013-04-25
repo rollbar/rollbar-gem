@@ -18,6 +18,8 @@ describe HomeController do
     it "should report uncaught exceptions" do
       expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
 
+      Rollbar.last_report.should_not be_nil
+
       exception_info = Rollbar.last_report[:body][:trace][:exception]
       exception_info[:class].should == 'ArgumentError'
       exception_info[:message].should == 'invalid %-encoding (8%B)'
