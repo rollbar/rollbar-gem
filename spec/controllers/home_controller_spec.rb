@@ -91,10 +91,11 @@ describe HomeController do
 
       it "should scrub the default scrub_fields" do
         params = {
-          :passwd => "hidden",
-          :password => "hidden",
-          :secret => "hidden",
-          :notpass => "visible"
+          :passwd       => "hidden",
+          :password     => "hidden",
+          :secret       => "hidden",
+          :notpass      => "visible",
+          :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6",
         }
 
         filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
@@ -103,6 +104,7 @@ describe HomeController do
         filtered[:password].should == "******"
         filtered[:secret].should == "******"
         filtered[:notpass].should == "visible"
+        filtered[:secret_token].should == "*" * 32
       end
 
       it "should scrub custom scrub_fields" do
