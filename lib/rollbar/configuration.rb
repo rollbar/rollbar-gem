@@ -47,7 +47,7 @@ module Rollbar
       @person_email_method = 'email'
       @project_gems = []
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
-                       :confirm_password, :password_confirmation]
+                       :confirm_password, :password_confirmation, :secret_token]
       @use_async = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
