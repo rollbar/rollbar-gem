@@ -35,6 +35,7 @@ module Rollbar
       @default_logger = lambda { Logger.new(STDERR) }
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
+      @environment = 'production'
       @exception_level_filters = {
         'ActiveRecord::RecordNotFound' => 'warning',
         'AbstractController::ActionNotFound' => 'warning',

@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.11**
+- Provide a default environment name when used outside of Rails and none is set
+
 **0.9.10**
 - Add :secret_token to default scrub_fields list
 - Session params are now scrubbed

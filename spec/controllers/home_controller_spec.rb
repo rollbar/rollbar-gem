@@ -5,12 +5,26 @@ describe HomeController do
 
   before(:each) do
     reset_configuration
+    Rollbar::Rails.initialize
     Rollbar.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
-      config.environment = ::Rails.env
-      config.root = ::Rails.root
-      config.framework = "Rails: #{::Rails::VERSION::STRING}"
       config.logger = logger_mock
+    end
+  end
+  
+  context "rollbar base_data" do
+    it 'should have the Rails environment' do
+      data = Rollbar.send(:base_data)
+      data[:environment].should == ::Rails.env
+    end
+    
+    it 'should have an overridden environment' do
+      Rollbar.configure do |config|
+        config.environment = 'dev'
+      end
+      
+      data = Rollbar.send(:base_data)
+      data[:environment].should == 'dev'
     end
   end
 

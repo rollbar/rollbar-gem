@@ -413,6 +413,20 @@ describe Rollbar do
       data[:language].should == 'ruby'
       data[:framework].should match(/^Rails/)
     end
+    
+    it 'should have a default production environment' do
+      data = Rollbar.send(:base_data)
+      data[:environment].should == 'production'
+    end
+    
+    it 'should have an overridden environment' do
+      Rollbar.configure do |config|
+        config.environment = 'development'
+      end
+      
+      data = Rollbar.send(:base_data)
+      data[:environment].should == 'development'
+    end
   end
 
   context 'server_data' do
@@ -462,7 +476,6 @@ describe Rollbar do
       # special test access token
       config.access_token = test_access_token
       config.logger = ::Rails.logger
-      config.environment = ::Rails.env
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
     end
