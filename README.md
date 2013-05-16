@@ -18,9 +18,9 @@ Or install it yourself as:
 
 Then, run the following command from your rails root:
 
-    $ rails generate rollbar YOUR_ROLLBAR_PROJECT_ACCESS_TOKEN
+    $ rails generate rollbar your-rollbar-post_server_item-token
 
-That will create the file `config/initializers/rollbar.rb`, which holds the configuration values (currently just your access token).
+That will create the file `config/initializers/rollbar.rb`, which holds the configuration values (currently just your access token). Make sure you're using the `post_server_item` access token.
 
 If you want to store your access token outside of your repo, run the same command without arguments:
 
@@ -28,11 +28,11 @@ If you want to store your access token outside of your repo, run the same comman
 
 Then, create an environment variable `ROLLBAR_ACCESS_TOKEN` and set it to your server-side access token.
 
-    $ export ROLLBAR_ACCESS_TOKEN=YOUR_ROLLBAR_PROJECT_ACCESS_TOKEN
+    $ export ROLLBAR_ACCESS_TOKEN=your-rollbar-post_server_item-token
 
 or
    
-    $ heroku config:add ROLLBAR_ACCESS_TOKEN=YOUR_ROLLBAR_PROJECT_ACCESS_TOKEN
+    $ heroku config:add ROLLBAR_ACCESS_TOKEN=your-rollbar-post_server_item-token
 
 if you are using Heroku.
 
