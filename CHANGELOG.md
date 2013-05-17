@@ -1,5 +1,8 @@
 # Change Log
 
+**0.9.12**
+- Fix compatibility issue with Rails 4 / Ruby 2 (thanks [johnknott](https://github.com/johnknott))
+
 **0.9.11**
 - Provide a default environment name when used outside of Rails and none is set
 

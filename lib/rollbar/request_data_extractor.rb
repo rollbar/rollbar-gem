@@ -94,7 +94,7 @@ module Rollbar
       if params.nil?
         {}
       else
-        params.inject({}) do |result, (key, value)|
+        params.to_hash.inject({}) do |result, (key, value)|
           if sensitive_params.include?(key.to_sym)
             result[key] = '*' * (value.length rescue 8)
           elsif value.is_a?(Hash)

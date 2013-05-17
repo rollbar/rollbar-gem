@@ -6,6 +6,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [dimko](https://github.com/dimko)
 - [firstbanco](https://github.com/firstbanco)
 - [ixti](https://github.com/ixti)
+- [johnknott](https://github.com/johnknott)
 - [JoshuaOSHickman](https://github.com/JoshuaOSHickman)
 - [juggler](https://github.com/juggler)
 - [kavu](https://github.com/kavu)
