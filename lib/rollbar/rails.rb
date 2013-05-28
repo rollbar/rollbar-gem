@@ -12,6 +12,7 @@ module Rollbar
       Rollbar.configure do |config|
         config.logger = rails_logger
         config.environment = defined?(::Rails.env) && ::Rails.env || defined?(RAILS_ENV) && RAILS_ENV
+        config.enabled = false if %w(development test).include?(config.environment)
         config.root = defined?(::Rails.root) && ::Rails.root || defined?(RAILS_ROOT) && RAILS_ROOT
         config.framework = defined?(::Rails.version) && "Rails: #{::Rails.version}" || defined?(::Rails::VERSION::STRING) && "Rails: #{::Rails::VERSION::STRING}"
       end
