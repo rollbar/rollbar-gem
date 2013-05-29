@@ -1,5 +1,9 @@
 # Change Log
 
+**0.9.14**
+- Added `custom_data_method` config option. If set, it should be a lambda that returns a hash.
+- Changed initializer template to disable reporting from the 'test' environment.
+
 **0.9.13**
 - Add test for PUT params
 - Parse json params when content-type is application/json
