@@ -36,7 +36,6 @@ describe HomeController do
       data.should have_key(:url)
       data.should have_key(:user_ip)
       data.should have_key(:headers)
-      data.should have_key(:GET)
       data.should have_key(:session)
       data.should have_key(:method)
     end
@@ -178,12 +177,31 @@ describe HomeController do
     end
   end
 
-  describe "GET 'report_exception'" do
-    it "should raise a NameError and report an exception" do
+  describe "'report_exception'", :type => "request" do
+    it "should raise a NameError and report an exception after a GET" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       get 'report_exception'
       response.should be_success
+    end
+    
+    it "should raise a NameError and have PUT params in the reported exception" do
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+
+      put 'report_exception', :putparam => "putval"
+      
+      Rollbar.last_report.should_not be_nil
+      Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+    end
+    
+    it "should raise a NameError and have JSON POST params" do
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      
+      params = {:jsonparam => 'jsonval'}.to_json
+      post 'report_exception', params, {'CONTENT_TYPE' => 'application/json'}
+      
+      Rollbar.last_report.should_not be_nil
+      Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'
     end
   end
 

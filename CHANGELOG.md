@@ -1,5 +1,11 @@
 # Change Log
 
+**0.9.13**
+- Add test for PUT params
+- Parse json params when content-type is application/json
+- Remove extraneous
+- Remove redundant `GET` and `POST` keys from request payload (they're already included in `params`)
+
 **0.9.12**
 - Fix compatibility issue with Rails 4 / Ruby 2 (thanks [johnknott](https://github.com/johnknott))
 

@@ -11,20 +11,28 @@ module Rollbar
     end
 
     def extract_request_data_from_rack(env)
+      rack_req = Rack::Request.new(env)
+      
       sensitive_params = sensitive_params_list(env)
       request_params = rollbar_request_params(env)
-      cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(env))
-      get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(env))
-      post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(env))
+      get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
+      post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
+      cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
-    
+      
+      params = get_params.merge(post_params).merge(request_params)
+      
+      # parse any json params
+      if env['CONTENT_TYPE'] =~ %r{application/json}i
+        json_params = JSON.parse(env['rack.input'].read) rescue {}
+        params = params.merge(json_params)
+      end
+      
       {
-        :params => get_params.merge(post_params).merge(request_params),
+        :params => params,
         :url => rollbar_url(env),
         :user_ip => rollbar_user_ip(env),
         :headers => rollbar_headers(env),
-        :GET => get_params,
-        :POST => post_params,
         :cookies => cookies,
         :session => session,
         :method => rollbar_request_method(env)
@@ -68,26 +76,22 @@ module Rollbar
       }
     end
 
-    def rollbar_get_params(env)
-      rack_request(env).GET
+    def rollbar_get_params(rack_req)
+      rack_req.GET
     rescue
       {}
     end
 
-    def rollbar_post_params(env)
-      rack_request(env).POST
+    def rollbar_post_params(rack_req)
+      rack_req.POST
     rescue
       {}
     end
-
-    def rollbar_request_cookies(env)
-      rack_request(env).cookie
+    
+    def rollbar_request_cookies(rack_req)
+      rack_req.cookies
     rescue
       {}
-    end
-
-    def rack_request(env)
-      @rack_request ||= Rack::Request.new(env)
     end
 
     def rollbar_filtered_params(sensitive_params, params)
