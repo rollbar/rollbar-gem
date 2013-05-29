@@ -337,6 +337,10 @@ module Rollbar
         data[:uuid] = SecureRandom.uuid
       end
 
+      unless config.custom_data_method.nil?
+        data[:custom] = config.custom_data_method.call
+      end
+
       data
     end
 

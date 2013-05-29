@@ -303,6 +303,7 @@ describe Rollbar do
       data = Rollbar.send(:message_data, @message_body, @level, {})
       data[:body][:message][:body].should == @message_body
       data[:level].should == @level
+      data[:custom].should be_nil
     end
 
     it 'should accept extra_data' do
@@ -312,10 +313,29 @@ describe Rollbar do
       data = Rollbar.send(:message_data, @message_body, 'info',
                             :user_id => user_id, :name => name)
 
+      data[:level].should == 'info'
       message = data[:body][:message]
       message[:body].should == @message_body
       message[:user_id].should == user_id
       message[:name].should == name
+    end
+
+    it 'should build a message with custom data when configured' do
+      Rollbar.configure do |config|
+        config.custom_data_method = lambda { {:foo => "bar", :hello => [1, 2, 3]} }
+      end
+
+      data = Rollbar.send(:message_data, @message_body, @level, {})
+
+      data[:level].should == @level
+      data[:body][:message][:body].should == @message_body
+      data[:custom].should_not be_nil
+      data[:custom][:foo].should == "bar"
+      data[:custom][:hello][2].should == 3
+
+      Rollbar.configure do |config|
+        config.custom_data_method = nil
+      end
     end
   end
 
@@ -339,6 +359,7 @@ describe Rollbar do
       data = Rollbar.send(:exception_data, @exception)
 
       data[:level].should_not be_nil
+      data[:custom].should be_nil
 
       trace = data[:body][:trace]
 
@@ -357,6 +378,22 @@ describe Rollbar do
       trace[:exception][:class].should match(/^(NameError|NoMethodError)$/)
       trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
     end
+    
+    it 'should include custom data when configured' do
+      Rollbar.configure do |config|
+        config.custom_data_method = lambda { {:foo => "baz", :hello => [4, 5, 6]} }
+      end
+
+      data = Rollbar.send(:exception_data, @exception)
+      data[:body][:trace].should_not be_nil
+      data[:custom][:foo].should == "baz"
+      data[:custom][:hello][2].should == 6
+
+      Rollbar.configure do |config|
+        config.custom_data_method = nil
+      end
+    end
+
   end
 
   context 'logger' do
@@ -421,11 +458,27 @@ describe Rollbar do
     
     it 'should have an overridden environment' do
       Rollbar.configure do |config|
-        config.environment = 'development'
+        config.environment = 'overridden'
       end
       
       data = Rollbar.send(:base_data)
-      data[:environment].should == 'development'
+      data[:environment].should == 'overridden'
+    end
+
+    it 'should not have custom data under default configuration' do
+      data = Rollbar.send(:base_data)
+      data[:custom].should be_nil
+    end
+
+    it 'should have custom data when custom_data_method is configured' do
+      Rollbar.configure do |config|
+        config.custom_data_method = lambda { {:a => 1, :b => [2, 3, 4]} }
+      end
+
+      data = Rollbar.send(:base_data)
+      data[:custom].should_not be_nil
+      data[:custom][:a].should == 1
+      data[:custom][:b][2].should == 4
     end
   end
 
@@ -446,7 +499,7 @@ describe Rollbar do
       data[:branch].should == 'master'
     end
   end
-    
+
   context "project_gems" do
     it "should include gem paths for specified project gems in the payload" do
       gems = ['rack', 'rspec-rails']

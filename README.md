@@ -99,6 +99,21 @@ If the methods to extract the `id`, `username`, and `email` from the object retu
 ```
 
 
+## Including additional runtime data
+
+You can provide a lambda that will be called for each exception or message report.  `custom_data_method` should be a lambda that takes no arguments and returns a hash. 
+
+Add the following in `config/initializers/rollbar.rb`:
+
+```ruby
+  config.custom_data_method = lambda {
+    { :some_key => :some_value, :complex_key => {:a => 1, :b => [2, 3, 4]} }
+  }
+```
+
+This data will appear in the Occurrences tab and on the Occurrence Detail pages in the Rollbar interface.
+
+
 ## Exception level filters
 
 By default, all exceptions reported through `Rollbar.report_exception()` are reported at the "error" level, except for the following, which are reported at "warning" level:

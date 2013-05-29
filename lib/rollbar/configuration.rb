@@ -6,6 +6,7 @@ module Rollbar
     attr_accessor :access_token
     attr_accessor :async_handler
     attr_accessor :branch
+    attr_accessor :custom_data_method
     attr_accessor :default_logger
     attr_accessor :enabled
     attr_accessor :endpoint
@@ -32,6 +33,7 @@ module Rollbar
 
     def initialize
       @async_handler = nil
+      @custom_data_method = nil
       @default_logger = lambda { Logger.new(STDERR) }
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
