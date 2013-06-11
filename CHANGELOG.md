@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.0**
+- Fixed bug causing duplicate reports when used inside Rails in production with the default error pages. Bumping version to 0.10.0 in case this turns out to be backwards-incompatible for some use cases (i.e. for applications that were relying on the duplicate report that has now been removed).
+
 **0.9.14**
 - Added `custom_data_method` config option. If set, it should be a lambda that returns a hash.
 - Changed initializer template to disable reporting from the 'test' environment.

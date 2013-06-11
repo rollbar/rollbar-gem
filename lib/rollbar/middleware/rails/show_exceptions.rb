@@ -4,11 +4,6 @@ module Rollbar
       module ShowExceptions
         include ExceptionReporter
 
-        def render_exception_with_rollbar(env, exception)
-          report_exception_to_rollbar(env, exception)
-          render_exception_without_rollbar(env, exception)
-        end
-
         def call_with_rollbar(env)
           call_without_rollbar(env)
         rescue => exception
@@ -17,7 +12,6 @@ module Rollbar
         end
 
         def self.included(base)
-          base.send(:alias_method_chain, :render_exception, :rollbar)
           base.send(:alias_method_chain, :call, :rollbar)
         end
       end
