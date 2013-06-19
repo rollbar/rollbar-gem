@@ -4,7 +4,7 @@ Dummy::Application.routes.draw do
     member { post :start_session }
   end
 
-  match "/cause_exception" => "home#cause_exception"
-  match "/report_exception" => "home#report_exception"
-  match "/current_user" => "home#current_user"
+  get "/cause_exception" => "home#cause_exception"
+  match "/report_exception" => "home#report_exception", :via=> [:get, :put, :post]
+  get "/current_user" => "home#current_user"
 end
