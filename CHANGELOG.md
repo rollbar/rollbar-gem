@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.1**
+- Fix regression in 0.10.0 reporting exceptions in development environments and rails < 3.2 apps.
+
 **0.10.0**
 - Fixed bug causing duplicate reports when used inside Rails in production with the default error pages. Bumping version to 0.10.0 in case this turns out to be backwards-incompatible for some use cases (i.e. for applications that were relying on the duplicate report that has now been removed).
 
