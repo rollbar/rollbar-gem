@@ -23,6 +23,30 @@ matrix:
       gemfile: gemfiles/rails40.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails40.gemfile
+    - rvm: ruby-head
+      gemfile: gemfiles/rails30.gemfile
+      gemfile: gemfiles/rails31.gemfile
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: jruby-18mode
+      gemfile: gemfiles/rails30.gemfile
+      gemfile: gemfiles/rails31.gemfile
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: jruby-19mode
+      gemfile: gemfiles/rails30.gemfile
+      gemfile: gemfiles/rails31.gemfile
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: jruby-head
+      gemfile: gemfiles/rails30.gemfile
+      gemfile: gemfiles/rails31.gemfile
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: rbx-18mode
+      gemfile: gemfiles/rails30.gemfile
+      gemfile: gemfiles/rails31.gemfile
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: rbx-19mode
+      gemfile: gemfiles/rails30.gemfile
+      gemfile: gemfiles/rails31.gemfile
+      gemfile: gemfiles/rails40.gemfile
 gemfile:
   - gemfiles/rails30.gemfile
   - gemfiles/rails31.gemfile
