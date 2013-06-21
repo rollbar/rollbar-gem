@@ -7,12 +7,8 @@ require 'appraisal'
 
 RSpec::Core::RakeTask.new(:spec)
 
-namespace :dummy do
-  load 'spec/dummyapp/Rakefile'
-end
-
 desc 'Run specs'
-task :default => ['dummy:db:setup'] do
+task :default do
   ENV['LOCAL'] = '1'
   Rake::Task[:spec].invoke
   

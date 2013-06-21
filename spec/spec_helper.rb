@@ -6,6 +6,12 @@ require 'rspec/rails'
 require 'database_cleaner'
 require 'genspec'
 
+namespace :dummy do
+  load 'spec/dummyapp/Rakefile'
+end
+
+Rake::Task['dummy:db:setup'].invoke
+
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|

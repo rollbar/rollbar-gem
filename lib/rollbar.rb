@@ -12,14 +12,6 @@ require 'rollbar/configuration'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 
-require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
-require 'rollbar/sidekiq' if defined?(Sidekiq)
-require 'rollbar/goalie' if defined?(Goalie)
-require 'rollbar/rack' if defined?(Rack)
-require 'rollbar/rake' if defined?(Rake)
-require 'rollbar/railtie' if defined?(Rails)
-require 'rollbar/better_errors' if defined?(BetterErrors)
-
 module Rollbar
   class << self
     attr_writer :configuration
@@ -36,6 +28,8 @@ module Rollbar
     #     config.access_token = 'abcdefg'
     #   end
     def configure
+      require_hooks
+      
       # if configuration.enabled has not been set yet (is still 'nil'), set to true.
       if configuration.enabled.nil?
         configuration.enabled = true
@@ -145,6 +139,16 @@ module Rollbar
     end
 
     private
+    
+    def require_hooks()
+      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
+      require 'rollbar/sidekiq' if defined?(Sidekiq)
+      require 'rollbar/goalie' if defined?(Goalie)
+      require 'rollbar/rack' if defined?(Rack)
+      require 'rollbar/rake' if defined?(Rake)
+      require 'rollbar/railtie' if defined?(Rails)
+      require 'rollbar/better_errors' if defined?(BetterErrors)
+    end
 
     def log_instance_link(data)
       logger.info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
