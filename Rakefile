@@ -13,5 +13,11 @@ end
 
 desc 'Run specs'
 task :default => ['dummy:db:setup'] do
+  ENV['LOCAL'] = '1'
+  Rake::Task[:spec].invoke
+  
+  Rake::Task[:spec].reenable
+  
+  ENV['LOCAL'] = '0'
   Rake::Task[:spec].invoke
 end

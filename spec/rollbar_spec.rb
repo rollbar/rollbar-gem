@@ -207,15 +207,15 @@ describe Rollbar do
 
     it 'should send the payload over the network by default' do
       logger_mock.should_not_receive(:info).with('[Rollbar] Writing payload to file')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
       Rollbar.report_exception(@exception)
     end
 
     it 'should save the payload to a file if set' do
       logger_mock.should_not_receive(:info).with('[Rollbar] Sending payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Writing payload to file')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with('[Rollbar] Writing payload to file').once
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
       filepath = ''
 

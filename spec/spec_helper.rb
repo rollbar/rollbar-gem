@@ -27,10 +27,13 @@ RSpec.configure do |config|
   config.after(:each) do
     DatabaseCleaner.clean
   end
-
 end
 
 def reset_configuration
   Rollbar.reconfigure do |config|
   end
+end
+
+def local?
+  ENV['LOCAL'] == '1'
 end

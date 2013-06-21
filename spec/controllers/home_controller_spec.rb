@@ -28,7 +28,7 @@ describe HomeController do
     end
   end
 
-  context "rollbar controller methods" do
+  context "rollbar controller methods with %s requests" % (local? ? 'local' : 'non-local') do
     # TODO run these for a a more-real request
     it "should build valid request data" do
       data = @controller.rollbar_request_data
@@ -170,8 +170,8 @@ describe HomeController do
   end
 
   describe "GET 'index'" do
-    it "should be successful and report a message" do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+    it "should be successful and report two messages" do
+      logger_mock.should_receive(:info).with('[Rollbar] Success').twice
       get 'index'
       response.should be_success
     end
@@ -179,7 +179,7 @@ describe HomeController do
 
   describe "'report_exception'", :type => "request" do
     it "should raise a NameError and report an exception after a GET" do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
       get 'report_exception'
       response.should be_success
@@ -202,6 +202,30 @@ describe HomeController do
       
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'
+    end
+  end
+  
+  describe "'cause_exception'", :type => "request" do
+    it "should raise an uncaught exception and report a message" do
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      
+      expect { get 'cause_exception' }.to raise_exception
+    end
+    
+    context 'show_exceptions' do
+      before(:each) do
+        Dummy::Application.env_config['action_dispatch.show_exceptions'] = true
+      end
+      
+      after(:each) do
+        Dummy::Application.env_config['action_dispatch.show_exceptions'] = false
+      end
+      
+      it "middleware should catch the exception and only report to rollbar once" do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+        
+        get 'cause_exception'
+      end
     end
   end
 
