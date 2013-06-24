@@ -14,19 +14,13 @@ module Rollbar
       rack_req = Rack::Request.new(env)
       
       sensitive_params = sensitive_params_list(env)
-      request_params = rollbar_request_params(env)
+      request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
       get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
       
-      params = get_params.merge(post_params).merge(request_params)
-      
-      # parse any json params
-      if env['CONTENT_TYPE'] =~ %r{application/json}i
-        json_params = JSON.parse(env['rack.input'].read) rescue {}
-        params = params.merge(json_params)
-      end
+      params = request_params.merge(get_params).merge(post_params)
       
       {
         :params => params,
@@ -66,16 +60,7 @@ module Rollbar
     def rollbar_user_ip(env)
       (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR']).to_s
     end
-
-    def rollbar_request_params(env)
-      route = ::Rails.application.routes.recognize_path(env['PATH_INFO']) rescue {}
-      {
-        :controller => route[:controller],
-        :action => route[:action],
-        :format => route[:format],
-      }
-    end
-
+    
     def rollbar_get_params(rack_req)
       rack_req.GET
     rescue
@@ -86,6 +71,15 @@ module Rollbar
       rack_req.POST
     rescue
       {}
+    end
+
+    def rollbar_request_params(env)
+      route = ::Rails.application.routes.recognize_path(env['PATH_INFO']) rescue {}
+      {
+        :controller => route[:controller],
+        :action => route[:action],
+        :format => route[:format],
+      }.merge(env['action_dispatch.request.parameters'] || {})
     end
     
     def rollbar_request_cookies(rack_req)

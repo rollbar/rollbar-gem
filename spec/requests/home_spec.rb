@@ -16,13 +16,16 @@ describe HomeController do
 
   context "with broken request" do
     it "should report uncaught exceptions" do
-      expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
+      # only seems to be relevant in 3.1 and 3.2
+      if ::Rails::VERSION::STRING.starts_with? "3.1" or ::Rails::VERSION::STRING.starts_with? "3.2"
+        expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
 
-      Rollbar.last_report.should_not be_nil
-
-      exception_info = Rollbar.last_report[:body][:trace][:exception]
-      exception_info[:class].should == 'ArgumentError'
-      exception_info[:message].should == 'invalid %-encoding (8%B)'
+        Rollbar.last_report.should_not be_nil
+  
+        exception_info = Rollbar.last_report[:body][:trace][:exception]
+        exception_info[:class].should == 'ArgumentError'
+        exception_info[:message].should == 'invalid %-encoding (8%B)'
+      end
     end
   end
 

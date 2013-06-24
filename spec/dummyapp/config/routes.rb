@@ -5,6 +5,6 @@ Dummy::Application.routes.draw do
   end
 
   get "/cause_exception" => "home#cause_exception"
-  match "/report_exception" => "home#report_exception", :via=> [:get, :put, :post]
+  match "/report_exception" => "home#report_exception", :via => [:get, :post, :put]
   get "/current_user" => "home#current_user"
 end

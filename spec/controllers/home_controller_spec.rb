@@ -196,6 +196,7 @@ describe HomeController do
     
     it "should raise a NameError and have JSON POST params" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
+      @request.env["HTTP_ACCEPT"] = "application/json"
       
       params = {:jsonparam => 'jsonval'}.to_json
       post 'report_exception', params, {'CONTENT_TYPE' => 'application/json'}
@@ -214,11 +215,23 @@ describe HomeController do
     
     context 'show_exceptions' do
       before(:each) do
-        Dummy::Application.env_config['action_dispatch.show_exceptions'] = true
+        if Dummy::Application.respond_to? :env_config
+          config = Dummy::Application.env_config
+        else
+          config = Dummy::Application.env_defaults
+        end
+        
+        config['action_dispatch.show_exceptions'] = true
       end
       
       after(:each) do
-        Dummy::Application.env_config['action_dispatch.show_exceptions'] = false
+        if Dummy::Application.respond_to? :env_config
+          config = Dummy::Application.env_config
+        else
+          config = Dummy::Application.env_defaults
+        end
+        
+        config['action_dispatch.show_exceptions'] = false
       end
       
       it "middleware should catch the exception and only report to rollbar once" do
