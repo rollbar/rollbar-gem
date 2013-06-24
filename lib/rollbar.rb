@@ -12,6 +12,8 @@ require 'rollbar/configuration'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 
+require 'rollbar/railtie' if defined?(Rails)
+
 module Rollbar
   class << self
     attr_writer :configuration
@@ -146,7 +148,6 @@ module Rollbar
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
       require 'rollbar/rake' if defined?(Rake)
-      require 'rollbar/railtie' if defined?(Rails)
       require 'rollbar/better_errors' if defined?(BetterErrors)
     end
 

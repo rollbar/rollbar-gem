@@ -1,6 +1,10 @@
 # Change Log
 
-**0.10.2*
+**0.10.3**
+- Rework how request params are extracted so that json params are properly extracted in rails 4.0
+- Fix rollbar:test rake task
+
+**0.10.2**
 - Require hooks at configuration time instead of gem load time
 
 **0.10.1**
