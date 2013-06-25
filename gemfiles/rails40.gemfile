@@ -7,7 +7,7 @@ gem "jruby-openssl", :platform=>:jruby
 gem "activerecord-jdbcsqlite3-adapter", :platform=>:jruby
 gem "girl_friday"
 gem "appraisal"
-gem "rails", "4.0.0.rc2"
+gem "rails", "4.0.0"
 gem "protected_attributes"
 
 gemspec :path=>"../"

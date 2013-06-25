@@ -11,6 +11,6 @@ appraise "rails32" do
 end
 
 appraise "rails40" do
-  gem "rails", "4.0.0.rc2"
+  gem "rails", "4.0.0"
   gem "protected_attributes"
 end
