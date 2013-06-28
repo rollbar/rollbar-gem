@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.4**
+- Fix exception in the exception catcher when Rollbar is disabled
+
 **0.10.3**
 - Rework how request params are extracted so that json params are properly extracted in rails 4.0
 - Fix rollbar:test rake task

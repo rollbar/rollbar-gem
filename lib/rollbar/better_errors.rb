@@ -22,12 +22,13 @@ module BetterErrors
       
       # if an exception was reported, save uuid in the env
       # so it can be displayed to the user on the error page
-      if exception_data
-        begin
-          env['rollbar.exception_uuid'] = exception_data[:uuid]
-        rescue => e
-          puts "[Rollbar] Exception saving uuid in env: #{e}"
-        end
+      if exception_data.is_a?(Hash)
+        env['rollbar.exception_uuid'] = exception_data[:uuid]
+        puts "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
+      elsif exception_data == 'disabled'
+        puts "[Rollbar] Exception not reported because Rollbar is disabled"
+      elsif exception_data == 'ignored'
+        puts "[Rollbar] Exception not reported because it was ignored"
       end
       
       # now continue as normal
