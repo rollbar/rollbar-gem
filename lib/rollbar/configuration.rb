@@ -25,6 +25,7 @@ module Rollbar
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
+    attr_accessor :parameter_filter
     
     attr_reader :project_gem_paths
 
