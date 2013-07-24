@@ -95,6 +95,27 @@ Rollbar.report_message("Login successful")
 Rollbar.report_message("Login successful", "info", :user => @user)
 ```
 
+## Data sanitization (scrubbing)
+
+By default, the notifier will "scrub" the following fields from requests before sending to Rollbar
+
+- ```:passwd```
+- ```:password```
+- ```:password_confirmation```
+- ```:secret```
+- ```:confirm_password```
+- ```:password_confirmation```
+- ```:secret_token```
+
+If a request contains one of these fields, the value will be replaced with a ```"*"``` before being sent.
+
+Additional fields can be scrubbed by updating ```Rollbar.configuration.scrub_fields```:
+
+```ruby
+# scrub out the "user_password" field
+Rollbar.configuration.scrub_fields |= [:user_password]
+```
+
 ## Person tracking
 
 Rollbar will send information about the current user (called a "person" in Rollbar parlance) along with each error report, when available. This works by calling the ```current_user``` controller method. The return value should be an object with an ```id``` method and, optionally, ```username``` and ```email``` methods.
