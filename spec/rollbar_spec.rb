@@ -290,6 +290,28 @@ describe Rollbar do
         config.async_handler = Rollbar.method(:default_async_handler)
       end
     end
+
+    it "should send the payload to sidekiq delayer" do
+      module Rollbar
+        module Delay
+          class Sidekiq
+          end
+        end
+      end
+
+      Rollbar::Delay::Sidekiq.should_receive(:handle).with(anything)
+
+      Rollbar.configure do |config|
+        config.use_sidekiq = { queue: 'test_queue' }
+      end
+
+      Rollbar.report_exception(@exception)
+
+      Rollbar.configure do |config|
+        config.use_async = false
+        config.async_handler = Rollbar.method(:default_async_handler)
+      end
+    end
   end
 
   context 'message_data' do
