@@ -302,7 +302,7 @@ describe Rollbar do
       Rollbar::Delay::Sidekiq.should_receive(:handle).with(anything)
 
       Rollbar.configure do |config|
-        config.use_sidekiq = { queue: 'test_queue' }
+        config.use_sidekiq = { 'queue' => 'test_queue' }
       end
 
       Rollbar.report_exception(@exception)
