@@ -170,13 +170,45 @@ Rollbar.silenced {
 
 ## Asynchronous reporting
 
-By default, all messages are reported synchronously. You can enable asynchronous reporting by adding the following in ```config/initializers/rollbar.rb```:
+By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [Sidekiq](https://github.com/mperham/sidekiq). 
+
+### Using girl_friday
+
+Add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
 config.use_async = true
 ```
 
-Rollbar uses [girl_friday](https://github.com/mperham/girl_friday) to handle asynchronous reporting when installed, and falls back to Threading if girl_friday is not installed.
+Asynchronous reporting falls back to Threading if girl_friday is not installed.
+
+### Using Sidekiq
+
+Add the following in ```config/initializers/rollbar.rb```:
+
+```ruby
+config.use_sidekiq = true
+```
+
+You can also supply custom Sidekiq options:
+
+```ruby
+config.use_sidekiq = { 'queue' => 'my_queue' }
+```
+
+Start the redis server:
+
+```bash
+$ redis-server
+```
+
+Start Sidekiq from the root directory of your Rails app and declare the name of your queue. Unless you've configured otherwise, the queue name is "rollbar":
+
+```bash
+$ bundle exec sidekiq -q rollbar
+```
+
+### Using another handler
 
 You can supply your own handler using ```config.async_handler```. The handler should schedule the payload for later processing (i.e. with a delayed_job, in a resque queue, etc.) and should itself return immediately. For example:
 
