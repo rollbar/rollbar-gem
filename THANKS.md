@@ -4,8 +4,10 @@ Huge thanks to the following contributors (by github username). For the most up-
 
 - [arr-ee](https://github.com/arr-ee)
 - [dimko](https://github.com/dimko)
+- [fabsays](https://github.com/fabsays)
 - [firstbanco](https://github.com/firstbanco)
 - [ixti](https://github.com/ixti)
+- [jeremyvdw](https://github.com/jeremyvdw)
 - [johnknott](https://github.com/johnknott)
 - [JoshuaOSHickman](https://github.com/JoshuaOSHickman)
 - [juggler](https://github.com/juggler)
