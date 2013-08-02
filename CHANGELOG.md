@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.5**
+- Add built-in support for Sidekiq as async handler
+
 **0.10.4**
 - Fix exception in the exception catcher when Rollbar is disabled
 
