@@ -36,4 +36,9 @@ Rollbar.configure do |config|
   # config.async_handler = Proc.new { |payload|
   #  Thread.new { Rollbar.process_payload(payload) }
   # }
+
+  # Enable delayed reporting (using Sidekiq)
+  # config.use_sidekiq = true
+  # You can supply custom Sidekiq options:
+  # config.use_sidekiq = { 'queue' => 'my_queue' }
 end
