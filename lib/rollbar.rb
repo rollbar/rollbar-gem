@@ -75,7 +75,10 @@ module Rollbar
       return 'ignored' if ignored?(exception)
 
       data = exception_data(exception, filtered_level(exception))
-      data[:request] = request_data if request_data
+      if request_data
+        request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
+        data[:request] = request_data
+      end
       data[:person] = person_data if person_data
 
       @last_report = data
