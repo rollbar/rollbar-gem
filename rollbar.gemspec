@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency 'rails', '>= 3.0.0'
   gem.add_development_dependency 'rspec-rails', '~> 2.12.0'
-  gem.add_development_dependency 'database_cleaner', '>= 0.9.1'
+  gem.add_development_dependency 'database_cleaner', '~> 1.0.0'
   gem.add_development_dependency 'girl_friday', '>= 0.11.1'
   gem.add_development_dependency 'genspec', '>= 0.2.7'
 end
