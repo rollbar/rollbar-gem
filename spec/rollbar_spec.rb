@@ -44,7 +44,7 @@ describe Rollbar do
 
     it 'should not be enabled when not configured' do
       Rollbar.unconfigure
-      
+
       Rollbar.configuration.enabled.should be_nil
       Rollbar.report_exception(@exception).should == 'disabled'
     end
@@ -59,7 +59,7 @@ describe Rollbar do
 
       # now configure again (perhaps to change some other values)
       Rollbar.configure do |config| end
-      
+
       Rollbar.configuration.enabled.should == false
       Rollbar.report_exception(@exception).should == 'disabled'
     end
@@ -145,6 +145,7 @@ describe Rollbar do
     end
 
     let(:logger_mock) { double("Rails.logger").as_null_object }
+    let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
     it 'should report simple messages' do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
@@ -179,6 +180,18 @@ describe Rollbar do
 
       logger_mock.should_receive(:error).with(/\[Rollbar\] Error reporting message to Rollbar: (nesting of \d+ is too deep|object references itself)/)
       Rollbar.report_message("Test message with circular extra data", 'debug', a)
+    end
+
+    it 'should be able to report form validation errors when they are present' do
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      user.errors.add(:example, "error")
+      user.report_validation_errors_to_rollbar
+    end
+
+    it 'should not report form validation errors when they are not present' do
+      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      user.errors.clear
+      user.report_validation_errors_to_rollbar
     end
 
     after(:each) do
@@ -400,7 +413,7 @@ describe Rollbar do
       trace[:exception][:class].should match(/^(NameError|NoMethodError)$/)
       trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
     end
-    
+
     it 'should include custom data when configured' do
       Rollbar.configure do |config|
         config.custom_data_method = lambda { {:foo => "baz", :hello => [4, 5, 6]} }
@@ -472,17 +485,17 @@ describe Rollbar do
       data[:language].should == 'ruby'
       data[:framework].should match(/^Rails/)
     end
-    
+
     it 'should have a default production environment' do
       data = Rollbar.send(:base_data)
       data[:environment].should == 'production'
     end
-    
+
     it 'should have an overridden environment' do
       Rollbar.configure do |config|
         config.environment = 'overridden'
       end
-      
+
       data = Rollbar.send(:base_data)
       data[:environment].should == 'overridden'
     end
@@ -526,19 +539,19 @@ describe Rollbar do
     it "should include gem paths for specified project gems in the payload" do
       gems = ['rack', 'rspec-rails']
       gem_paths = []
-      
+
       Rollbar.configure do |config|
         config.project_gems = gems
       end
-      
+
       gems.each {|gem|
         gem_paths.push(Gem::Specification.find_by_name(gem).gem_dir)
       }
-      
+
       data = Rollbar.send(:message_data, 'test', 'info', {})
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
-      
+
       data[:project_package_paths].each_with_index{|path, index|
         path.should == gem_paths[index]
       }

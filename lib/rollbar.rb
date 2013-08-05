@@ -11,6 +11,7 @@ require 'rollbar/version'
 require 'rollbar/configuration'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
+require 'rollbar/active_record_extension'
 
 require 'rollbar/railtie' if defined?(Rails)
 
@@ -31,7 +32,7 @@ module Rollbar
     #   end
     def configure
       require_hooks
-      
+
       # if configuration.enabled has not been set yet (is still 'nil'), set to true.
       if configuration.enabled.nil?
         configuration.enabled = true
@@ -141,7 +142,7 @@ module Rollbar
     end
 
     private
-    
+
     def require_hooks()
       require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
       require 'rollbar/sidekiq' if defined?(Sidekiq)
@@ -252,25 +253,25 @@ module Rollbar
       end
     end
 
-    def send_payload_using_eventmachine(payload)      
+    def send_payload_using_eventmachine(payload)
       req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => payload)
       req.callback do
         if req.response_header.status == 200
           logger.info '[Rollbar] Success'
         else
           logger.warn "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
-          logger.info "[Rollbar] Response: #{req.response}"          
+          logger.info "[Rollbar] Response: #{req.response}"
         end
       end
       req.errback do
         logger.warn "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
-        logger.info "[Rollbar] Error's response: #{req.response}"    
+        logger.info "[Rollbar] Error's response: #{req.response}"
       end
     end
 
     def send_payload(payload)
       logger.info '[Rollbar] Sending payload'
-      
+
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
         return
