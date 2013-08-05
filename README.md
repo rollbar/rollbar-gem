@@ -60,6 +60,14 @@ $ rake rollbar:test
 
 This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Rollbar dashboard.
 
+## Reporting form validation errors
+
+To get form validation errors automatically reported to Rollbar just add the following ```after_validation``` callback to your models:
+
+```ruby
+after_validation :report_validation_errors_to_rollbar
+```
+
 ## Manually reporting exceptions and messages
 
 To report a caught exception to Rollbar, simply call ```Rollbar.report_exception```:
@@ -136,7 +144,7 @@ config.person_email_method = "email_address"  # default is "email"
 
 ## Including additional runtime data
 
-You can provide a lambda that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash. 
+You can provide a lambda that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -170,7 +178,7 @@ Rollbar.silenced {
 
 ## Asynchronous reporting
 
-By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [Sidekiq](https://github.com/mperham/sidekiq). 
+By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [Sidekiq](https://github.com/mperham/sidekiq).
 
 ### Using girl_friday
 
@@ -249,7 +257,7 @@ Available options:
   </dd>
   <dt>rollbar_env</dt>
   <dd>Deploy environment name
-  
+
 Default: ```rails_env```
 
   </dd>
@@ -286,7 +294,7 @@ Check out [resque-rollbar](https://github.com/CrowdFlower/resque-rollbar) for us
 
 ## Using with Zeus
 
-Some users have reported problems with Zeus when ```rake``` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding ```gem 'rake'``` to your ```Gemfile```. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information. 
+Some users have reported problems with Zeus when ```rake``` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding ```gem 'rake'``` to your ```Gemfile```. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information.
 
 
 ## Help / Support
