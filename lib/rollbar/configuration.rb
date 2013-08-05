@@ -26,6 +26,7 @@ module Rollbar
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
+    attr_accessor :parameter_filter
     
     attr_reader :project_gem_paths
 
@@ -51,7 +52,7 @@ module Rollbar
       @person_email_method = 'email'
       @project_gems = []
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
-                       :confirm_password, :password_confirmation, :secret_token]
+                       :confirm_password, :password_confirmation, :secret_token, :tempfile]
       @use_async = false
       @use_sidekiq = false
       @use_eventmachine = false

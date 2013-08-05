@@ -14,19 +14,19 @@ module Rollbar
       rack_req = Rack::Request.new(env)
       
       sensitive_params = sensitive_params_list(env)
-      request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
-      get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
-      post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
-      cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
-      session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
-      
+      request_params = sanitizer.call(sensitive_params, rollbar_request_params(env))
+      get_params = sanitizer.call(sensitive_params, rollbar_get_params(rack_req))
+      post_params = sanitizer.call(sensitive_params, rollbar_post_params(rack_req))
+      cookies = sanitizer.call(sensitive_params, rollbar_request_cookies(rack_req))
+      session = sanitizer.call(sensitive_params, env['rack.session.options'])
+      headers = sanitizer.call(sensitive_params, rollbar_headers(env))
       params = request_params.merge(get_params).merge(post_params)
       
       {
         :params => params,
         :url => rollbar_url(env),
         :user_ip => rollbar_user_ip(env),
-        :headers => rollbar_headers(env),
+        :headers => headers,
         :cookies => cookies,
         :session => session,
         :method => rollbar_request_method(env)
@@ -108,6 +108,14 @@ module Rollbar
           end
           result
         end
+      end
+    end
+
+    def sanitizer
+      if Rollbar.configuration.parameter_filter
+        ->(_,params) { Rollbar.configuration.parameter_filter.filter params }
+      else
+        method(:rollbar_filtered_params)
       end
     end
 
