@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.6**
+- Fix json dump when rack.errors is an IO stream
+
 **0.10.5**
 - Add built-in support for Sidekiq as async handler
 

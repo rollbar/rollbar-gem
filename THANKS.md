@@ -14,6 +14,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [kavu](https://github.com/kavu)
 - [magnolia-fan](https://github.com/magnolia-fan)
 - [mipearson](https://github.com/mipearson)
+- [rogercampos](https://github.com/rogercampos)
 - [siong1987](https://github.com/siong1987)
 - [trisweb](https://github.com/trisweb)
 - [tysontate](https://github.com/tysontate)
