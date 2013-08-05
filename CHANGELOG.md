@@ -1,10 +1,8 @@
 # Change Log
 
-**0.10.8**
-- Add MIT license to gemspec
-
 **0.10.7**
 - Add ability to report form validation errors
+- Add MIT license to gemspec
 
 **0.10.6**
 - Fix json dump when rack.errors is an IO stream
