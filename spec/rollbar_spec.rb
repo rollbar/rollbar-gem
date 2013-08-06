@@ -305,21 +305,20 @@ describe Rollbar do
 
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
-    it 'should send the payload using the default asynchronous handler girl_friday' do
+    it 'should send the payload using the default asynchronous handler Celluloid' do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
         config.use_async = true
-        GirlFriday::WorkQueue::immediate!
       end
 
+      Celluloid::Future.should_receive(:new).and_yield
       Rollbar.report_exception(@exception)
 
       Rollbar.configure do |config|
         config.use_async = false
-        GirlFriday::WorkQueue::queue!
       end
     end
 
