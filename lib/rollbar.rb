@@ -5,7 +5,7 @@ require 'socket'
 require 'thread'
 require 'uri'
 
-require 'girl_friday' if defined?(GirlFriday)
+require 'celluloid' if defined?(Celluloid)
 require 'multi_json'
 
 require 'rollbar/version'
@@ -371,16 +371,10 @@ module Rollbar
     end
 
     def default_async_handler(payload)
-      if defined?(GirlFriday)
-        unless @queue
-          @queue = GirlFriday::WorkQueue.new(nil, :size => 5) do |payload|
-            process_payload(payload)
-          end
-        end
-
-        @queue.push(payload)
+      if defined?(Celluloid)
+        Celluloid::Future.new { process_payload(payload) }
       else
-        log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
+        log_warning '[Rollbar] Celluloid not found to handle async call, falling back to Thread'
         Thread.new { process_payload(payload) }
       end
     end

@@ -29,7 +29,7 @@ Rollbar.configure do |config|
   # 'ignore' will cause the exception to not be reported at all.
   # config.exception_level_filters.merge!('MyCriticalException' => 'critical')
   
-  # Enable asynchronous reporting (uses girl_friday or Threading if girl_friday
+  # Enable asynchronous reporting (uses Celluloid or Threading if Celluloid
   # is not installed)
   # config.use_async = true
   # Supply your own async handler:

@@ -178,9 +178,9 @@ Rollbar.silenced {
 
 ## Asynchronous reporting
 
-By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [Sidekiq](https://github.com/mperham/sidekiq).
+By default, all messages are reported synchronously. You can enable asynchronous reporting with [Celluloid](https://github.com/celluloid/celluloid) or [Sidekiq](https://github.com/mperham/sidekiq).
 
-### Using girl_friday
+### Using Celluloid
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -188,7 +188,7 @@ Add the following in ```config/initializers/rollbar.rb```:
 config.use_async = true
 ```
 
-Asynchronous reporting falls back to Threading if girl_friday is not installed.
+Asynchronous reporting falls back to Threading if Celluloid is not installed.
 
 ### Using Sidekiq
 
