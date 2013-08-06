@@ -1,4 +1,5 @@
 require 'net/https'
+
 require 'securerandom' if defined?(SecureRandom)
 require 'socket'
 require 'thread'
@@ -89,7 +90,7 @@ module Rollbar
       log_instance_link(data)
       data
     rescue => e
-      logger.error "[Rollbar] Error reporting exception to Rollbar: #{e}"
+      report_internal_error(e)
       'error'
     end
 
@@ -113,7 +114,7 @@ module Rollbar
       log_instance_link(data)
       data
     rescue => e
-      logger.error "[Rollbar] Error reporting message to Rollbar: #{e}"
+      report_internal_error(e)
       'error'
     end
 
@@ -140,7 +141,7 @@ module Rollbar
           send_payload(payload)
         end
       rescue => e
-        logger.error "[Rollbar] Error reporting message to Rollbar: #{e}"
+        log_error "[Rollbar] Error processing payload: #{e}"
       end
     end
 
@@ -154,9 +155,9 @@ module Rollbar
       require 'rollbar/rake' if defined?(Rake)
       require 'rollbar/better_errors' if defined?(BetterErrors)
     end
-
+    
     def log_instance_link(data)
-      logger.info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
+      log_info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
     end
 
     def ignored?(exception)
@@ -241,7 +242,7 @@ module Rollbar
     end
 
     def do_write_payload(payload)
-      logger.info '[Rollbar] Writing payload to file'
+      log_info '[Rollbar] Writing payload to file'
 
       begin
         unless @file
@@ -250,9 +251,9 @@ module Rollbar
 
         @file.puts payload
         @file.flush
-        logger.info "[Rollbar] Success"
+        log_info "[Rollbar] Success"
       rescue IOError => e
-        logger.error "[Rollbar] Error opening/writing to file: #{e}"
+        log_error "[Rollbar] Error opening/writing to file: #{e}"
       end
     end
 
@@ -260,20 +261,20 @@ module Rollbar
       req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => payload)
       req.callback do
         if req.response_header.status == 200
-          logger.info '[Rollbar] Success'
+          log_info '[Rollbar] Success'
         else
-          logger.warn "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
-          logger.info "[Rollbar] Response: #{req.response}"
+          log_warning "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
+          log_info "[Rollbar] Response: #{req.response}"
         end
       end
       req.errback do
-        logger.warn "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
-        logger.info "[Rollbar] Error's response: #{req.response}"
+        log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+        log_info "[Rollbar] Error's response: #{req.response}"
       end
     end
 
     def send_payload(payload)
-      logger.info '[Rollbar] Sending payload'
+      log_info '[Rollbar] Sending payload'
 
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
@@ -292,15 +293,15 @@ module Rollbar
       response = http.request(request)
 
       if response.code == '200'
-        logger.info '[Rollbar] Success'
+        log_info '[Rollbar] Success'
       else
-        logger.warn "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
-        logger.info "[Rollbar] Response: #{response.body}"
+        log_warning "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
+        log_info "[Rollbar] Response: #{response.body}"
       end
     end
 
     def schedule_payload(payload)
-      logger.info '[Rollbar] Scheduling payload'
+      log_info '[Rollbar] Scheduling payload'
 
       if configuration.use_async
         unless configuration.async_handler
@@ -375,11 +376,105 @@ module Rollbar
 
         @queue.push(payload)
       else
-        logger.warn '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
+        log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
         Thread.new { process_payload(payload) }
       end
     end
+
+    # wrappers around logger methods
+    def log_error(message)
+      begin
+        logger.error message
+      rescue => e
+        puts "[Rollbar] Error logging error:"
+        puts "[Rollbar] #{message}"
+      end
+    end
+    
+    def log_info(message)
+      begin
+        logger.info message
+      rescue => e
+        puts "[Rollbar] Error logging info:"
+        puts "[Rollbar] #{message}"
+      end
+    end
+
+    def log_warning(message)
+      begin
+        logger.warn message
+      rescue => e
+        puts "[Rollbar] Error logging warning:"
+        puts "[Rollbar] #{message}"
+      end
+    end
+    
+    # Reports an internal error in the Rollbar library. This will be reported within the configured
+    # Rollbar project. We'll first attempt to provide a report including the exception traceback.
+    # If that fails, we'll fall back to a more static failsafe response.
+    def report_internal_error(exception)
+      log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar." 
+
+      begin
+        data = exception_data(exception, 'error')
+      rescue => e
+        send_failsafe("error in exception_data", e)
+        return
+      end
+
+      data[:internal] = true
+      
+      begin
+        payload = build_payload(data)
+      rescue => e
+        send_failsafe("error in build_payload", e) 
+        return
+      end
+        
+      begin
+        schedule_payload(payload)
+      rescue => e
+        send_failsafe("erorr in schedule_payload", e)
+        return
+      end
+
+      begin
+        log_instance_link(data)
+      rescue => e
+        send_failsafe("error logging instance link", e)
+        return
+      end
+    end
+
+    def send_failsafe(message, exception)
+      log_error "[Rollbar] Sending failsafe response."
+      log_error "[Rollbar] #{message} #{exception}"
+
+      config = configuration
+      environment = config.environment
+      
+      failsafe_payload = <<-eos
+      {"access_token": "#{config.access_token}",
+       "data": {
+         "level": "error",
+         "environment": "#{config.environment}",
+         "body": { "message": { "body": "Failsafe from rollbar-gem: #{message}" } },
+         "notifier": { "name": "rollbar-gem", "version": "#{VERSION}" },
+         "internal": true,
+         "failsafe": true
+       }
+      }
+      eos
+
+      begin
+        schedule_payload(failsafe_payload)
+      rescue => e
+        log_error "[Rollbar] Error sending failsafe : #{e}"
+      end
+    end
+  
   end
+
 end
 
 # Setting Ratchetio as an alias to Rollbar for ratchetio-gem backwards compatibility

@@ -198,7 +198,8 @@ describe Rollbar do
       c = { :b => b }
       a[:c] = c
 
-      logger_mock.should_receive(:error).with(/\[Rollbar\] Error reporting message to Rollbar: (nesting of \d+ is too deep|object references itself)/)
+      logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
+
       Rollbar.report_message("Test message with circular extra data", 'debug', a)
     end
 
@@ -575,6 +576,30 @@ describe Rollbar do
       data[:project_package_paths].each_with_index{|path, index|
         path.should == gem_paths[index]
       }
+    end
+  end
+
+  context "report_internal_error" do
+    it "should not crash when given an exception object" do
+      begin
+        1 / 0
+      rescue => e
+        Rollbar.send(:report_internal_error, e)
+      end
+    end
+  end
+
+  context "send_failsafe" do
+    it "should not crash when given a message and exception" do
+      begin
+        1 / 0
+      rescue => e
+        Rollbar.send(:send_failsafe, "test failsafe", e)
+      end
+    end
+
+    it "should not crash when given all nils" do
+      Rollbar.send(:send_failsafe, nil, nil)
     end
   end
 
