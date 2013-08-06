@@ -200,7 +200,11 @@ module Rollbar
         frames = exception.backtrace.map { |frame|
           # parse the line
           match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-          { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
+          if match
+            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
+          else
+            { :filename => "<unknown>", :lineno => 0, :method => frame }
+          end
         }
         # reverse so that the order is as rollbar expects
         frames.reverse!

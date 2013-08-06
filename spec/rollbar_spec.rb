@@ -154,6 +154,25 @@ describe Rollbar do
         exception_data[:uuid].should_not be_nil
       end
     end
+
+    it 'should report exception objects with nonstandard backtraces' do
+      payload = nil
+      Rollbar.stub(:schedule_payload) do |*args|
+        payload = MultiJson.load(args[0])
+      end
+
+      class CustomException < StandardError
+        def backtrace
+          ["custom backtrace line"]
+        end
+      end
+
+      exception = CustomException.new("oops")
+
+      Rollbar.report_exception(exception)
+      
+      payload["data"]["body"]["trace"]["frames"][0]["method"].should == "custom backtrace line"
+    end
   end
 
   context 'report_message' do
