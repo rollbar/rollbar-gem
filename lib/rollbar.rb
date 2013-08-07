@@ -12,7 +12,7 @@ require 'rollbar/version'
 require 'rollbar/configuration'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
-require 'rollbar/active_record_extension'
+require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 
 require 'rollbar/railtie' if defined?(Rails)
 
@@ -155,7 +155,7 @@ module Rollbar
       require 'rollbar/rake' if defined?(Rake)
       require 'rollbar/better_errors' if defined?(BetterErrors)
     end
-    
+
     def log_instance_link(data)
       log_info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
     end
@@ -394,7 +394,7 @@ module Rollbar
         puts "[Rollbar] #{message}"
       end
     end
-    
+
     def log_info(message)
       begin
         logger.info message
@@ -412,12 +412,12 @@ module Rollbar
         puts "[Rollbar] #{message}"
       end
     end
-    
+
     # Reports an internal error in the Rollbar library. This will be reported within the configured
     # Rollbar project. We'll first attempt to provide a report including the exception traceback.
     # If that fails, we'll fall back to a more static failsafe response.
     def report_internal_error(exception)
-      log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar." 
+      log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar."
 
       begin
         data = exception_data(exception, 'error')
@@ -427,14 +427,14 @@ module Rollbar
       end
 
       data[:internal] = true
-      
+
       begin
         payload = build_payload(data)
       rescue => e
-        send_failsafe("error in build_payload", e) 
+        send_failsafe("error in build_payload", e)
         return
       end
-        
+
       begin
         schedule_payload(payload)
       rescue => e
@@ -456,7 +456,7 @@ module Rollbar
 
       config = configuration
       environment = config.environment
-      
+
       failsafe_payload = <<-eos
       {"access_token": "#{config.access_token}",
        "data": {
@@ -476,7 +476,7 @@ module Rollbar
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
     end
-  
+
   end
 
 end
