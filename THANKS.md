@@ -3,6 +3,7 @@
 Huge thanks to the following contributors (by github username). For the most up-to-date list, see https://github.com/rollbar/rollbar-gem/graphs/contributors
 
 - [arr-ee](https://github.com/arr-ee)
+- [awmichel](https://github.com/awmichel)
 - [dimko](https://github.com/dimko)
 - [fabsays](https://github.com/fabsays)
 - [firstbanco](https://github.com/firstbanco)

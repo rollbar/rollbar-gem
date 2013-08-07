@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.9**
+- Fix regression introduced in 0.10.7 when ActiveRecord is not present.
+
 **0.10.8**
 - Better handling of internal errors. Internal errors (errors that occur while reporting something to Rollbar) are now themselves reported to Rollbar. If that fails, a failsafe message will be reported, and if that fails, the error will be logged as it is now.
 - Fix bug reporting exceptions with backtraces containing frames that don't match our regex.
