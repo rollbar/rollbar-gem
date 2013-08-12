@@ -54,7 +54,10 @@ namespace :rollbar do
 
     puts "Processing..."
     env = Rack::MockRequest.env_for("/verify")
-
-    Rails.application.call(env)
+    status, headers, response = Rails.application.call(env)
+    
+    unless status == 500
+      puts "Test failed! You may have a configuration issue, or you could be using a gem that's blocking the test. Contact support@rollbar.com if you need help troubleshooting."
+    end
   end
 end
