@@ -22,11 +22,12 @@ module Rollbar
     attr_accessor :root
     attr_accessor :scrub_fields
     attr_accessor :use_sidekiq
+    attr_accessor :use_sucker_punch
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
-    
+
     attr_reader :project_gem_paths
 
     DEFAULT_ENDPOINT = 'https://api.rollbar.com/api/1/item/'
@@ -54,11 +55,12 @@ module Rollbar
                        :confirm_password, :password_confirmation, :secret_token]
       @use_async = false
       @use_sidekiq = false
+      @use_sucker_punch = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
     end
-    
+
     def use_sidekiq=(value)
       if value
         require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
@@ -67,19 +69,27 @@ module Rollbar
       end
     end
 
+    def use_sucker_punch=(value)
+      if value
+        require 'rollbar/delay/sucker_punch' if defined?(SuckerPunch)
+        @use_async      = true
+        @async_handler  = Rollbar::Delay::SuckerPunch.method(:handle)
+      end
+    end
+
     def use_eventmachine=(value)
       require 'em-http-request' if value
       @use_eventmachine = value
     end
-    
+
     def project_gems=(gems)
       @project_gem_paths = []
-      
+
       gems.each { |name|
         begin
           spec = Gem::Specification.find_by_name(name.to_s)
           gem_root = spec.gem_dir
-          
+
           @project_gem_paths.push gem_root
         rescue Gem::LoadError
           puts "[Rollbar] #{name} gem not found"
