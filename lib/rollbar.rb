@@ -6,6 +6,7 @@ require 'thread'
 require 'uri'
 
 require 'girl_friday' if defined?(GirlFriday)
+require 'sucker_punch' if defined?(SuckerPunch)
 require 'multi_json'
 
 require 'rollbar/version'
