@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.10**
+- Add support for sucker_punch asynchronous handling
+
 **0.10.9**
 - Fix regression introduced in 0.10.7 when ActiveRecord is not present.
 
