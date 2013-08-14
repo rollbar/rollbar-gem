@@ -1,8 +1,13 @@
 require 'logger'
 require 'socket'
 require 'spec_helper'
-require 'sucker_punch'
-require 'sucker_punch/testing/inline'
+require 'girl_friday'
+
+begin
+  require 'sucker_punch'
+  require 'sucker_punch/testing/inline'
+rescue LoadError
+end
 
 describe Rollbar do
 
@@ -346,20 +351,22 @@ describe Rollbar do
       end
     end
 
-    it "should send the payload to sucker_punch delayer" do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
-
-      Rollbar.configure do |config|
-        config.use_sucker_punch = true
-      end
-
-      Rollbar.report_exception(@exception)
-
-      Rollbar.configure do |config|
-        config.use_async = false
-        config.async_handler = Rollbar.method(:default_async_handler)
+    if defined?(SuckerPunch)
+      it "should send the payload to sucker_punch delayer" do
+        logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+        logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+        logger_mock.should_receive(:info).with('[Rollbar] Success')
+  
+        Rollbar.configure do |config|
+          config.use_sucker_punch = true
+        end
+  
+        Rollbar.report_exception(@exception)
+  
+        Rollbar.configure do |config|
+          config.use_async = false
+          config.async_handler = Rollbar.method(:default_async_handler)
+        end
       end
     end
 
