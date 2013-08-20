@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.11**
+- Fix usage of custom Sidekiq options
+
 **0.10.10**
 - Add support for sucker_punch asynchronous handling
 

@@ -6,7 +6,7 @@ module Rollbar
       OPTIONS = { 'queue' => 'rollbar', 'class' => self.name }.freeze
 
       def self.handle(payload)
-        item = @use_sidekiq.is_a?(Hash) ? OPTIONS.merge(@use_sidekiq) : OPTIONS
+        item = Rollbar.configuration.use_sidekiq.is_a?(Hash) ? OPTIONS.merge(Rollbar.configuration.use_sidekiq) : OPTIONS
 
         ::Sidekiq::Client.push item.merge('args' => [payload])
       end
