@@ -63,7 +63,7 @@ module Rollbar
       if value
         require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
         @use_async      = true
-        @use_sidekiq    = true
+        @use_sidekiq    = value
         @async_handler  = Rollbar::Delay::Sidekiq.method(:handle)
       end
     end
