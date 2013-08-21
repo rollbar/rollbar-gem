@@ -37,6 +37,9 @@ Rollbar.configure do |config|
   #  Thread.new { Rollbar.process_payload(payload) }
   # }
 
+  # Enable asynchronous reporting (using sucker_punch)
+  # config.use_sucker_punch = true
+
   # Enable delayed reporting (using Sidekiq)
   # config.use_sidekiq = true
   # You can supply custom Sidekiq options:

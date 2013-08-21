@@ -178,7 +178,7 @@ Rollbar.silenced {
 
 ## Asynchronous reporting
 
-By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [Sidekiq](https://github.com/mperham/sidekiq).
+By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [sucker_punch](https://github.com/brandonhilkert/sucker_punch) or [Sidekiq](https://github.com/mperham/sidekiq).
 
 ### Using girl_friday
 
@@ -189,6 +189,14 @@ config.use_async = true
 ```
 
 Asynchronous reporting falls back to Threading if girl_friday is not installed.
+
+### Using sucker_punch
+
+Add the following in ```config/initializers/rollbar.rb```:
+
+```ruby
+config.use_sucker_punch = true
+```
 
 ### Using Sidekiq
 
