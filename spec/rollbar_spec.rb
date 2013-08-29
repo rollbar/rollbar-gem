@@ -648,6 +648,24 @@ describe Rollbar do
     end
   end
 
+  context "request_data_extractor" do
+    before(:each) do
+      class DummyClass
+      end
+      @dummy_class = DummyClass.new
+      @dummy_class.extend(Rollbar::RequestDataExtractor)
+    end
+    
+    context "rollbar_headers" do
+      it "should not include cookies" do
+        env = {"HTTP_USER_AGENT" => "test", "HTTP_COOKIE" => "cookie"}
+        headers = @dummy_class.send(:rollbar_headers, env)
+        headers.should have_key "User-Agent"
+        headers.should_not have_key "Cookie"
+      end
+    end
+  end
+
   # configure with some basic params
   def configure
     Rollbar.reconfigure do |config|

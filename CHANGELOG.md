@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.12**
+- Exclude HTTP_COOKIE header (since cookies are already included in parsed form)
+
 **0.10.11**
 - Fix usage of custom Sidekiq options
 

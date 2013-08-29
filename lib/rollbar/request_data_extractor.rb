@@ -42,7 +42,12 @@ module Rollbar
     def rollbar_headers(env)
       env.keys.grep(/^HTTP_/).map do |header|
         name = header.gsub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        { name => env[header] }
+        # exclude cookies - we already include a parsed version as request_data[:cookies]
+        if name == 'Cookie'
+          {}
+        else
+          { name => env[header] }
+        end
       end.inject(:merge)
     end
 
