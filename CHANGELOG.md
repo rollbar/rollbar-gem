@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.14**
+- Fixed compatability issue with better_errors 1.0
+
 **0.10.13**
 - Added `code_version` configuration setting
 
