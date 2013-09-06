@@ -1,5 +1,8 @@
 # Change Log
 
+**0.10.13**
+- Added `code_version` configuration setting
+
 **0.10.12**
 - Exclude HTTP_COOKIE header (since cookies are already included in parsed form)
 

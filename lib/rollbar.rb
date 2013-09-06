@@ -348,6 +348,10 @@ module Rollbar
         }
       }
 
+      if config.code_version
+        data[:code_version] = config.code_version
+      end
+
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
         data[:uuid] = SecureRandom.uuid
       end
