@@ -552,9 +552,9 @@ describe Rollbar do
       data[:framework].should match(/^Rails/)
     end
 
-    it 'should have a default production environment' do
+    it 'should have default environment "unspecified"' do
       data = Rollbar.send(:base_data)
-      data[:environment].should == 'production'
+      data[:environment].should == 'unspecified'
     end
 
     it 'should have an overridden environment' do

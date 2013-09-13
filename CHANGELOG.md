@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.0**
+- Changed default environment name from `'production'` to `'unspecified'`
+
 **0.10.14**
 - Fixed compatability issue with better_errors 1.0
 
