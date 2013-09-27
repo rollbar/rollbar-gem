@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.1**
+- `config.exception_level_filters` can now take a callable instead of a string. The exception instance will be passed to the callable.
+
 **0.11.0**
 - Changed default environment name from `'production'` to `'unspecified'`
 
