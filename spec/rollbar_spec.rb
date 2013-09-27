@@ -127,6 +127,25 @@ describe Rollbar do
       end
     end
 
+    it 'should allow callables to set exception filtered level' do
+      callable_mock = double
+      saved_filters = Rollbar.configuration.exception_level_filters
+      Rollbar.configure do |config|
+        config.exception_level_filters = { 'NameError' => callable_mock }
+      end
+
+      callable_mock.should_receive(:call).with(@exception).at_least(:once).and_return("info")
+      logger_mock.should_receive(:info)
+      logger_mock.should_not_receive(:warn)
+      logger_mock.should_not_receive(:error)
+
+      Rollbar.report_exception(@exception)
+
+      Rollbar.configure do |config|
+        config.exception_level_filters = saved_filters
+      end
+    end
+
     it 'should not report exceptions when silenced' do
       Rollbar.should_not_receive :schedule_payload
 
