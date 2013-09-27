@@ -174,7 +174,12 @@ module Rollbar
     end
 
     def filtered_level(exception)
-      configuration.exception_level_filters[exception.class.name]
+      filter = configuration.exception_level_filters[exception.class.name]
+      if filter.respond_to?(:call)
+        filter.call(exception)
+      else
+        filter
+      end
     end
 
     def message_data(message, level, extra_data)
