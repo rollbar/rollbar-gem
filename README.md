@@ -1,5 +1,6 @@
 # Rollbar notifier for Ruby [![Build Status](https://secure.travis-ci.org/rollbar/rollbar-gem.png?branch=master)](https://travis-ci.org/rollbar/rollbar-gem)
 
+<!-- RemoveNext -->
 Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https://rollbar.com).
 
 <!-- Sub:[TOC] -->
@@ -28,7 +29,11 @@ Then, run the following command from your rails root:
 $ rails generate rollbar POST_SERVER_ITEM_ACCESS_TOKEN
 ```
 
-That will create the file ```config/initializers/rollbar.rb```, which holds the configuration values (currently just your access token). Make sure you're using the ```post_server_item``` access token.
+<!-- RemoveNextIfProject -->
+Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
+
+
+That will create the file ```config/initializers/rollbar.rb```, which holds the configuration values (currently just your access token).
 
 If you want to store your access token outside of your repo, run the same command without arguments:
 
