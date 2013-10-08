@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.2**
+- Test rake task now works properly if force_ssl is true
+
 **0.11.1**
 - `config.exception_level_filters` can now take a callable instead of a string. The exception instance will be passed to the callable.
 
