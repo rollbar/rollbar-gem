@@ -53,7 +53,8 @@ namespace :rollbar do
     end
 
     puts "Processing..."
-    env = Rack::MockRequest.env_for("/verify")
+    protocol = Rails.application.config.force_ssl ? 'https' : 'http'
+    env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
     status, headers, response = Rails.application.call(env)
     
     unless status == 500
