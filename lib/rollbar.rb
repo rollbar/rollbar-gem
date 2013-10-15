@@ -340,9 +340,15 @@ module Rollbar
 
     def base_data(level = 'error')
       config = configuration
+      
+      environment = config.environment
+      if environment.nil? || environment.empty?
+        environment = 'unspecified'
+      end
+      
       data = {
         :timestamp => Time.now.to_i,
-        :environment => config.environment,
+        :environment => environment,
         :level => level,
         :language => 'ruby',
         :framework => config.framework,

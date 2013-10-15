@@ -26,6 +26,17 @@ describe HomeController do
       data = Rollbar.send(:base_data)
       data[:environment].should == 'dev'
     end
+    
+    it 'should use the default "unspecified" environment if rails env ends up being empty' do
+      old_env = ::Rails.env
+      ::Rails.env = ''
+      Rollbar::Rails.initialize
+      
+      data = Rollbar.send(:base_data)
+      data[:environment].should == 'unspecified'
+      
+      ::Rails.env = old_env
+    end
   end
 
   context "rollbar controller methods with %s requests" % (local? ? 'local' : 'non-local') do

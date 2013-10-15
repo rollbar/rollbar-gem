@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.3**
+- Make sure the environment is valid at item sending time so that it isn't set incorrectly during configuration
+
 **0.11.2**
 - Test rake task now works properly if force_ssl is true
 
