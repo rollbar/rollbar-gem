@@ -159,6 +159,34 @@ describe HomeController do
 
         controller.send(:rollbar_request_data)[:url].should == 'http://rollbar.com'
       end
+      
+      it "should respect forwarded host" do
+        req = controller.request
+        req.host = '127.0.0.1:8080'
+        req.env['HTTP_X_FORWARDED_HOST'] = 'test.com'
+
+        controller.send(:rollbar_request_data)[:url].should == 'http://test.com'
+      end
+      
+      it "should respect forwarded proto" do
+        req = controller.request
+        req.host = 'rollbar.com'
+        req.env['HTTP_X_FORWARDED_PROTO'] = 'https'
+
+        controller.send(:rollbar_request_data)[:url].should == 'https://rollbar.com'
+      end
+      
+      it "should respect forwarded port" do
+        req = controller.request
+        req.host = '127.0.0.1:8080'
+        req.env['HTTP_X_FORWARDED_HOST'] = 'test.com'
+        req.env['HTTP_X_FORWARDED_PORT'] = '80'
+
+        controller.send(:rollbar_request_data)[:url].should == 'http://test.com'
+        
+        req.env['HTTP_X_FORWARDED_PORT'] = '81'
+        controller.send(:rollbar_request_data)[:url].should == 'http://test.com:81'
+      end
     end
 
     context "rollbar_user_ip" do

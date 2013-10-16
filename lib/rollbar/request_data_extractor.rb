@@ -52,11 +52,19 @@ module Rollbar
     end
 
     def rollbar_url(env)
-      scheme = env['rack.url_scheme']
-      host = env['HTTP_HOST'] || env['SERVER_NAME']
+      scheme = env['HTTP_X_FORWARDED_PROTO'] || env['rack.url_scheme']
+      
+      host = env['HTTP_X_FORWARDED_HOST'] || env['HTTP_HOST'] || env['SERVER_NAME']
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
       unless path.nil? || path.empty?
         path = '/' + path.to_s if path.to_s.slice(0, 1) != '/'
+      end
+      
+      port = env['HTTP_X_FORWARDED_PORT']
+      if port && !(scheme.downcase == 'http' && port.to_i == 80) && \
+                 !(scheme.downcase == 'https' && port.to_i == 443) && \
+                 !(host.include? ':')
+        host = host + ':' + port
       end
 
       [scheme, '://', host, path].join
