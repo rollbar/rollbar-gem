@@ -58,7 +58,7 @@ namespace :rollbar do
     end
     
     puts "Processing..."
-    protocol = Rails.application.config.force_ssl ? 'https' : 'http'
+    protocol = (defined? Rails.application.config.force_ssl && Rails.application.config.force_ssl) ? 'https' : 'http'
     env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
     status, headers, response = Rails.application.call(env)
     
