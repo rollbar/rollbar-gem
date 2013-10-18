@@ -51,7 +51,12 @@ namespace :rollbar do
     Rails.application.routes.draw do
       get 'verify' => 'application#verify', :as => 'verify'
     end
-
+    
+    # from http://stackoverflow.com/questions/5270835/authlogic-activation-problems
+    if defined? Authlogic
+      Authlogic::Session::Base.controller = Authlogic::ControllerAdapters::RailsAdapter.new(self)
+    end
+    
     puts "Processing..."
     protocol = Rails.application.config.force_ssl ? 'https' : 'http'
     env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
