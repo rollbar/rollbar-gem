@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.5**
+- Fix rake test task when Authlogic is present
+
 **0.11.4**
 - Respect different proxy headers when building the request url
 
