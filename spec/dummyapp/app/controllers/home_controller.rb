@@ -22,4 +22,11 @@ class HomeController < ApplicationController
   def current_user
     User.find_by_encrypted_password(cookies[:session_id])
   end
+  
+  def custom_current_user
+    user = User.new
+    user.id = 123
+    user.name = 'test'
+    user
+  end
 end

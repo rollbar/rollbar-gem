@@ -278,6 +278,18 @@ describe HomeController do
         
         get 'cause_exception'
       end
+      
+      it 'rollbar request store should extract person data and put it into the reqest' do
+        Rollbar.configure do |config|
+          config.person_method = 'custom_current_user'
+        end
+        
+        get 'cause_exception'
+        
+        user = request.env['rollbar.person_data']
+        user.id.should == 123
+        user.name.should == 'test'
+      end
     end
   end
 
