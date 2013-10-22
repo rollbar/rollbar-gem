@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.6**
+- Adding new middleware that grabs possible database-hitting person data before the rake connection pool cleanup middleware
+
 **0.11.5**
 - Fix rake test task when Authlogic is present
 

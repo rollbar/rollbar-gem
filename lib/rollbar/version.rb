@@ -1,3 +1,3 @@
 module Rollbar
-  VERSION = "0.11.5"
+  VERSION = "0.11.6"
 end
