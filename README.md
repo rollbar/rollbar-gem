@@ -147,6 +147,12 @@ config.person_username_method = "user_name"  # default is "username"
 config.person_email_method = "email_address"  # default is "email"
 ```
 
+### If using Rails and not ActiveRecord
+
+By default, the `Rollbar::Middleware::Rails::RollbarRequestStore` middleware is inserted just before the `ActiveRecord::ConnectionAdapters::ConnectionManagement` middleware if `ActiveRecord` is defined. This middleware ensures that any database calls needed to grab person data are executed before connections are cleaned up in the `ConnectionManagement` middleware.
+
+If you are not using `ActiveRecord`, make sure you include the `RollbarRequestStore` middleware before any middlewares that do similar connection clean up.
+
 ## Including additional runtime data
 
 You can provide a lambda that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.

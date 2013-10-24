@@ -7,10 +7,12 @@ module Rollbar
       require 'rollbar/rake_tasks'
     end
     
-    initializer 'rollbar.middleware.rails' do |app|
-      require 'rollbar/middleware/rails/rollbar_request_store'
-      app.config.middleware.insert_after ActiveRecord::ConnectionAdapters::ConnectionManagement,
-        Rollbar::Middleware::Rails::RollbarRequestStore
+    if defined? ActiveRecord
+      initializer 'rollbar.middleware.rails' do |app|
+        require 'rollbar/middleware/rails/rollbar_request_store'
+        app.config.middleware.insert_after ActiveRecord::ConnectionAdapters::ConnectionManagement,
+          Rollbar::Middleware::Rails::RollbarRequestStore
+      end
     end
 
     config.after_initialize do
