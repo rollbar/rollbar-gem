@@ -6,7 +6,14 @@ module Rollbar
     ].freeze
 
     def extract_person_data_from_controller(env)
-      person_data = env['rollbar.person_data'] || {}
+      if env.has_key? 'rollbar.person_data'
+        person_data = env['rollbar.person_data'] || {}
+      else
+        controller = env['action_controller.instance']
+        person_data = controller ? controller.try(:rollbar_person_data) : {}
+      end
+      
+      person_data
     end
 
     def extract_request_data_from_rack(env)
