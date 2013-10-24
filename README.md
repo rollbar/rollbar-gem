@@ -320,11 +320,14 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 
 If you run into any issues, please email us at [support@rollbar.com](mailto:support@rollbar.com)
 
+You can also find us in IRC: [#rollbar on chat.freenode.net](irc://chat.freenode.net/rollbar)
+
+For bug reports, please [open an issue on GitHub](https://github.com/rollbar/rollbar-gem/issues/new).
 
 ## Contributing
 
 1. Fork it
-2. Create your feature branch (```git checkout -b my-new-feature```)
+2. Create your feature branch (```git checkout -b my-new-feature```).
 3. Commit your changes (```git commit -am 'Added some feature'```)
 4. Push to the branch (```git push origin my-new-feature```)
 5. Create new Pull Request
