@@ -5,10 +5,12 @@ module Rollbar
     class Sidekiq
       OPTIONS = { 'queue' => 'rollbar', 'class' => self.name }.freeze
 
-      def self.handle(payload)
-        item = Rollbar.configuration.use_sidekiq.is_a?(Hash) ? OPTIONS.merge(Rollbar.configuration.use_sidekiq) : OPTIONS
+      def initialize(*args)
+        @options = (opts = args.shift) ? OPTIONS.merge(opts) : OPTIONS
+      end
 
-        ::Sidekiq::Client.push item.merge('args' => [payload])
+      def call(payload)
+        ::Sidekiq::Client.push @options.merge('args' => [payload])
       end
 
       include ::Sidekiq::Worker

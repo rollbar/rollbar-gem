@@ -63,13 +63,11 @@ module Rollbar
       @write_to_file = false
     end
 
-    def use_sidekiq=(value)
-      if value
-        require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
-        @use_async      = true
-        @use_sidekiq    = value
-        @async_handler  = Rollbar::Delay::Sidekiq.method(:handle)
-      end
+    def use_sidekiq(value = {})
+      require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
+      @use_async      = true
+      @use_sidekiq    = true
+      @async_handler  = Rollbar::Delay::Sidekiq.new(value)
     end
 
     def use_sucker_punch=(value)
