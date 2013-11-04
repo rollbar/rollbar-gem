@@ -378,7 +378,7 @@ describe Rollbar do
           logger_mock.should_receive(:info).with('[Rollbar] Success')
 
           Rollbar.configure do |config|
-            config.use_sucker_punch = true
+            config.use_sucker_punch
           end
 
           Rollbar.report_exception(@exception)
