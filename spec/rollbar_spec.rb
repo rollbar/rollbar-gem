@@ -399,7 +399,7 @@ describe Rollbar do
       end
 
       it "should send the payload to sidekiq delayer" do
-        handler = ->{}
+        handler = double('sidekiq_handler_mock')
         handler.should_receive(:call)
 
         Rollbar.configure do |config|
