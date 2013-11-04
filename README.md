@@ -206,7 +206,7 @@ Asynchronous reporting falls back to Threading if girl_friday is not installed.
 Add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
-config.use_sucker_punch = true
+config.use_sucker_punch
 ```
 
 ### Using Sidekiq
