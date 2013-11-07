@@ -6,18 +6,16 @@ begin
 rescue LoadError
 end
 
-if defined?(SuckerPunch)
-  describe Rollbar::Delay::SuckerPunch do
-    subject { Rollbar::Delay::SuckerPunch.new }
+describe Rollbar::Delay::SuckerPunch, if: defined?(SuckerPunch) do
+  subject { Rollbar::Delay::SuckerPunch.new }
 
-    describe "#call" do
-      let(:payload) { "anything" }
+  describe "#call" do
+    let(:payload) { "anything" }
 
-      it "performs asynchronously the task" do
-        Rollbar.should_receive(:process_payload)
+    it "performs asynchronously the task" do
+      Rollbar.should_receive(:process_payload)
 
-        subject.call payload
-      end
+      subject.call payload
     end
   end
 end

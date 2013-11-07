@@ -370,29 +370,27 @@ describe Rollbar do
       end
     end
 
-    describe "#use_sucker_punch" do
-      if defined?(SuckerPunch)
-        it "should send the payload to sucker_punch delayer" do
-          logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
-          logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
-          logger_mock.should_receive(:info).with('[Rollbar] Success')
+    describe "#use_sucker_punch", if: defined?(SuckerPunch) do
+      it "should send the payload to sucker_punch delayer" do
+        logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+        logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+        logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-          Rollbar.configure do |config|
-            config.use_sucker_punch
-          end
+        Rollbar.configure do |config|
+          config.use_sucker_punch
+        end
 
-          Rollbar.report_exception(@exception)
+        Rollbar.report_exception(@exception)
 
-          Rollbar.configure do |config|
-            config.use_async = false
-            config.async_handler = Rollbar.method(:default_async_handler)
-          end
+        Rollbar.configure do |config|
+          config.use_async = false
+          config.async_handler = Rollbar.method(:default_async_handler)
         end
       end
     end
 
-    describe "#use_sidekiq" do
-      it "should send the payload to sidekiq delayer" do
+    describe "#use_sidekiq", if: defined?(Sidekiq) do
+      it "should instanciate sidekiq delayer with custom values" do
         Rollbar::Delay::Sidekiq.should_receive(:new).with('queue' => 'test_queue')
         config = Rollbar::Configuration.new
         config.use_sidekiq 'queue' => 'test_queue'
