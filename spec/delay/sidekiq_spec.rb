@@ -4,9 +4,15 @@ begin
   require 'rollbar/delay/sidekiq'
   require 'sidekiq/testing'
 rescue LoadError
+  module Rollbar
+    module Delay
+      class Sidekiq
+      end
+    end
+  end
 end
 
-describe Rollbar::Delay::Sidekiq, :if => defined?(Sidekiq) do
+describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
   let(:payload) { anything }
 
   describe "#perform" do
