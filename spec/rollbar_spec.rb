@@ -370,7 +370,7 @@ describe Rollbar do
       end
     end
 
-    describe "#use_sucker_punch", if: defined?(SuckerPunch) do
+    describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
         logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
         logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
@@ -389,7 +389,7 @@ describe Rollbar do
       end
     end
 
-    describe "#use_sidekiq", if: defined?(Sidekiq) do
+    describe "#use_sidekiq", :if => defined?(Sidekiq) do
       it "should instanciate sidekiq delayer with custom values" do
         Rollbar::Delay::Sidekiq.should_receive(:new).with('queue' => 'test_queue')
         config = Rollbar::Configuration.new

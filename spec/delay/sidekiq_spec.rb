@@ -6,7 +6,7 @@ begin
 rescue LoadError
 end
 
-describe Rollbar::Delay::Sidekiq, if: defined?(Sidekiq) do
+describe Rollbar::Delay::Sidekiq, :if => defined?(Sidekiq) do
   let(:payload) { anything }
 
   describe "#perform" do

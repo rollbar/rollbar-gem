@@ -6,7 +6,7 @@ begin
 rescue LoadError
 end
 
-describe Rollbar::Delay::SuckerPunch, if: defined?(SuckerPunch) do
+describe Rollbar::Delay::SuckerPunch, :if => defined?(SuckerPunch) do
   subject { Rollbar::Delay::SuckerPunch.new }
 
   describe "#call" do
