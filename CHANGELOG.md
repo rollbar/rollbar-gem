@@ -1,5 +1,8 @@
 # Change Log
 
+**0.11.8**
+- Make sure the person method exists for the controller before trying to extract person data
+
 **0.11.7**
 - Remove ActiveRecord railtie requirement introduced in 0.11.6
 

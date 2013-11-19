@@ -290,6 +290,14 @@ describe HomeController do
         user.id.should == 123
         user.name.should == 'test'
       end
+      
+      it 'should not fail if the controller doesnt contain the person method' do
+        Rollbar.configure do |config|
+          config.person_method = 'invalid_method'
+        end
+        
+        get 'cause_exception'
+      end
     end
   end
 

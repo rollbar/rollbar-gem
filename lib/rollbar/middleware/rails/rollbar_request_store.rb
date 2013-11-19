@@ -13,8 +13,8 @@ module Rollbar
             @app.call(env)
           rescue
             controller = env["action_controller.instance"]
-            if controller
-              env['rollbar.person_data'] = controller.try(Rollbar.configuration.person_method)
+            if controller and controller.respond_to? Rollbar.configuration.person_method
+              env['rollbar.person_data'] = controller.send(Rollbar.configuration.person_method)
             end
             raise
           end
