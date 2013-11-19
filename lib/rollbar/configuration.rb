@@ -63,21 +63,31 @@ module Rollbar
       @write_to_file = false
     end
 
+    def use_sidekiq(options = {})
+      require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
+      @use_async      = true
+      @use_sidekiq    = true
+      @async_handler  = Rollbar::Delay::Sidekiq.new(options)
+    end
+
     def use_sidekiq=(value)
-      if value
-        require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
-        @use_async      = true
-        @use_sidekiq    = value
-        @async_handler  = Rollbar::Delay::Sidekiq.method(:handle)
-      end
+      deprecation_message = "#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration."
+      defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
+
+      value.is_a?(Hash) ? use_sidekiq(value) : use_sidekiq
+    end
+
+    def use_sucker_punch
+      require 'rollbar/delay/sucker_punch' if defined?(SuckerPunch)
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::SuckerPunch.new
     end
 
     def use_sucker_punch=(value)
-      if value
-        require 'rollbar/delay/sucker_punch' if defined?(SuckerPunch)
-        @use_async      = true
-        @async_handler  = Rollbar::Delay::SuckerPunch.method(:handle)
-      end
+      deprecation_message = "#use_sucker_punch=(value) has been deprecated in favor of #use_sucker_punch. Please update your rollbar configuration."
+      defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
+
+      use_sucker_punch
     end
 
     def use_eventmachine=(value)

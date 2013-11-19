@@ -370,18 +370,18 @@ describe Rollbar do
       end
     end
 
-    if defined?(SuckerPunch)
+    describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
         logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
         logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
         logger_mock.should_receive(:info).with('[Rollbar] Success')
-  
+
         Rollbar.configure do |config|
-          config.use_sucker_punch = true
+          config.use_sucker_punch
         end
-  
+
         Rollbar.report_exception(@exception)
-  
+
         Rollbar.configure do |config|
           config.use_async = false
           config.async_handler = Rollbar.method(:default_async_handler)
@@ -389,25 +389,28 @@ describe Rollbar do
       end
     end
 
-    it "should send the payload to sidekiq delayer" do
-      module Rollbar
-        module Delay
-          class Sidekiq
-          end
+    describe "#use_sidekiq", :if => defined?(Sidekiq) do
+      it "should instanciate sidekiq delayer with custom values" do
+        Rollbar::Delay::Sidekiq.should_receive(:new).with('queue' => 'test_queue')
+        config = Rollbar::Configuration.new
+        config.use_sidekiq 'queue' => 'test_queue'
+      end
+
+      it "should send the payload to sidekiq delayer" do
+        handler = double('sidekiq_handler_mock')
+        handler.should_receive(:call)
+
+        Rollbar.configure do |config|
+          config.use_sidekiq
+          config.async_handler = handler
         end
-      end
 
-      Rollbar::Delay::Sidekiq.should_receive(:handle).with(anything)
+        Rollbar.report_exception(@exception)
 
-      Rollbar.configure do |config|
-        config.use_sidekiq = { 'queue' => 'test_queue' }
-      end
-
-      Rollbar.report_exception(@exception)
-
-      Rollbar.configure do |config|
-        config.use_async = false
-        config.async_handler = Rollbar.method(:default_async_handler)
+        Rollbar.configure do |config|
+          config.use_async = false
+          config.async_handler = Rollbar.method(:default_async_handler)
+        end
       end
     end
   end

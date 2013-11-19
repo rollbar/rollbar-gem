@@ -206,7 +206,7 @@ Asynchronous reporting falls back to Threading if girl_friday is not installed.
 Add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
-config.use_sucker_punch = true
+config.use_sucker_punch
 ```
 
 ### Using Sidekiq
@@ -214,13 +214,13 @@ config.use_sucker_punch = true
 Add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
-config.use_sidekiq = true
+config.use_sidekiq
 ```
 
 You can also supply custom Sidekiq options:
 
 ```ruby
-config.use_sidekiq = { 'queue' => 'my_queue' }
+config.use_sidekiq { 'queue' => 'my_queue' }
 ```
 
 Start the redis server:
