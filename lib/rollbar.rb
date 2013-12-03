@@ -454,7 +454,7 @@ module Rollbar
       begin
         schedule_payload(payload)
       rescue => e
-        send_failsafe("erorr in schedule_payload", e)
+        send_failsafe("error in schedule_payload", e)
         return
       end
 
@@ -467,8 +467,11 @@ module Rollbar
     end
 
     def send_failsafe(message, exception)
-      log_error "[Rollbar] Sending failsafe response."
-      log_error "[Rollbar] #{message} #{exception}"
+      log_error "[Rollbar] Sending failsafe response due to #{message}."
+      begin
+        log_error "[Rollbar] #{exception.class.name}: #{exception}"
+      rescue => e
+      end
 
       config = configuration
       environment = config.environment
