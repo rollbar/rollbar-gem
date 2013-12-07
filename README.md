@@ -220,7 +220,7 @@ config.use_sidekiq
 You can also supply custom Sidekiq options:
 
 ```ruby
-config.use_sidekiq { 'queue' => 'my_queue' }
+config.use_sidekiq 'queue' => 'my_queue'
 ```
 
 Start the redis server:
