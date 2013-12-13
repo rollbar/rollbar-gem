@@ -22,8 +22,6 @@ module Rollbar
     attr_accessor :person_email_method
     attr_accessor :root
     attr_accessor :scrub_fields
-    attr_accessor :use_sidekiq
-    attr_accessor :use_sucker_punch
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -56,8 +54,6 @@ module Rollbar
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
       @use_async = false
-      @use_sidekiq = false
-      @use_sucker_punch = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
@@ -66,7 +62,6 @@ module Rollbar
     def use_sidekiq(options = {})
       require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
       @use_async      = true
-      @use_sidekiq    = true
       @async_handler  = Rollbar::Delay::Sidekiq.new(options)
     end
 
