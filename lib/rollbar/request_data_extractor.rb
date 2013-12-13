@@ -95,9 +95,9 @@ module Rollbar
     def rollbar_request_params(env)
       route = ::Rails.application.routes.recognize_path(env['PATH_INFO']) rescue {}
       {
-        :controller => route[:controller],
-        :action => route[:action],
-        :format => route[:format],
+        "controller" => route[:controller],
+        "action" => route[:action],
+        "format" => route[:format],
       }.merge(env['action_dispatch.request.parameters'] || {})
     end
     
