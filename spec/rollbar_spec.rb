@@ -127,6 +127,23 @@ describe Rollbar do
       end
     end
 
+    it 'should ignore ignored users' do
+      Rollbar.configure do |config|
+        config.ignored_person_ids += [1]
+      end
+
+      logger_mock.should_not_receive(:info)
+      logger_mock.should_not_receive(:warn)
+      logger_mock.should_not_receive(:error)
+
+      person_data = {
+        :id => 1,
+        :username => "test",
+        :email => "test@example.com"
+      }
+      Rollbar.report_exception(@exception, {}, person_data)
+    end
+
     it 'should allow callables to set exception filtered level' do
       callable_mock = double
       saved_filters = Rollbar.configuration.exception_level_filters
@@ -677,7 +694,7 @@ describe Rollbar do
       @dummy_class = DummyClass.new
       @dummy_class.extend(Rollbar::RequestDataExtractor)
     end
-    
+
     context "rollbar_headers" do
       it "should not include cookies" do
         env = {"HTTP_USER_AGENT" => "test", "HTTP_COOKIE" => "cookie"}
