@@ -199,6 +199,21 @@ describe Rollbar do
 
       payload["data"]["body"]["trace"]["frames"][0]["method"].should == "custom backtrace line"
     end
+
+    it 'should report exceptions with a custom level' do
+      payload = nil
+      Rollbar.stub(:schedule_payload) do |*args|
+        payload = MultiJson.load(args[0])
+      end
+      
+      Rollbar.report_exception(@exception)
+      
+      payload["data"]["level"].should == 'error'
+      
+      Rollbar.report_exception(@exception, nil, nil, 'debug')
+      
+      payload["data"]["level"].should == 'debug'
+    end
   end
 
   context 'report_message' do

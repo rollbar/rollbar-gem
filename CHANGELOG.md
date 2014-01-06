@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.2**
+- Added ability to specify level for manually reported exceptions
+
 **0.12.1**
 - Fix syntax error in `config.use_sidekiq` usage example
 

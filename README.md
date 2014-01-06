@@ -95,10 +95,21 @@ rescue Exception => e
 end
 ```
 
+Exceptions are reported with an "error" level by default. You can override the level by passing it in as the fourth argument:
+
+```ruby
+begin
+  foo = bar
+rescue Exception => e
+  # all levels: debug, info, warning, error, critical
+  Rollbar.report_exception(e, rollbar_request_data, rollbar_person_data, "warning")
+end
+
+```
+
 You can also log individual messages:
 
 ```ruby
-# logs at the 'warning' level. all levels: debug, info, warning, error, critical
 Rollbar.report_message("Unexpected input", "warning")
 
 # default level is "info"

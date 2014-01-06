@@ -73,11 +73,11 @@ module Rollbar
     #   `rollbar_request_data`.
     # @param person_data [Hash] Data describing the affected person. Should be the result of calling
     #   `rollbar_person_data`
-    def report_exception(exception, request_data = nil, person_data = nil)
+    def report_exception(exception, request_data = nil, person_data = nil, level = nil)
       return 'disabled' unless configuration.enabled
       return 'ignored' if ignored?(exception)
 
-      data = exception_data(exception, filtered_level(exception))
+      data = exception_data(exception, level ? level : filtered_level(exception))
       if request_data
         request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
         data[:request] = request_data
