@@ -26,7 +26,8 @@ class HomeController < ApplicationController
   def custom_current_user
     user = User.new
     user.id = 123
-    user.name = 'test'
+    user.username = 'test'
+    user.email = 'email@test.com'
     user
   end
 end

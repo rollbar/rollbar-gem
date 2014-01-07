@@ -287,8 +287,9 @@ describe HomeController do
         get 'cause_exception'
         
         user = request.env['rollbar.person_data']
-        user.id.should == 123
-        user.name.should == 'test'
+        user[:id].should == 123
+        user[:username].should == 'test'
+        user[:email].should == 'email@test.com'
       end
       
       it 'should not fail if the controller doesnt contain the person method' do
