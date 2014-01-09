@@ -25,6 +25,7 @@ module Rollbar
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
+      route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
       
       params = request_params.merge(get_params).merge(post_params)
       
@@ -35,7 +36,8 @@ module Rollbar
         :headers => rollbar_headers(env),
         :cookies => cookies,
         :session => session,
-        :method => rollbar_request_method(env)
+        :method => rollbar_request_method(env),
+        :route => route_params
       }
     end
 
@@ -93,12 +95,16 @@ module Rollbar
     end
 
     def rollbar_request_params(env)
+      env['action_dispatch.request.parameters'] || {}
+    end
+    
+    def rollbar_route_params(env)
       route = ::Rails.application.routes.recognize_path(env['PATH_INFO']) rescue {}
       {
         :controller => route[:controller],
         :action => route[:action],
-        :format => route[:format],
-      }.merge(env['action_dispatch.request.parameters'] || {})
+        :format => route[:format]
+      }
     end
     
     def rollbar_request_cookies(rack_req)

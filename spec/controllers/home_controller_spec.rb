@@ -49,6 +49,7 @@ describe HomeController do
       data.should have_key(:headers)
       data.should have_key(:session)
       data.should have_key(:method)
+      data.should have_key(:route)
     end
 
     it "should build empty person data when no one is logged-in" do
@@ -203,6 +204,31 @@ describe HomeController do
 
       it "should use the remote_addr when neither is set" do
         controller.send(:rollbar_request_data)[:user_ip].should == '0.0.0.0'
+      end
+    end
+    
+    context "rollbar_route_params" do
+      it "should save route params in request[:route]" do
+        route = controller.send(:rollbar_request_data)[:route]
+        
+        route.should have_key(:controller)
+        route.should have_key(:action)
+        route.should have_key(:format)
+        
+        route[:controller].should == 'home'
+        route[:action].should == 'index'
+      end
+      
+      it "should save controller and action in the payload body" do
+        post 'report_exception'
+        
+        route = controller.send(:rollbar_request_data)[:route]
+        
+        route[:controller].should == 'home'
+        route[:action].should == 'report_exception'
+        
+        Rollbar.last_report.should_not be_nil
+        Rollbar.last_report[:context].should == 'home#report_exception'
       end
     end
 

@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.4**
+- Record controller context (controller#action) in reported items
+
 **0.12.3**
 - Change rollbar_request_store middleware to only grab required person data properties by using rollbar_person_data
 
