@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.5**
+- Fixed SIGSEGV with the delayed_job plugin and Ruby 2.1.0
+
 **0.12.4**
 - Record controller context (controller#action) in reported items
 

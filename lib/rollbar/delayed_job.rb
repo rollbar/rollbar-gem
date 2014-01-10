@@ -3,19 +3,13 @@
 module Delayed
   module Plugins
     class Rollbar < Plugin
-      module ReportErrors
-        def error(job, error)
-          # send the job object as the 'request data'
-          ::Rollbar.report_exception(error, job)
-          super if defined?(super)
-        end
-      end
-
       callbacks do |lifecycle|
-        lifecycle.before(:invoke_job) do |job|
-          payload = job.payload_object
-          payload = payload.object if payload.is_a? Delayed::PerformableMethod
-          payload.extend ReportErrors
+        lifecycle.around(:invoke_job) do |job, *args, &block|
+          begin
+            block.call(job, *args)
+          rescue Exception => e
+            ::Rollbar.report_exception(e, job)
+          end
         end
       end
     end
