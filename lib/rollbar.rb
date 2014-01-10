@@ -75,7 +75,7 @@ module Rollbar
     #   `rollbar_person_data`
     def report_exception(exception, request_data = nil, person_data = nil, level = nil)
       return 'disabled' unless configuration.enabled
-      return 'ignored' if ignored?(exception)
+      return 'ignored' if ignored?(exception) || (person_data.present? && configuration.ignored_person_ids.include?(person_data[Rollbar.configuration.person_id_method.to_sym]))
 
       data = exception_data(exception, level ? level : filtered_level(exception))
       if request_data
@@ -345,12 +345,12 @@ module Rollbar
 
     def base_data(level = 'error')
       config = configuration
-      
+
       environment = config.environment
       if environment.nil? || environment.empty?
         environment = 'unspecified'
       end
-      
+
       data = {
         :timestamp => Time.now.to_i,
         :environment => environment,
