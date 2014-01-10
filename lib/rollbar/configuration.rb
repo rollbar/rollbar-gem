@@ -15,6 +15,7 @@ module Rollbar
     attr_accessor :exception_level_filters
     attr_accessor :filepath
     attr_accessor :framework
+    attr_accessor :ignored_person_ids
     attr_accessor :logger
     attr_accessor :person_method
     attr_accessor :person_id_method
@@ -26,7 +27,6 @@ module Rollbar
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
-    attr_accessor :ignored_person_ids
 
     attr_reader :project_gem_paths
 
@@ -47,6 +47,7 @@ module Rollbar
         'ActionController::RoutingError' => 'warning'
       }
       @framework = 'Plain'
+      @ignored_person_ids = []
       @person_method = 'current_user'
       @person_id_method = 'id'
       @person_username_method = 'username'
@@ -58,7 +59,6 @@ module Rollbar
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
-      @ignored_person_ids = []
     end
 
     def use_sidekiq(options = {})

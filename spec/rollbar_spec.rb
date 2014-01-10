@@ -127,7 +127,7 @@ describe Rollbar do
       end
     end
 
-    it 'should ignore ignored users' do
+    it 'should ignore ignored persons' do
       Rollbar.configure do |config|
         config.ignored_person_ids += [1]
       end
@@ -142,6 +142,30 @@ describe Rollbar do
         :email => "test@example.com"
       }
       Rollbar.report_exception(@exception, {}, person_data)
+    end
+    
+    it 'should not ignore non-ignored persons' do
+      Rollbar.configure do |config|
+        config.ignored_person_ids += [1]
+      end
+      
+      Rollbar.last_report = nil
+      
+      person_data = {
+        :id => 1,
+        :username => "test",
+        :email => "test@example.com"
+      }
+      Rollbar.report_exception(@exception, {}, person_data)
+      Rollbar.last_report.should be_nil
+      
+      person_data = {
+        :id => 2,
+        :username => "test2",
+        :email => "test2@example.com"
+      }
+      Rollbar.report_exception(@exception, {}, person_data)
+      Rollbar.last_report.should_not be_nil
     end
 
     it 'should allow callables to set exception filtered level' do

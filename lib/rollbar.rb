@@ -20,7 +20,7 @@ require 'rollbar/railtie' if defined?(Rails)
 module Rollbar
   class << self
     attr_writer :configuration
-    attr_reader :last_report
+    attr_accessor :last_report
 
     # Configures the gem.
     #
@@ -74,8 +74,13 @@ module Rollbar
     # @param person_data [Hash] Data describing the affected person. Should be the result of calling
     #   `rollbar_person_data`
     def report_exception(exception, request_data = nil, person_data = nil, level = nil)
+      if person_data.present?
+        person_id = person_data[Rollbar.configuration.person_id_method.to_sym]
+        return 'ignored' if configuration.ignored_person_ids.include?(person_id)
+      end
+      
       return 'disabled' unless configuration.enabled
-      return 'ignored' if ignored?(exception) || (person_data.present? && configuration.ignored_person_ids.include?(person_data[Rollbar.configuration.person_id_method.to_sym]))
+      return 'ignored' if ignored?(exception)
 
       data = exception_data(exception, level ? level : filtered_level(exception))
       if request_data

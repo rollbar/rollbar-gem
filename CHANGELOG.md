@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.6**
+- Added [#78](https://github.com/rollbar/rollbar-gem/pull/78), ability to ignore exceptions from specific persons
+
 **0.12.5**
 - Fixed SIGSEGV with the delayed_job plugin and Ruby 2.1.0
 
