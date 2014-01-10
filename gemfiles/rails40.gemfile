@@ -7,6 +7,13 @@ gem "jruby-openssl", :platform=>:jruby
 gem "activerecord-jdbcsqlite3-adapter", :platform=>:jruby
 gem "appraisal"
 gem "rails", "4.0.0"
+
+gem 'rubysl', '~> 2.0',                 :platform => :rbx
+gem 'racc',                             :platform => :rbx
+gem 'minitest',                         :platform => :rbx
+gem 'rubysl-test-unit',                 :platform => :rbx
+gem 'rubinius-developer_tools',         :platform => :rbx
+
 gem "protected_attributes"
 
 gemspec :path=>"../"
