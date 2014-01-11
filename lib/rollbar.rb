@@ -85,7 +85,7 @@ module Rollbar
       data = exception_data(exception, level ? level : filtered_level(exception))
       if request_data
         if request_data[:route]
-          data[:context] = request_data[:route][:controller] + '#' + request_data[:route][:action]
+          data[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
         end
         
         request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
