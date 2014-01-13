@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.7**
+- Fix error reporting errors when route controller or action is nil (bug introduced in 0.12.4)
+
 **0.12.6**
 - Added [#78](https://github.com/rollbar/rollbar-gem/pull/78), ability to ignore exceptions from specific persons
 
