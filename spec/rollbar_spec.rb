@@ -603,10 +603,61 @@ describe Rollbar do
   end
 
   context 'build_payload' do
+    before(:each) do
+      configure
+      Rollbar.configure do |config|
+        config.logger = logger_mock
+      end
+    end
+    
+    let(:logger_mock) { double("Rails.logger").as_null_object }
+    
     it 'should build valid json' do
       json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}})
       hash = MultiJson.load(json)
       hash["data"]["foo"]["bar"].should == "baz"
+    end
+    
+    it 'should truncate large strings if the payload is too big' do
+      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (64 * 1024), :small => 'b' * 1024})
+      hash = MultiJson.load(json)
+      hash["data"]["large"].should == '%s...' % ('a' * 1021)
+      hash["data"]["small"].should == 'b' * 1024
+    end
+    
+    it 'should send a failsafe message if the payload cannot be reduced enough' do
+      logger_mock.should_receive(:error).with('[Rollbar] Sending failsafe response due to Could not send payload due to it being too large after truncating attempts.')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      
+      orig_max = Rollbar::MAX_PAYLOAD_SIZE
+      
+      Rollbar::MAX_PAYLOAD_SIZE = 1
+      Rollbar.report_exception(@exception)
+      
+      Rollbar::MAX_PAYLOAD_SIZE = orig_max
+    end
+  end
+  
+  context 'truncate_payload' do
+    it 'should truncate all nested strings in the payload' do
+      payload = {
+        :truncated => '1234567',
+        :not_truncated => '123456',
+        :hash => {
+          :inner_truncated => '123456789',
+          :inner_not_truncated => '567',
+          :array => ['12345678', '12']
+        }
+      }
+      
+      payload_copy = payload.clone
+      Rollbar.send(:truncate_payload, payload_copy, 6)
+      
+      payload_copy[:truncated].should == '123...'
+      payload_copy[:not_truncated].should == '123456'
+      payload_copy[:hash][:inner_truncated].should == '123...'
+      payload_copy[:hash][:inner_not_truncated].should == '567'
+      payload_copy[:hash][:array].should == ['123...', '12']
     end
   end
 

@@ -18,6 +18,8 @@ require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/railtie' if defined?(Rails)
 
 module Rollbar
+  MAX_PAYLOAD_SIZE = 32 * 1042 #32kb
+  
   class << self
     attr_writer :configuration
     attr_accessor :last_report
@@ -321,6 +323,10 @@ module Rollbar
     end
 
     def schedule_payload(payload)
+      if payload.nil?
+        return
+      end
+      
       log_info '[Rollbar] Scheduling payload'
 
       if configuration.use_async
@@ -345,7 +351,28 @@ module Rollbar
         :access_token => configuration.access_token,
         :data => data
       }
-      MultiJson.dump(payload)
+      result = MultiJson.dump(payload)
+      
+      # Try to truncate strings in the payload a few times if the payload is too big
+      if result.bytesize > MAX_PAYLOAD_SIZE
+        thresholds = [1024, 512, 256]
+        thresholds.each_with_index do |threshold, i|
+          new_payload = payload.clone
+          
+          truncate_payload(new_payload, threshold)
+          
+          result = MultiJson.dump(new_payload)
+          
+          if result.bytesize <= MAX_PAYLOAD_SIZE
+            break
+          elsif i == thresholds.length - 1
+            send_failsafe('Could not send payload due to it being too large after truncating attempts', nil)
+            return
+          end
+        end
+      end
+      
+      result
     end
 
     def base_data(level = 'error')
@@ -380,7 +407,7 @@ module Rollbar
       unless config.custom_data_method.nil?
         data[:custom] = config.custom_data_method.call
       end
-
+      
       data
     end
 
@@ -505,7 +532,40 @@ module Rollbar
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
     end
-
+    
+    def truncate_payload(payload, byte_threshold)
+      truncator = Proc.new do |value|
+        if value.is_a?(String) and value.bytesize > byte_threshold
+          value.truncate(byte_threshold)
+        else
+          value
+        end
+      end
+      
+      iterate_and_update(payload, truncator)
+    end
+    
+    def iterate_and_update(obj, block)
+      if obj.is_a?(Array)
+        for i in 0 ... obj.size
+          value = obj[i]
+          
+          if value.is_a?(Hash) || value.is_a?(Array)
+            iterate_and_update(value, block)
+          else
+            obj[i] = block.call(value)
+          end
+        end
+      else
+        obj.each do |k, v|
+          if v.is_a?(Hash) || v.is_a?(Array)
+            iterate_and_update(v, block)
+          else
+            obj[k] = block.call(v)
+          end
+        end
+      end
+    end
   end
 
 end
