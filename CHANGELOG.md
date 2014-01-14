@@ -1,10 +1,13 @@
 # Change Log
 
+**0.12.8**
+- Added funcitonality to walk the payload and truncate strings to attempt to reduce size if the payload is too large (more than 32kb total)
+
 **0.12.7**
 - Fix error reporting errors when route controller or action is nil (bug introduced in 0.12.4)
 
 **0.12.6**
-- Added [#78](https://github.com/rollbar/rollbar-gem/pull/78), ability to ignore exceptions from specific persons
+- Added [#78](https://github.com/rollbar/rollbar-gem/pull/78), added configuration option to ignore specific person exceptions
 
 **0.12.5**
 - Fixed SIGSEGV with the delayed_job plugin and Ruby 2.1.0

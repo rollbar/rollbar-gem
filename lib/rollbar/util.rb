@@ -24,7 +24,8 @@ module Rollbar
     
     def self.truncate(str, length)
       ellipsis = '...'
-      if str.length <= length or str.length <= 3
+      
+      if str.length <= length or str.length <= ellipsis.length
         return str
       end
       
