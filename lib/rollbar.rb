@@ -14,6 +14,7 @@ require 'rollbar/configuration'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
+require 'rollbar/util'
 
 require 'rollbar/railtie' if defined?(Rails)
 
@@ -536,38 +537,15 @@ module Rollbar
     def truncate_payload(payload, byte_threshold)
       truncator = Proc.new do |value|
         if value.is_a?(String) and value.bytesize > byte_threshold
-          value.truncate(byte_threshold)
+          Rollbar::Util::truncate(value, byte_threshold)
         else
           value
         end
       end
       
-      iterate_and_update(payload, truncator)
-    end
-    
-    def iterate_and_update(obj, block)
-      if obj.is_a?(Array)
-        for i in 0 ... obj.size
-          value = obj[i]
-          
-          if value.is_a?(Hash) || value.is_a?(Array)
-            iterate_and_update(value, block)
-          else
-            obj[i] = block.call(value)
-          end
-        end
-      else
-        obj.each do |k, v|
-          if v.is_a?(Hash) || v.is_a?(Array)
-            iterate_and_update(v, block)
-          else
-            obj[k] = block.call(v)
-          end
-        end
-      end
+      Rollbar::Util::iterate_and_update(payload, truncator)
     end
   end
-
 end
 
 # Setting Ratchetio as an alias to Rollbar for ratchetio-gem backwards compatibility

@@ -646,7 +646,7 @@ describe Rollbar do
         :hash => {
           :inner_truncated => '123456789',
           :inner_not_truncated => '567',
-          :array => ['12345678', '12']
+          :array => ['12345678', '12', {:inner_inner => '123456789'}]
         }
       }
       
@@ -657,7 +657,21 @@ describe Rollbar do
       payload_copy[:not_truncated].should == '123456'
       payload_copy[:hash][:inner_truncated].should == '123...'
       payload_copy[:hash][:inner_not_truncated].should == '567'
-      payload_copy[:hash][:array].should == ['123...', '12']
+      payload_copy[:hash][:array].should == ['123...', '12', {:inner_inner => '123...'}]
+    end
+    
+    it 'should truncate utf8 strings properly' do
+      payload = {
+        
+        :truncated => "\u015D\u1EAD\u043C\u0440\u0142\u1EBF \u015D\u0163\u0155\u00EE\u0144\u011D",
+        :not_truncated => '123456',
+      }
+      
+      payload_copy = payload.clone
+      Rollbar.send(:truncate_payload, payload_copy, 10)
+      
+      payload_copy[:truncated].should == "\u015D..."
+      payload_copy[:not_truncated].should == '123456'
     end
   end
 
