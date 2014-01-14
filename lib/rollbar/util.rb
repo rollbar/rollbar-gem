@@ -1,3 +1,5 @@
+require 'iconv'
+
 module Rollbar
   module Util
     def self.iterate_and_update(obj, block)
@@ -26,10 +28,16 @@ module Rollbar
     def self.truncate(str, size)
       str = str.mb_chars.compose.to_s if str.respond_to?(:mb_chars)
       
-      new_str = str.byteslice(0, size)
+      if str.respond_to?(:byteslice)
+        new_str = str.byteslice(0, size)
+      else
+        new_str = str.unpack('C*').slice(0, size).pack('C*')
+      end
       
-      until new_str[-1].force_encoding('utf-8').valid_encoding?
-        new_str = new_str.slice(0..-2)
+      if new_str.respond_to?(:force_encoding)
+        until new_str[-1].force_encoding('utf-8').valid_encoding?
+          new_str = new_str.slice(0..-2)
+        end
       end
       
       # replace last 3 characters with an ellipsis
