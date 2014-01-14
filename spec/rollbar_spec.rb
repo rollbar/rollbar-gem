@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'logger'
 require 'socket'
 require 'spec_helper'
@@ -662,15 +664,14 @@ describe Rollbar do
     
     it 'should truncate utf8 strings properly' do
       payload = {
-        
-        :truncated => "\u015D\u1EAD\u043C\u0440\u0142\u1EBF \u015D\u0163\u0155\u00EE\u0144\u011D",
+        :truncated => 'Ŝǻмρļẻ śţяịņģ',
         :not_truncated => '123456',
       }
       
       payload_copy = payload.clone
-      Rollbar.send(:truncate_payload, payload_copy, 10)
+      Rollbar.send(:truncate_payload, payload_copy, 6)
       
-      payload_copy[:truncated].should == "\u015D..."
+      payload_copy[:truncated].should == "Ŝǻм..."
       payload_copy[:not_truncated].should == '123456'
     end
   end
