@@ -9,6 +9,7 @@ module Delayed
             block.call(job, *args)
           rescue Exception => e
             ::Rollbar.report_exception(e, job)
+            raise e
           end
         end
       end
