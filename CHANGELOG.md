@@ -1,5 +1,9 @@
 # Change Log
 
+**0.12.9**
+- Fixed delayed job regression introduced in 0.12.5 by re-raising caught exceptions
+- Removed Active Support call introduced in 0.12.6 to remove rails dependency in `report_exception`
+
 **0.12.8**
 - Added funcitonality to walk the payload and truncate strings to attempt to reduce size if the payload is too large (more than 32kb total)
 
