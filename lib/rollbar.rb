@@ -77,7 +77,7 @@ module Rollbar
     # @param person_data [Hash] Data describing the affected person. Should be the result of calling
     #   `rollbar_person_data`
     def report_exception(exception, request_data = nil, person_data = nil, level = nil)
-      if person_data.present?
+      if person_data
         person_id = person_data[Rollbar.configuration.person_id_method.to_sym]
         return 'ignored' if configuration.ignored_person_ids.include?(person_id)
       end
