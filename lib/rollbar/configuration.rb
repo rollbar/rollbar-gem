@@ -23,6 +23,7 @@ module Rollbar
     attr_accessor :person_email_method
     attr_accessor :root
     attr_accessor :scrub_fields
+    attr_accessor :scrub_headers
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -55,6 +56,7 @@ module Rollbar
       @project_gems = []
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
+      @scrub_headers = [ 'Cookie', 'Authorization' ]
       @use_async = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
