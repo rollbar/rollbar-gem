@@ -1,5 +1,9 @@
 # Change Log
 
+**0.12.10**
+- Log payloads that are too large to be sent to Rollbar
+- Don't record controller context if request route info isn't readily available (ex. non-Rails)
+
 **0.12.9**
 - Fixed delayed job regression introduced in 0.12.5 by re-raising caught exceptions
 - Removed Active Support call introduced in 0.12.6 to remove rails dependency in `report_exception`

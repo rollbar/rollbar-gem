@@ -88,7 +88,12 @@ module Rollbar
       data = exception_data(exception, level ? level : filtered_level(exception))
       if request_data
         if request_data[:route]
-          data[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
+          route = request_data[:route]
+          
+          # make sure route is a hash built by RequestDataExtractor in rails apps
+          if route.is_a?(Hash) and not route.empty?
+            data[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
+          end
         end
         
         request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
@@ -368,6 +373,7 @@ module Rollbar
             break
           elsif i == thresholds.length - 1
             send_failsafe('Could not send payload due to it being too large after truncating attempts', nil)
+            log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
             return
           end
         end
