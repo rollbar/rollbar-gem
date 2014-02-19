@@ -19,7 +19,7 @@ require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
 
 module Rollbar
-  MAX_PAYLOAD_SIZE = 32 * 1042 #32kb
+  MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
   
   class << self
     attr_writer :configuration
@@ -512,9 +512,11 @@ module Rollbar
 
     def send_failsafe(message, exception)
       log_error "[Rollbar] Sending failsafe response due to #{message}."
-      begin
-        log_error "[Rollbar] #{exception.class.name}: #{exception}"
-      rescue => e
+      if exception
+        begin
+          log_error "[Rollbar] #{exception.class.name}: #{exception}"
+        rescue => e
+        end
       end
 
       config = configuration

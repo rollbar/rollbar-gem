@@ -621,7 +621,7 @@ describe Rollbar do
     end
     
     it 'should truncate large strings if the payload is too big' do
-      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (64 * 1024), :small => 'b' * 1024})
+      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024})
       hash = MultiJson.load(json)
       hash["data"]["large"].should == '%s...' % ('a' * 1021)
       hash["data"]["small"].should == 'b' * 1024

@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.11**
+- Raise payload size limit to 128k
+
 **0.12.10**
 - Log payloads that are too large to be sent to Rollbar
 - Don't record controller context if request route info isn't readily available (ex. non-Rails)
