@@ -18,7 +18,7 @@ module Rollbar
 
         begin
           require 'ey_config'
-        rescue
+        rescue LoadError
         end
         
         if defined? EY::Config
