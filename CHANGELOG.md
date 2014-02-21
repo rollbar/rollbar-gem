@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.12**
+- Changes to support Engine Yard add-on setup
+
 **0.12.11**
 - Raise payload size limit to 128k
 

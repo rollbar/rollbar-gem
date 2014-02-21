@@ -1,13 +1,22 @@
 require 'rollbar/rails'
 Rollbar.configure do |config|
-  config.access_token = <%= access_token_expr %>
-
   # Without configuration, Rollbar is enabled in all environments.
   # To disable in specific environments, set config.enabled=false.
+  <% if (defined? EY::Config) %>
+  # Here we'll disable in 'test' and 'development':
+  if Rails.env.test? or Rails.env.development?
+    config.enabled = false
+  else
+    config.access_token = EY::Config.get('rollbar', 'ROLLBAR_ACCESS_TOKEN')
+  end
+  <% else %>
+  config.access_token = <%= access_token_expr %>
+
   # Here we'll disable in 'test':
   if Rails.env.test?
     config.enabled = false
   end
+  <% end %>
 
   # By default, Rollbar will try to call the `current_user` controller method
   # to fetch the logged-in user object, and then call that object's `id`,
