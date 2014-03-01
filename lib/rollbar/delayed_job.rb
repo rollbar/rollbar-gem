@@ -8,7 +8,10 @@ module Delayed
           begin
             block.call(job, *args)
           rescue Exception => e
-            ::Rollbar.report_exception(e, job)
+            if job.attempts >= ::Rollbar.configuration.dj_threshold
+              data = ::Rollbar.configuration.report_dj_data ? job : nil
+              ::Rollbar.report_exception(e, data)
+            end
             raise e
           end
         end

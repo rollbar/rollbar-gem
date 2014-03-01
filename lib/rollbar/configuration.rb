@@ -27,6 +27,8 @@ module Rollbar
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
+    attr_accessor :report_dj_data
+    attr_accessor :dj_threshold
 
     attr_reader :project_gem_paths
 
@@ -59,6 +61,8 @@ module Rollbar
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
+      @report_dj_data = true
+      @dj_threshold = 0
     end
 
     def use_sidekiq(options = {})
