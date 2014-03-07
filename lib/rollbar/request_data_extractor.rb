@@ -50,9 +50,8 @@ module Rollbar
     def rollbar_headers(env)
       env.keys.grep(/^HTTP_/).map do |header|
         name = header.gsub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        # exclude cookies - we already include a parsed version as request_data[:cookies]
-        if name == 'Cookie'
-          {}
+        if sensitive_headers_list.include?(name)
+          { name => rollbar_scrubbed(header) }
         else
           { name => env[header] }
         end
@@ -123,7 +122,7 @@ module Rollbar
       else
         params.to_hash.inject({}) do |result, (key, value)|
           if sensitive_params.include?(key.to_sym)
-            result[key] = '*' * (value.length rescue 8)
+            result[key] = rollbar_scrubbed(value)
           elsif value.is_a?(Hash)
             result[key] = rollbar_filtered_params(sensitive_params, value)
           elsif ATTACHMENT_CLASSES.include?(value.class.name)
@@ -143,5 +142,14 @@ module Rollbar
     def sensitive_params_list(env)
       Rollbar.configuration.scrub_fields |= Array(env['action_dispatch.parameter_filter'])
     end
+
+    def sensitive_headers_list
+      Rollbar.configuration.scrub_headers |= []
+    end
+
+    def rollbar_scrubbed(value)
+      '*' * (value.length rescue 8)
+    end
+
   end
 end
