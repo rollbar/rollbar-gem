@@ -153,6 +153,44 @@ describe HomeController do
       end
     end
 
+    context 'rollbar_scrub_headers' do
+
+      it 'should filter cookies and authentication by default' do
+        headers = {
+          'HTTP_AUTHORIZATION' => 'some-user',
+          'HTTP_COOKIE' => 'some-cookie',
+          'HTTP_USER_AGENT' => 'spec'
+        }
+
+        filtered = controller.send( :rollbar_headers, headers )
+        filtered.should == {
+          "Authorization" => "******************",
+          "Cookie" => "***********",
+          "User-Agent" => "spec"
+        }
+      end
+
+      it 'should filter custom headers' do
+        Rollbar.configure do |config|
+          config.scrub_headers = ['Auth', 'Token']
+        end
+
+        headers = {
+          'HTTP_AUTH' => 'auth-value',
+          'HTTP_TOKEN' => 'token-value',
+          'HTTP_CONTENT_TYPE' => 'text/html'
+        }
+
+        filtered = controller.send( :rollbar_headers, headers )
+        filtered.should == {
+          "Auth" => "*********",
+          "Token" => "**********",
+          "Content-Type" => "text/html"
+        }
+      end
+
+    end
+
     context "rollbar_request_url" do
       it "should build simple http urls" do
         req = controller.request
