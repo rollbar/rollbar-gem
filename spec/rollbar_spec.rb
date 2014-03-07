@@ -628,7 +628,7 @@ describe Rollbar do
     end
     
     it 'should send a failsafe message if the payload cannot be reduced enough' do
-      logger_mock.should_receive(:error).with('[Rollbar] Sending failsafe response due to Could not send payload due to it being too large after truncating attempts.')
+      logger_mock.should_receive(:error).with(/Sending failsafe response due to Could not send payload due to it being too large after truncating attempts/)
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       
       orig_max = Rollbar::MAX_PAYLOAD_SIZE
