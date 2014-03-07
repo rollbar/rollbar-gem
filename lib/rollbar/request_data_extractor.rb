@@ -6,26 +6,19 @@ module Rollbar
     ].freeze
 
     def extract_person_data_from_controller(env)
-      if env.has_key? 'rollbar.person_data'
-        person_data = env['rollbar.person_data'] || {}
-      else
-        controller = env['action_controller.instance']
-        person_data = controller ? controller.try(:rollbar_person_data) : {}
-      end
-      
-      person_data
+      controller = env['action_controller.instance']
+      controller ? controller.try(:rollbar_person_data) : {}
     end
 
     def extract_request_data_from_rack(env)
       rack_req = Rack::Request.new(env)
       
-      sensitive_params = sensitive_params_list(env)
-      request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
-      get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
-      post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
-      cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
-      session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
-      route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
+      request_params = rollbar_request_params(env)
+      get_params = rollbar_get_params(rack_req)
+      post_params = rollbar_post_params(rack_req)
+      cookies = rollbar_request_cookies(rack_req)
+      session = env['rack.session.options']
+      route_params = rollbar_route_params(env)
       
       params = request_params.merge(get_params).merge(post_params)
       

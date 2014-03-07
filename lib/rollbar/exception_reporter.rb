@@ -4,9 +4,8 @@ module Rollbar
 
     def report_exception_to_rollbar(env, exception)
       rollbar_debug "[Rollbar] Reporting exception: #{exception.try(:message)}", :error
-      request_data = extract_request_data_from_rack(env)
-      person_data = extract_person_data_from_controller(env)
-      exception_data = Rollbar.report_exception(exception, request_data, person_data)
+      
+      exception_data = Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception)
       
       if exception_data.is_a?(Hash)
         env['rollbar.exception_uuid'] = exception_data[:uuid]

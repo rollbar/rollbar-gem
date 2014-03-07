@@ -14,8 +14,8 @@ describe HomeController do
   
   context "rollbar base_data" do
     it 'should have the Rails environment' do
-      data = Rollbar.send(:base_data)
-      data[:environment].should == ::Rails.env
+      data = Rollbar.send(:build_payload, 'error', 'message', nil, nil)
+      data[:data][:environment].should == ::Rails.env
     end
     
     it 'should have an overridden environment' do
@@ -23,8 +23,8 @@ describe HomeController do
         config.environment = 'dev'
       end
       
-      data = Rollbar.send(:base_data)
-      data[:environment].should == 'dev'
+      data = Rollbar.send(:build_payload, 'error', 'message', nil, nil)
+      data[:data][:environment].should == 'dev'
     end
     
     it 'should use the default "unspecified" environment if rails env ends up being empty' do
@@ -32,8 +32,8 @@ describe HomeController do
       ::Rails.env = ''
       Rollbar::Rails.initialize
       
-      data = Rollbar.send(:base_data)
-      data[:environment].should == 'unspecified'
+      data = Rollbar.send(:build_payload, 'error', 'message', nil, nil)
+      data[:data][:environment].should == 'unspecified'
       
       ::Rails.env = old_env
     end
@@ -303,19 +303,6 @@ describe HomeController do
         logger_mock.should_receive(:info).with('[Rollbar] Success').once
         
         get 'cause_exception'
-      end
-      
-      it 'rollbar request store should extract person data and put it into the reqest' do
-        Rollbar.configure do |config|
-          config.person_method = 'custom_current_user'
-        end
-        
-        get 'cause_exception'
-        
-        user = request.env['rollbar.person_data']
-        user[:id].should == 123
-        user[:username].should == 'test'
-        user[:email].should == 'email@test.com'
       end
       
       it 'should not fail if the controller doesnt contain the person method' do

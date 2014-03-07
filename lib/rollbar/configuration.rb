@@ -17,12 +17,14 @@ module Rollbar
     attr_accessor :framework
     attr_accessor :ignored_person_ids
     attr_accessor :logger
+    attr_accessor :payload_options
     attr_accessor :person_method
     attr_accessor :person_id_method
     attr_accessor :person_username_method
     attr_accessor :person_email_method
     attr_accessor :root
     attr_accessor :scrub_fields
+    attr_accessor :uncaught_exception_level
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -48,6 +50,7 @@ module Rollbar
       }
       @framework = 'Plain'
       @ignored_person_ids = []
+      @payload_options = {}
       @person_method = 'current_user'
       @person_id_method = 'id'
       @person_username_method = 'username'
@@ -55,10 +58,20 @@ module Rollbar
       @project_gems = []
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
+      @uncaught_exception_level = 'error'
       @use_async = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
+    end
+    
+    def initialize_copy(orig)
+      super
+      
+      instance_variables.each do |var|
+        instance_var = instance_variable_get(var)
+        instance_variable_set(var, Rollbar::Util::deep_copy(instance_var))
+      end
     end
 
     def use_sidekiq(options = {})
