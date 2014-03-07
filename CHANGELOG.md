@@ -1,5 +1,9 @@
 # Change Log
 
+**0.12.13**
+- Add a little more debugging information for 'payload too large' errors
+- Pushing new gem to fix errant 32kb size limit in the rubygems copy of 0.12.12
+
 **0.12.12**
 - Changes to support Engine Yard add-on setup
 

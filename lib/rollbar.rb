@@ -360,7 +360,8 @@ module Rollbar
       result = MultiJson.dump(payload)
       
       # Try to truncate strings in the payload a few times if the payload is too big
-      if result.bytesize > MAX_PAYLOAD_SIZE
+      original_size = result.bytesize
+      if original_size > MAX_PAYLOAD_SIZE
         thresholds = [1024, 512, 256]
         thresholds.each_with_index do |threshold, i|
           new_payload = payload.clone
@@ -372,7 +373,8 @@ module Rollbar
           if result.bytesize <= MAX_PAYLOAD_SIZE
             break
           elsif i == thresholds.length - 1
-            send_failsafe('Could not send payload due to it being too large after truncating attempts', nil)
+            final_size = result.bytesize
+            send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
             log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
             return
           end
