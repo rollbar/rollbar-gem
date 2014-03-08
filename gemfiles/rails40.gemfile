@@ -12,6 +12,5 @@ gem "minitest", :platform=>:rbx
 gem "rubysl-test-unit", :platform=>:rbx
 gem "rubinius-developer_tools", :platform=>:rbx
 gem "rails", "4.0.0"
-gem "protected_attributes"
 
 gemspec :path=>"../"
