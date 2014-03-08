@@ -56,7 +56,7 @@ module Rollbar
       @project_gems = []
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
-      @scrub_headers = [ 'Cookie', 'Authorization' ]
+      @scrub_headers = ['Authorization']
       @use_async = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE

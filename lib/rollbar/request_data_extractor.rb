@@ -50,8 +50,10 @@ module Rollbar
     def rollbar_headers(env)
       env.keys.grep(/^HTTP_/).map do |header|
         name = header.gsub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        if sensitive_headers_list.include?(name)
-          { name => rollbar_scrubbed(header) }
+        if name == 'Cookie'
+           {}
+        elsif sensitive_headers_list.include?(name)
+          { name => rollbar_scrubbed(env[header]) }
         else
           { name => env[header] }
         end

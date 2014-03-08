@@ -155,17 +155,15 @@ describe HomeController do
 
     context 'rollbar_scrub_headers' do
 
-      it 'should filter cookies and authentication by default' do
+      it 'should filter authentication by default' do
         headers = {
           'HTTP_AUTHORIZATION' => 'some-user',
-          'HTTP_COOKIE' => 'some-cookie',
           'HTTP_USER_AGENT' => 'spec'
         }
 
         filtered = controller.send( :rollbar_headers, headers )
         filtered.should == {
-          "Authorization" => "******************",
-          "Cookie" => "***********",
+          "Authorization" => "*********",
           "User-Agent" => "spec"
         }
       end
@@ -183,8 +181,8 @@ describe HomeController do
 
         filtered = controller.send( :rollbar_headers, headers )
         filtered.should == {
-          "Auth" => "*********",
-          "Token" => "**********",
+          "Auth" => "**********",
+          "Token" => "***********",
           "Content-Type" => "text/html"
         }
       end
