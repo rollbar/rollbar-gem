@@ -324,6 +324,53 @@ describe Rollbar do
       end
     end
   end
+  
+  context 'report_message_with_request' do
+    before(:each) do
+      configure
+      Rollbar.configure do |config|
+        config.logger = logger_mock
+      end
+    end
+
+    let(:logger_mock) { double("Rails.logger").as_null_object }
+    let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
+
+    it 'should report simple messages' do
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      Rollbar.report_message_with_request("Test message")
+      
+      Rollbar.last_report[:request].should be_nil
+      Rollbar.last_report[:person].should be_nil
+    end
+    
+    it 'should report messages with request, person data and extra data' do
+      Rollbar.last_report = nil
+      
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      
+      request_data = {
+        :params => {:foo => 'bar'}
+      }
+      
+      person_data = {
+        :id => 123,
+        :username => 'username'
+      }
+      
+      extra_data = {
+        :extra_foo => 'extra_bar'
+      }
+      
+      Rollbar.report_message_with_request("Test message", 'info', request_data, person_data, extra_data)
+      
+      Rollbar.last_report[:request].should == request_data
+      Rollbar.last_report[:person].should == person_data
+      Rollbar.last_report[:body][:message][:extra_foo].should == 'extra_bar'
+    end
+  end
 
   context 'payload_destination' do
     before(:each) do

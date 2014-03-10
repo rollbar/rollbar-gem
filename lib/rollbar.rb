@@ -86,20 +86,8 @@ module Rollbar
       return 'ignored' if ignored?(exception)
 
       data = exception_data(exception, level ? level : filtered_level(exception))
-      if request_data
-        if request_data[:route]
-          route = request_data[:route]
-          
-          # make sure route is a hash built by RequestDataExtractor in rails apps
-          if route.is_a?(Hash) and not route.empty?
-            data[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
-          end
-        end
-        
-        request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
-        data[:request] = request_data
-        
-      end
+      
+      attach_request_data(data, request_data) if request_data
       data[:person] = person_data if person_data
 
       @last_report = data
@@ -128,6 +116,43 @@ module Rollbar
       return 'disabled' unless configuration.enabled
 
       data = message_data(message, level, extra_data)
+      
+      @last_report = data
+      
+      payload = build_payload(data)
+      schedule_payload(payload)
+      log_instance_link(data)
+      data
+    rescue => e
+      report_internal_error(e)
+      'error'
+    end
+
+    # Reports an arbitrary message to Rollbar with request and person data
+    #
+    # @example
+    #   Rollbar.report_message_with_request("User login failed", 'info', rollbar_request_data, rollbar_person_data, :foo => 'bar')
+    #
+    # @param message [String] The message body. This will be used to identify the message within
+    #   Rollbar. For best results, avoid putting variables in the message body; pass them as
+    #   `extra_data` instead.
+    # @param level [String] The level. One of: 'critical', 'error', 'warning', 'info', 'debug'
+    # @param request_data [Hash] Data describing the request. Should be the result of calling
+    #   `rollbar_request_data`.
+    # @param person_data [Hash] Data describing the affected person. Should be the result of calling
+    #   `rollbar_person_data`
+    # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as
+    #   it is reserved.
+    def report_message_with_request(message, level = 'info', request_data = nil, person_data = nil, extra_data = {})
+      return 'disabled' unless configuration.enabled
+
+      data = message_data(message, level, extra_data)
+      
+      attach_request_data(data, request_data) if request_data
+      data[:person] = person_data if person_data
+      
+      @last_report = data
+      
       payload = build_payload(data)
       schedule_payload(payload)
       log_instance_link(data)
@@ -165,6 +190,20 @@ module Rollbar
     end
 
     private
+    
+    def attach_request_data(payload, request_data)
+      if request_data[:route]
+        route = request_data[:route]
+        
+        # make sure route is a hash built by RequestDataExtractor in rails apps
+        if route.is_a?(Hash) and not route.empty?
+          payload[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
+        end
+      end
+      
+      request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
+      payload[:request] = request_data
+    end
 
     def require_hooks()
       require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
