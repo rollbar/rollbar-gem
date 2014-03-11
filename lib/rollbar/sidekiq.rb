@@ -5,7 +5,7 @@ module Rollbar
     def call(worker, msg, queue)
       begin
         yield
-      rescue => e
+      rescue Exception => e
         msg.delete('backtrace')
         msg.delete('error_backtrace')
         msg.delete('error_message')

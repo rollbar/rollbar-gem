@@ -6,7 +6,7 @@ module Rollbar
 
         def env_for_with_rollbar(path, env)
           env_for_without_rollbar(path, env)
-        rescue => exception
+        rescue Exception => exception
           report_exception_to_rollbar(env, exception)
           raise exception
         end
