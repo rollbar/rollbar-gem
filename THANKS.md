@@ -6,6 +6,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [arr-ee](https://github.com/arr-ee)
 - [awmichel](https://github.com/awmichel)
 - [bradx3](https://github.com/bradx3)
+- [chrisb](https://github.com/chrisb)
 - [derekrockwell](https://github.com/derekrockwell)
 - [dimko](https://github.com/dimko)
 - [dlackty](https://github.com/dlackty)

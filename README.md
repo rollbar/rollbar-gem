@@ -272,6 +272,23 @@ For this to work, you'll also need to set up rollbar-agent--see its docs for det
 
 ## Deploy Tracking with Capistrano
 
+### Capistrano 3
+
+Add to your `Capfile`:
+
+```ruby
+require 'rollbar/capistrano3'
+```
+
+And then, to your `deploy.rb`:
+
+```ruby
+set :rollbar_token, 'POST_SERVER_ITEM_ACCESS_TOKEN'
+set :rollbar_env, Proc.new { fetch :stage }
+```
+
+### Capistrano 2
+
 Add the following to ```deploy.rb```:
 
 ```ruby
