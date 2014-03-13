@@ -1,5 +1,12 @@
 # Change Log
 
+**0.12.14**
+- Added ability to scrub request headers
+- Added flag to disable reporting of Delayed::Job job data when handling uncaught exceptions that happen in jobs
+- New `report_message_with_request` that allows reporting request and person data, similar to `report_exception`
+- Changed various exception handlers to catch `Exception` subclasses instead of only `StandardError`s
+- Added Capistrano 3 support
+
 **0.12.13**
 - Add a little more debugging information for 'payload too large' errors
 - Pushing new gem to fix errant 32kb size limit in the rubygems copy of 0.12.12
