@@ -357,6 +357,7 @@ module Rollbar
 
       request = Net::HTTP::Post.new(uri.request_uri)
       request.body = payload
+      request.add_field('X-Rollbar-Access-Token', configuration.access_token)
       response = http.request(request)
 
       if response.code == '200'

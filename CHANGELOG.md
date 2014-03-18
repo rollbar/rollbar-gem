@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.15**
+- Send X-Rollbar-Access-Token http header along with payloads
+
 **0.12.14**
 - Added ability to scrub request headers
 - Added flag to disable reporting of Delayed::Job job data when handling uncaught exceptions that happen in jobs
