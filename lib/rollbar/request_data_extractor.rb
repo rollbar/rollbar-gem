@@ -37,7 +37,8 @@ module Rollbar
         :cookies => cookies,
         :session => session,
         :method => rollbar_request_method(env),
-        :route => route_params
+        :route => route_params,
+        :request_id => env["action_dispatch.request_id"],
       }
     end
 
