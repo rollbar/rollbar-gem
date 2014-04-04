@@ -216,7 +216,7 @@ Rollbar.silenced {
 
 ## Delayed::Job integration
 
-If `delayed_job` is defined, Rollbar will automatically install a handler that reports any uncaught exceptions that occur in jobs.
+If `delayed_job` is defined, Rollbar will automatically install a plugin that reports any uncaught exceptions that occur in jobs.
 
 By default, the job's data will be included in the report. If you want to disable this functionality to prevent sensitive data from possibly being sent, use the following configuration option:
 
@@ -230,6 +230,11 @@ You can also change the threshold of job retries that must occur before a job is
 config.dj_threshold = 2 # default is 0
 ```
 
+If you use [custom jobs](https://github.com/collectiveidea/delayed_job#custom-jobs) that define their own hooks to report exceptions, please consider disabling our plugin. Not doing so will result in duplicate exceptions being reported as well as lack of control when exceptions should be reported. To disable our Delayed::Job plugin, add the following line after the `Rollbar.configure` block.
+
+```ruby
+Delayed::Worker.plugins.delete(Delayed::Plugins::Rollbar)
+```
 
 
 ## Asynchronous reporting
