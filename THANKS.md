@@ -20,6 +20,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [kavu](https://github.com/kavu)
 - [magnolia-fan](https://github.com/magnolia-fan)
 - [mauricio](https://github.com/mauricio)
+- [metaskills](https://github.com/metaskills)
 - [miloops](https://github.com/miloops)
 - [mipearson](https://github.com/mipearson)
 - [petergoldstein](https://github.com/petergoldstein)
