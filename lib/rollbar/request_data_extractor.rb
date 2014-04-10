@@ -19,13 +19,13 @@ module Rollbar
     def extract_request_data_from_rack(env)
       rack_req = Rack::Request.new(env)
       
-      sensitive_params_regexp = Regexp.new(sensitive_params_list(env).map(&:to_s).join('|'), true)
-      request_params = rollbar_filtered_params(sensitive_params_regexp, rollbar_request_params(env))
-      get_params = rollbar_filtered_params(sensitive_params_regexp, rollbar_get_params(rack_req))
-      post_params = rollbar_filtered_params(sensitive_params_regexp, rollbar_post_params(rack_req))
-      cookies = rollbar_filtered_params(sensitive_params_regexp, rollbar_request_cookies(rack_req))
-      session = rollbar_filtered_params(sensitive_params_regexp, env['rack.session.options'])
-      route_params = rollbar_filtered_params(sensitive_params_regexp, rollbar_route_params(env))
+      sensitive_params = sensitive_params_list(env)
+      request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
+      get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
+      post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
+      cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
+      session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
+      route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
       
       params = request_params.merge(get_params).merge(post_params)
       
@@ -118,7 +118,8 @@ module Rollbar
       {}
     end
 
-    def rollbar_filtered_params(sensitive_params_regexp, params)
+    def rollbar_filtered_params(sensitive_params, params)
+      sensitive_params_regexp = Regexp.new(sensitive_params.map(&:to_s).join('|'), true)
       if params.nil?
         {}
       else
@@ -126,9 +127,9 @@ module Rollbar
           if sensitive_params_regexp =~ key.to_s
             result[key] = rollbar_scrubbed(value)
           elsif value.is_a?(Hash)
-            result[key] = rollbar_filtered_params(sensitive_params_regexp, value)
+            result[key] = rollbar_filtered_params(sensitive_params, value)
           elsif value.is_a?(Array)
-            result[key] = value.map {|v| v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params_regexp, v) : v}
+            result[key] = value.map {|v| v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v}
           elsif ATTACHMENT_CLASSES.include?(value.class.name)
             result[key] = {
               :content_type => value.content_type,
