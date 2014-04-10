@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'multi_json', '~> 1.3'
 
   gem.add_development_dependency 'rails', '>= 3.0.0'
-  gem.add_development_dependency 'rspec-rails', '~> 2.12.0'
+  gem.add_development_dependency 'rspec-rails', '>= 2.14.0'
   gem.add_development_dependency 'database_cleaner', '~> 1.0.0'
   gem.add_development_dependency 'girl_friday', '>= 0.11.1'
   gem.add_development_dependency 'sucker_punch', '>= 1.0.0' if RUBY_VERSION != '1.8.7'

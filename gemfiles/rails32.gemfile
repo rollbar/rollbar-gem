@@ -2,15 +2,15 @@
 
 source "https://rubygems.org"
 
-gem "sqlite3", :platform=>[:ruby, :mswin, :mingw]
-gem "jruby-openssl", :platform=>:jruby
-gem "activerecord-jdbcsqlite3-adapter", :platform=>:jruby
+gem "sqlite3", :platform => [:ruby, :mswin, :mingw]
+gem "jruby-openssl", :platform => :jruby
+gem "activerecord-jdbcsqlite3-adapter", :platform => :jruby
 gem "appraisal"
-gem "rubysl", "~> 2.0", :platform=>:rbx
-gem "racc", :platform=>:rbx
-gem "minitest", :platform=>:rbx
-gem "rubysl-test-unit", :platform=>:rbx
-gem "rubinius-developer_tools", :platform=>:rbx
-gem "rails", "3.2.12"
+gem "rubysl", "~> 2.0", :platform => :rbx
+gem "racc", :platform => :rbx
+gem "minitest", :platform => :rbx
+gem "rubysl-test-unit", :platform => :rbx
+gem "rubinius-developer_tools", :platform => :rbx
+gem "rails", "3.2.17"
 
-gemspec :path=>"../"
+gemspec :path => "../"
