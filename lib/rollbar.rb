@@ -96,7 +96,7 @@ module Rollbar
       schedule_payload(payload)
       log_instance_link(data)
       data
-    rescue => e
+    rescue Exception => e
       report_internal_error(e)
       'error'
     end
@@ -123,7 +123,7 @@ module Rollbar
       schedule_payload(payload)
       log_instance_link(data)
       data
-    rescue => e
+    rescue Exception => e
       report_internal_error(e)
       'error'
     end
