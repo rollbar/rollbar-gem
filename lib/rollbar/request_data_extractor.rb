@@ -119,11 +119,12 @@ module Rollbar
     end
 
     def rollbar_filtered_params(sensitive_params, params)
+      sensitive_params_regexp = Regexp.new(sensitive_params.map(&:to_s).join('|'), true)
       if params.nil?
         {}
       else
         params.to_hash.inject({}) do |result, (key, value)|
-          if sensitive_params.include?(key.to_sym)
+          if sensitive_params_regexp =~ key.to_s
             result[key] = rollbar_scrubbed(value)
           elsif value.is_a?(Hash)
             result[key] = rollbar_filtered_params(sensitive_params, value)
