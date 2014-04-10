@@ -128,6 +128,8 @@ module Rollbar
             result[key] = rollbar_scrubbed(value)
           elsif value.is_a?(Hash)
             result[key] = rollbar_filtered_params(sensitive_params, value)
+          elsif value.is_a?(Array)
+            result[key] = value.map {|v| v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v}
           elsif ATTACHMENT_CLASSES.include?(value.class.name)
             result[key] = {
               :content_type => value.content_type,
