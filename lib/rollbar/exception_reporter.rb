@@ -3,7 +3,7 @@ module Rollbar
     include RequestDataExtractor
 
     def report_exception_to_rollbar(env, exception)
-      rollbar_debug "[Rollbar] Reporting exception: #{exception.try(:message)}", :error
+      rollbar_debug "[Rollbar] Reporting exception: #{exception.message}", :error
       request_data = extract_request_data_from_rack(env)
       person_data = extract_person_data_from_controller(env)
       exception_data = Rollbar.report_exception(exception, request_data, person_data)
@@ -17,7 +17,7 @@ module Rollbar
         rollbar_debug "[Rollbar] Exception not reported because it was ignored"
       end
     rescue => e
-      rollbar_debug "[Rollbar] Exception while reporting exception to Rollbar: #{e.try(:message)}"
+      rollbar_debug "[Rollbar] Exception while reporting exception to Rollbar: #{e.message}"
     end
 
     def rollbar_debug(message, level = :debug)
