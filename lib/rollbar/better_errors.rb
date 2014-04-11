@@ -13,8 +13,8 @@ module BetterErrors
       exception_data = nil
       begin
         controller = env['action_controller.instance']
-        request_data = controller ? controller.rollbar_request_data : nil
-        person_data = controller ? controller.rollbar_person_data : nil
+        request_data = controller.rollbar_request_data rescue nil
+        person_data = controller.rollbar_person_data rescue nil
         exception_data = Rollbar.report_exception(exception, request_data, person_data)
       rescue => e
         # TODO use logger here?

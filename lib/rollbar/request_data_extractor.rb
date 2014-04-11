@@ -10,7 +10,7 @@ module Rollbar
         person_data = env['rollbar.person_data'] || {}
       else
         controller = env['action_controller.instance']
-        person_data = controller ? controller.rollbar_person_data : {}
+        person_data = controller.rollbar_person_data rescue {}
       end
       
       person_data
