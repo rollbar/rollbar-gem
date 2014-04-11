@@ -29,7 +29,7 @@ module Rollbar
       
       params = request_params.merge(get_params).merge(post_params)
       
-      {
+      data = {
         :params => params,
         :url => rollbar_url(env),
         :user_ip => rollbar_user_ip(env),
@@ -38,8 +38,13 @@ module Rollbar
         :session => session,
         :method => rollbar_request_method(env),
         :route => route_params,
-        :request_id => env["action_dispatch.request_id"],
       }
+      
+      if env["action_dispatch.request_id"]
+        data[:request_id] = env["action_dispatch.request_id"]
+      end
+      
+      data
     end
 
     private
