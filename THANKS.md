@@ -24,6 +24,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [miloops](https://github.com/miloops)
 - [mipearson](https://github.com/mipearson)
 - [petergoldstein](https://github.com/petergoldstein)
+- [pmen](https://github.com/pmen)
 - [rogercampos](https://github.com/rogercampos)
 - [siong1987](https://github.com/siong1987)
 - [trisweb](https://github.com/trisweb)
