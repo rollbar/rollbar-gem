@@ -23,6 +23,7 @@ module Rollbar
     attr_accessor :person_username_method
     attr_accessor :person_email_method
     attr_accessor :report_dj_data
+    attr_accessor :request_timeout
     attr_accessor :root
     attr_accessor :scrub_fields
     attr_accessor :scrub_headers
@@ -58,6 +59,7 @@ module Rollbar
       @person_email_method = 'email'
       @project_gems = []
       @report_dj_data = true
+      @request_timeout = 3
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
       @scrub_headers = ['Authorization']

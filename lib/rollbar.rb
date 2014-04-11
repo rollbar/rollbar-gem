@@ -349,6 +349,7 @@ module Rollbar
       end
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
+      http.read_timeout = configuration.request_timeout
 
       if uri.scheme == 'https'
         http.use_ssl = true
