@@ -1,5 +1,13 @@
 # Change Log
 
+**0.12.16**
+- Scrub fields are now converted to a regular expression for broader param name matching
+- Save ActionDispatch request_id in reports if present
+- Added proper Sidekiq 3 error handler
+- Removed usage of ActiveSupport's `Object#try` in different areas of the notifier
+- Added a configurable request timeout for reports (defaults to 3 seconds)
+- Fix circular json exception handling in Rails 4.1
+
 **0.12.15**
 - Send X-Rollbar-Access-Token http header along with payloads
 
