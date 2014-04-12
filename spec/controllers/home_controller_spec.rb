@@ -9,6 +9,7 @@ describe HomeController do
     Rollbar.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
       config.logger = logger_mock
+      config.request_timeout = 60
     end
   end
   

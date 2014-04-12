@@ -1,6 +1,7 @@
 require 'rollbar/rails'
 Rollbar.configure do |config|
   config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+  config.request_timeout = 60
 
   # By default, Rollbar will try to call the `current_user` controller method
   # to fetch the logged-in user object, and then call that object's `id`,

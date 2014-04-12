@@ -865,6 +865,7 @@ describe Rollbar do
       config.logger = ::Rails.logger
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
+      config.request_timeout = 60
     end
   end
 
