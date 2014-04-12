@@ -125,7 +125,7 @@ module Rollbar
     end
 
     def rollbar_filtered_params(sensitive_params, params)
-      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val).to_s }.join('|'), true)
+      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
       
       if params.nil?
         {}
