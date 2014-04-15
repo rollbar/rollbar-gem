@@ -189,6 +189,42 @@ module Rollbar
       end
     end
 
+    # wrappers around logger methods
+    def log_error(message)
+      begin
+        logger.error message
+      rescue => e
+        puts "[Rollbar] Error logging error:"
+        puts "[Rollbar] #{message}"
+      end
+    end
+
+    def log_info(message)
+      begin
+        logger.info message
+      rescue => e
+        puts "[Rollbar] Error logging info:"
+        puts "[Rollbar] #{message}"
+      end
+    end
+
+    def log_warning(message)
+      begin
+        logger.warn message
+      rescue => e
+        puts "[Rollbar] Error logging warning:"
+        puts "[Rollbar] #{message}"
+      end
+    end
+    def log_debug(message)
+      begin
+        logger.debug message
+      rescue => e
+        puts "[Rollbar] Error logging debug"
+        puts "[Rollbar] #{message}"
+      end
+    end
+
     private
     
     def attach_request_data(payload, request_data)
@@ -485,34 +521,6 @@ module Rollbar
       else
         log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
         Thread.new { process_payload(payload) }
-      end
-    end
-
-    # wrappers around logger methods
-    def log_error(message)
-      begin
-        logger.error message
-      rescue => e
-        puts "[Rollbar] Error logging error:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_info(message)
-      begin
-        logger.info message
-      rescue => e
-        puts "[Rollbar] Error logging info:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_warning(message)
-      begin
-        logger.warn message
-      rescue => e
-        puts "[Rollbar] Error logging warning:"
-        puts "[Rollbar] #{message}"
       end
     end
 
