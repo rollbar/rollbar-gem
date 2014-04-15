@@ -1,5 +1,9 @@
 # Change Log
 
+**0.12.17**
+- Replace usage of `puts` with a configurable logger in different areas of the notifier
+- Fix error in `RollbarRequestStore` when `rollbar_person_data` isn't defined for a controller
+
 **0.12.16**
 - Scrub fields are now converted to a regular expression for broader param name matching
 - Save ActionDispatch request_id in reports if present
