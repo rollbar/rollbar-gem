@@ -324,6 +324,7 @@ And then, to your `deploy.rb`:
 ```ruby
 set :rollbar_token, 'POST_SERVER_ITEM_ACCESS_TOKEN'
 set :rollbar_env, Proc.new { fetch :stage }
+set :rollbar_role, Proc.new { :app }
 ```
 
 ### Capistrano 2
