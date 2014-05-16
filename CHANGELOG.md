@@ -1,5 +1,8 @@
 # Change Log
 
+**0.12.18**
+- Insert RollbarRequestStore middleware at the end in case the ActiveRecord ConnectionManagement middleware isn't used
+
 **0.12.17**
 - Replace usage of `puts` with a configurable logger in different areas of the notifier
 - Fix error in `RollbarRequestStore` when `rollbar_person_data` isn't defined for a controller
