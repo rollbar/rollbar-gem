@@ -14,7 +14,7 @@ module Rollbar
           rescue
             controller = env["action_controller.instance"]
             if controller and controller.respond_to? :rollbar_person_data
-              env['rollbar.person_data'] = controller.rollbar_person_data
+              env['rollbar.person_data'] = controller.rollbar_person_data rescue {}
             end
             raise
           end
