@@ -2,6 +2,7 @@
 
 Huge thanks to the following contributors (by github username). For the most up-to-date list, see https://github.com/rollbar/rollbar-gem/graphs/contributors
 
+- [alexdunae](https://github.com/alexdunae)
 - [allspiritseve](https://github.com/allspiritseve)
 - [arr-ee](https://github.com/arr-ee)
 - [awmichel](https://github.com/awmichel)

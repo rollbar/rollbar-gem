@@ -2,6 +2,7 @@
 
 **0.12.18**
 - Insert RollbarRequestStore middleware at the end in case the ActiveRecord ConnectionManagement middleware isn't used
+- Scope Capistrano 3 task by server role [#110](https://github.com/rollbar/rollbar-gem/pull/110)
 
 **0.12.17**
 - Replace usage of `puts` with a configurable logger in different areas of the notifier
