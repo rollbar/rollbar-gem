@@ -104,14 +104,11 @@ module Rollbar
       @project_gem_paths = []
 
       gems.each { |name|
-        begin
-          spec = Gem::Specification.find_by_name(name.to_s)
-          gem_root = spec.gem_dir
-
-          @project_gem_paths.push gem_root
-        rescue Gem::LoadError
-          puts "[Rollbar] #{name} gem not found"
-        end
+        Gem::Specification.find_all_by_name(name).tap{ |results|
+          puts "[Rollbar] No gems found matching #{name.inspect}" if results.empty?
+        }.each{ |gem|
+          @project_gem_paths.push gem.gem_dir
+        }
       }
     end
 
