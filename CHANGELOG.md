@@ -1,5 +1,9 @@
 # Change Log
 
+**0.12.19**
+- Fix rake test task in production
+- Report an additional simple error message in the rake test task
+
 **0.12.18**
 - Insert RollbarRequestStore middleware at the end in case the ActiveRecord ConnectionManagement middleware isn't used
 - Scope Capistrano 3 task by server role [#110](https://github.com/rollbar/rollbar-gem/pull/110)
@@ -236,7 +240,7 @@
 - Replaced activesupport dependency with multi_json
 
 **0.5.5**
-- Added activesupport dependency for use without Rails 
+- Added activesupport dependency for use without Rails
 
 **0.5.4**
 - Added new default scrub params
@@ -245,7 +249,7 @@
 - Add `Ratchetio.silenced`; which allows disabling reporting for a given block. See README for usage.
 
 **0.5.2**
-- Fix compat issue with delayed_job below version 3. Exceptions raised by delayed_job below version 3 will not be automatically caught; upgrade to v3 or catch and report by hand. 
+- Fix compat issue with delayed_job below version 3. Exceptions raised by delayed_job below version 3 will not be automatically caught; upgrade to v3 or catch and report by hand.
 
 **0.5.1**
 - Save the exception uuid in `env['ratchetio.exception_uuid']` for display in user-facing error pages.
@@ -289,9 +293,9 @@
 - Recursively filter files out of the params hash. Thanks to [trisweb](https://github.com/trisweb) for the pull request.
 
 **0.4.0**
- 
+
 - Breaking change to make the "person" more configurable. If you were previously relying on your `current_member` method being called to return the person object, you will need to add the following line to `config/initializers/ratchetio.rb`:
-    
+
     config.person_method = "current_member"
 
 - Person id, username, and email method names are now configurable -- see README for details.
