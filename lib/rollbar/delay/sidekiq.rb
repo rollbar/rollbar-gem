@@ -3,7 +3,7 @@ require 'sidekiq'
 module Rollbar
   module Delay
     class Sidekiq
-      OPTIONS = { 'queue' => 'rollbar', 'class' => self.name }.freeze
+      OPTIONS = { 'queue' => 'rollbar', 'class' => Rollbar::Delay::Sidekiq }.freeze
 
       def initialize(*args)
         @options = (opts = args.shift) ? OPTIONS.merge(opts) : OPTIONS
