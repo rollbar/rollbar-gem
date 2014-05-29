@@ -1,5 +1,9 @@
 # Change Log
 
+**0.12.20**
+- Fix asynchronous reports with sidekiq version < 2.3.2
+- Support for specifying multiple project_gems with regex [#114](https://github.com/rollbar/rollbar-gem/pull/114)
+
 **0.12.19**
 - Fix rake test task in production
 - Report an additional simple error message in the rake test task
