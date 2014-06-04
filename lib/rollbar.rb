@@ -20,7 +20,7 @@ require 'rollbar/railtie' if defined?(Rails)
 
 module Rollbar
   MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
-  
+
   class << self
     attr_writer :configuration
     attr_accessor :last_report
@@ -81,12 +81,12 @@ module Rollbar
         person_id = person_data[Rollbar.configuration.person_id_method.to_sym]
         return 'ignored' if configuration.ignored_person_ids.include?(person_id)
       end
-      
+
       return 'disabled' unless configuration.enabled
       return 'ignored' if ignored?(exception)
 
       data = exception_data(exception, level ? level : filtered_level(exception))
-      
+
       attach_request_data(data, request_data) if request_data
       data[:person] = person_data if person_data
 
@@ -116,9 +116,9 @@ module Rollbar
       return 'disabled' unless configuration.enabled
 
       data = message_data(message, level, extra_data)
-      
+
       @last_report = data
-      
+
       payload = build_payload(data)
       schedule_payload(payload)
       log_instance_link(data)
@@ -147,12 +147,12 @@ module Rollbar
       return 'disabled' unless configuration.enabled
 
       data = message_data(message, level, extra_data)
-      
+
       attach_request_data(data, request_data) if request_data
       data[:person] = person_data if person_data
-      
+
       @last_report = data
-      
+
       payload = build_payload(data)
       schedule_payload(payload)
       log_instance_link(data)
@@ -226,23 +226,23 @@ module Rollbar
     end
 
     private
-    
+
     def attach_request_data(payload, request_data)
       if request_data[:route]
         route = request_data[:route]
-        
+
         # make sure route is a hash built by RequestDataExtractor in rails apps
         if route.is_a?(Hash) and not route.empty?
           payload[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
         end
       end
-      
+
       request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
       payload[:request] = request_data
     end
 
     def require_hooks()
-      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
+      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Worker)
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
@@ -409,7 +409,7 @@ module Rollbar
       if payload.nil?
         return
       end
-      
+
       log_info '[Rollbar] Scheduling payload'
 
       if configuration.use_async
@@ -435,18 +435,18 @@ module Rollbar
         :data => data
       }
       result = MultiJson.dump(payload)
-      
+
       # Try to truncate strings in the payload a few times if the payload is too big
       original_size = result.bytesize
       if original_size > MAX_PAYLOAD_SIZE
         thresholds = [1024, 512, 256]
         thresholds.each_with_index do |threshold, i|
           new_payload = payload.clone
-          
+
           truncate_payload(new_payload, threshold)
-          
+
           result = MultiJson.dump(new_payload)
-          
+
           if result.bytesize <= MAX_PAYLOAD_SIZE
             break
           elsif i == thresholds.length - 1
@@ -457,7 +457,7 @@ module Rollbar
           end
         end
       end
-      
+
       result
     end
 
@@ -493,7 +493,7 @@ module Rollbar
       unless config.custom_data_method.nil?
         data[:custom] = config.custom_data_method.call
       end
-      
+
       data
     end
 
@@ -592,7 +592,7 @@ module Rollbar
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
     end
-    
+
     def truncate_payload(payload, byte_threshold)
       truncator = Proc.new do |value|
         if value.is_a?(String) and value.bytesize > byte_threshold
@@ -601,7 +601,7 @@ module Rollbar
           value
         end
       end
-      
+
       Rollbar::Util::iterate_and_update(payload, truncator)
     end
   end
