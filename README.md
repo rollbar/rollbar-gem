@@ -233,7 +233,7 @@ config.dj_threshold = 2 # default is 0
 If you use [custom jobs](https://github.com/collectiveidea/delayed_job#custom-jobs) that define their own hooks to report exceptions, please consider disabling our plugin. Not doing so will result in duplicate exceptions being reported as well as lack of control when exceptions should be reported. To disable our Delayed::Job plugin, add the following line after the `Rollbar.configure` block.
 
 ```ruby
-Delayed::Worker.plugins.delete(Delayed::Plugins::Rollbar)
+config.delayed_job_enabled = false
 ```
 
 

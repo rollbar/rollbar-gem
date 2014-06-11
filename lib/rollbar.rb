@@ -242,7 +242,7 @@ module Rollbar
     end
 
     def require_hooks()
-      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Worker)
+      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
