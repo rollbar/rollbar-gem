@@ -8,7 +8,7 @@ namespace :rollbar do
       Logger.new(STDOUT)
 
     Rails.logger.level = Logger::DEBUG
-    Rollbar.configure do |config|
+    Rollbar.preconfigure do |config|
       config.logger = Rails.logger
     end
 

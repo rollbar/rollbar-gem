@@ -15,7 +15,7 @@ module Rollbar
     end
 
     config.after_initialize do
-      Rollbar.configure do |config|
+      Rollbar.preconfigure do |config|
         config.logger ||= ::Rails.logger
         config.environment ||= ::Rails.env
         config.root ||= ::Rails.root
@@ -41,4 +41,3 @@ module Rollbar
     end
   end
 end
-

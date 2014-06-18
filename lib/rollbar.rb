@@ -25,6 +25,12 @@ module Rollbar
     attr_writer :configuration
     attr_accessor :last_report
 
+    # Similar to configure below, but used only internally within the gem
+    # to configure it without initializing any of the third party hooks
+    def preconfigure
+      yield(configuration)
+    end
+    
     # Configures the gem.
     #
     # Call on app startup to set the `access_token` (required) and other config params.
@@ -36,13 +42,13 @@ module Rollbar
     #     config.access_token = 'abcdefg'
     #   end
     def configure
-      require_hooks
-
       # if configuration.enabled has not been set yet (is still 'nil'), set to true.
       if configuration.enabled.nil?
         configuration.enabled = true
       end
       yield(configuration)
+      
+      require_hooks
     end
 
     def reconfigure
@@ -242,7 +248,11 @@ module Rollbar
     end
 
     def require_hooks()
-      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
+      if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
+        require 'rollbar/delayed_job'
+        Rollbar::Delayed::wrap_worker
+      end
+      
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
