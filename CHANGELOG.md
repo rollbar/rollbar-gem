@@ -1,5 +1,10 @@
 # Change Log
 
+**0.13.0**
+- Hook for delayed_job no longer a plugin, will now only ever be initialized once
+- New configuration option `delayed_job_enabled` that defaults to true
+- Potentially breaking change if using delayed_job: if you disabled the delayed_job plugin previously, please remove that code and instead set the new configuration option `delayed_job_enabled` to false
+
 **0.12.20**
 - Fix asynchronous reports with sidekiq version < 2.3.2
 - Support for specifying multiple project_gems with regex [#114](https://github.com/rollbar/rollbar-gem/pull/114)
