@@ -1,5 +1,8 @@
 # Change Log
 
+**0.13.1**
+- Silence warning when using project_gems= with regexp [#120](https://github.com/rollbar/rollbar-gem/pull/120)
+
 **0.13.0**
 - Hook for delayed_job no longer a plugin, will now only ever be initialized once
 - New configuration option `delayed_job_enabled` that defaults to true

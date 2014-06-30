@@ -815,7 +815,7 @@ describe Rollbar do
     end
 
     it "should handle regex gem patterns" do
-      gems = ["rack", /rspec/]
+      gems = ["rack", /rspec/, /roll/]
       gem_paths = []
 
       Rollbar.configure do |config|
@@ -824,6 +824,9 @@ describe Rollbar do
 
       gem_paths = gems.map{|gem| Gem::Specification.find_all_by_name(gem).map(&:gem_dir) }.flatten.compact.uniq
       gem_paths.length.should > 1
+    
+      gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
+      gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 
       data = Rollbar.send(:message_data, 'test', 'info', {})
       data[:project_package_paths].kind_of?(Array).should == true
