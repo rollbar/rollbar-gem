@@ -103,15 +103,13 @@ module Rollbar
     end
 
     def project_gems=(gems)
-      @project_gem_paths = []
-
-      gems.each { |name|
-        Gem::Specification.find_all_by_name(name).tap{ |results|
-          puts "[Rollbar] No gems found matching #{name.inspect}" if results.empty?
-        }.each{ |gem|
-          @project_gem_paths.push gem.gem_dir
-        }
-      }
+      @project_gem_paths = gems.map do |name|
+        found = Gem::Specification.each.select { |spec| name === spec.name }
+        if found.empty?
+          puts "[Rollbar] No gems found matching #{name.inspect}"
+        end
+        found
+      end.flatten.uniq.map(&:gem_dir)
     end
 
     # allow params to be read like a hash
