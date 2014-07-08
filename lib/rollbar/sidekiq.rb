@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+PARAM_BLACKLIST = ['backtrace', 'error_backtrace', 'error_message', 'error_class']
+
 if Sidekiq::VERSION < '3'
   module Rollbar
     class Sidekiq
@@ -7,12 +9,9 @@ if Sidekiq::VERSION < '3'
         begin
           yield
         rescue Exception => e
-          msg.delete('backtrace')
-          msg.delete('error_backtrace')
-          msg.delete('error_message')
-          msg.delete('error_class')
+          params = msg.reject{ |k| PARAM_BLACKLIST.include?(k) }
 
-          Rollbar.report_exception(e, :params => msg)
+          Rollbar.report_exception(e, :params => params)
           raise
         end
       end
@@ -27,12 +26,9 @@ if Sidekiq::VERSION < '3'
 else
   Sidekiq.configure_server do |config|
     config.error_handlers << Proc.new do |e, context|
-      context.delete('backtrace')
-      context.delete('error_backtrace')
-      context.delete('error_message')
-      context.delete('error_class')
-
-      Rollbar.report_exception(e, :params => context)
+      params = context.reject{ |k| PARAM_BLACKLIST.include?(k) }
+      
+      Rollbar.report_exception(e, :params => params)
     end
   end
 end
