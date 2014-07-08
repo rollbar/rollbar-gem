@@ -87,7 +87,7 @@ module Rollbar
     def use_sucker_punch
       require 'rollbar/delay/sucker_punch' if defined?(SuckerPunch)
       @use_async      = true
-      @async_handler  = Rollbar::Delay::SuckerPunch.new
+      @async_handler  = Rollbar::Delay::SuckerPunch
     end
 
     def use_sucker_punch=(value)
