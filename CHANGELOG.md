@@ -1,5 +1,9 @@
 # Change Log
 
+**0.13.2**
+- Sidekiq payload is no longer mutated when Rollbar reports a Sidekiq job exception
+- Fix sucker_punch async reporting when using a forking application server such as Unicorn (`preload_app true`). Jobs are now instantiated for every report instead of a reused global job instance
+
 **0.13.1**
 - Silence warning when using project_gems= with regexp [#120](https://github.com/rollbar/rollbar-gem/pull/120)
 
