@@ -1,12 +1,7 @@
 require 'net/https'
-
-require 'securerandom' if defined?(SecureRandom)
 require 'socket'
 require 'thread'
 require 'uri'
-
-require 'girl_friday' if defined?(GirlFriday)
-require 'sucker_punch' if defined?(SuckerPunch)
 require 'multi_json'
 
 require 'rollbar/version'
@@ -15,7 +10,6 @@ require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'
-
 require 'rollbar/railtie' if defined?(Rails)
 
 module Rollbar
@@ -30,7 +24,7 @@ module Rollbar
     def preconfigure
       yield(configuration)
     end
-    
+
     # Configures the gem.
     #
     # Call on app startup to set the `access_token` (required) and other config params.
@@ -47,7 +41,7 @@ module Rollbar
         configuration.enabled = true
       end
       yield(configuration)
-      
+
       require_hooks
     end
 
@@ -252,7 +246,7 @@ module Rollbar
         require 'rollbar/delayed_job'
         Rollbar::Delayed::wrap_worker
       end
-      
+
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)

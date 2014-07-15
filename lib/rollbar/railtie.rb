@@ -1,4 +1,4 @@
-require 'rails'
+require 'rails/railtie'
 require 'rollbar'
 
 module Rollbar
@@ -6,7 +6,7 @@ module Rollbar
     rake_tasks do
       require 'rollbar/rake_tasks'
     end
-    
+
     if defined? ActiveRecord
       initializer 'rollbar.middleware.rails' do |app|
         require 'rollbar/middleware/rails/rollbar_request_store'
