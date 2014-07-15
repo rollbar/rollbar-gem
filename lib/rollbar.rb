@@ -4,6 +4,11 @@ require 'thread'
 require 'uri'
 require 'multi_json'
 
+begin
+  require 'securerandom'
+rescue LoadError
+end
+
 require 'rollbar/version'
 require 'rollbar/configuration'
 require 'rollbar/request_data_extractor'
