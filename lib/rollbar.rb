@@ -17,6 +17,10 @@ require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
 
+unless ''.respond_to? :encode
+  require 'iconv'
+end
+
 module Rollbar
   MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
 
@@ -443,6 +447,9 @@ module Rollbar
         :access_token => configuration.access_token,
         :data => data
       }
+      
+      enforce_valid_utf8(payload)
+      
       result = MultiJson.dump(payload)
 
       # Try to truncate strings in the payload a few times if the payload is too big
@@ -600,6 +607,22 @@ module Rollbar
       rescue => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
+    end
+    
+    def enforce_valid_utf8(payload)
+      normalizer = Proc.new do |value|
+        if value.is_a?(String)
+          if value.respond_to? :encode
+            value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
+          else
+            ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
+          end
+        else
+          value
+        end
+      end
+
+      Rollbar::Util::iterate_and_update(payload, normalizer)
     end
 
     def truncate_payload(payload, byte_threshold)

@@ -1,5 +1,10 @@
 # Change Log
 
+**1.0.0**
+- Clean up some unused requires
+- Strip out invalid UTF-8 characters from payload keys/values, fixes [#85](https://github.com/rollbar/rollbar-gem/issues/85)
+- Bumping to 1.0 due to the suggestion in [#119](https://github.com/rollbar/rollbar-gem/issues/119)
+
 **0.13.2**
 - Sidekiq payload is no longer mutated when Rollbar reports a Sidekiq job exception
 - Fix sucker_punch async reporting when using a forking application server such as Unicorn (`preload_app true`). Jobs are now instantiated for every report instead of a reused global job instance

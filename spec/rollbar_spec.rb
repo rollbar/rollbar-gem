@@ -666,6 +666,25 @@ describe Rollbar do
       hash = MultiJson.load(json)
       hash["data"]["foo"]["bar"].should == "baz"
     end
+    
+    it 'should strip out invalid utf-8' do
+      json = Rollbar.send(:build_payload, {
+        :good_key => "\255bad value",
+        "bad\255 key" => "good value",
+        "bad key 2\255" => "bad \255value",
+        :hash => {
+          "bad array \255key" => ["bad\255 array element", "good array element"]
+        }
+      })
+      
+      hash = MultiJson.load(json)
+      hash["data"]["good_key"].should == 'bad value'
+      hash["data"]["bad key"].should == 'good value'
+      hash["data"]["bad key 2"].should == 'bad value'
+      hash["data"]["hash"].should == {
+        "bad array key" => ["bad array element", "good array element"]
+      }
+    end
 
     it 'should truncate large strings if the payload is too big' do
       json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024})
@@ -684,6 +703,44 @@ describe Rollbar do
       Rollbar.report_exception(@exception)
 
       Rollbar::MAX_PAYLOAD_SIZE = orig_max
+    end
+  end
+  
+  context 'enforce_valid_utf8' do
+    it 'should replace invalid utf8 values' do
+      payload = {
+        :bad_value => "bad value 1\255",
+        :bad_value_2 => "bad\255 value 2",
+        "bad\255 key" => "good value",
+        :hash => {
+          :inner_bad_value => "\255\255bad value 3",
+          "inner \255bad key" => 'inner good value',
+          "bad array key\255" => [
+            'good array value 1', 
+            "bad\255 array value 1\255",
+            {
+              :inner_inner_bad => "bad inner \255inner value"
+            }
+          ]
+        }
+      }
+
+      payload_copy = payload.clone
+      Rollbar.send(:enforce_valid_utf8, payload_copy)
+      
+      payload_copy[:bad_value].should == "bad value 1"
+      payload_copy[:bad_value_2].should == "bad value 2"
+      payload_copy["bad key"].should == "good value"
+      payload_copy.keys.should_not include("bad\456 key")
+      payload_copy[:hash][:inner_bad_value].should == "bad value 3"
+      payload_copy[:hash]["inner bad key"].should == 'inner good value'
+      payload_copy[:hash]["bad array key"].should == [
+        'good array value 1', 
+        'bad array value 1', 
+        {
+          :inner_inner_bad => 'bad inner inner value'
+        }
+      ]
     end
   end
 
