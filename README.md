@@ -9,7 +9,7 @@ Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https:/
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar'
+    gem 'rollbar', '~> 1.0.0'
 
 And then execute:
 
