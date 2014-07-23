@@ -1,4 +1,4 @@
-require 'rails'
+require 'rails/railtie'
 require 'rollbar'
 
 module Rollbar
@@ -8,12 +8,6 @@ module Rollbar
     end
     
     initializer 'rollbar.middleware.rails' do |app|
-      #if defined? ActiveRecord
-      #  require 'rollbar/middleware/rails/rollbar_request_store'
-      #  app.config.middleware.insert_after ActiveRecord::ConnectionAdapters::ConnectionManagement,
-      #    Rollbar::Middleware::Rails::RollbarRequestStore
-      #end
-    
       if defined?(ActionDispatch::DebugExceptions)
         # Rails 3.2.x+
         require 'rollbar/middleware/rails/rollbar'
@@ -34,7 +28,7 @@ module Rollbar
     end
 
     config.after_initialize do
-      Rollbar.configure do |config|
+      Rollbar.preconfigure do |config|
         config.logger ||= ::Rails.logger
         config.environment ||= ::Rails.env
         config.root ||= ::Rails.root
@@ -50,4 +44,3 @@ module Rollbar
     end
   end
 end
-

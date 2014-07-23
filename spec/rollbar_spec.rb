@@ -145,14 +145,14 @@ describe Rollbar do
       }
       Rollbar.report_exception(@exception, {}, person_data)
     end
-    
+
     it 'should not ignore non-ignored persons' do
       Rollbar.configure do |config|
         config.ignored_person_ids += [1]
       end
-      
+
       Rollbar.last_report = nil
-      
+
       person_data = {
         :id => 1,
         :username => "test",
@@ -160,7 +160,7 @@ describe Rollbar do
       }
       Rollbar.report_exception(@exception, {}, person_data)
       Rollbar.last_report.should be_nil
-      
+
       person_data = {
         :id => 2,
         :username => "test2",
@@ -248,13 +248,13 @@ describe Rollbar do
       Rollbar.stub(:schedule_payload) do |*args|
         payload = MultiJson.load(args[0])
       end
-      
+
       Rollbar.report_exception(@exception)
-      
+
       payload["data"]["level"].should == 'error'
-      
+
       Rollbar.report_exception(@exception, nil, nil, 'debug')
-      
+
       payload["data"]["level"].should == 'debug'
     end
   end
@@ -322,6 +322,53 @@ describe Rollbar do
       Rollbar.configure do |config|
         config.logger = ::Rails.logger
       end
+    end
+  end
+
+  context 'report_message_with_request' do
+    before(:each) do
+      configure
+      Rollbar.configure do |config|
+        config.logger = logger_mock
+      end
+    end
+
+    let(:logger_mock) { double("Rails.logger").as_null_object }
+    let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
+
+    it 'should report simple messages' do
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      Rollbar.report_message_with_request("Test message")
+
+      Rollbar.last_report[:request].should be_nil
+      Rollbar.last_report[:person].should be_nil
+    end
+
+    it 'should report messages with request, person data and extra data' do
+      Rollbar.last_report = nil
+
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+
+      request_data = {
+        :params => {:foo => 'bar'}
+      }
+
+      person_data = {
+        :id => 123,
+        :username => 'username'
+      }
+
+      extra_data = {
+        :extra_foo => 'extra_bar'
+      }
+
+      Rollbar.report_message_with_request("Test message", 'info', request_data, person_data, extra_data)
+
+      Rollbar.last_report[:request].should == request_data
+      Rollbar.last_report[:person].should == person_data
+      Rollbar.last_report[:body][:message][:extra_foo].should == 'extra_bar'
     end
   end
 
@@ -611,35 +658,92 @@ describe Rollbar do
         config.logger = logger_mock
       end
     end
-    
+
     let(:logger_mock) { double("Rails.logger").as_null_object }
-    
+
     it 'should build valid json' do
       json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}})
       hash = MultiJson.load(json)
       hash["data"]["foo"]["bar"].should == "baz"
     end
     
+    it 'should strip out invalid utf-8' do
+      json = Rollbar.send(:build_payload, {
+        :good_key => "\255bad value",
+        "bad\255 key" => "good value",
+        "bad key 2\255" => "bad \255value",
+        :hash => {
+          "bad array \255key" => ["bad\255 array element", "good array element"]
+        }
+      })
+      
+      hash = MultiJson.load(json)
+      hash["data"]["good_key"].should == 'bad value'
+      hash["data"]["bad key"].should == 'good value'
+      hash["data"]["bad key 2"].should == 'bad value'
+      hash["data"]["hash"].should == {
+        "bad array key" => ["bad array element", "good array element"]
+      }
+    end
+
     it 'should truncate large strings if the payload is too big' do
       json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024})
       hash = MultiJson.load(json)
       hash["data"]["large"].should == '%s...' % ('a' * 1021)
       hash["data"]["small"].should == 'b' * 1024
     end
-    
+
     it 'should send a failsafe message if the payload cannot be reduced enough' do
-      logger_mock.should_receive(:error).with('[Rollbar] Sending failsafe response due to Could not send payload due to it being too large after truncating attempts.')
+      logger_mock.should_receive(:error).with(/Sending failsafe response due to Could not send payload due to it being too large after truncating attempts/)
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      
+
       orig_max = Rollbar::MAX_PAYLOAD_SIZE
-      
+
       Rollbar::MAX_PAYLOAD_SIZE = 1
       Rollbar.report_exception(@exception)
-      
+
       Rollbar::MAX_PAYLOAD_SIZE = orig_max
     end
   end
   
+  context 'enforce_valid_utf8' do
+    it 'should replace invalid utf8 values' do
+      payload = {
+        :bad_value => "bad value 1\255",
+        :bad_value_2 => "bad\255 value 2",
+        "bad\255 key" => "good value",
+        :hash => {
+          :inner_bad_value => "\255\255bad value 3",
+          "inner \255bad key" => 'inner good value',
+          "bad array key\255" => [
+            'good array value 1', 
+            "bad\255 array value 1\255",
+            {
+              :inner_inner_bad => "bad inner \255inner value"
+            }
+          ]
+        }
+      }
+
+      payload_copy = payload.clone
+      Rollbar.send(:enforce_valid_utf8, payload_copy)
+      
+      payload_copy[:bad_value].should == "bad value 1"
+      payload_copy[:bad_value_2].should == "bad value 2"
+      payload_copy["bad key"].should == "good value"
+      payload_copy.keys.should_not include("bad\456 key")
+      payload_copy[:hash][:inner_bad_value].should == "bad value 3"
+      payload_copy[:hash]["inner bad key"].should == 'inner good value'
+      payload_copy[:hash]["bad array key"].should == [
+        'good array value 1', 
+        'bad array value 1', 
+        {
+          :inner_inner_bad => 'bad inner inner value'
+        }
+      ]
+    end
+  end
+
   context 'truncate_payload' do
     it 'should truncate all nested strings in the payload' do
       payload = {
@@ -651,26 +755,26 @@ describe Rollbar do
           :array => ['12345678', '12', {:inner_inner => '123456789'}]
         }
       }
-      
+
       payload_copy = payload.clone
       Rollbar.send(:truncate_payload, payload_copy, 6)
-      
+
       payload_copy[:truncated].should == '123...'
       payload_copy[:not_truncated].should == '123456'
       payload_copy[:hash][:inner_truncated].should == '123...'
       payload_copy[:hash][:inner_not_truncated].should == '567'
       payload_copy[:hash][:array].should == ['123...', '12', {:inner_inner => '123...'}]
     end
-    
+
     it 'should truncate utf8 strings properly' do
       payload = {
         :truncated => 'Ŝǻмρļẻ śţяịņģ',
         :not_truncated => '123456',
       }
-      
+
       payload_copy = payload.clone
       Rollbar.send(:truncate_payload, payload_copy, 6)
-      
+
       payload_copy[:truncated].should == "Ŝǻм..."
       payload_copy[:not_truncated].should == '123456'
     end
@@ -766,6 +870,38 @@ describe Rollbar do
         path.should == gem_paths[index]
       }
     end
+
+    it "should handle regex gem patterns" do
+      gems = ["rack", /rspec/, /roll/]
+      gem_paths = []
+
+      Rollbar.configure do |config|
+        config.project_gems = gems
+      end
+
+      gem_paths = gems.map{|gem| Gem::Specification.find_all_by_name(gem).map(&:gem_dir) }.flatten.compact.uniq
+      gem_paths.length.should > 1
+    
+      gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
+      gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
+
+      data = Rollbar.send(:message_data, 'test', 'info', {})
+      data[:project_package_paths].kind_of?(Array).should == true
+      data[:project_package_paths].length.should == gem_paths.length
+      (data[:project_package_paths] - gem_paths).length.should == 0
+    end
+
+    it "should not break on non-existent gems" do
+      gems = ["this_gem_does_not_exist", "rack"]
+
+      Rollbar.configure do |config|
+        config.project_gems = gems
+      end
+
+      data = Rollbar.send(:message_data, 'test', 'info', {})
+      data[:project_package_paths].kind_of?(Array).should == true
+      data[:project_package_paths].length.should == 1
+    end
   end
 
   context "report_internal_error" do
@@ -818,6 +954,7 @@ describe Rollbar do
       config.logger = ::Rails.logger
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
+      config.request_timeout = 60
     end
   end
 

@@ -8,7 +8,9 @@ module Rollbar
     attr_accessor :branch
     attr_accessor :code_version
     attr_accessor :custom_data_method
+    attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
+    attr_accessor :dj_threshold
     attr_accessor :enabled
     attr_accessor :endpoint
     attr_accessor :environment
@@ -22,9 +24,12 @@ module Rollbar
     attr_accessor :person_id_method
     attr_accessor :person_username_method
     attr_accessor :person_email_method
+    attr_accessor :report_dj_data
+    attr_accessor :request_timeout
     attr_accessor :root
     attr_accessor :scrub_fields
     attr_accessor :uncaught_exception_level
+    attr_accessor :scrub_headers
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -40,6 +45,8 @@ module Rollbar
       @code_version = nil
       @custom_data_method = nil
       @default_logger = lambda { Logger.new(STDERR) }
+      @delayed_job_enabled = true
+      @dj_threshold = 0
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
       @environment = nil
@@ -56,9 +63,12 @@ module Rollbar
       @person_username_method = 'username'
       @person_email_method = 'email'
       @project_gems = []
+      @report_dj_data = true
+      @request_timeout = 3
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
       @uncaught_exception_level = 'error'
+      @scrub_headers = ['Authorization']
       @use_async = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
@@ -90,7 +100,7 @@ module Rollbar
     def use_sucker_punch
       require 'rollbar/delay/sucker_punch' if defined?(SuckerPunch)
       @use_async      = true
-      @async_handler  = Rollbar::Delay::SuckerPunch.new
+      @async_handler  = Rollbar::Delay::SuckerPunch
     end
 
     def use_sucker_punch=(value)
@@ -106,18 +116,13 @@ module Rollbar
     end
 
     def project_gems=(gems)
-      @project_gem_paths = []
-
-      gems.each { |name|
-        begin
-          spec = Gem::Specification.find_by_name(name.to_s)
-          gem_root = spec.gem_dir
-
-          @project_gem_paths.push gem_root
-        rescue Gem::LoadError
-          puts "[Rollbar] #{name} gem not found"
+      @project_gem_paths = gems.map do |name|
+        found = Gem::Specification.each.select { |spec| name === spec.name }
+        if found.empty?
+          puts "[Rollbar] No gems found matching #{name.inspect}"
         end
-      }
+        found
+      end.flatten.uniq.map(&:gem_dir)
     end
 
     # allow params to be read like a hash

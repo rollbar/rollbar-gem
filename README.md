@@ -9,7 +9,7 @@ Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https:/
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar'
+    gem 'rollbar', '~> 1.0.0'
 
 And then execute:
 
@@ -116,7 +116,11 @@ Rollbar.report_message("Unexpected input", "warning")
 Rollbar.report_message("Login successful")
 
 # can also include additional data as a hash in the final param. :body is reserved.
-Rollbar.report_message("Login successful", "info", :user => @user)
+Rollbar.report_message("Login successful", "info", :username => @username)
+
+# pass request and person data
+Rollbar.report_message_with_request("Settings saved", "debug", rollbar_request_data,
+                                    rollbar_person_data, :account_id => account.id)
 ```
 
 ## Data sanitization (scrubbing)
@@ -131,6 +135,10 @@ By default, the notifier will "scrub" the following fields from requests before 
 - ```:password_confirmation```
 - ```:secret_token```
 
+And the following http header
+
+- ```"Authorization"```
+
 If a request contains one of these fields, the value will be replaced with a ```"*"``` before being sent.
 
 Additional fields can be scrubbed by updating ```Rollbar.configuration.scrub_fields```:
@@ -139,6 +147,14 @@ Additional fields can be scrubbed by updating ```Rollbar.configuration.scrub_fie
 # scrub out the "user_password" field
 Rollbar.configuration.scrub_fields |= [:user_password]
 ```
+
+And ```Rollbar.configuration.scrub_headers```:
+
+```ruby
+# scrub out the "X-Access-Token" http header
+Rollbar.configuration.scrub_headers |= ["X-Access-Token"]
+```
+
 
 ## Person tracking
 
@@ -197,6 +213,29 @@ Rollbar.silenced {
   foo = bar  # will not be reported
 }
 ```
+
+## Delayed::Job integration
+
+If `delayed_job` is defined, Rollbar will automatically install a plugin that reports any uncaught exceptions that occur in jobs.
+
+By default, the job's data will be included in the report. If you want to disable this functionality to prevent sensitive data from possibly being sent, use the following configuration option:
+
+```ruby
+config.report_dj_data = false # default is true
+```
+
+You can also change the threshold of job retries that must occur before a job is reported to Rollbar:
+
+```ruby
+config.dj_threshold = 2 # default is 0
+```
+
+If you use [custom jobs](https://github.com/collectiveidea/delayed_job#custom-jobs) that define their own hooks to report exceptions, please consider disabling our plugin. Not doing so will result in duplicate exceptions being reported as well as lack of control when exceptions should be reported. To disable our Delayed::Job plugin, add the following line after the `Rollbar.configure` block.
+
+```ruby
+config.delayed_job_enabled = false
+```
+
 
 ## Asynchronous reporting
 
@@ -271,6 +310,24 @@ config.filepath = '/path/to/file.rollbar' #should end in '.rollbar' for use with
 For this to work, you'll also need to set up rollbar-agent--see its docs for details.
 
 ## Deploy Tracking with Capistrano
+
+### Capistrano 3
+
+Add to your `Capfile`:
+
+```ruby
+require 'rollbar/capistrano3'
+```
+
+And then, to your `deploy.rb`:
+
+```ruby
+set :rollbar_token, 'POST_SERVER_ITEM_ACCESS_TOKEN'
+set :rollbar_env, Proc.new { fetch :stage }
+set :rollbar_role, Proc.new { :app }
+```
+
+### Capistrano 2
 
 Add the following to ```deploy.rb```:
 

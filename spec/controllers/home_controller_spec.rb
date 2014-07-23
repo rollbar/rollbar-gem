@@ -9,6 +9,7 @@ describe HomeController do
     Rollbar.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
       config.logger = logger_mock
+      config.request_timeout = 60
     end
   end
   
@@ -151,6 +152,42 @@ describe HomeController do
         filtered[:secret].should == "******"
         filtered[:notpass].should == "******"
       end
+    end
+
+    context 'rollbar_scrub_headers' do
+
+      it 'should filter authentication by default' do
+        headers = {
+          'HTTP_AUTHORIZATION' => 'some-user',
+          'HTTP_USER_AGENT' => 'spec'
+        }
+
+        filtered = controller.send( :rollbar_headers, headers )
+        filtered.should == {
+          "Authorization" => "*********",
+          "User-Agent" => "spec"
+        }
+      end
+
+      it 'should filter custom headers' do
+        Rollbar.configure do |config|
+          config.scrub_headers = ['Auth', 'Token']
+        end
+
+        headers = {
+          'HTTP_AUTH' => 'auth-value',
+          'HTTP_TOKEN' => 'token-value',
+          'HTTP_CONTENT_TYPE' => 'text/html'
+        }
+
+        filtered = controller.send( :rollbar_headers, headers )
+        filtered.should == {
+          "Auth" => "**********",
+          "Token" => "***********",
+          "Content-Type" => "text/html"
+        }
+      end
+
     end
 
     context "rollbar_request_url" do

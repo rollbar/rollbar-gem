@@ -8,7 +8,7 @@ namespace :rollbar do
       Logger.new(STDOUT)
 
     Rails.logger.level = Logger::DEBUG
-    Rollbar.configure do |config|
+    Rollbar.preconfigure do |config|
       config.logger = Rails.logger
     end
 
@@ -18,6 +18,8 @@ namespace :rollbar do
       puts "Rollbar needs an access token configured. Check the README for instructions."
       exit
     end
+
+    Rollbar.report_message("Test error from rollbar:test", "error")
 
     begin
       require './app/controllers/application_controller'
@@ -51,18 +53,18 @@ namespace :rollbar do
     Rails.application.routes.draw do
       get 'verify' => 'application#verify', :as => 'verify'
     end
-    
+
     # from http://stackoverflow.com/questions/5270835/authlogic-activation-problems
     if defined? Authlogic
       Authlogic::Session::Base.controller = Authlogic::ControllerAdapters::RailsAdapter.new(self)
     end
-    
+
     puts "Processing..."
     protocol = (defined? Rails.application.config.force_ssl && Rails.application.config.force_ssl) ? 'https' : 'http'
     env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
     status, headers, response = Rails.application.call(env)
-    
-    unless status == 500
+
+    unless status.to_i == 500
       puts "Test failed! You may have a configuration issue, or you could be using a gem that's blocking the test. Contact support@rollbar.com if you need help troubleshooting."
     end
   end

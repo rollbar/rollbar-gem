@@ -1,13 +1,13 @@
 require 'net/https'
-
-require 'securerandom' if defined?(SecureRandom)
 require 'socket'
 require 'thread'
 require 'uri'
-
-require 'girl_friday' if defined?(GirlFriday)
-require 'sucker_punch' if defined?(SuckerPunch)
 require 'multi_json'
+
+begin
+  require 'securerandom'
+rescue LoadError
+end
 
 require 'rollbar/version'
 require 'rollbar/configuration'
@@ -15,8 +15,11 @@ require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'
-
 require 'rollbar/railtie' if defined?(Rails)
+
+unless ''.respond_to? :encode
+  require 'iconv'
+end
 
 module Rollbar
   class Notifier
@@ -35,15 +38,21 @@ module Rollbar
         end
       end
     end
-    
-    def configure
-      require_hooks
 
+    # Similar to configure below, but used only internally within the gem
+    # to configure it without initializing any of the third party hooks
+    def preconfigure
+      yield(configuration)
+    end
+
+    def configure
       # if configuration.enabled has not been set yet (is still 'nil'), set to true.
       if configuration.enabled.nil?
         configuration.enabled = true
       end
       yield(configuration)
+
+      require_hooks
     end
 
     def reconfigure
@@ -147,8 +156,26 @@ module Rollbar
     
     private
 
+    def attach_request_data(payload, request_data)
+      if request_data[:route]
+        route = request_data[:route]
+
+        # make sure route is a hash built by RequestDataExtractor in rails apps
+        if route.is_a?(Hash) and not route.empty?
+          payload[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
+        end
+      end
+
+      request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
+      payload[:request] = request_data
+    end
+
     def require_hooks()
-      require 'rollbar/delayed_job' if defined?(Delayed) && defined?(Delayed::Plugins)
+      if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
+        require 'rollbar/delayed_job'
+        Rollbar::Delayed::wrap_worker
+      end
+
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
@@ -165,6 +192,7 @@ module Rollbar
       payload = build_payload(level, message, exception, extra)
       
       evaluate_payload(payload[:data])
+      enforce_valid_utf8(payload[:data])
       scrub_payload(payload[:data], configuration.scrub_fields)
       
       result = MultiJson.dump(payload)
@@ -358,6 +386,22 @@ module Rollbar
       Rollbar::Util::iterate_and_update_hash(payload, scrubber)
     end
     
+    def enforce_valid_utf8(payload)
+      normalizer = Proc.new do |value|
+        if value.is_a?(String)
+          if value.respond_to? :encode
+            value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
+          else
+            ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
+          end
+        else
+          value
+        end
+      end
+
+      Rollbar::Util::iterate_and_update(payload, normalizer)
+    end
+    
     # Walks the entire payload and truncates string values that
     # are longer than the byte_threshold
     def truncate_payload(payload, byte_threshold)
@@ -404,6 +448,7 @@ module Rollbar
       
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
+      http.read_timeout = configuration.request_timeout
 
       if uri.scheme == 'https'
         http.use_ssl = true
@@ -412,6 +457,7 @@ module Rollbar
 
       request = Net::HTTP::Post.new(uri.request_uri)
       request.body = payload
+      request.add_field('X-Rollbar-Access-Token', configuration.access_token)
       response = http.request(request)
 
       if response.code == '200'

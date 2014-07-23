@@ -6,8 +6,8 @@ module Rollbar
 
       include ::SuckerPunch::Job
 
-      def call(payload)
-        async.perform payload
+      def self.call(payload)
+        new.async.perform payload
       end
 
       def perform(*args)

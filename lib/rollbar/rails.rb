@@ -9,7 +9,7 @@ module Rollbar
                        RAILS_DEFAULT_LOGGER
                      end
 
-      Rollbar.configure do |config|
+      Rollbar.preconfigure do |config|
         config.logger = rails_logger
         config.environment = defined?(::Rails.env) && ::Rails.env || defined?(RAILS_ENV) && RAILS_ENV
         config.root = defined?(::Rails.root) && ::Rails.root || defined?(RAILS_ROOT) && RAILS_ROOT

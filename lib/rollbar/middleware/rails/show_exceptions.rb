@@ -12,7 +12,7 @@ module Rollbar
           
           render_exception_without_rollbar(env, exception)
         end
-        
+
         def call_with_rollbar(env)
           call_without_rollbar(env)
         rescue ActionController::RoutingError => exception

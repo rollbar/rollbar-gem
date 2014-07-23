@@ -11,6 +11,7 @@ describe HomeController do
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
       config.logger = logger_mock
+      config.request_timeout = 60
     end
   end
 

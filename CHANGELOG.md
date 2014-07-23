@@ -1,5 +1,60 @@
 # Change Log
 
+**1.0.0**
+- Clean up some unused requires
+- Strip out invalid UTF-8 characters from payload keys/values, fixes [#85](https://github.com/rollbar/rollbar-gem/issues/85)
+- Bumping to 1.0 due to the suggestion in [#119](https://github.com/rollbar/rollbar-gem/issues/119)
+
+**0.13.2**
+- Sidekiq payload is no longer mutated when Rollbar reports a Sidekiq job exception
+- Fix sucker_punch async reporting when using a forking application server such as Unicorn (`preload_app true`). Jobs are now instantiated for every report instead of a reused global job instance
+
+**0.13.1**
+- Silence warning when using project_gems= with regexp [#120](https://github.com/rollbar/rollbar-gem/pull/120)
+
+**0.13.0**
+- Hook for delayed_job no longer a plugin, will now only ever be initialized once
+- New configuration option `delayed_job_enabled` that defaults to true
+- Potentially breaking change if using delayed_job: if you disabled the delayed_job plugin previously, please remove that code and instead set the new configuration option `delayed_job_enabled` to false
+
+**0.12.20**
+- Fix asynchronous reports with sidekiq version < 2.3.2
+- Support for specifying multiple project_gems with regex [#114](https://github.com/rollbar/rollbar-gem/pull/114)
+
+**0.12.19**
+- Fix rake test task in production
+- Report an additional simple error message in the rake test task
+
+**0.12.18**
+- Insert RollbarRequestStore middleware at the end in case the ActiveRecord ConnectionManagement middleware isn't used
+- Scope Capistrano 3 task by server role [#110](https://github.com/rollbar/rollbar-gem/pull/110)
+
+**0.12.17**
+- Replace usage of `puts` with a configurable logger in different areas of the notifier
+- Fix error in `RollbarRequestStore` when `rollbar_person_data` isn't defined for a controller
+
+**0.12.16**
+- Scrub fields are now converted to a regular expression for broader param name matching
+- Save ActionDispatch request_id in reports if present
+- Added proper Sidekiq 3 error handler
+- Removed usage of ActiveSupport's `Object#try` in different areas of the notifier
+- Added a configurable request timeout for reports (defaults to 3 seconds)
+- Fix circular json exception handling in Rails 4.1
+
+**0.12.15**
+- Send X-Rollbar-Access-Token http header along with payloads
+
+**0.12.14**
+- Added ability to scrub request headers
+- Added flag to disable reporting of Delayed::Job job data when handling uncaught exceptions that happen in jobs
+- New `report_message_with_request` that allows reporting request and person data, similar to `report_exception`
+- Changed various exception handlers to catch `Exception` subclasses instead of only `StandardError`s
+- Added Capistrano 3 support
+
+**0.12.13**
+- Add a little more debugging information for 'payload too large' errors
+- Pushing new gem to fix errant 32kb size limit in the rubygems copy of 0.12.12
+
 **0.12.12**
 - Changes to support Engine Yard add-on setup
 
@@ -206,7 +261,7 @@
 - Replaced activesupport dependency with multi_json
 
 **0.5.5**
-- Added activesupport dependency for use without Rails 
+- Added activesupport dependency for use without Rails
 
 **0.5.4**
 - Added new default scrub params
@@ -215,7 +270,7 @@
 - Add `Ratchetio.silenced`; which allows disabling reporting for a given block. See README for usage.
 
 **0.5.2**
-- Fix compat issue with delayed_job below version 3. Exceptions raised by delayed_job below version 3 will not be automatically caught; upgrade to v3 or catch and report by hand. 
+- Fix compat issue with delayed_job below version 3. Exceptions raised by delayed_job below version 3 will not be automatically caught; upgrade to v3 or catch and report by hand.
 
 **0.5.1**
 - Save the exception uuid in `env['ratchetio.exception_uuid']` for display in user-facing error pages.
@@ -259,9 +314,9 @@
 - Recursively filter files out of the params hash. Thanks to [trisweb](https://github.com/trisweb) for the pull request.
 
 **0.4.0**
- 
+
 - Breaking change to make the "person" more configurable. If you were previously relying on your `current_member` method being called to return the person object, you will need to add the following line to `config/initializers/ratchetio.rb`:
-    
+
     config.person_method = "current_member"
 
 - Person id, username, and email method names are now configurable -- see README for details.

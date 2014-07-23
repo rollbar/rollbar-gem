@@ -6,8 +6,14 @@ module Rollbar
     ].freeze
 
     def extract_person_data_from_controller(env)
-      controller = env['action_controller.instance']
-      controller ? controller.try(:rollbar_person_data) : {}
+      if env.has_key? 'rollbar.person_data'
+        person_data = env['rollbar.person_data'] || {}
+      else
+        controller = env['action_controller.instance']
+        person_data = controller.rollbar_person_data rescue {}
+      end
+      
+      person_data
     end
 
     def extract_request_data_from_rack(env)
@@ -22,7 +28,7 @@ module Rollbar
       
       params = request_params.merge(get_params).merge(post_params)
       
-      {
+      data = {
         :params => params,
         :url => rollbar_url(env),
         :user_ip => rollbar_user_ip(env),
@@ -30,8 +36,14 @@ module Rollbar
         :cookies => cookies,
         :session => session,
         :method => rollbar_request_method(env),
-        :route => route_params
+        :route => route_params,
       }
+      
+      if env["action_dispatch.request_id"]
+        data[:request_id] = env["action_dispatch.request_id"]
+      end
+      
+      data
     end
 
     private
@@ -43,9 +55,10 @@ module Rollbar
     def rollbar_headers(env)
       env.keys.grep(/^HTTP_/).map do |header|
         name = header.gsub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        # exclude cookies - we already include a parsed version as request_data[:cookies]
         if name == 'Cookie'
-          {}
+           {}
+        elsif sensitive_headers_list.include?(name)
+          { name => rollbar_scrubbed(env[header]) }
         else
           { name => env[header] }
         end
@@ -111,14 +124,18 @@ module Rollbar
     end
 
     def rollbar_filtered_params(sensitive_params, params)
+      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+      
       if params.nil?
         {}
       else
         params.to_hash.inject({}) do |result, (key, value)|
-          if sensitive_params.include?(key.to_sym)
-            result[key] = '*' * (value.length rescue 8)
+          if @sensitive_params_regexp =~ key.to_s
+            result[key] = rollbar_scrubbed(value)
           elsif value.is_a?(Hash)
             result[key] = rollbar_filtered_params(sensitive_params, value)
+          elsif value.is_a?(Array)
+            result[key] = value.map {|v| v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v}
           elsif ATTACHMENT_CLASSES.include?(value.class.name)
             result[key] = {
               :content_type => value.content_type,
@@ -136,5 +153,14 @@ module Rollbar
     def sensitive_params_list(env)
       Rollbar.configuration.scrub_fields |= Array(env['action_dispatch.parameter_filter'])
     end
+
+    def sensitive_headers_list
+      Rollbar.configuration.scrub_headers |= []
+    end
+
+    def rollbar_scrubbed(value)
+      '*' * (value.length rescue 8)
+    end
+
   end
 end
