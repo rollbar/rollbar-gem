@@ -22,9 +22,9 @@ unless ''.respond_to? :encode
 end
 
 module Rollbar
+  MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
+  
   class Notifier
-    MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
-    
     attr_accessor :configuration
     
     def initialize(parent_notifier = nil, payload_options = nil)
@@ -109,7 +109,7 @@ module Rollbar
       end
       
       begin
-        _log(level, message, exception, extra)
+        report(level, message, exception, extra)
       rescue => e
         report_internal_error(e)
         'error'
@@ -183,14 +183,7 @@ module Rollbar
       require 'rollbar/better_errors' if defined?(BetterErrors)
     end
     
-    def _log(level, message, exception, extra)
-      unless message or exception or extra
-        log_error "[Rollbar] Tried to send a report with no message, exception or extra data."
-        return
-      end
-      
-      payload = build_payload(level, message, exception, extra)
-      
+    def get_payload_json(payload)
       evaluate_payload(payload[:data])
       enforce_valid_utf8(payload[:data])
       scrub_payload(payload[:data], configuration.scrub_fields)
@@ -219,10 +212,22 @@ module Rollbar
         end
       end
       
-      schedule_payload(result)
-      log_instance_link(payload[:data])
+      result
+    end
+    
+    def report(level, message, exception, extra)
+      unless message or exception or extra
+        log_error "[Rollbar] Tried to send a report with no message, exception or extra data."
+        return
+      end
       
-      payload[:data]
+      payload = build_payload(level, message, exception, extra)
+      result = get_payload_json(payload)
+      schedule_payload(result)
+      
+      data = payload[:data]
+      log_instance_link(data)
+      data
     end
     
     # Reports an internal error in the Rollbar library. This will be reported within the configured
@@ -339,6 +344,10 @@ module Rollbar
       
       if message
         body[:trace][:exception][:description] = message
+      end
+      
+      if extra
+        body[:trace][:extra] = extra
       end
       
       body
@@ -585,7 +594,6 @@ module Rollbar
         puts "[Rollbar] #{message}"
       end
     end
-    
   end
   
   @@notifier = Notifier.new
@@ -605,6 +613,10 @@ module Rollbar
       #else
       #  super
       #end
+    end
+    
+    def _notifier
+      @@notifier
     end
   end
 end

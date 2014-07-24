@@ -393,7 +393,7 @@ describe Rollbar do
       logger_mock.should_not_receive(:info).with('[Rollbar] Writing payload to file')
       logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
-      Rollbar.report_exception(@exception)
+      Rollbar.error(@exception)
     end
 
     it 'should save the payload to a file if set' do
@@ -408,7 +408,7 @@ describe Rollbar do
         filepath = config.filepath
       end
 
-      Rollbar.report_exception(@exception)
+      Rollbar.error(@exception)
 
       File.exist?(filepath).should == true
       File.read(filepath).should include test_access_token
@@ -446,7 +446,7 @@ describe Rollbar do
         GirlFriday::WorkQueue::immediate!
       end
 
-      Rollbar.report_exception(@exception)
+      Rollbar.error(@exception)
 
       Rollbar.configure do |config|
         config.use_async = false
@@ -467,11 +467,11 @@ describe Rollbar do
         }
       end
 
-      Rollbar.report_exception(@exception)
+      Rollbar.error(@exception)
 
       Rollbar.configure do |config|
         config.use_async = false
-        config.async_handler = Rollbar.method(:default_async_handler)
+        config.async_handler = Rollbar._notifier.method(:default_async_handler)
       end
     end
 
@@ -485,11 +485,11 @@ describe Rollbar do
           config.use_sucker_punch
         end
 
-        Rollbar.report_exception(@exception)
+        Rollbar.error(@exception)
 
         Rollbar.configure do |config|
           config.use_async = false
-          config.async_handler = Rollbar.method(:default_async_handler)
+          config.async_handler = Rollbar._notifier.method(:default_async_handler)
         end
       end
     end
@@ -510,11 +510,11 @@ describe Rollbar do
           config.async_handler = handler
         end
 
-        Rollbar.report_exception(@exception)
+        Rollbar.error(@exception)
 
         Rollbar.configure do |config|
           config.use_async = false
-          config.async_handler = Rollbar.method(:default_async_handler)
+          config.async_handler = Rollbar._notifier.method(:default_async_handler)
         end
       end
     end
@@ -651,31 +651,36 @@ describe Rollbar do
     end
   end
 
-  context 'build_payload' do
+  context 'get_payload_json' do
     before(:each) do
       configure
       Rollbar.configure do |config|
         config.logger = logger_mock
+      end
+      begin
+        foo = bar
+      rescue => e
+        @exception = e
       end
     end
 
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should build valid json' do
-      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}})
+      json = Rollbar.send(:get_payload_json, {:data => {:foo => {:bar => "baz"}}})
       hash = MultiJson.load(json)
       hash["data"]["foo"]["bar"].should == "baz"
     end
     
     it 'should strip out invalid utf-8' do
-      json = Rollbar.send(:build_payload, {
+      json = Rollbar.send(:get_payload_json, {:data => {
         :good_key => "\255bad value",
         "bad\255 key" => "good value",
         "bad key 2\255" => "bad \255value",
         :hash => {
           "bad array \255key" => ["bad\255 array element", "good array element"]
         }
-      })
+      }})
       
       hash = MultiJson.load(json)
       hash["data"]["good_key"].should == 'bad value'
@@ -687,7 +692,7 @@ describe Rollbar do
     end
 
     it 'should truncate large strings if the payload is too big' do
-      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024})
+      json = Rollbar.send(:get_payload_json, {:data => {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024}})
       hash = MultiJson.load(json)
       hash["data"]["large"].should == '%s...' % ('a' * 1021)
       hash["data"]["small"].should == 'b' * 1024
@@ -700,7 +705,7 @@ describe Rollbar do
       orig_max = Rollbar::MAX_PAYLOAD_SIZE
 
       Rollbar::MAX_PAYLOAD_SIZE = 1
-      Rollbar.report_exception(@exception)
+      Rollbar.error(@exception)
 
       Rollbar::MAX_PAYLOAD_SIZE = orig_max
     end
@@ -862,7 +867,7 @@ describe Rollbar do
         gem_paths.push(Gem::Specification.find_by_name(gem).gem_dir)
       }
 
-      data = Rollbar.send(:message_data, 'test', 'info', {})
+      data = Rollbar.send(:build_payload, 'info', 'test', nil, {})
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
 
@@ -885,7 +890,7 @@ describe Rollbar do
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
       gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 
-      data = Rollbar.send(:message_data, 'test', 'info', {})
+      data = Rollbar.send(:build_payload, 'info', 'test', nil, {})
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
       (data[:project_package_paths] - gem_paths).length.should == 0
@@ -898,7 +903,7 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      data = Rollbar.send(:message_data, 'test', 'info', {})
+      data = Rollbar.send(:build_payload, 'info', 'test', nil, {})
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == 1
     end
