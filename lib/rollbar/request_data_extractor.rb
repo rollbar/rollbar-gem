@@ -1,10 +1,7 @@
+require 'multi_json'
+
 module Rollbar
   module RequestDataExtractor
-    ATTACHMENT_CLASSES = %w[
-      ActionDispatch::Http::UploadedFile
-      Rack::Multipart::UploadedFile
-    ].freeze
-
     def extract_person_data_from_controller(env)
       if env.has_key? 'rollbar.person_data'
         person_data = env['rollbar.person_data'] || {}
@@ -27,6 +24,13 @@ module Rollbar
       route_params = rollbar_route_params(env)
       
       params = request_params.merge(get_params).merge(post_params)
+      
+      # parse any json params
+      if env['CONTENT_TYPE'] =~ %r{application/json}i
+        request = ActionDispatch::Request.new(env)
+        data = MultiJson.decode(request.raw_post)
+        params = params.merge(data)
+      end
       
       data = {
         :params => params,
@@ -121,37 +125,6 @@ module Rollbar
       rack_req.cookies
     rescue
       {}
-    end
-
-    def rollbar_filtered_params(sensitive_params, params)
-      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
-      
-      if params.nil?
-        {}
-      else
-        params.to_hash.inject({}) do |result, (key, value)|
-          if @sensitive_params_regexp =~ key.to_s
-            result[key] = rollbar_scrubbed(value)
-          elsif value.is_a?(Hash)
-            result[key] = rollbar_filtered_params(sensitive_params, value)
-          elsif value.is_a?(Array)
-            result[key] = value.map {|v| v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v}
-          elsif ATTACHMENT_CLASSES.include?(value.class.name)
-            result[key] = {
-              :content_type => value.content_type,
-              :original_filename => value.original_filename,
-              :size => value.tempfile.size
-            } rescue 'Uploaded file'
-          else
-            result[key] = value
-          end
-          result
-        end
-      end
-    end
-
-    def sensitive_params_list(env)
-      Rollbar.configuration.scrub_fields |= Array(env['action_dispatch.parameter_filter'])
     end
 
     def sensitive_headers_list

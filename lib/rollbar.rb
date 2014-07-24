@@ -23,6 +23,10 @@ end
 
 module Rollbar
   MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
+  ATTACHMENT_CLASSES = %w[
+    ActionDispatch::Http::UploadedFile
+    Rack::Multipart::UploadedFile
+  ].freeze
   
   class Notifier
     attr_accessor :configuration
@@ -156,20 +160,6 @@ module Rollbar
     
     private
 
-    def attach_request_data(payload, request_data)
-      if request_data[:route]
-        route = request_data[:route]
-
-        # make sure route is a hash built by RequestDataExtractor in rails apps
-        if route.is_a?(Hash) and not route.empty?
-          payload[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
-        end
-      end
-
-      request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
-      payload[:request] = request_data
-    end
-
     def require_hooks()
       if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
         require 'rollbar/delayed_job'
@@ -227,6 +217,9 @@ module Rollbar
       
       data = payload[:data]
       log_instance_link(data)
+      
+      Rollbar._last_report = data
+      
       data
     end
     
@@ -386,9 +379,17 @@ module Rollbar
     # Walks the entire payload and replaces values with asterisks
     # for keys that are part of the sensetive params list
     def scrub_payload(payload, sensitive_params)
+      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+      
       scrubber = Proc.new do |key, value|
-        if sensitive_params.include?((key.to_sym rescue key))
+        if @sensitive_params_regexp =~ key.to_s
           '*' * (value.length rescue 8)
+        elsif ATTACHMENT_CLASSES.include?(value.class.name)
+          {
+            :content_type => value.content_type,
+            :original_filename => value.original_filename,
+            :size => value.tempfile.size
+          } rescue 'Uploaded file'
         else
           value
         end
@@ -470,7 +471,7 @@ module Rollbar
       request.body = payload
       request.add_field('X-Rollbar-Access-Token', configuration.access_token)
       response = http.request(request)
-
+      
       if response.code == '200'
         log_info '[Rollbar] Success'
       else
@@ -617,6 +618,14 @@ module Rollbar
     
     def _notifier
       @@notifier
+    end
+    
+    def _last_report
+      @@last_report
+    end
+    
+    def _last_report=(last_report)
+      @@last_report = last_report
     end
   end
 end

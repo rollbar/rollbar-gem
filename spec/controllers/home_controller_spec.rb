@@ -58,104 +58,7 @@ describe HomeController do
       data.should == {}
     end
 
-    context "rollbar_filter_params" do
-      it "should filter files" do
-        name = "John Doe"
-        file_hash = {
-          :filename => "test.txt",
-          :type => "text/plain",
-          :head => {},
-          :tempfile => "dummy"
-        }
-        file = ActionDispatch::Http::UploadedFile.new(file_hash)
-
-        params = {
-          :name => name,
-          :a_file => file
-        }
-
-        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
-
-        filtered[:name].should == name
-        filtered[:a_file].should be_a_kind_of(Hash)
-        filtered[:a_file][:content_type].should == file_hash[:type]
-        filtered[:a_file][:original_filename].should == file_hash[:filename]
-        filtered[:a_file][:size].should == file_hash[:tempfile].size
-      end
-
-      it "should filter files in nested params" do
-        name = "John Doe"
-        file_hash = {
-          :filename => "test.txt",
-          :type => "text/plain",
-          :head => {},
-          :tempfile => "dummy"
-        }
-        file = ActionDispatch::Http::UploadedFile.new(file_hash)
-
-        params = {
-          :name => name,
-          :wrapper => {
-            :wrapper2 => {
-              :a_file => file,
-              :foo => "bar"
-            }
-          }
-        }
-
-        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
-
-        filtered[:name].should == name
-        filtered[:wrapper][:wrapper2][:foo].should == "bar"
-
-        filtered_file = filtered[:wrapper][:wrapper2][:a_file]
-        filtered_file.should be_a_kind_of(Hash)
-        filtered_file[:content_type].should == file_hash[:type]
-        filtered_file[:original_filename].should == file_hash[:filename]
-        filtered_file[:size].should == file_hash[:tempfile].size
-      end
-
-      it "should scrub the default scrub_fields" do
-        params = {
-          :passwd       => "hidden",
-          :password     => "hidden",
-          :secret       => "hidden",
-          :notpass      => "visible",
-          :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6",
-        }
-
-        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
-
-        filtered[:passwd].should == "******"
-        filtered[:password].should == "******"
-        filtered[:secret].should == "******"
-        filtered[:notpass].should == "visible"
-        filtered[:secret_token].should == "*" * 32
-      end
-
-      it "should scrub custom scrub_fields" do
-        Rollbar.configure do |config|
-          config.scrub_fields = [:notpass, :secret]
-        end
-
-        params = {
-          :passwd => "visible",
-          :password => "visible",
-          :secret => "hidden",
-          :notpass => "hidden"
-        }
-
-        filtered = controller.send(:rollbar_filtered_params, Rollbar.configuration.scrub_fields, params)
-
-        filtered[:passwd].should == "visible"
-        filtered[:password].should == "visible"
-        filtered[:secret].should == "******"
-        filtered[:notpass].should == "******"
-      end
-    end
-
     context 'rollbar_scrub_headers' do
-
       it 'should filter authentication by default' do
         headers = {
           'HTTP_AUTHORIZATION' => 'some-user',
@@ -244,7 +147,7 @@ describe HomeController do
       end
     end
     
-    context "rollbar_route_params" do
+    context "rollbar_route_params", :type => 'request' do
       it "should save route params in request[:route]" do
         route = controller.send(:rollbar_request_data)[:route]
         
@@ -264,11 +167,78 @@ describe HomeController do
         route[:controller].should == 'home'
         route[:action].should == 'report_exception'
         
-        Rollbar.last_report.should_not be_nil
-        Rollbar.last_report[:context].should == 'home#report_exception'
+        Rollbar._last_report.should_not be_nil
+        Rollbar._last_report[:context].should == 'home#report_exception'
       end
     end
+  end
+  
+  context "param_scrubbing", :type => "request" do
+    it "should filter files" do
+      name = "John Doe"
+      file_hash = {
+        :filename => "test.txt",
+        :type => "text/plain",
+        :head => {},
+        :tempfile => "dummy"
+      }
+      file = ActionDispatch::Http::UploadedFile.new(file_hash)
 
+      params = {
+        :name => name
+      }
+      
+      post 'report_exception', params, :upload => file
+      
+      request = Rollbar._last_report[:request]
+      request[:params]["name"].should == name
+      request[:headers]["Upload"].should be_a_kind_of(Hash)
+      request[:headers]["Upload"][:content_type].should == file_hash[:type]
+      request[:headers]["Upload"][:original_filename].should == file_hash[:filename]
+      request[:headers]["Upload"][:size].should == file_hash[:tempfile].size
+    end
+
+    it "should scrub the default scrub_fields" do
+      params = {
+        :passwd       => "hidden",
+        :password     => "hidden",
+        :secret       => "hidden",
+        :notpass      => "visible",
+        :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6",
+      }
+
+      post 'report_exception', params
+
+      filtered = Rollbar._last_report[:request][:params]
+      
+      filtered["passwd"].should == "******"
+      filtered["password"].should == "******"
+      filtered["secret"].should == "******"
+      filtered["notpass"].should == "visible"
+      filtered["secret_token"].should == "*" * 32
+    end
+
+    it "should scrub custom scrub_fields" do
+      Rollbar.configure do |config|
+        config.scrub_fields = [:notpass, :secret]
+      end
+
+      params = {
+        :passwd => "visible",
+        :password => "visible",
+        :secret => "hidden",
+        :notpass => "hidden"
+      }
+
+      post 'report_exception', params
+
+      filtered = Rollbar._last_report[:request][:params]
+
+      filtered["passwd"].should == "visible"
+      filtered["password"].should == "visible"
+      filtered["secret"].should == "******"
+      filtered["notpass"].should == "******"
+    end
   end
 
   describe "GET 'index'" do
@@ -292,8 +262,8 @@ describe HomeController do
 
       put 'report_exception', :putparam => "putval"
       
-      Rollbar.last_report.should_not be_nil
-      Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+      Rollbar._last_report.should_not be_nil
+      Rollbar._last_report[:request][:params]["putparam"].should == "putval"
     end
     
     it "should raise a NameError and have JSON POST params" do
@@ -303,8 +273,8 @@ describe HomeController do
       params = {:jsonparam => 'jsonval'}.to_json
       post 'report_exception', params, {'CONTENT_TYPE' => 'application/json'}
       
-      Rollbar.last_report.should_not be_nil
-      Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'
+      Rollbar._last_report.should_not be_nil
+      Rollbar._last_report[:request][:params]['jsonparam'].should == 'jsonval'
     end
   end
   
