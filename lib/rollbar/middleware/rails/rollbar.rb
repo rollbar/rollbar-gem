@@ -19,7 +19,7 @@ module Rollbar
             })
             
             response = @app.call(env)
-          rescue => exception
+          rescue Exception => exception
             report_exception_to_rollbar(env, exception)
             
             Thread.current[:_rollbar_notifier] = nil

@@ -3,7 +3,7 @@ module Rollbar
     include RequestDataExtractor
 
     def report_exception_to_rollbar(env, exception)
-      rollbar_debug "[Rollbar] Reporting exception: #{exception.try(:message)}", :error
+      Rollbar.log_debug "[Rollbar] Reporting exception: #{exception.try(:message)}", :error
       
       exception_data = Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception)
       
