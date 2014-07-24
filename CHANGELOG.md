@@ -94,7 +94,7 @@
 - Fix syntax error in `config.use_sidekiq` usage example
 
 **0.12.0**
-- Added [#73](https://github.com/rollbar/rollbar-gem/pull/73), enhanced Sidekiq and SuckerPunch configuration. NOTE: The old `Rollbar::Configuration#use_sidekiq=` and `Rollbar::Configuration#use_sucker_punch=` methods are now depricated, see the docs for updated usage information.
+- Added [#73](https://github.com/rollbar/rollbar-gem/pull/73), enhanced Sidekiq and SuckerPunch configuration. NOTE: The old `Rollbar::Configuration#use_sidekiq=` and `Rollbar::Configuration#use_sucker_punch=` methods are now deprecated, see the docs for updated usage information.
 
 **0.11.8**
 - Make sure the person method exists for the controller before trying to extract person data
