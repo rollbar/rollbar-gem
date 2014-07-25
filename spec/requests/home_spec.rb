@@ -6,7 +6,7 @@ describe HomeController do
   before(:each) do
     reset_configuration
     Rollbar.configure do |config|
-      config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+      config.access_token = 'bfec94a1ede64984b862880224edd0ed'
       config.environment = ::Rails.env
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
