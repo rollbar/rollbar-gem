@@ -21,7 +21,7 @@ describe HomeController do
       if ::Rails::VERSION::STRING.starts_with? "3.1" or ::Rails::VERSION::STRING.starts_with? "3.2"
         expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
 
-        Rollbar.last_report.should_not be_nil
+        Rollbar._last_report.should_not be_nil
   
         exception_info = Rollbar._last_report[:body][:trace][:exception]
         exception_info[:class].should == 'ArgumentError'

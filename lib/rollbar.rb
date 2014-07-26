@@ -98,6 +98,8 @@ module Rollbar
     #   Rollbar.log(e, 'This is a description of the exception')
     # 
     def log(level, *args)
+      return 'disabled' unless configuration.enabled
+      
       message = nil
       exception = nil
       extra = nil
@@ -112,9 +114,13 @@ module Rollbar
         end
       end
       
+      if exception and ignored?(exception)
+        return 'ignored'
+      end
+      
       begin
         report(level, message, exception, extra)
-      rescue => e
+      rescue Exception => e
         report_internal_error(e)
         'error'
       end
@@ -158,6 +164,21 @@ module Rollbar
       end
     end
     
+    # Turns off reporting for the given block.
+    #
+    # @example
+    #   Rollbar.silenced { raise }
+    #
+    # @yield Block which exceptions won't be reported.
+    def silenced
+      begin
+        yield
+      rescue => e
+        e.instance_variable_set(:@_rollbar_do_not_report, true)
+        raise
+      end
+    end
+    
     private
 
     def require_hooks()
@@ -173,8 +194,28 @@ module Rollbar
       require 'rollbar/better_errors' if defined?(BetterErrors)
     end
     
+    def ignored?(exception)
+      if filtered_level(exception) == 'ignore'
+        return true
+      end
+
+      if exception.instance_variable_get(:@_rollbar_do_not_report)
+        return true
+      end
+
+      false
+    end
+    
+    def filtered_level(exception)
+      filter = configuration.exception_level_filters[exception.class.name]
+      if filter.respond_to?(:call)
+        filter.call(exception)
+      else
+        filter
+      end
+    end
+    
     def get_payload_json(payload)
-      evaluate_payload(payload[:data])
       enforce_valid_utf8(payload[:data])
       scrub_payload(payload[:data], configuration.scrub_fields)
       
@@ -197,7 +238,7 @@ module Rollbar
             final_size = result.bytesize
             send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
             log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
-            return
+            return 'error'
           end
         end
       end
@@ -208,10 +249,17 @@ module Rollbar
     def report(level, message, exception, extra)
       unless message or exception or extra
         log_error "[Rollbar] Tried to send a report with no message, exception or extra data."
-        return
+        return 'error'
       end
       
       payload = build_payload(level, message, exception, extra)
+      evaluate_payload(payload[:data])
+      
+      if payload[:data][:person]
+        person_id = payload[:data][:person][configuration.person_id_method.to_sym]
+        return 'ignored' if configuration.ignored_person_ids.include?(person_id)
+      end
+      
       result = get_payload_json(payload)
       schedule_payload(result)
       
@@ -291,7 +339,7 @@ module Rollbar
         data[:uuid] = SecureRandom.uuid
       end
       
-      data.merge! configuration.payload_options
+      Rollbar::Util::deep_merge(data, configuration.payload_options)
       
       {
         :access_token => configuration.access_token,
@@ -300,6 +348,11 @@ module Rollbar
     end
     
     def build_payload_body(message, exception, extra)
+      unless configuration.custom_data_method.nil?
+        custom = Rollbar::Util::deep_copy(configuration.custom_data_method.call)
+        extra = Rollbar::Util::deep_merge(custom, extra || {})
+      end
+  
       if exception
         build_payload_body_exception(message, exception, extra)
       else
