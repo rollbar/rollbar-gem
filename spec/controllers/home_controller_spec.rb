@@ -174,30 +174,6 @@ describe HomeController do
   end
   
   context "param_scrubbing", :type => "request" do
-    it "should filter files" do
-      name = "John Doe"
-      file_hash = {
-        :filename => "test.txt",
-        :type => "text/plain",
-        :head => {},
-        :tempfile => "dummy"
-      }
-      file = ActionDispatch::Http::UploadedFile.new(file_hash)
-
-      params = {
-        :name => name
-      }
-      
-      post 'report_exception', params, :upload => file
-      
-      request = Rollbar._last_report[:request]
-      request[:params]["name"].should == name
-      request[:headers]["Upload"].should be_a_kind_of(Hash)
-      request[:headers]["Upload"][:content_type].should == file_hash[:type]
-      request[:headers]["Upload"][:original_filename].should == file_hash[:filename]
-      request[:headers]["Upload"][:size].should == file_hash[:tempfile].size
-    end
-
     it "should scrub the default scrub_fields" do
       params = {
         :passwd       => "hidden",

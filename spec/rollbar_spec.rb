@@ -615,6 +615,41 @@ describe Rollbar do
         ]
       end
     end
+    
+    context 'scrub_payload' do
+      let (:notifier) do
+        notifier = Rollbar.scope
+        notifier.stub(:report)
+        notifier
+      end
+    
+      it "should filter files" do
+        name = "John Doe"
+        file_hash = {
+          :filename => "test.txt",
+          :type => "text/plain",
+          :head => {},
+          :tempfile => "dummy"
+        }
+        
+        file = ActionDispatch::Http::UploadedFile.new(file_hash)
+
+        payload = {
+          :name => name,
+          :a_file => file
+        }
+        
+        payload_copy = payload.clone
+        notifier.send(:scrub_payload, payload_copy, notifier.configuration.scrub_fields)
+        
+        payload_copy[:name].should == name
+        payload_copy[:a_file].should be_a_kind_of(Hash)
+        payload_copy[:a_file][:content_type].should == file_hash[:type]
+        payload_copy[:a_file][:original_filename].should == file_hash[:filename]
+        payload_copy[:a_file][:size].should == file_hash[:tempfile].size
+        
+      end
+    end
 
     context 'truncate_payload' do
       let (:notifier) do
