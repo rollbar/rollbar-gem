@@ -214,8 +214,7 @@ describe Rollbar do
         let (:payload) { notifier.send(:build_payload, 'info', 'message', nil, extra_data) }
         
         it 'should have the correct root-level keys' do
-          payload.should have_key :access_token
-          payload.should have_key :data
+          payload.keys.should == [:access_token, :data]
         end
         
         it 'should have the correct data keys' do
@@ -235,7 +234,7 @@ describe Rollbar do
         end
         
         it 'should have the correct server keys' do
-          payload[:data][:server].keys.should include(:host, :root)
+          payload[:data][:server].keys.should == [:host, :root]
         end
         
         it 'should have the correct level and message body' do

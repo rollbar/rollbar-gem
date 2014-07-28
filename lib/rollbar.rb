@@ -126,26 +126,32 @@ module Rollbar
       end
     end
     
+    # See log() above
     def debug(*args)
       log('debug', *args)
     end
     
+    # See log() above
     def info(*args)
       log('info', *args)
     end
     
+    # See log() above
     def warn(*args)
       log('warning', *args)
     end
     
+    # See log() above
     def warning(*args)
       log('warning', *args)
     end
     
+    # See log() above
     def error(*args)
       log('error', *args)
     end
     
+    # See log() above
     def critical(*args)
       log('critical', *args)
     end
@@ -179,7 +185,38 @@ module Rollbar
       end
     end
     
+    # Provided for backwards compatibility
+    def report_exception(exception, request_data = nil, person_data = nil, level = 'info')
+      log_warning('report_exception() has been deprecated, please use log() or one of the level functions')
+      notifier = notifier_for_request_data(request_data, person_data)
+      notifier.log(level, exception)
+    end
+    
+    # Provided for backwards compatibility
+    def report_message(message, level = 'info', extra_data = {})
+      log_warning('report_message() has been deprecated, please use log() or one of the level functions')
+      log(level, message, extra_data)
+    end
+    
+    # Provided for backwards compatibility
+    def report_message_with_request(message, level = 'info', request_data = nil, person_data = nil, extra_data = {})
+      log_warning('report_message_with_request() has been deprecated, please use log() or one of the level functions')
+      notifier = notifier_for_request_data(request_data, person_data)
+      notifier.log(level, message, extra_data)
+    end
+    
     private
+    
+    def notifier_for_request_data(request_data, person_data)
+      if request_data || person_data
+        scope({
+          :request => request_data || {},
+          :person => person_data || {}
+        })
+      else
+        self
+      end
+    end
 
     def require_hooks()
       if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
@@ -443,6 +480,8 @@ module Rollbar
             :original_filename => value.original_filename,
             :size => value.tempfile.size
           } rescue 'Uploaded file'
+        elsif value.is_a?(IO)
+          'IO'
         else
           value
         end
