@@ -11,6 +11,11 @@ describe Rollbar do
         config.logger = logger_mock
       end
     end
+    
+    after(:each) do
+      Rollbar.unconfigure
+      configure
+    end
 
     let(:logger_mock) { double("Rails.logger").as_null_object }
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
@@ -28,10 +33,6 @@ describe Rollbar do
       end
 
       Rollbar.report_message("Test message that should be ignored")
-
-      Rollbar.configure do |config|
-        config.enabled = true
-      end
     end
 
     it 'should report messages with extra data' do
@@ -62,12 +63,6 @@ describe Rollbar do
       user.errors.clear
       user.report_validation_errors_to_rollbar
     end
-
-    after(:each) do
-      Rollbar.configure do |config|
-        config.logger = ::Rails.logger
-      end
-    end
   end
 
   context 'bc_report_message_with_request' do
@@ -76,6 +71,11 @@ describe Rollbar do
       Rollbar.configure do |config|
         config.logger = logger_mock
       end
+    end
+    
+    after(:each) do
+      Rollbar.unconfigure
+      configure
     end
 
     let(:logger_mock) { double("Rails.logger").as_null_object }
@@ -130,6 +130,11 @@ describe Rollbar do
         @exception = e
       end
     end
+    
+    after(:each) do
+      Rollbar.unconfigure
+      configure
+    end
 
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
@@ -145,10 +150,6 @@ describe Rollbar do
       end
 
       Rollbar.report_exception(@exception)
-
-      Rollbar.configure do |config|
-        config.enabled = true
-      end
     end
 
     it 'should be enabled when freshly configured' do
@@ -217,7 +218,6 @@ describe Rollbar do
     end
 
     it 'should ignore ignored exception classes' do
-      saved_filters = Rollbar.configuration.exception_level_filters
       Rollbar.configure do |config|
         config.exception_level_filters = { 'NameError' => 'ignore' }
       end
@@ -226,10 +226,6 @@ describe Rollbar do
       logger_mock.should_not_receive(:error)
 
       Rollbar.report_exception(@exception)
-
-      Rollbar.configure do |config|
-        config.exception_level_filters = saved_filters
-      end
     end
 
     it 'should ignore ignored persons' do
@@ -274,7 +270,6 @@ describe Rollbar do
 
     it 'should allow callables to set exception filtered level' do
       callable_mock = double
-      saved_filters = Rollbar.configuration.exception_level_filters
       Rollbar.configure do |config|
         config.exception_level_filters = { 'NameError' => callable_mock }
       end
@@ -284,10 +279,6 @@ describe Rollbar do
       logger_mock.should_not_receive(:error)
 
       Rollbar.report_exception(@exception)
-
-      Rollbar.configure do |config|
-        config.exception_level_filters = saved_filters
-      end
     end
 
     it 'should not report exceptions when silenced' do
