@@ -186,7 +186,7 @@ module Rollbar
     end
     
     # Provided for backwards compatibility
-    def report_exception(exception, request_data = nil, person_data = nil, level = 'info')
+    def report_exception(exception, request_data = nil, person_data = nil, level = 'error')
       log_warning('[Rollbar] report_exception() has been deprecated, please use log() or one of the level functions')
       notifier = notifier_for_request_data(request_data, person_data)
       notifier.log(level, exception)

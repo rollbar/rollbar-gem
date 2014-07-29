@@ -1119,7 +1119,6 @@ describe Rollbar do
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-        Rollbar.stub(:schedule_payload) do |*args| end
         exception_data = Rollbar.error(StandardError.new("oops"))
         exception_data[:uuid].should_not be_nil
       end
