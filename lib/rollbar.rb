@@ -187,20 +187,20 @@ module Rollbar
     
     # Provided for backwards compatibility
     def report_exception(exception, request_data = nil, person_data = nil, level = 'info')
-      log_warning('report_exception() has been deprecated, please use log() or one of the level functions')
+      log_warning('[Rollbar] report_exception() has been deprecated, please use log() or one of the level functions')
       notifier = notifier_for_request_data(request_data, person_data)
       notifier.log(level, exception)
     end
     
     # Provided for backwards compatibility
     def report_message(message, level = 'info', extra_data = {})
-      log_warning('report_message() has been deprecated, please use log() or one of the level functions')
+      log_warning('[Rollbar] report_message() has been deprecated, please use log() or one of the level functions')
       log(level, message, extra_data)
     end
     
     # Provided for backwards compatibility
     def report_message_with_request(message, level = 'info', request_data = nil, person_data = nil, extra_data = {})
-      log_warning('report_message_with_request() has been deprecated, please use log() or one of the level functions')
+      log_warning('[Rollbar] report_message_with_request() has been deprecated, please use log() or one of the level functions')
       notifier = notifier_for_request_data(request_data, person_data)
       notifier.log(level, message, extra_data)
     end
@@ -254,7 +254,7 @@ module Rollbar
     
     def get_payload_json(payload)
       enforce_valid_utf8(payload[:data])
-      scrub_payload(payload[:data], configuration.scrub_fields)
+      scrub_payload(payload[:data])
       
       result = MultiJson.dump(payload)
       
@@ -460,7 +460,18 @@ module Rollbar
     # their results
     def evaluate_payload(payload)
       evaluator = Proc.new do |key, value|
-        (value.respond_to? :call) ? value.call : value
+        result = value
+        
+        if value.respond_to? :call
+          begin
+            result = value.call
+          rescue
+            log_error "[Rollbar] Error while evaluating callable in payload for key #{key}"
+            result = nil
+          end
+        end
+        
+        result
       end
       
       Rollbar::Util::iterate_and_update_hash(payload, evaluator)
@@ -468,8 +479,10 @@ module Rollbar
     
     # Walks the entire payload and replaces values with asterisks
     # for keys that are part of the sensetive params list
-    def scrub_payload(payload, sensitive_params)
-      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+    def scrub_payload(payload)
+      @sensitive_params_regexp ||= Regexp.new(configuration.scrub_fields.map do |val|
+        Regexp.escape(val.to_s).to_s
+      end.join('|'), true)
       
       scrubber = Proc.new do |key, value|
         if @sensitive_params_regexp =~ key.to_s

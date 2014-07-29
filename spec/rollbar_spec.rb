@@ -139,6 +139,92 @@ describe Rollbar do
       end
     end
     
+    context 'scope' do
+      let(:notifier) do
+        notifier = Rollbar.scope
+        notifier.stub(:schedule_payload)
+        notifier
+      end
+      
+      it 'should create a new notifier object' do
+        notifier2 = notifier.scope
+        
+        notifier2.should_not eq(notifier)
+        notifier2.should be_instance_of(Rollbar::Notifier)
+      end
+      
+      it 'should create a copy of the parent notifier\'s configuration' do
+        notifier.configure do |config|
+          config.code_version = '123'
+          config.payload_options = {
+            :a => 'a',
+            :b => {:c => 'c'}
+          }
+        end
+        
+        notifier2 = notifier.scope
+        
+        notifier2.configuration.code_version.should == '123'
+        notifier2.configuration.should_not equal(notifier.configuration)
+        notifier2.configuration.payload_options.should_not equal(notifier.configuration.payload_options)
+        notifier2.configuration.payload_options.should == notifier.configuration.payload_options
+        notifier2.configuration.payload_options.should == {
+          :a => 'a',
+          :b => {:c => 'c'}
+        }
+      end
+      
+      it 'should not modify any parent notifier configuration' do
+        Rollbar.configuration.code_version.should be_nil
+        Rollbar.configuration.payload_options.should be_empty
+        
+        notifier.configure do |config|
+          config.code_version = '123'
+          config.payload_options = {
+            :a => 'a',
+            :b => {:c => 'c'}
+          }
+        end
+        
+        notifier2 = notifier.scope
+        
+        notifier2.configure do |config|
+          config.payload_options[:c] = 'c'
+        end
+        
+        notifier.configuration.payload_options[:c].should be_nil
+        
+        notifier3 = notifier2.scope({
+          :b => {:c => 3, :d => 'd'}
+        })
+        
+        notifier3.configure do |config|
+          config.code_version = '456'
+        end
+        
+        notifier.configuration.code_version.should == '123'
+        notifier.configuration.payload_options.should == {
+          :a => 'a',
+          :b => {:c => 'c'}
+        }
+        notifier2.configuration.code_version.should == '123'
+        notifier2.configuration.payload_options.should == {
+          :a => 'a',
+          :b => {:c => 'c'},
+          :c => 'c'
+        }
+        notifier3.configuration.code_version.should == '456'
+        notifier3.configuration.payload_options.should == {
+          :a => 'a',
+          :b => {:c => 3, :d => 'd'},
+          :c => 'c'
+        }
+        
+        Rollbar.configuration.code_version.should be_nil
+        Rollbar.configuration.payload_options.should be_empty
+      end
+    end
+    
     context 'report' do
       let(:notifier) do
         notifier = Rollbar.scope
@@ -214,7 +300,7 @@ describe Rollbar do
         let (:payload) { notifier.send(:build_payload, 'info', 'message', nil, extra_data) }
         
         it 'should have the correct root-level keys' do
-          payload.keys.should == [:access_token, :data]
+          payload.keys.should match_array([:access_token, :data])
         end
         
         it 'should have the correct data keys' do
@@ -234,7 +320,7 @@ describe Rollbar do
         end
         
         it 'should have the correct server keys' do
-          payload[:data][:server].keys.should == [:host, :root]
+          payload[:data][:server].keys.should match_array([:host, :root])
         end
         
         it 'should have the correct level and message body' do
@@ -569,6 +655,84 @@ describe Rollbar do
 
         Rollbar::MAX_PAYLOAD_SIZE = orig_max
       end
+      
+      it 'should not scrub the root-level access_token' do
+        notifier.configure do |config|
+          config.scrub_fields += [:access_token]
+        end
+        
+        payload = {
+          :access_token => 'some access token',
+          :data => {
+            :request => {
+              :access_token => 'scrubbed'
+            }
+          }
+        }
+        
+        json = notifier.send(:get_payload_json, payload)
+        
+        hash = MultiJson.load(json)
+        hash["access_token"].should == 'some access token'
+        hash["data"]["request"]["access_token"].should == '********'
+      end
+    end
+
+    context 'evaluate_payload' do
+      let (:notifier) do
+        notifier = Rollbar.scope
+        notifier.configure do |config|
+          config.logger = logger_mock
+        end
+        notifier
+      end
+
+      let(:logger_mock) { double("Rails.logger").as_null_object }
+      
+      before(:each) do
+        configure
+        notifier.configure do |config|
+          config.logger = logger_mock
+        end
+      end
+      
+      it 'should evaluate callables and store the result' do
+        a = 'some string'
+        
+        payload = {
+          :evaluate1 => lambda { 1 + 1 },
+          :evaluate2 => Proc.new { 2 + 2 },
+          :hash => {
+            :inner_evaluate1 => a.method(:to_s),
+            :inner_evaluate2 => lambda { {:key => 'value'} }
+          }
+        }
+
+        payload_copy = payload.clone
+        notifier.send(:evaluate_payload, payload_copy)
+
+        payload_copy[:evaluate1].should == 2
+        payload_copy[:evaluate2].should == 4
+        payload_copy[:hash][:inner_evaluate1].should == 'some string'
+        payload_copy[:hash][:inner_evaluate2][:key].should == 'value'
+      end
+      
+      it 'should not crash when the callable raises an exception' do
+        logger_mock.should_receive(:error).with("[Rollbar] Error while evaluating callable in payload for key evaluate1")
+        
+        payload = {
+          :evaluate1 => lambda { a = b },
+          :evaluate2 => Proc.new { 2 + 2 },
+          :key => 'value'
+        }
+
+        payload_copy = payload.clone
+        notifier.send(:evaluate_payload, payload_copy)
+
+        payload_copy[:evaluate1].should be_nil
+        payload_copy[:evaluate2].should == 4
+        payload_copy[:key].should == 'value'
+      end
     end
     
     context 'enforce_valid_utf8' do
@@ -621,8 +785,17 @@ describe Rollbar do
         notifier.stub(:report)
         notifier
       end
+      
+      before(:each) do
+        configure
+      end
+      
+      after(:each) do
+        Rollbar.unconfigure
+        configure
+      end
     
-      it "should filter files" do
+      it 'should filter files' do
         name = "John Doe"
         file_hash = {
           :filename => "test.txt",
@@ -639,14 +812,85 @@ describe Rollbar do
         }
         
         payload_copy = payload.clone
-        notifier.send(:scrub_payload, payload_copy, notifier.configuration.scrub_fields)
+        notifier.send(:scrub_payload, payload_copy)
         
         payload_copy[:name].should == name
         payload_copy[:a_file].should be_a_kind_of(Hash)
         payload_copy[:a_file][:content_type].should == file_hash[:type]
         payload_copy[:a_file][:original_filename].should == file_hash[:filename]
         payload_copy[:a_file][:size].should == file_hash[:tempfile].size
+      end
+      
+      it 'should scrub the default scrub_fields' do
+        payload = {
+          :passwd       => "hidden",
+          :password     => "hidden",
+          :secret       => "hidden",
+          :visible      => "visible",
+          :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6"
+        }
         
+        payload_copy = payload.clone
+        notifier.send(:scrub_payload, payload_copy)
+        
+        payload_copy[:passwd].should == '******'
+        payload_copy[:password].should == '******'
+        payload_copy[:secret].should == '******'
+        payload_copy[:visible].should == 'visible'
+        payload_copy[:secret_token].should == '********************************'
+      end
+      
+      it 'should scrub fields using regex patterns' do
+        Rollbar.configure do |config|
+          config.scrub_fields = [:abc]
+        end
+        
+        payload = {
+          :some_key       => "visible",
+          :abc            => "hidden",
+          :blah_abc_blah  => "hidden"
+        }
+        
+        payload_copy = payload.clone
+        notifier.send(:scrub_payload, payload_copy)
+        
+        payload_copy[:some_key].should == 'visible'
+        payload_copy[:abc].should == '******'
+        payload_copy[:blah_abc_blah].should == '******'
+      end
+      
+      it 'should handle scrub fields for two different notifiers at the same time' do
+        notifier.configure do |config|
+          config.scrub_fields = [:abc]
+        end
+        
+        notifier2 = notifier.scope
+        notifier2.configure do |config|
+          config.scrub_fields = [:def]
+        end
+        
+        payload = {
+          :some_key       => "both",
+          :abc            => "notifier2",
+          :def            => "notifier1",
+          :defabc         => "neither"
+        }
+        
+        payload_copy1 = payload.clone
+        payload_copy2 = payload.clone
+        
+        notifier.send(:scrub_payload, payload_copy1)
+        notifier2.send(:scrub_payload, payload_copy2)
+        
+        payload_copy1[:some_key].should == 'both'
+        payload_copy1[:abc].should == '*********'
+        payload_copy1[:def].should == 'notifier1'
+        payload_copy1[:defabc].should == '*******'
+        
+        payload_copy2[:some_key].should == 'both'
+        payload_copy2[:abc].should == 'notifier2'
+        payload_copy2[:def].should == '*********'
+        payload_copy2[:defabc].should == '*******'
       end
     end
 
