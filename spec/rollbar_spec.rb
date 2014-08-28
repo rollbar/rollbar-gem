@@ -13,7 +13,7 @@ end
 
 describe Rollbar do
 
-  context 'report_exception' do
+  describe '.report_exception' do
     before(:each) do
       configure
       Rollbar.configure do |config|
@@ -208,12 +208,12 @@ describe Rollbar do
     it 'should report exception objects with no backtrace' do
       payload = nil
       Rollbar.stub(:schedule_payload) do |*args|
-        payload = MultiJson.load(args[0])
+        payload = args[0]
       end
       Rollbar.report_exception(StandardError.new("oops"))
-      payload["data"]["body"]["trace"]["frames"].should == []
-      payload["data"]["body"]["trace"]["exception"]["class"].should == "StandardError"
-      payload["data"]["body"]["trace"]["exception"]["message"].should == "oops"
+      payload["data"][:body][:trace][:frames].should == []
+      payload["data"][:body][:trace][:exception][:class].should == "StandardError"
+      payload["data"][:body][:trace][:exception][:message].should == "oops"
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
@@ -227,7 +227,7 @@ describe Rollbar do
     it 'should report exception objects with nonstandard backtraces' do
       payload = nil
       Rollbar.stub(:schedule_payload) do |*args|
-        payload = MultiJson.load(args[0])
+        payload = args[0]
       end
 
       class CustomException < StandardError
@@ -240,22 +240,22 @@ describe Rollbar do
 
       Rollbar.report_exception(exception)
 
-      payload["data"]["body"]["trace"]["frames"][0]["method"].should == "custom backtrace line"
+      payload["data"][:body][:trace][:frames][0][:method].should == "custom backtrace line"
     end
 
     it 'should report exceptions with a custom level' do
       payload = nil
       Rollbar.stub(:schedule_payload) do |*args|
-        payload = MultiJson.load(args[0])
+        payload = args[0]
       end
 
       Rollbar.report_exception(@exception)
 
-      payload["data"]["level"].should == 'error'
+      payload["data"][:level].should == 'error'
 
       Rollbar.report_exception(@exception, nil, nil, 'debug')
 
-      payload["data"]["level"].should == 'debug'
+      payload["data"][:level].should == 'debug'
     end
   end
 
@@ -475,6 +475,31 @@ describe Rollbar do
       end
     end
 
+    # We should be able to send String payloads, generated
+    # by a previous version of the gem. This can happend just
+    # after a deploy with an gem upgrade.
+    context 'with a payload generated as String' do
+      let(:async_handler) do
+        proc do |payload|
+          # simulate previous gem version
+          string_payload = MultiJson.dump(payload)
+
+          Rollbar.process_payload(string_payload)
+        end
+      end
+
+      before do
+        Rollbar.configuration.stub(:use_async).and_return(true)
+        Rollbar.configuration.stub(:async_handler).and_return(async_handler)
+      end
+
+      it 'sends a payload generated as String, not as a Hash' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success')
+
+        Rollbar.report_exception(@exception)
+      end
+    end
+
     describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
         logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
@@ -662,13 +687,13 @@ describe Rollbar do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should build valid json' do
-      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}})
-      hash = MultiJson.load(json)
-      hash["data"]["foo"]["bar"].should == "baz"
+      data = { :foo => { :bar => 'baz'}}
+      payload = Rollbar.send(:build_payload, data)
+      payload["data"][:foo][:bar].should == "baz"
     end
-    
+
     it 'should strip out invalid utf-8' do
-      json = Rollbar.send(:build_payload, {
+      payload = Rollbar.send(:build_payload, {
         :good_key => "\255bad value",
         "bad\255 key" => "good value",
         "bad key 2\255" => "bad \255value",
@@ -676,18 +701,20 @@ describe Rollbar do
           "bad array \255key" => ["bad\255 array element", "good array element"]
         }
       })
-      
-      hash = MultiJson.load(json)
-      hash["data"]["good_key"].should == 'bad value'
-      hash["data"]["bad key"].should == 'good value'
-      hash["data"]["bad key 2"].should == 'bad value'
-      hash["data"]["hash"].should == {
+
+      payload["data"][:good_key].should == 'bad value'
+      payload["data"]["bad key"].should == 'good value'
+      payload["data"]["bad key 2"].should == 'bad value'
+      payload["data"][:hash].should == {
         "bad array key" => ["bad array element", "good array element"]
       }
     end
 
     it 'should truncate large strings if the payload is too big' do
-      json = Rollbar.send(:build_payload, {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024})
+      data = {:foo => {:bar => "baz"}, :large => 'a' * (128 * 1024), :small => 'b' * 1024}
+      payload = Rollbar.send(:build_payload, data)
+      json = Rollbar.send(:dump_payload, payload)
+
       hash = MultiJson.load(json)
       hash["data"]["large"].should == '%s...' % ('a' * 1021)
       hash["data"]["small"].should == 'b' * 1024
@@ -698,14 +725,18 @@ describe Rollbar do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       orig_max = Rollbar::MAX_PAYLOAD_SIZE
-
       Rollbar::MAX_PAYLOAD_SIZE = 1
-      Rollbar.report_exception(@exception)
+      orig_send_failsafe = Rollbar.method(:send_failsafe)
 
-      Rollbar::MAX_PAYLOAD_SIZE = orig_max
+      Rollbar.stub(:send_failsafe) do |message, exception|
+        Rollbar::MAX_PAYLOAD_SIZE = orig_max
+        orig_send_failsafe.call(message, exception)
+      end
+
+      Rollbar.report_exception(@exception)
     end
   end
-  
+
   context 'enforce_valid_utf8' do
     it 'should replace invalid utf8 values' do
       payload = {
@@ -716,7 +747,7 @@ describe Rollbar do
           :inner_bad_value => "\255\255bad value 3",
           "inner \255bad key" => 'inner good value',
           "bad array key\255" => [
-            'good array value 1', 
+            'good array value 1',
             "bad\255 array value 1\255",
             {
               :inner_inner_bad => "bad inner \255inner value"
@@ -727,7 +758,7 @@ describe Rollbar do
 
       payload_copy = payload.clone
       Rollbar.send(:enforce_valid_utf8, payload_copy)
-      
+
       payload_copy[:bad_value].should == "bad value 1"
       payload_copy[:bad_value_2].should == "bad value 2"
       payload_copy["bad key"].should == "good value"
@@ -735,8 +766,8 @@ describe Rollbar do
       payload_copy[:hash][:inner_bad_value].should == "bad value 3"
       payload_copy[:hash]["inner bad key"].should == 'inner good value'
       payload_copy[:hash]["bad array key"].should == [
-        'good array value 1', 
-        'bad array value 1', 
+        'good array value 1',
+        'bad array value 1',
         {
           :inner_inner_bad => 'bad inner inner value'
         }
@@ -881,7 +912,7 @@ describe Rollbar do
 
       gem_paths = gems.map{|gem| Gem::Specification.find_all_by_name(gem).map(&:gem_dir) }.flatten.compact.uniq
       gem_paths.length.should > 1
-    
+
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
       gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 

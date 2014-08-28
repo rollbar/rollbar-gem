@@ -374,7 +374,10 @@ module Rollbar
     end
 
     def send_payload_using_eventmachine(payload)
-      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => payload)
+      body = dump_payload(payload)
+      headers = { 'X-Rollbar-Access-Token' => payload['access_token'] }
+      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
+
       req.callback do
         if req.response_header.status == 200
           log_info '[Rollbar] Success'
@@ -391,11 +394,14 @@ module Rollbar
 
     def send_payload(payload)
       log_info '[Rollbar] Sending payload'
+      payload = MultiJson.load(payload) if payload.is_a?(String)
 
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
         return
       end
+
+      body = dump_payload(payload)
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = configuration.request_timeout
@@ -406,8 +412,8 @@ module Rollbar
       end
 
       request = Net::HTTP::Post.new(uri.request_uri)
-      request.body = payload
-      request.add_field('X-Rollbar-Access-Token', configuration.access_token)
+      request.body = body
+      request.add_field('X-Rollbar-Access-Token', payload['access_token'])
       response = http.request(request)
 
       if response.code == '200'
@@ -444,12 +450,15 @@ module Rollbar
 
     def build_payload(data)
       payload = {
-        :access_token => configuration.access_token,
-        :data => data
+        'access_token' => configuration.access_token,
+        'data' => data
       }
-      
+
       enforce_valid_utf8(payload)
-      
+      payload
+    end
+
+    def dump_payload(payload)
       result = MultiJson.dump(payload)
 
       # Try to truncate strings in the payload a few times if the payload is too big
@@ -589,18 +598,16 @@ module Rollbar
       config = configuration
       environment = config.environment
 
-      failsafe_payload = <<-eos
-      {"access_token": "#{config.access_token}",
-       "data": {
-         "level": "error",
-         "environment": "#{config.environment}",
-         "body": { "message": { "body": "Failsafe from rollbar-gem: #{message}" } },
-         "notifier": { "name": "rollbar-gem", "version": "#{VERSION}" },
-         "internal": true,
-         "failsafe": true
-       }
+      failsafe_data = {
+        :level => 'error',
+        :environment => "#{environment}",
+        :body => { :message => { :body => "Failsafe from rollbar-gem: #{message}" } },
+        :notifier => { :name => 'rollbar-gem', :version => "#{VERSION}" },
+        :internal => true,
+        :failsafe => true
       }
-      eos
+
+      failsafe_payload = build_payload(failsafe_data)
 
       begin
         schedule_payload(failsafe_payload)
@@ -608,7 +615,7 @@ module Rollbar
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
     end
-    
+
     def enforce_valid_utf8(payload)
       normalizer = Proc.new do |value|
         if value.is_a?(String)
