@@ -1,5 +1,8 @@
 # Change Log
 
+**1.0.1**
+- Use the payload's access token for the X-Rollbar-Access-Token header, instead of the configured access token. Fixes an issue where payloads would be reported into the wrong project when sent via Resque. See [#128](https://github.com/rollbar/rollbar-gem/pull/128). Thanks to [@jondeandres](https://github.com/jondeandres) for the fix.
+
 **1.0.0**
 - Clean up some unused requires
 - Strip out invalid UTF-8 characters from payload keys/values, fixes [#85](https://github.com/rollbar/rollbar-gem/issues/85)
