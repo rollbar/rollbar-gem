@@ -618,15 +618,19 @@ module Rollbar
 
     def enforce_valid_utf8(payload)
       normalizer = Proc.new do |value|
+        if value.is_a?(Symbol)
+          is_symbol = true
+          value = value.to_s
+        end
         if value.is_a?(String)
           if value.respond_to? :encode
-            value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
+            value = value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
           else
-            ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
+            value = ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
           end
-        else
-          value
+          value = value.to_sym if is_symbol
         end
+        value
       end
 
       Rollbar::Util::iterate_and_update(payload, normalizer)
