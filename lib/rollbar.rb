@@ -618,8 +618,7 @@ module Rollbar
 
     def enforce_valid_utf8(payload)
       normalizer = Proc.new do |value|
-        if value.is_a?(Symbol)
-          is_symbol = true
+        if is_symbol = value.is_a?(Symbol)
           value = value.to_s
         end
         if value.is_a?(String)

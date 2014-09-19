@@ -739,13 +739,16 @@ describe Rollbar do
 
   context 'enforce_valid_utf8' do
     it 'should replace invalid utf8 values' do
+      bad_key = "inner \x92bad key"
+      bad_key.force_encoding('ASCII-8BIT') if bad_key.respond_to?('force_encoding')
+      
       payload = {
         :bad_value => "bad value 1\255",
         :bad_value_2 => "bad\255 value 2",
         "bad\255 key" => "good value",
         :hash => {
           :inner_bad_value => "\255\255bad value 3",
-          "inner \x92bad key".force_encoding('ASCII-8BIT').to_sym => 'inner good value',
+          bad_key.to_sym => 'inner good value',
           "bad array key\255" => [
             'good array value 1',
             "bad\255 array value 1\255",
