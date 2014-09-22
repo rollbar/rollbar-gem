@@ -376,7 +376,7 @@ If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pa
 
 ## Using with Resque
 
-Check out [resque-rollbar](https://github.com/CrowdFlower/resque-rollbar) for using Rollbar as a failure backend for Resque.
+Check out [resque-rollbar](https://github.com/dimko/resque-rollbar) for using Rollbar as a failure backend for Resque.
 
 
 ## Using with Zeus
