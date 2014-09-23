@@ -24,4 +24,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'sucker_punch', '>= 1.0.0' if RUBY_VERSION != '1.8.7'
   gem.add_development_dependency 'sidekiq', '>= 2.13.0' if RUBY_VERSION != '1.8.7'
   gem.add_development_dependency 'genspec', '>= 0.2.7'
+  gem.add_development_dependency 'sinatra'
 end

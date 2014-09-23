@@ -1,6 +1,6 @@
 require 'rubygems'
 
-ENV['RAILS_ENV'] = 'test'
+ENV['RAILS_ENV'] = ENV['RACK_ENV'] = 'test'
 require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
