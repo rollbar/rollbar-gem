@@ -617,7 +617,7 @@ module Rollbar
     end
 
     def enforce_valid_utf8(payload)
-      normalizer = proc do |object|
+      normalizer = lambda do |object|
         is_symbol = object.is_a?(Symbol)
 
         return object unless object == object.to_s || is_symbol
