@@ -28,6 +28,8 @@ module Rollbar
     attr_writer :configuration
     attr_accessor :last_report
 
+    @file_semaphore = Mutex.new
+
     # Similar to configure below, but used only internally within the gem
     # to configure it without initializing any of the third party hooks
     def preconfigure
@@ -46,9 +48,8 @@ module Rollbar
     #   end
     def configure
       # if configuration.enabled has not been set yet (is still 'nil'), set to true.
-      if configuration.enabled.nil?
-        configuration.enabled = true
-      end
+      configuration.enabled = true if configuration.enabled.nil?
+
       yield(configuration)
 
       require_hooks
@@ -440,9 +441,7 @@ module Rollbar
     end
 
     def schedule_payload(payload)
-      if payload.nil?
-        return
-      end
+      return if payload.nil?
 
       log_info '[Rollbar] Scheduling payload'
 
