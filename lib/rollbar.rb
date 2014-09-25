@@ -234,6 +234,21 @@ module Rollbar
       end
     end
 
+    def default_async_handler
+      proc do |payload|
+        if defined?(GirlFriday)
+          @queue ||= GirlFriday::WorkQueue.new(nil, :size => 5) do |payload|
+            process_payload(payload)
+          end
+
+          @queue.push(payload)
+        else
+          log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
+          Thread.new { process_payload(payload) }
+        end
+      end
+    end
+
     private
 
     def attach_request_data(payload, request_data)
@@ -432,20 +447,15 @@ module Rollbar
       log_info '[Rollbar] Scheduling payload'
 
       if configuration.use_async
-        unless configuration.async_handler
-          configuration.async_handler = method(:default_async_handler)
-        end
-
-        if configuration.write_to_file
-          unless @file_semaphore
-            @file_semaphore = Mutex.new
-          end
-        end
-
-        configuration.async_handler.call(payload)
+        process_async_payload(payload)
       else
         process_payload(payload)
       end
+    end
+
+    def process_async_payload(payload)
+      configuration.async_handler ||= default_async_handler
+      configuration.async_handler.call(payload)
     end
 
     def build_payload(data)
@@ -532,21 +542,6 @@ module Rollbar
       data[:branch] = config.branch if config.branch
 
       data
-    end
-
-    def default_async_handler(payload)
-      if defined?(GirlFriday)
-        unless @queue
-          @queue = GirlFriday::WorkQueue.new(nil, :size => 5) do |payload|
-            process_payload(payload)
-          end
-        end
-
-        @queue.push(payload)
-      else
-        log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
-        Thread.new { process_payload(payload) }
-      end
     end
 
     # Reports an internal error in the Rollbar library. This will be reported within the configured

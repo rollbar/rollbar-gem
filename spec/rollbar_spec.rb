@@ -471,7 +471,7 @@ describe Rollbar do
 
       Rollbar.configure do |config|
         config.use_async = false
-        config.async_handler = Rollbar.method(:default_async_handler)
+        config.async_handler = Rollbar.default_async_handler
       end
     end
 
@@ -514,7 +514,7 @@ describe Rollbar do
 
         Rollbar.configure do |config|
           config.use_async = false
-          config.async_handler = Rollbar.method(:default_async_handler)
+          config.async_handler = Rollbar.default_async_handler
         end
       end
     end
@@ -539,7 +539,7 @@ describe Rollbar do
 
         Rollbar.configure do |config|
           config.use_async = false
-          config.async_handler = Rollbar.method(:default_async_handler)
+          config.async_handler = Rollbar.default_async_handler
         end
       end
     end
