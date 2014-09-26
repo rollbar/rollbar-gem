@@ -455,6 +455,28 @@ module Rollbar
     def process_async_payload(payload)
       configuration.async_handler ||= default_async_handler
       configuration.async_handler.call(payload)
+    rescue
+      raise unless configuration.failover_handlers.any?
+
+      async_failover(payload)
+    end
+
+    def async_failover(payload)
+      index = 0
+      failover_handlers = configuration.failover_handlers
+
+      begin
+        handler = failover_handlers[index]
+        handler.call(payload)
+      rescue => e
+        index += 1
+
+        if index >= failover_handlers.size
+          report_internal_error(e)
+        else
+          retry
+        end
+      end
     end
 
     def build_payload(data)

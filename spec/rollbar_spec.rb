@@ -12,6 +12,7 @@ rescue LoadError
 end
 
 describe Rollbar do
+  let(:configuration) { Rollbar.configuration }
 
   describe '.report_exception' do
     before(:each) do
@@ -497,6 +498,59 @@ describe Rollbar do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
         Rollbar.report_exception(@exception)
+      end
+
+      context 'with async failover handlers' do
+        let(:async_handler) do
+          proc { |_| fail 'this handler will crash' }
+        end
+
+        let(:exception) { StandardError.new('the error') }
+
+        before do
+          Rollbar.reconfigure do |config|
+            config.use_async = true
+            config.async_handler = async_handler
+            config.failover_handlers = handlers
+          end
+        end
+
+        context 'if the handler success' do
+          let(:handler) { proc { |_| 'success' } }
+          let(:handlers) { [handler] }
+
+          it 'calls the failover handler and doesnt report internal error' do
+            Rollbar.should_not_receive(:report_internal_error)
+            handler.should_receive(:call)
+
+            Rollbar.report_exception(exception)
+          end
+        end
+
+        context 'with two handlers, the first failing' do
+          let(:handler1) { proc { |_| fail 'this handler fails' } }
+          let(:handler2) { proc { |_| 'success' } }
+          let(:handlers) { [handler1, handler2] }
+
+          it 'calls the second handler and doesnt report internal error' do
+            Rollbar.should_not_receive(:report_internal_error)
+            handler2.should_receive(:call)
+
+            Rollbar.report_exception(exception)
+          end
+        end
+
+        context 'with two handlers, both failing' do
+          let(:handler1) { proc { |_| fail 'this handler fails' } }
+          let(:handler2) { proc { |_| fail 'this will also fail' } }
+          let(:handlers) { [handler1, handler2] }
+
+          it 'reports internal error' do
+            Rollbar.should_receive(:report_internal_error)
+
+            Rollbar.report_exception(exception)
+          end
+        end
       end
     end
 

@@ -15,6 +15,7 @@ module Rollbar
     attr_accessor :endpoint
     attr_accessor :environment
     attr_accessor :exception_level_filters
+    attr_accessor :failover_handlers
     attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :ignored_person_ids
@@ -53,6 +54,7 @@ module Rollbar
         'AbstractController::ActionNotFound' => 'warning',
         'ActionController::RoutingError' => 'warning'
       }
+      @failover_handlers = []
       @framework = 'Plain'
       @ignored_person_ids = []
       @person_method = 'current_user'
