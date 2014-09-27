@@ -649,6 +649,40 @@ describe Rollbar do
 
   end
 
+  context 'exception_data_with_locals_enabled' do
+    before(:each) do
+      def test_func(test_param)
+        local_func_var = "local_func_var_value"
+        test_param.non_existent_method
+      end
+
+      configure
+      Rollbar.configure do |config|
+        config.locals[:enabled] = true
+      end
+
+      begin
+        local_var = "local_var_value"
+        test_func("test_param_value")
+      rescue => e
+        @exception = e
+      end
+    end
+
+    it 'should include local variables and args for each stack frame when enabled' do
+      data = Rollbar.send(:exception_data, @exception)
+      top_frame = data[:body][:trace][:frames].last
+      top_frame[:locals].keys.count.should eq 1
+      top_frame[:locals][:local_func_var].should eq "local_func_var_value"
+      top_frame[:args][:test_param].should eq "test_param_value"
+      top_frame[:args].keys.count.should eq 1
+
+      next_frame = data[:body][:trace][:frames][-2]
+      next_frame[:locals].keys.count.should eq 1
+      next_frame[:locals][:local_var].should eq "local_var_value"
+    end
+  end
+
   context 'logger' do
     before(:each) do
       reset_configuration

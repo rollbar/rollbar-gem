@@ -51,6 +51,12 @@ module Rollbar
       end
       yield(configuration)
 
+      if configuration[:locals][:enabled]
+        start_tracking_locals
+      else
+        stop_tracking_locals
+      end
+
       require_hooks
     end
 
@@ -236,6 +242,95 @@ module Rollbar
 
     private
 
+    # Trace local variables and method args per stack frame
+    # Save an on-going stack of local variable contexts
+    # To "replay" the stack, traverse the @trace_store from back to front (top to bottom)
+    attr_accessor :trace_store
+    attr_accessor :can_trace                # "pause and resume" tracing
+    attr_accessor :trace_store_search_index # used to iterate through trace_store
+
+    def trace_store
+      @trace_store ||= []
+    end
+
+    def trace_frame_key(filename, lineno)
+      "#{filename}:#{lineno}".to_sym
+    end
+
+    def add_trace_frame_locals(frame_key, locals, args)
+      trace_store << { :frame_key => frame_key, :locals => locals, :args => args }
+      # keep store within limits
+      trace_store.shift if trace_store.count > configuration[:locals][:max_trace_frames]
+    end
+
+    # Returns the most recently stored local variables for a given trace frame key
+    # Uses @trace_store_search_index to know where to we left off
+    def recent_trace_frame_locals(frame_key)
+      @trace_store_search_index ||= trace_store.count
+      while (@trace_store_search_index -= 1) >= 0
+        current_frame = trace_store[@trace_store_search_index]
+        return current_frame if current_frame[:frame_key] == frame_key
+      end
+      # or fallback
+      { :locals => {}, :args => {} }
+    end
+
+    def reset_current_trace
+      @can_trace = true
+      @trace_store_search_index = nil
+      trace_store = nil
+    end
+
+    # Use this eval string to get arguments of __method__
+    # Omit `:block` arguments because they may require unpredicable parameters
+    EVAL_GET_METHOD_ARGUMENT_NAMES = %{
+      if __method__ && respond_to?(__method__)
+         method(__method__).parameters.map{ |p_type, p_name| p_name unless p_type == :block }.collect
+      end
+    }
+
+    def start_tracking_locals
+      reset_current_trace
+      set_trace_func proc { |event, file, line, id, binding, classname|
+        # short circuit as soon as possible since
+        # #set_trace_func is called at almost every Ruby line
+        next unless event == "line" && @can_trace
+
+        # get local and arg variables
+        locals = {}
+        args = {}
+
+        begin
+          all_variable_names = binding.eval("local_variables")
+          arg_names = binding.eval(EVAL_GET_METHOD_ARGUMENT_NAMES)
+        rescue => e
+          log_error "[Rollbar] Error getting names of local variables: #{e}"
+        end
+        all_variable_names ||= []
+        arg_names ||= []
+        all_variable_names.each do |var_name|
+          begin
+            if var_value = binding.eval(var_name.to_s)
+              if arg_names.include? var_name
+                args[var_name] = var_value
+              else
+                locals[var_name] = var_value
+              end
+            end
+          rescue => e
+            log_error "[Rollbar] Error accessing local variables: #{e}"
+          end
+        end
+
+        add_trace_frame_locals(trace_frame_key(file, line), locals, args)
+      }
+    end
+
+    def stop_tracking_locals
+      reset_current_trace
+      set_trace_func(nil)
+    end
+
     def attach_request_data(payload, request_data)
       if request_data[:route]
         route = request_data[:route]
@@ -303,6 +398,7 @@ module Rollbar
     end
 
     def exception_data(exception, force_level = nil)
+      @can_trace = false
       data = base_data
 
       data[:level] = force_level if force_level
@@ -313,10 +409,20 @@ module Rollbar
           # parse the line
           match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
           if match
-            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
+            frame_info = { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
           else
-            { :filename => "<unknown>", :lineno => 0, :method => frame }
+            frame_info = { :filename => "<unknown>", :lineno => 0, :method => frame }
           end
+
+          # add frame locals
+          if configuration[:locals][:enabled]
+            frame_key = trace_frame_key(frame_info[:filename], frame_info[:lineno])
+            locals = recent_trace_frame_locals(frame_key)
+            locals.delete :frame_key # remove frame_key
+            frame_info.merge!(locals)
+          end
+
+          frame_info
         }
         # reverse so that the order is as rollbar expects
         frames.reverse!
@@ -336,6 +442,7 @@ module Rollbar
 
       data[:server] = server_data
 
+      reset_current_trace
       data
     end
 

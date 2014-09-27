@@ -18,6 +18,7 @@ module Rollbar
     attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :ignored_person_ids
+    attr_accessor :locals
     attr_accessor :logger
     attr_accessor :person_method
     attr_accessor :person_id_method
@@ -55,6 +56,7 @@ module Rollbar
       }
       @framework = 'Plain'
       @ignored_person_ids = []
+      @locals = { :enabled => false, :max_trace_frames => 100 }
       @person_method = 'current_user'
       @person_id_method = 'id'
       @person_username_method = 'username'
