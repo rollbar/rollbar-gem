@@ -253,23 +253,21 @@ module Rollbar
       @trace_store ||= []
     end
 
-    def trace_frame_key(filename, lineno)
-      "#{filename}:#{lineno}".to_sym
-    end
-
-    def add_trace_frame_locals(frame_key, locals, args)
-      trace_store << { :frame_key => frame_key, :locals => locals, :args => args }
+    def add_trace_frame_locals(filename, lineno, locals, args)
+      trace_store << { :filename => filename, :lineno => lineno, :locals => locals, :args => args }
       # keep store within limits
       trace_store.shift if trace_store.count > configuration[:locals][:max_trace_frames]
     end
 
-    # Returns the most recently stored local variables for a given trace frame key
+    # Returns the most recently stored local variables for a given filename and line number
     # Uses @trace_store_search_index to know where to we left off
-    def recent_trace_frame_locals(frame_key)
+    def recent_trace_frame_locals(filename, lineno)
       @trace_store_search_index ||= trace_store.count
       while (@trace_store_search_index -= 1) >= 0
         current_frame = trace_store[@trace_store_search_index]
-        return current_frame if current_frame[:frame_key] == frame_key
+        if current_frame[:filename] == filename && current_frame[:lineno] == lineno
+          return current_frame
+        end
       end
       # or fallback
       { :locals => {}, :args => {} }
@@ -322,7 +320,7 @@ module Rollbar
           end
         end
 
-        add_trace_frame_locals(trace_frame_key(file, line), locals, args)
+        add_trace_frame_locals(file, line, locals, args)
       }
     end
 
@@ -416,9 +414,7 @@ module Rollbar
 
           # add frame locals
           if configuration[:locals][:enabled]
-            frame_key = trace_frame_key(frame_info[:filename], frame_info[:lineno])
-            locals = recent_trace_frame_locals(frame_key)
-            locals.delete :frame_key # remove frame_key
+            locals = recent_trace_frame_locals(frame_info[:filename], frame_info[:lineno])
             frame_info.merge!(locals)
           end
 
