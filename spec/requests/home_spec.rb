@@ -22,7 +22,7 @@ describe HomeController do
         expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
 
         Rollbar.last_report.should_not be_nil
-  
+
         exception_info = Rollbar.last_report[:body][:trace][:exception]
         exception_info[:class].should == 'ArgumentError'
         exception_info[:message].should == 'invalid %-encoding (8%B)'
@@ -44,11 +44,13 @@ describe HomeController do
     end
 
     it "should report uncaught exceptions" do
-      expect{ get 'current_user' }.to raise_exception
+      expect { get 'current_user' }.to raise_exception
 
-      exception_info = Rollbar.last_report[:body][:trace][:exception]
-      exception_info[:class].should == 'NoMethodError'
-      # exception_info[:message].should == 'undefined method `-\' for "1":String'
+      body = Rollbar.last_report[:body]
+      trace = body[:trace] && body[:trace] || body[:trace_chain][0]
+
+      trace[:exception][:class].should == 'NoMethodError'
+      trace[:exception][:message].should == 'undefined method `-\' for "1":String'
     end
   end
 end

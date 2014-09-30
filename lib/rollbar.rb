@@ -307,6 +307,37 @@ module Rollbar
 
       data[:level] = force_level if force_level
 
+      traces = trace_chain(exception)
+
+      if traces.size > 1
+        body = {
+          :trace_chain => traces
+        }
+      elsif traces.size == 1
+        body = {
+          :trace => traces[0]
+        }
+      end
+
+      data[:body] = body
+
+      data[:server] = server_data
+
+      data
+    end
+
+    def trace_chain(exception)
+      traces = [trace_data(exception)]
+
+      while exception.respond_to?(:cause) && (cause = exception.cause)
+        traces << trace_data(cause)
+        exception = cause
+      end
+
+      traces
+    end
+
+    def trace_data(exception)
       # parse backtrace
       if exception.backtrace.respond_to?( :map )
         frames = exception.backtrace.map { |frame|
@@ -324,19 +355,13 @@ module Rollbar
         frames = []
       end
 
-      data[:body] = {
-        :trace => {
-          :frames => frames,
-          :exception => {
-            :class => exception.class.name,
-            :message => exception.message
-          }
+      {
+        :frames => frames,
+        :exception => {
+          :class => exception.class.name,
+          :message => exception.message
         }
       }
-
-      data[:server] = server_data
-
-      data
     end
 
     def logger
