@@ -666,21 +666,43 @@ describe Rollbar do
         test_func("test_param_value")
       rescue => e
         @exception = e
+        @data = Rollbar.send(:exception_data, @exception)
       end
     end
 
-    it 'should include local variables and args for each stack frame when enabled' do
-      data = Rollbar.send(:exception_data, @exception)
-      top_frame = data[:body][:trace][:frames].last
-      top_frame[:locals].keys.count.should eq 1
-      top_frame[:locals][:local_func_var].should eq "local_func_var_value"
-      top_frame[:args][:test_param].should eq "test_param_value"
-      top_frame[:args].keys.count.should eq 1
+    context 'when using Ruby 1.9.3 and above' do
+      next unless Method.method_defined? :parameters
+      it 'should include local variables and args for each stack frame when enabled' do
+        top_frame = @data[:body][:trace][:frames].last
+        top_frame[:locals].keys.count.should eq 1
+        top_frame[:locals][:local_func_var].should eq "local_func_var_value"
+        top_frame[:args][:test_param].should eq "test_param_value"
+        top_frame[:args].keys.count.should eq 1
 
-      next_frame = data[:body][:trace][:frames][-2]
-      next_frame[:locals].keys.count.should eq 1
-      next_frame[:locals][:local_var].should eq "local_var_value"
+        next_frame = @data[:body][:trace][:frames][-2]
+        next_frame[:locals].keys.count.should eq 1
+        next_frame[:locals][:local_var].should eq "local_var_value"
+      end
     end
+
+    # In Ruby 1.8.7, we don't have the Method#parameters method
+    # Thus, all local variables, including method arguments will be
+    # available in the frame's :local key. The :args key will not be available
+    context 'when using Ruby 1.8.7 and below' do
+      next if Method.method_defined? :parameters
+      it 'should include local variables for each stack frame when enabled' do
+        top_frame = @data[:body][:trace][:frames].last
+        top_frame[:args].should be_nil
+        top_frame[:locals].keys.count.should eq 2
+        top_frame[:locals][:local_func_var].should eq "local_func_var_value"
+        top_frame[:locals][:test_param].should eq "test_param_value"
+
+        next_frame = @data[:body][:trace][:frames][-2]
+        next_frame[:locals].keys.count.should eq 1
+        next_frame[:locals][:local_var].should eq "local_var_value"
+      end
+    end
+
   end
 
   context 'logger' do

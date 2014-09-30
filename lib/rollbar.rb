@@ -253,8 +253,8 @@ module Rollbar
       @trace_store ||= []
     end
 
-    def add_trace_frame_locals(filename, lineno, locals, args)
-      trace_store << { :filename => filename, :lineno => lineno, :locals => locals, :args => args }
+    def add_trace_frame_locals(filename, lineno, local_variables={})
+      trace_store << { :filename => filename, :lineno => lineno }.merge!(local_variables)
       # keep store within limits
       trace_store.shift if trace_store.count > configuration[:locals][:max_trace_frames]
     end
@@ -270,7 +270,7 @@ module Rollbar
         end
       end
       # or fallback
-      { :locals => {}, :args => {} }
+      local_variables_struct
     end
 
     def reset_current_trace
@@ -287,6 +287,17 @@ module Rollbar
       end
     }
 
+    # Method#parameters is unavailable in Ruby 1.8.7 and below
+    CAN_CHECK_METHOD_PARAMS = Method.method_defined? :parameters
+
+    def local_variables_struct
+      if CAN_CHECK_METHOD_PARAMS
+        { :locals => {}, :args => {} }
+      else
+        { :locals => {} }
+      end
+    end
+
     def start_tracking_locals
       reset_current_trace
       set_trace_func proc { |event, file, line, id, binding, classname|
@@ -295,24 +306,23 @@ module Rollbar
         next unless event == "line" && @can_trace
 
         # get local and arg variables
-        locals = {}
-        args = {}
-
+        local_variables = local_variables_struct
         begin
           all_variable_names = binding.eval("local_variables")
-          arg_names = binding.eval(EVAL_GET_METHOD_ARGUMENT_NAMES)
+          arg_names = CAN_CHECK_METHOD_PARAMS ? binding.eval(EVAL_GET_METHOD_ARGUMENT_NAMES) : []
         rescue => e
           log_error "[Rollbar] Error getting names of local variables: #{e}"
         end
         all_variable_names ||= []
         arg_names ||= []
+
         all_variable_names.each do |var_name|
           begin
             if var_value = binding.eval(var_name.to_s)
               if arg_names.include? var_name
-                args[var_name] = var_value
+                local_variables[:args][var_name] = var_value
               else
-                locals[var_name] = var_value
+                local_variables[:locals][var_name] = var_value
               end
             end
           rescue => e
@@ -320,7 +330,7 @@ module Rollbar
           end
         end
 
-        add_trace_frame_locals(file, line, locals, args)
+        add_trace_frame_locals(file, line, local_variables)
       }
     end
 
