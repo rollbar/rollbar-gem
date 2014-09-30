@@ -319,6 +319,7 @@ module Rollbar
         all_variable_names.each do |var_name|
           begin
             if var_value = binding.eval(var_name.to_s)
+              var_name = var_name.to_sym # ensure symbol for older versions of Ruby
               if arg_names.include? var_name
                 local_variables[:args][var_name] = var_value
               else
