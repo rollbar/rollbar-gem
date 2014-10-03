@@ -3,6 +3,7 @@
 **Next release (tbd)**
 - Fix handling of utf8 sequences in payload symbols. See [#131](https://github.com/rollbar/rollbar-gem/pull/131). Thanks [@kroky](https://github.com/kroky) for the fix and [@jondeandres](https://github.com/jondeandres) for reviewing.
 - Support nested exceptions for Ruby 2.1. See [#136](https://github.com/rollbar/rollbar-gem/pull/136)
+- Fix logic bugs in assignments for `scrub_fields` and `scrub_headers`. See [#137](https://github.com/rollbar/rollbar-gem/pull/137)
 
 **1.0.1**
 - Use the payload's access token for the X-Rollbar-Access-Token header, instead of the configured access token. Fixes an issue where payloads would be reported into the wrong project when sent via Resque. See [#128](https://github.com/rollbar/rollbar-gem/pull/128). Thanks to [@jondeandres](https://github.com/jondeandres) for the fix.
