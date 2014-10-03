@@ -444,14 +444,14 @@ describe Rollbar do
 
       Rollbar.configure do |config|
         config.use_async = true
-        GirlFriday::WorkQueue::immediate!
+        GirlFriday::WorkQueue.immediate!
       end
 
       Rollbar.report_exception(@exception)
 
       Rollbar.configure do |config|
         config.use_async = false
-        GirlFriday::WorkQueue::queue!
+        GirlFriday::WorkQueue.queue!
       end
     end
 

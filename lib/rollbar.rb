@@ -16,6 +16,8 @@ require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
+require 'rollbar/delay/girl_friday'
+require 'rollbar/delay/thread'
 
 unless ''.respond_to? :encode
   require 'iconv'
@@ -226,6 +228,7 @@ module Rollbar
         puts "[Rollbar] #{message}"
       end
     end
+
     def log_debug(message)
       begin
         logger.debug message
@@ -236,18 +239,9 @@ module Rollbar
     end
 
     def default_async_handler
-      proc do |payload|
-        if defined?(GirlFriday)
-          @queue ||= GirlFriday::WorkQueue.new(nil, :size => 5) do |payload|
-            process_payload(payload)
-          end
+      return Rollbar::Delay::GirlFriday if defined?(GirlFriday)
 
-          @queue.push(payload)
-        else
-          log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
-          Thread.new { process_payload(payload) }
-        end
-      end
+      Rollbar::Delay::Thread
     end
 
     private
