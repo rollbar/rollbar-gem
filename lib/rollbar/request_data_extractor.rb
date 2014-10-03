@@ -12,13 +12,13 @@ module Rollbar
         controller = env['action_controller.instance']
         person_data = controller.rollbar_person_data rescue {}
       end
-      
+
       person_data
     end
 
     def extract_request_data_from_rack(env)
       rack_req = Rack::Request.new(env)
-      
+
       sensitive_params = sensitive_params_list(env)
       request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
       get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
@@ -26,9 +26,9 @@ module Rollbar
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
-      
+
       params = request_params.merge(get_params).merge(post_params)
-      
+
       data = {
         :params => params,
         :url => rollbar_url(env),
@@ -39,11 +39,11 @@ module Rollbar
         :method => rollbar_request_method(env),
         :route => route_params,
       }
-      
+
       if env["action_dispatch.request_id"]
         data[:request_id] = env["action_dispatch.request_id"]
       end
-      
+
       data
     end
 
@@ -68,13 +68,13 @@ module Rollbar
 
     def rollbar_url(env)
       scheme = env['HTTP_X_FORWARDED_PROTO'] || env['rack.url_scheme']
-      
+
       host = env['HTTP_X_FORWARDED_HOST'] || env['HTTP_HOST'] || env['SERVER_NAME']
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
       unless path.nil? || path.empty?
         path = '/' + path.to_s if path.to_s.slice(0, 1) != '/'
       end
-      
+
       port = env['HTTP_X_FORWARDED_PORT']
       if port && !(scheme.downcase == 'http' && port.to_i == 80) && \
                  !(scheme.downcase == 'https' && port.to_i == 443) && \
@@ -88,7 +88,7 @@ module Rollbar
     def rollbar_user_ip(env)
       (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR']).to_s
     end
-    
+
     def rollbar_get_params(rack_req)
       rack_req.GET
     rescue
@@ -104,7 +104,7 @@ module Rollbar
     def rollbar_request_params(env)
       env['action_dispatch.request.parameters'] || {}
     end
-    
+
     def rollbar_route_params(env)
       begin
         route = ::Rails.application.routes.recognize_path(env['PATH_INFO'])
@@ -117,7 +117,7 @@ module Rollbar
         {}
       end
     end
-    
+
     def rollbar_request_cookies(rack_req)
       rack_req.cookies
     rescue
@@ -126,7 +126,7 @@ module Rollbar
 
     def rollbar_filtered_params(sensitive_params, params)
       @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
-      
+
       if params.nil?
         {}
       else
@@ -152,11 +152,11 @@ module Rollbar
     end
 
     def sensitive_params_list(env)
-      Rollbar.configuration.scrub_fields |= Array(env['action_dispatch.parameter_filter'])
+      Array(Rollbar.configuration.scrub_fields) | Array(env['action_dispatch.parameter_filter'])
     end
 
     def sensitive_headers_list
-      Rollbar.configuration.scrub_headers |= []
+      Rollbar.configuration.scrub_headers || []
     end
 
     def rollbar_scrubbed(value)
