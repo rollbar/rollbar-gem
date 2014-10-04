@@ -456,19 +456,14 @@ module Rollbar
     end
 
     def async_failover(payload)
-      index = 0
       failover_handlers = configuration.failover_handlers
 
-      begin
-        handler = failover_handlers[index]
-        handler.call(payload)
-      rescue => e
-        index += 1
-
-        if index >= failover_handlers.size
-          report_internal_error(e)
-        else
-          retry
+      failover_handlers.each do |handler|
+        begin
+          handler.call(payload)
+        rescue
+          next unless handler == failover_handlers.last
+          raise
         end
       end
     end
