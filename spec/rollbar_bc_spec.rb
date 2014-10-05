@@ -7,56 +7,58 @@ describe Rollbar do
   let(:notifier) { Rollbar.notifier }
 
   context 'bc_report_message' do
-    before(:each) do
+    before do
       configure
       Rollbar.configure do |config|
         config.logger = logger_mock
       end
     end
 
-    after(:each) do
-      Rollbar.unconfigure
-      configure
+    let(:logger_mock) { double('Rails.logger').as_null_object }
+    let(:user) do
+      User.create(:email => 'email@example.com',
+                  :encrypted_password => '',
+                  :created_at => Time.now,
+                  :updated_at => Time.now)
     end
-
-    let(:logger_mock) { double("Rails.logger").as_null_object }
-    let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
     it 'should report simple messages' do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message("Test message")
+
+      Rollbar.report_message('Test message')
     end
 
     it 'should not report anything when disabled' do
       logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+
       Rollbar.configure do |config|
         config.enabled = false
       end
 
-      Rollbar.report_message("Test message that should be ignored")
+      Rollbar.report_message('Test message that should be ignored')
     end
 
     it 'should report messages with extra data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message("Test message with extra data", 'debug', :foo => "bar",
-                               :hash => { :a => 123, :b => "xyz" })
+      Rollbar.report_message('Test message with extra data', 'debug', :foo => 'bar',
+                               :hash => { :a => 123, :b => 'xyz' })
     end
 
     it 'should not crash with circular extra_data' do
-      a = { :foo => "bar" }
+      a = { :foo => 'bar' }
       b = { :a => a }
       c = { :b => b }
       a[:c] = c
 
       logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
 
-      Rollbar.report_message("Test message with circular extra data", 'debug', a)
+      Rollbar.report_message('Test message with circular extra data', 'debug', a)
     end
 
     it 'should be able to report form validation errors when they are present' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      user.errors.add(:example, "error")
+      user.errors.add(:example, 'error')
       user.report_validation_errors_to_rollbar
     end
 
@@ -80,13 +82,13 @@ describe Rollbar do
       configure
     end
 
-    let(:logger_mock) { double("Rails.logger").as_null_object }
+    let(:logger_mock) { double('Rails.logger').as_null_object }
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
     it 'should report simple messages' do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message_with_request("Test message")
+      Rollbar.report_message_with_request('Test message')
 
       Rollbar.last_report[:request].should be_nil
       Rollbar.last_report[:person].should be_nil
@@ -111,7 +113,7 @@ describe Rollbar do
         :extra_foo => 'extra_bar'
       }
 
-      Rollbar.report_message_with_request("Test message", 'info', request_data, person_data, extra_data)
+      Rollbar.report_message_with_request('Test message', 'info', request_data, person_data, extra_data)
 
       Rollbar.last_report[:request].should == request_data
       Rollbar.last_report[:person].should == person_data
@@ -138,7 +140,7 @@ describe Rollbar do
       configure
     end
 
-    let(:logger_mock) { double("Rails.logger").as_null_object }
+    let(:logger_mock) { double('Rails.logger').as_null_object }
 
     it 'should report exceptions without person or request data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
@@ -183,39 +185,42 @@ describe Rollbar do
     it 'should report exceptions with request and person data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       request_data = {
-        :params => { :foo => "bar" },
+        :params => { :foo => 'bar' },
         :url => 'http://localhost/',
         :user_ip => '127.0.0.1',
         :headers => {},
-        :GET => { "baz" => "boz" },
+        :GET => { 'baz' => 'boz' },
         :session => { :user_id => 123 },
-        :method => "GET",
+        :method => 'GET',
       }
       person_data = {
         :id => 1,
-        :username => "test",
-        :email => "test@example.com"
+        :username => 'test',
+        :email => 'test@example.com'
       }
       Rollbar.report_exception(@exception, request_data, person_data)
     end
 
-    it "should work with an IO object as rack.errors" do
+    it 'should work with an IO object as rack.errors' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
+
       request_data = {
-        :params => { :foo => "bar" },
+        :params => { :foo => 'bar' },
         :url => 'http://localhost/',
         :user_ip => '127.0.0.1',
         :headers => {},
-        :GET => { "baz" => "boz" },
+        :GET => { 'baz' => 'boz' },
         :session => { :user_id => 123 },
-        :method => "GET",
-        :env => { :"rack.errors" => IO.new(2, File::WRONLY) },
+        :method => 'GET',
+        :env => { :'rack.errors' => IO.new(2, File::WRONLY) },
       }
+
       person_data = {
         :id => 1,
-        :username => "test",
-        :email => "test@example.com"
+        :username => 'test',
+        :email => 'test@example.com'
       }
+
       Rollbar.report_exception(@exception, request_data, person_data)
     end
 
@@ -240,8 +245,8 @@ describe Rollbar do
 
       person_data = {
         :id => 1,
-        :username => "test",
-        :email => "test@example.com"
+        :username => 'test',
+        :email => 'test@example.com'
       }
       Rollbar.report_exception(@exception, {}, person_data)
     end
@@ -255,16 +260,16 @@ describe Rollbar do
 
       person_data = {
         :id => 1,
-        :username => "test",
-        :email => "test@example.com"
+        :username => 'test',
+        :email => 'test@example.com'
       }
       Rollbar.report_exception(@exception, {}, person_data)
       Rollbar.last_report.should be_nil
 
       person_data = {
         :id => 2,
-        :username => "test2",
-        :email => "test2@example.com"
+        :username => 'test2',
+        :email => 'test2@example.com'
       }
       Rollbar.report_exception(@exception, {}, person_data)
       Rollbar.last_report.should_not be_nil
@@ -276,7 +281,7 @@ describe Rollbar do
         config.exception_level_filters = { 'NameError' => callable_mock }
       end
 
-      callable_mock.should_receive(:call).with(@exception).at_least(:once).and_return("info")
+      callable_mock.should_receive(:call).with(@exception).at_least(:once).and_return('info')
       logger_mock.should_receive(:info)
       logger_mock.should_not_receive(:error)
 
@@ -303,21 +308,21 @@ describe Rollbar do
       payload = nil
 
       notifier.stub(:schedule_payload) do |*args|
-        payload = MultiJson.load(args[0])
+        payload = args[0]
       end
 
-      notifier.report_exception(StandardError.new("oops"))
+      notifier.report_exception(StandardError.new('oops'))
 
-      payload["data"]["body"]["trace"]["frames"].should == []
-      payload["data"]["body"]["trace"]["exception"]["class"].should == "StandardError"
-      payload["data"]["body"]["trace"]["exception"]["message"].should == "oops"
+      payload['data'][:body][:trace][:frames].should == []
+      payload['data'][:body][:trace][:exception][:class].should == 'StandardError'
+      payload['data'][:body][:trace][:exception][:message].should == 'oops'
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
         notifier.stub(:schedule_payload) do |*args| end
 
-        exception_data = notifier.report_exception(StandardError.new("oops"))
+        exception_data = notifier.report_exception(StandardError.new('oops'))
         exception_data[:uuid].should_not be_nil
       end
     end
@@ -326,36 +331,36 @@ describe Rollbar do
       payload = nil
 
       notifier.stub(:schedule_payload) do |*args|
-        payload = MultiJson.load(args[0])
+        payload = args[0]
       end
 
       class CustomException < StandardError
         def backtrace
-          ["custom backtrace line"]
+          ['custom backtrace line']
         end
       end
 
-      exception = CustomException.new("oops")
+      exception = CustomException.new('oops')
 
       notifier.report_exception(exception)
 
-      payload["data"]["body"]["trace"]["frames"][0]["method"].should == "custom backtrace line"
+      payload['data'][:body][:trace][:frames][0][:method].should == 'custom backtrace line'
     end
 
     it 'should report exceptions with a custom level' do
       payload = nil
 
       notifier.stub(:schedule_payload) do |*args|
-        payload = MultiJson.load(args[0])
+        payload = args[0]
       end
 
       notifier.report_exception(@exception)
 
-      payload["data"]["level"].should == 'error'
+      payload['data'][:level].should == 'error'
 
       notifier.report_exception(@exception, nil, nil, 'debug')
 
-      payload["data"]["level"].should == 'debug'
+      payload['data'][:level].should == 'debug'
     end
   end
 
