@@ -152,5 +152,15 @@ describe Rollbar::Middleware::Sinatra do
         expect(Rollbar.last_report[:request][:params]).to be_eql(params)
       end
     end
+
+    it 'resets the notifier in every request' do
+      get '/bar'
+      id1 = Rollbar.notifier.object_id
+
+      get '/bar'
+      id2 = Rollbar.notifier.object_id
+
+      expect(id1).not_to be_eql(id2)
+    end
   end
 end
