@@ -4,6 +4,8 @@ require 'logger'
 require 'spec_helper'
 
 describe Rollbar do
+  let(:notifier) { Rollbar.notifier }
+
   context 'bc_report_message' do
     before(:each) do
       configure
@@ -11,7 +13,7 @@ describe Rollbar do
         config.logger = logger_mock
       end
     end
-    
+
     after(:each) do
       Rollbar.unconfigure
       configure
@@ -72,7 +74,7 @@ describe Rollbar do
         config.logger = logger_mock
       end
     end
-    
+
     after(:each) do
       Rollbar.unconfigure
       configure
@@ -86,12 +88,12 @@ describe Rollbar do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.report_message_with_request("Test message")
 
-      Rollbar._last_report[:request].should be_nil
-      Rollbar._last_report[:person].should be_nil
+      Rollbar.last_report[:request].should be_nil
+      Rollbar.last_report[:person].should be_nil
     end
 
     it 'should report messages with request, person data and extra data' do
-      Rollbar._last_report = nil
+      Rollbar.last_report = nil
 
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
@@ -111,9 +113,9 @@ describe Rollbar do
 
       Rollbar.report_message_with_request("Test message", 'info', request_data, person_data, extra_data)
 
-      Rollbar._last_report[:request].should == request_data
-      Rollbar._last_report[:person].should == person_data
-      Rollbar._last_report[:body][:message][:extra][:extra_foo].should == 'extra_bar'
+      Rollbar.last_report[:request].should == request_data
+      Rollbar.last_report[:person].should == person_data
+      Rollbar.last_report[:body][:message][:extra][:extra_foo].should == 'extra_bar'
     end
   end
 
@@ -130,7 +132,7 @@ describe Rollbar do
         @exception = e
       end
     end
-    
+
     after(:each) do
       Rollbar.unconfigure
       configure
@@ -249,7 +251,7 @@ describe Rollbar do
         config.ignored_person_ids += [1]
       end
 
-      Rollbar._last_report = nil
+      Rollbar.last_report = nil
 
       person_data = {
         :id => 1,
@@ -257,7 +259,7 @@ describe Rollbar do
         :email => "test@example.com"
       }
       Rollbar.report_exception(@exception, {}, person_data)
-      Rollbar._last_report.should be_nil
+      Rollbar.last_report.should be_nil
 
       person_data = {
         :id => 2,
@@ -265,7 +267,7 @@ describe Rollbar do
         :email => "test2@example.com"
       }
       Rollbar.report_exception(@exception, {}, person_data)
-      Rollbar._last_report.should_not be_nil
+      Rollbar.last_report.should_not be_nil
     end
 
     it 'should allow callables to set exception filtered level' do
@@ -282,7 +284,7 @@ describe Rollbar do
     end
 
     it 'should not report exceptions when silenced' do
-      Rollbar._notifier.should_not_receive :schedule_payload
+      notifier.should_not_receive :schedule_payload
 
       begin
         test_var = 1
@@ -291,7 +293,7 @@ describe Rollbar do
           raise
         end
       rescue => e
-        Rollbar.report_exception(e)
+        notifier.report_exception(e)
       end
 
       test_var.should == 2
@@ -299,10 +301,13 @@ describe Rollbar do
 
     it 'should report exception objects with no backtrace' do
       payload = nil
-      Rollbar._notifier.stub(:schedule_payload) do |*args|
+
+      notifier.stub(:schedule_payload) do |*args|
         payload = MultiJson.load(args[0])
       end
-      Rollbar.report_exception(StandardError.new("oops"))
+
+      notifier.report_exception(StandardError.new("oops"))
+
       payload["data"]["body"]["trace"]["frames"].should == []
       payload["data"]["body"]["trace"]["exception"]["class"].should == "StandardError"
       payload["data"]["body"]["trace"]["exception"]["message"].should == "oops"
@@ -310,15 +315,17 @@ describe Rollbar do
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-        Rollbar._notifier.stub(:schedule_payload) do |*args| end
-        exception_data = Rollbar.report_exception(StandardError.new("oops"))
+        notifier.stub(:schedule_payload) do |*args| end
+
+        exception_data = notifier.report_exception(StandardError.new("oops"))
         exception_data[:uuid].should_not be_nil
       end
     end
 
     it 'should report exception objects with nonstandard backtraces' do
       payload = nil
-      Rollbar._notifier.stub(:schedule_payload) do |*args|
+
+      notifier.stub(:schedule_payload) do |*args|
         payload = MultiJson.load(args[0])
       end
 
@@ -330,22 +337,23 @@ describe Rollbar do
 
       exception = CustomException.new("oops")
 
-      Rollbar.report_exception(exception)
+      notifier.report_exception(exception)
 
       payload["data"]["body"]["trace"]["frames"][0]["method"].should == "custom backtrace line"
     end
 
     it 'should report exceptions with a custom level' do
       payload = nil
-      Rollbar._notifier.stub(:schedule_payload) do |*args|
+
+      notifier.stub(:schedule_payload) do |*args|
         payload = MultiJson.load(args[0])
       end
 
-      Rollbar.report_exception(@exception)
+      notifier.report_exception(@exception)
 
       payload["data"]["level"].should == 'error'
 
-      Rollbar.report_exception(@exception, nil, nil, 'debug')
+      notifier.report_exception(@exception, nil, nil, 'debug')
 
       payload["data"]["level"].should == 'debug'
     end
