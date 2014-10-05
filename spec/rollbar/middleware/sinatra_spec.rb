@@ -15,6 +15,10 @@ class SinatraDummy < Sinatra::Base
   get '/bar' do
     'this will not crash'
   end
+
+  post '/crash_post' do
+    raise DummyError.new
+  end
 end
 
 describe Rollbar::Middleware::Sinatra do
@@ -24,8 +28,21 @@ describe Rollbar::Middleware::Sinatra do
     SinatraDummy
   end
 
+  let(:logger_mock) { double('logger').as_null_object }
+
+  before do
+    Rollbar.reconfigure do |config|
+      config.logger = logger_mock
+      config.framework = 'Sinatra'
+    end
+  end
+
+  let(:uncaught_level) do
+    Rollbar.configuration.uncaught_exception_level
+  end
+
   let(:expected_report_args) do
-    [exception, kind_of(Hash), kind_of(Hash)]
+    [uncaught_level, exception]
   end
 
   describe '#call' do
@@ -39,7 +56,7 @@ describe Rollbar::Middleware::Sinatra do
         end
 
         it 'reports the error to Rollbar API and raises error' do
-          expect(Rollbar).to receive(:report_exception).with(*expected_report_args)
+          expect(Rollbar).to receive(:log).with(*expected_report_args)
 
           expect do
             get '/foo'
@@ -55,7 +72,7 @@ describe Rollbar::Middleware::Sinatra do
         end
 
         it 'reports the error to Rollbar, but nothing is raised' do
-          expect(Rollbar).to receive(:report_exception).with(*expected_report_args)
+          expect(Rollbar).to receive(:log).with(*expected_report_args)
           get '/foo'
         end
       end
@@ -63,7 +80,7 @@ describe Rollbar::Middleware::Sinatra do
 
     context 'for a NOT crashing endpoint' do
       it 'doesnt report any error to Rollbar API' do
-        expect(Rollbar).not_to receive(:report_exception)
+        expect(Rollbar).not_to receive(:log)
         get '/bar'
       end
     end
@@ -77,11 +94,62 @@ describe Rollbar::Middleware::Sinatra do
       end
 
       it 'reports the report error' do
-        expect(Rollbar).to receive(:report_exception).with(*expected_report_args)
+        expect(Rollbar).to receive(:log).with(*expected_report_args)
 
         expect do
           get '/foo'
         end.to raise_error(exception)
+      end
+    end
+
+    context 'with GET parameters' do
+      let(:exception) { kind_of(SinatraDummy::DummyError) }
+      let(:params) do
+        {
+          'key' => 'value'
+        }
+      end
+
+      it 'appear in the sent payload' do
+        expect do
+          get '/foo', params
+        end.to raise_error(exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      end
+    end
+
+    context 'with POST parameters' do
+      let(:exception) { kind_of(SinatraDummy::DummyError) }
+      let(:params) do
+        {
+          'key' => 'value'
+        }
+      end
+
+      it 'appear in the sent payload' do
+        expect do
+          post '/crash_post', params
+        end.to raise_error(exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      end
+    end
+
+    context 'with JSON POST parameters' do
+      let(:exception) { kind_of(SinatraDummy::DummyError) }
+      let(:params) do
+        {
+          'key' => 'value'
+        }
+      end
+
+      it 'appear in the sent payload' do
+        expect do
+          post '/crash_post', params.to_json, { 'CONTENT_TYPE' => 'application/json' }
+        end.to raise_error(exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
       end
     end
   end
