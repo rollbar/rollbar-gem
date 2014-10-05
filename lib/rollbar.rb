@@ -247,10 +247,8 @@ module Rollbar
         return
       end
 
-      result = MultiJson.dump(payload)
-
       begin
-        process_payload(result)
+        process_payload(payload)
       rescue => e
         send_failsafe("error in process_payload", e)
         return
