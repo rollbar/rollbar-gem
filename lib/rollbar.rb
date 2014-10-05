@@ -210,55 +210,23 @@ module Rollbar
       end
     end
 
-    def get_payload_json(payload)
-      enforce_valid_utf8(payload[:data])
-      scrub_payload(payload[:data])
-
-      result = MultiJson.dump(payload)
-
-      # Try to truncate strings in the payload a few times if the payload is too big
-      original_size = result.bytesize
-      if original_size > MAX_PAYLOAD_SIZE
-        thresholds = [1024, 512, 256, 128]
-        thresholds.each_with_index do |threshold, i|
-          new_payload = payload.clone
-
-          truncate_payload(new_payload, threshold)
-
-          result = MultiJson.dump(new_payload)
-
-          if result.bytesize <= MAX_PAYLOAD_SIZE
-            break
-          elsif i == thresholds.length - 1
-            final_size = result.bytesize
-            send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-            log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
-            return 'error'
-          end
-        end
-      end
-
-      result
-    end
-
     def report(level, message, exception, extra)
-      unless message or exception or extra
+      unless message || exception || extra
         log_error "[Rollbar] Tried to send a report with no message, exception or extra data."
         return 'error'
       end
 
       payload = build_payload(level, message, exception, extra)
-      evaluate_payload(payload[:data])
+      data = payload['data']
+      evaluate_payload(data)
 
-      if payload[:data][:person]
-        person_id = payload[:data][:person][configuration.person_id_method.to_sym]
+      if data[:person]
+        person_id = data[:person][configuration.person_id_method.to_sym]
         return 'ignored' if configuration.ignored_person_ids.include?(person_id)
       end
 
-      result = get_payload_json(payload)
-      schedule_payload(result)
+      schedule_payload(payload)
 
-      data = payload[:data]
       log_instance_link(data)
 
       Rollbar.last_report = data
@@ -289,7 +257,7 @@ module Rollbar
       end
 
       begin
-        log_instance_link(payload[:data])
+        log_instance_link(payload['data'])
       rescue => e
         send_failsafe("error logging instance link", e)
         return
@@ -300,10 +268,7 @@ module Rollbar
 
     def build_payload(level, message, exception, extra)
       environment = configuration.environment
-
-      if environment.nil? || environment.empty?
-        environment = 'unspecified'
-      end
+      environment = 'unspecified' if environment.nil? || environment.empty?
 
       data = {
         :timestamp => Time.now.to_i,
@@ -318,34 +283,23 @@ module Rollbar
         }
       }
 
-      body = build_payload_body(message, exception, extra)
+      data[:body] = build_payload_body(message, exception, extra)
+      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
+      data[:code_version] = configuration.code_version if configuration.code_version
+      data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
-      data[:body] = body
-
-      if configuration.project_gem_paths
-        data[:project_package_paths] = configuration.project_gem_paths
-      end
-
-      if configuration.code_version
-        data[:code_version] = configuration.code_version
-      end
-
-      if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-        data[:uuid] = SecureRandom.uuid
-      end
-
-      Rollbar::Util::deep_merge(data, configuration.payload_options)
+      Rollbar::Util.deep_merge(data, configuration.payload_options)
 
       {
-        :access_token => configuration.access_token,
-        :data => data
+        'access_token' => configuration.access_token,
+        'data' => data
       }
     end
 
     def build_payload_body(message, exception, extra)
       unless configuration.custom_data_method.nil?
-        custom = Rollbar::Util::deep_copy(configuration.custom_data_method.call)
-        extra = Rollbar::Util::deep_merge(custom, extra || {})
+        custom = Rollbar::Util.deep_copy(configuration.custom_data_method.call)
+        extra = Rollbar::Util.deep_merge(custom, extra || {})
       end
 
       if exception
@@ -356,6 +310,19 @@ module Rollbar
     end
 
     def build_payload_body_exception(message, exception, extra)
+      traces = trace_chain(exception)
+
+      traces[0][:exception][:description] = message if message
+      traces[0][:extra] = extra if extra
+
+      if traces.size > 1
+        { :trace_chain => traces }
+      elsif traces.size == 1
+        { :trace => traces[0] }
+      end
+    end
+
+    def trace_data(exception)
       # parse backtrace
       if exception.backtrace.respond_to?( :map )
         frames = exception.backtrace.map { |frame|
@@ -373,35 +340,31 @@ module Rollbar
         frames = []
       end
 
-      body = {
-        :trace => {
-          :frames => frames,
-          :exception => {
-            :class => exception.class.name,
-            :message => exception.message
-          }
+      {
+        :frames => frames,
+        :exception => {
+          :class => exception.class.name,
+          :message => exception.message
         }
       }
+    end
 
-      if message
-        body[:trace][:exception][:description] = message
+    def trace_chain(exception)
+      traces = [trace_data(exception)]
+
+      while exception.respond_to?(:cause) && (cause = exception.cause)
+        traces << trace_data(cause)
+        exception = cause
       end
 
-      if extra
-        body[:trace][:extra] = extra
-      end
-
-      body
+      traces
     end
 
     def build_payload_body_message(message, extra)
-      result = {:body => message || 'Empty message'}
+      result = { :body => message || 'Empty message'}
+      result[:extra] = extra if extra
 
-      if extra
-        result[:extra] = extra
-      end
-
-      {:message => result}
+      { :message => result }
     end
 
     def server_data
@@ -417,7 +380,7 @@ module Rollbar
     # Walks the entire payload and replaces callable values with
     # their results
     def evaluate_payload(payload)
-      evaluator = Proc.new do |key, value|
+      evaluator = proc do |key, value|
         result = value
 
         if value.respond_to? :call
@@ -432,7 +395,7 @@ module Rollbar
         result
       end
 
-      Rollbar::Util::iterate_and_update_hash(payload, evaluator)
+      Rollbar::Util.iterate_and_update_hash(payload, evaluator)
     end
 
     # Walks the entire payload and replaces values with asterisks
@@ -458,37 +421,41 @@ module Rollbar
         end
       end
 
-      Rollbar::Util::iterate_and_update_hash(payload, scrubber)
+      Rollbar::Util.iterate_and_update_hash(payload, scrubber)
     end
 
     def enforce_valid_utf8(payload)
-      normalizer = Proc.new do |value|
-        if value.is_a?(String)
-          if value.respond_to? :encode
-            value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
-          else
-            ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
-          end
+      normalizer = lambda do |object|
+        is_symbol = object.is_a?(Symbol)
+
+        return object unless object == object.to_s || is_symbol
+
+        value = object.to_s
+
+        if value.respond_to? :encode
+          encoded_value = value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
         else
-          value
+          encoded_value = ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
         end
+
+        is_symbol ? encoded_value.to_sym : encoded_value
       end
 
-      Rollbar::Util::iterate_and_update(payload, normalizer)
+      Rollbar::Util.iterate_and_update(payload, normalizer)
     end
 
     # Walks the entire payload and truncates string values that
     # are longer than the byte_threshold
     def truncate_payload(payload, byte_threshold)
-      truncator = Proc.new do |value|
-        if value.is_a?(String) and value.bytesize > byte_threshold
-          Rollbar::Util::truncate(value, byte_threshold)
+      truncator = proc do |value|
+        if value.is_a?(String) && value.bytesize > byte_threshold
+          Rollbar::Util.truncate(value, byte_threshold)
         else
           value
         end
       end
 
-      Rollbar::Util::iterate_and_update(payload, truncator)
+      Rollbar::Util.iterate_and_update(payload, truncator)
     end
 
     ## Delivery functions
@@ -513,13 +480,36 @@ module Rollbar
       end
     end
 
+    def send_payload_using_eventmachine(payload)
+      body = dump_payload(payload)
+      headers = { 'X-Rollbar-Access-Token' => payload['access_token'] }
+      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
+
+      req.callback do
+        if req.response_header.status == 200
+          log_info '[Rollbar] Success'
+        else
+          log_warning "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
+          log_info "[Rollbar] Response: #{req.response}"
+        end
+      end
+
+      req.errback do
+        log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+        log_info "[Rollbar] Error's response: #{req.response}"
+      end
+    end
+
     def send_payload(payload)
       log_info '[Rollbar] Sending payload'
+      payload = MultiJson.load(payload) if payload.is_a?(String)
 
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
         return
       end
+
+      body = dump_payload(payload)
 
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -531,8 +521,8 @@ module Rollbar
       end
 
       request = Net::HTTP::Post.new(uri.request_uri)
-      request.body = payload
-      request.add_field('X-Rollbar-Access-Token', configuration.access_token)
+      request.body = body
+      request.add_field('X-Rollbar-Access-Token', payload['access_token'])
       response = http.request(request)
 
       if response.code == '200'
@@ -572,24 +562,60 @@ module Rollbar
       config = configuration
       environment = config.environment
 
-      failsafe_payload = <<-eos
-      {"access_token": "#{config.access_token}",
-       "data": {
-         "level": "error",
-         "environment": "#{config.environment}",
-         "body": { "message": { "body": "Failsafe from rollbar-gem: #{message}" } },
-         "notifier": { "name": "rollbar-gem", "version": "#{VERSION}" },
-         "internal": true,
-         "failsafe": true
-       }
+      failsafe_data = {
+        :level => 'error',
+        :environment => environment.to_s,
+        :body => {
+          :message => {
+            :body => "Failsafe from rollbar-gem: #{message}"
+          }
+        },
+        :notifier => {
+          :name => 'rollbar-gem',
+          :version => VERSION
+        },
+        :internal => true,
+        :failsafe => true
       }
-      eos
+
+      failsafe_payload = {
+        'access_token' => configuration.access_token,
+        'data' => failsafe_data
+      }
 
       begin
         schedule_payload(failsafe_payload)
       rescue => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
+    end
+
+    def dump_payload(payload)
+      result = MultiJson.dump(payload)
+
+      # Try to truncate strings in the payload a few times if the payload is too big
+      original_size = result.bytesize
+      if original_size > MAX_PAYLOAD_SIZE
+        thresholds = [1024, 512, 256]
+        thresholds.each_with_index do |threshold, i|
+          new_payload = payload.clone
+
+          truncate_payload(new_payload, threshold)
+
+          result = MultiJson.dump(new_payload)
+
+          if result.bytesize <= MAX_PAYLOAD_SIZE
+            break
+          elsif i == thresholds.length - 1
+            final_size = result.bytesize
+            send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
+            log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
+            return
+          end
+        end
+      end
+
+      result
     end
 
     def default_async_handler(payload)

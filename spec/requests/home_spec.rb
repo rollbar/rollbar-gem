@@ -6,7 +6,7 @@ describe HomeController do
   before(:each) do
     reset_configuration
     Rollbar.configure do |config|
-      config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+      config.access_token = 'bfec94a1ede64984b862880224edd0ed'
       config.environment = ::Rails.env
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
@@ -44,11 +44,13 @@ describe HomeController do
     end
 
     it "should report uncaught exceptions" do
-      expect{ get 'current_user' }.to raise_exception
+      expect { get 'current_user' }.to raise_exception
 
-      exception_info = Rollbar.last_report[:body][:trace][:exception]
-      exception_info[:class].should == 'NoMethodError'
-      # exception_info[:message].should == 'undefined method `-\' for "1":String'
+      body = Rollbar.last_report[:body]
+      trace = body[:trace] && body[:trace] || body[:trace_chain][0]
+
+      trace[:exception][:class].should == 'NoMethodError'
+      trace[:exception][:message].should == 'undefined method `-\' for "1":String'
     end
   end
 end

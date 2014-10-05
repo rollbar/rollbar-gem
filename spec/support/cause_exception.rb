@@ -1,0 +1,1 @@
+class CauseException < StandardError; end
