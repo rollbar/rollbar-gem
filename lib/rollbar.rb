@@ -105,9 +105,7 @@ module Rollbar
         end
       end
 
-      if exception and ignored?(exception)
-        return 'ignored'
-      end
+      return 'ignored' if ignored?(exception)
 
       begin
         report(level, message, exception, extra)
@@ -195,6 +193,7 @@ module Rollbar
     end
 
     def ignored?(exception)
+      return false unless exception
       return true if filtered_level(exception) == 'ignore'
       return true if exception.instance_variable_get(:@_rollbar_do_not_report)
 
