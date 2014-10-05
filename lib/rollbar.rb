@@ -398,32 +398,6 @@ module Rollbar
       Rollbar::Util.iterate_and_update_hash(payload, evaluator)
     end
 
-    # Walks the entire payload and replaces values with asterisks
-    # for keys that are part of the sensetive params list
-    def scrub_payload(payload)
-      @sensitive_params_regexp ||= Regexp.new(configuration.scrub_fields.map do |val|
-          Regexp.escape(val.to_s).to_s
-        end.join('|'), true)
-
-      scrubber = Proc.new do |key, value|
-        if @sensitive_params_regexp =~ key.to_s
-          '*' * (value.length rescue 8)
-        elsif ATTACHMENT_CLASSES.include?(value.class.name)
-          {
-            :content_type => value.content_type,
-            :original_filename => value.original_filename,
-            :size => value.tempfile.size
-          } rescue 'Uploaded file'
-        elsif value.is_a?(IO)
-          'IO'
-        else
-          value
-        end
-      end
-
-      Rollbar::Util.iterate_and_update_hash(payload, scrubber)
-    end
-
     def enforce_valid_utf8(payload)
       normalizer = lambda do |object|
         is_symbol = object.is_a?(Symbol)
