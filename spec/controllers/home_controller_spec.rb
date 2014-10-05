@@ -2,8 +2,9 @@ require 'spec_helper'
 
 describe HomeController do
   let(:logger_mock) { double("Rails.logger").as_null_object }
+  let(:notifier) { Rollbar.notifier }
 
-  before(:each) do
+  before do
     reset_configuration
     Rollbar::Rails.initialize
     Rollbar.configure do |config|
@@ -16,7 +17,7 @@ describe HomeController do
   context "rollbar base_data" do
     it 'should have the Rails environment' do
       data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
-      data[:data][:environment].should == ::Rails.env
+      data['data'][:environment].should == ::Rails.env
     end
 
     it 'should have an overridden environment' do
@@ -25,16 +26,15 @@ describe HomeController do
       end
 
       data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
-      data[:data][:environment].should == 'dev'
+      data['data'][:environment].should == 'dev'
     end
 
     it 'should use the default "unspecified" environment if rails env ends up being empty' do
-      old_env = ::Rails.env
-      ::Rails.env = ''
+      old_env, ::Rails.env = ::Rails.env, ''
       Rollbar::Rails.initialize
 
       data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
-      data[:data][:environment].should == 'unspecified'
+      data['data'][:environment].should == 'unspecified'
 
       ::Rails.env = old_env
     end
@@ -211,7 +211,9 @@ describe HomeController do
       filtered = Rollbar.last_report[:request][:params]
 
       filtered["passwd"].should == "visible"
-      filtered["password"].should == "visible"
+      # config.filter_parameters is set to [:password] in
+      # spec/dummyapp/config/application.rb
+      filtered["password"].should == "*******"
       filtered["secret"].should == "******"
       filtered["notpass"].should == "******"
     end
@@ -246,8 +248,8 @@ describe HomeController do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       @request.env["HTTP_ACCEPT"] = "application/json"
 
-      params = {:jsonparam => 'jsonval'}.to_json
-      post 'report_exception', params, {'CONTENT_TYPE' => 'application/json'}
+      params = { :jsonparam => 'jsonval' }.to_json
+      post 'report_exception', params, { 'CONTENT_TYPE' => 'application/json' }
 
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'

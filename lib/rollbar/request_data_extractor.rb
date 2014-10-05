@@ -20,11 +20,12 @@ module Rollbar
       request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
       get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
+      raw_post_params = rollbar_filtered_params(sensitive_params, rollbar_raw_post_params(rack_req))
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
-      params = request_params.merge(get_params).merge(post_params)
+      params = request_params.merge(get_params).merge(post_params).merge(raw_post_params)
 
       data = {
         :params => params,
@@ -98,6 +99,15 @@ module Rollbar
       {}
     end
 
+    def rollbar_raw_post_params(rack_req)
+      return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
+
+      params = MultiJson.decode(rack_req.body.read)
+      rack_req.body.rewind
+
+      params
+    end
+
     def rollbar_request_params(env)
       env['action_dispatch.request.parameters'] || {}
     end
@@ -122,18 +132,20 @@ module Rollbar
     end
 
     def rollbar_filtered_params(sensitive_params, params)
-      @sensitive_params_regexp ||= Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+      sensitive_params_regexp = Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
 
       if params.nil?
         {}
       else
         params.to_hash.inject({}) do |result, (key, value)|
-          if @sensitive_params_regexp =~ key.to_s
+          if sensitive_params_regexp =~ key.to_s
             result[key] = rollbar_scrubbed(value)
           elsif value.is_a?(Hash)
             result[key] = rollbar_filtered_params(sensitive_params, value)
           elsif value.is_a?(Array)
-            result[key] = value.map {|v| v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v}
+            result[key] = value.map do |v|
+              v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v
+            end
           elsif ATTACHMENT_CLASSES.include?(value.class.name)
             result[key] = {
               :content_type => value.content_type,
@@ -143,6 +155,7 @@ module Rollbar
           else
             result[key] = value
           end
+
           result
         end
       end
