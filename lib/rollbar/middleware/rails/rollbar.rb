@@ -15,7 +15,11 @@ module Rollbar
           Rollbar.scoped(fetch_scope(env)) do
             begin
               response = @app.call(env)
-              report_exception_to_rollbar(env, env['rack.exception']) if env['rack.exception']
+
+              if (framework_exception = env['action_dispatch.exception'])
+                report_exception_to_rollbar(env, framework_exception)
+              end
+
               response
             rescue Exception => exception
               report_exception_to_rollbar(env, exception)
