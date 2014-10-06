@@ -2,6 +2,8 @@ module Rollbar
   module ExceptionReporter
     include RequestDataExtractor
 
+    protected
+
     def report_exception_to_rollbar(env, exception)
       Rollbar.log_error "Reporting exception: #{exception.message}"
       request_data = extract_request_data_from_rack(env)
