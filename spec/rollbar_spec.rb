@@ -1587,7 +1587,7 @@ describe Rollbar do
 
   describe '.scoped' do
     let(:scope_options) do
-      { foo: 'bar' }
+      { :foo => 'bar' }
     end
 
     it 'changes payload options inside the block' do
