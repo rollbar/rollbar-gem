@@ -157,6 +157,7 @@ describe Rollbar do
       end
 
       it 'should not modify any parent notifier configuration' do
+        configure
         Rollbar.configuration.code_version.should be_nil
         Rollbar.configuration.payload_options.should be_empty
 
