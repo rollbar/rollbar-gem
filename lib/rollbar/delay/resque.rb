@@ -12,7 +12,11 @@ module Rollbar
       end
 
       class Job
-        def self.queue; 'default'; end
+        class << self
+          attr_accessor :queue
+        end
+
+        self.queue = :default
 
         def self.perform(payload)
           new.perform(payload)

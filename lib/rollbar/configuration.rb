@@ -79,6 +79,15 @@ module Rollbar
       @async_handler  = Rollbar::Delay::Sidekiq.new(options)
     end
 
+    def use_resque(options = {})
+      require 'rollbar/delay/resque' if defined?(Resque)
+
+      Rollbar::Delay::Resque::Job.queue = options[:queue] if options[:queue]
+
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::Resque
+    end
+
     def use_sidekiq=(value)
       deprecation_message = "#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration."
       defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)

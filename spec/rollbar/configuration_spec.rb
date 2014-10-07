@@ -11,4 +11,14 @@ describe Rollbar::Configuration do
       expect(subject.async_handler).to be_eql(Rollbar::Delay::Thread)
     end
   end
+
+  describe '#use_resque' do
+    it 'enables async and sets Resque as the handler' do
+      require 'resque'
+      subject.use_resque(:queue => 'errors')
+
+      expect(subject.use_async).to be_eql(true)
+      expect(subject.async_handler).to be_eql(Rollbar::Delay::Resque)
+    end
+  end
 end
