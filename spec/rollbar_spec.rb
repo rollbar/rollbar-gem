@@ -12,6 +12,7 @@ rescue LoadError
 end
 
 describe Rollbar do
+  let(:configuration) { Rollbar.configuration }
 
   describe '.report_exception' do
     before(:each) do
@@ -443,14 +444,14 @@ describe Rollbar do
 
       Rollbar.configure do |config|
         config.use_async = true
-        GirlFriday::WorkQueue::immediate!
+        GirlFriday::WorkQueue.immediate!
       end
 
       Rollbar.report_exception(@exception)
 
       Rollbar.configure do |config|
         config.use_async = false
-        GirlFriday::WorkQueue::queue!
+        GirlFriday::WorkQueue.queue!
       end
     end
 
@@ -471,7 +472,7 @@ describe Rollbar do
 
       Rollbar.configure do |config|
         config.use_async = false
-        config.async_handler = Rollbar.method(:default_async_handler)
+        config.async_handler = Rollbar.default_async_handler
       end
     end
 
@@ -498,6 +499,84 @@ describe Rollbar do
 
         Rollbar.report_exception(@exception)
       end
+
+      context 'with async failover handlers' do
+        before do
+          Rollbar.reconfigure do |config|
+            config.use_async = true
+            config.async_handler = async_handler
+            config.failover_handlers = handlers
+            config.logger = logger_mock
+          end
+        end
+
+        let(:exception) { StandardError.new('the error') }
+
+        context 'if the async handler doesnt fail' do
+          let(:async_handler) { proc { |_| 'success' } }
+          let(:handler) { proc { |_| 'success' } }
+          let(:handlers) { [handler] }
+
+          it 'doesnt call any failover handler' do
+            expect(handler).not_to receive(:call)
+
+            Rollbar.report_exception(exception)
+          end
+        end
+
+        context 'if the async handler fails' do
+          let(:async_handler) { proc { |_| fail 'this handler will crash' } }
+
+          context 'if any failover handlers is configured' do
+            let(:handlers) { [] }
+            let(:log_message) do
+              '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
+            end
+
+            it 'logs the error but doesnt try to report an internal error' do
+              expect(logger_mock).to receive(:error).with(log_message)
+
+              Rollbar.report_exception(exception)
+            end
+          end
+
+          context 'if the first failover handler success' do
+            let(:handler) { proc { |_| 'success' } }
+            let(:handlers) { [handler] }
+
+            it 'calls the failover handler and doesnt report internal error' do
+              expect(Rollbar).not_to receive(:report_internal_error)
+              expect(handler).to receive(:call)
+
+              Rollbar.report_exception(exception)
+            end
+          end
+
+          context 'with two handlers, the first failing' do
+            let(:handler1) { proc { |_| fail 'this handler fails' } }
+            let(:handler2) { proc { |_| 'success' } }
+            let(:handlers) { [handler1, handler2] }
+
+            it 'calls the second handler and doesnt report internal error' do
+              expect(handler2).to receive(:call)
+
+              Rollbar.report_exception(exception)
+            end
+          end
+
+          context 'with two handlers, both failing' do
+            let(:handler1) { proc { |_| fail 'this handler fails' } }
+            let(:handler2) { proc { |_| fail 'this will also fail' } }
+            let(:handlers) { [handler1, handler2] }
+
+            it 'reports internal error' do
+              expect(logger_mock).to receive(:error)
+
+              Rollbar.report_exception(exception)
+            end
+          end
+        end
+      end
     end
 
     describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
@@ -514,7 +593,7 @@ describe Rollbar do
 
         Rollbar.configure do |config|
           config.use_async = false
-          config.async_handler = Rollbar.method(:default_async_handler)
+          config.async_handler = Rollbar.default_async_handler
         end
       end
     end
@@ -539,7 +618,7 @@ describe Rollbar do
 
         Rollbar.configure do |config|
           config.use_async = false
-          config.async_handler = Rollbar.method(:default_async_handler)
+          config.async_handler = Rollbar.default_async_handler
         end
       end
     end

@@ -16,6 +16,8 @@ require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
+require 'rollbar/delay/girl_friday'
+require 'rollbar/delay/thread'
 
 unless ''.respond_to? :encode
   require 'iconv'
@@ -27,6 +29,8 @@ module Rollbar
   class << self
     attr_writer :configuration
     attr_accessor :last_report
+
+    @file_semaphore = Mutex.new
 
     # Similar to configure below, but used only internally within the gem
     # to configure it without initializing any of the third party hooks
@@ -46,9 +50,8 @@ module Rollbar
     #   end
     def configure
       # if configuration.enabled has not been set yet (is still 'nil'), set to true.
-      if configuration.enabled.nil?
-        configuration.enabled = true
-      end
+      configuration.enabled = true if configuration.enabled.nil?
+
       yield(configuration)
 
       require_hooks
@@ -225,6 +228,7 @@ module Rollbar
         puts "[Rollbar] #{message}"
       end
     end
+
     def log_debug(message)
       begin
         logger.debug message
@@ -232,6 +236,12 @@ module Rollbar
         puts "[Rollbar] Error logging debug"
         puts "[Rollbar] #{message}"
       end
+    end
+
+    def default_async_handler
+      return Rollbar::Delay::GirlFriday if defined?(GirlFriday)
+
+      Rollbar::Delay::Thread
     end
 
     private
@@ -450,26 +460,42 @@ module Rollbar
     end
 
     def schedule_payload(payload)
-      if payload.nil?
-        return
-      end
+      return if payload.nil?
 
       log_info '[Rollbar] Scheduling payload'
 
       if configuration.use_async
-        unless configuration.async_handler
-          configuration.async_handler = method(:default_async_handler)
-        end
-
-        if configuration.write_to_file
-          unless @file_semaphore
-            @file_semaphore = Mutex.new
-          end
-        end
-
-        configuration.async_handler.call(payload)
+        process_async_payload(payload)
       else
         process_payload(payload)
+      end
+    end
+
+    def process_async_payload(payload)
+      configuration.async_handler ||= default_async_handler
+      configuration.async_handler.call(payload)
+    rescue
+      if configuration.failover_handlers.empty?
+        log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
+        return
+      end
+
+      async_failover(payload)
+    end
+
+    def async_failover(payload)
+      log_warning '[Rollbar] Primary async handler failed. Trying failovers...'
+
+      failover_handlers = configuration.failover_handlers
+
+      failover_handlers.each do |handler|
+        begin
+          handler.call(payload)
+        rescue
+          next unless handler == failover_handlers.last
+
+          log_error "[Rollbar] All failover handlers failed while processing payload: #{MultiJson.dump(payload)}"
+        end
       end
     end
 
@@ -557,21 +583,6 @@ module Rollbar
       data[:branch] = config.branch if config.branch
 
       data
-    end
-
-    def default_async_handler(payload)
-      if defined?(GirlFriday)
-        unless @queue
-          @queue = GirlFriday::WorkQueue.new(nil, :size => 5) do |payload|
-            process_payload(payload)
-          end
-        end
-
-        @queue.push(payload)
-      else
-        log_warning '[Rollbar] girl_friday not found to handle async call, falling back to Thread'
-        Thread.new { process_payload(payload) }
-      end
     end
 
     # Reports an internal error in the Rollbar library. This will be reported within the configured

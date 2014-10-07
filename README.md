@@ -239,7 +239,7 @@ config.delayed_job_enabled = false
 
 ## Asynchronous reporting
 
-By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday) or [sucker_punch](https://github.com/brandonhilkert/sucker_punch) or [Sidekiq](https://github.com/mperham/sidekiq).
+By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday), [sucker_punch](https://github.com/brandonhilkert/sucker_punch), [Sidekiq](https://github.com/mperham/sidekiq), [Resque](https://github.com/resque/resque) or using threading.
 
 ### Using girl_friday
 
@@ -285,17 +285,61 @@ Start Sidekiq from the root directory of your Rails app and declare the name of 
 $ bundle exec sidekiq -q rollbar
 ```
 
-### Using another handler
+### Using Resque
 
-You can supply your own handler using ```config.async_handler```. The handler should schedule the payload for later processing (i.e. with a delayed_job, in a resque queue, etc.) and should itself return immediately. For example:
+Add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
+config.use_resque
+```
+
+You can also supply a custom Resque queue:
+
+```ruby
+config.use_resque :queue => 'my_queue'
+```
+
+Now you can just start a new Resque worker processing jobs in that queue:
+
+```bash
+$ QUEUE=my_queue bundle exec resque:work
+```
+
+### Using threading
+
+Add the following in ```config/initializers/rollbar.rb```:
+
+```ruby
+config.use_thread
+```
+
+### Using another handler
+
+You can supply your own handler using ```config.async_handler```. The object to set for `async_handler` should respond to `#call` and receive the payload. The handler should schedule the payload for later processing (i.e. with a delayed_job, in a resque queue, etc.) and should itself return immediately. For example:
+
+```ruby
+config.use_async
 config.async_handler = Proc.new { |payload|
   Thread.new { Rollbar.process_payload(payload) }
 }
 ```
 
 Make sure you pass ```payload``` to ```Rollbar.process_payload``` in your own implementation.
+
+## Failover handlers
+
+If you are using `async_handler` to process asynchronous the error it's possible that the handler fails before it calls `Rollbar.process_payload`. For example, for the Resque handler, the Redis connection could fail so the job is finally not processed.
+
+To ensure that the error is sent you can define a chain of failover handlers that Rollbar will use to send the payload in case that the primary handler fails. The failover handlers, as for `async_handler`, are just objects responding to `#call`.
+
+To configure the failover handlers you can add the following:
+
+```ruby
+config.use_resque
+config.failover_handlers = [Rollbar::Delay::GirlFriday, Rollbar::Delay::Thread]
+```
+
+With the configuration above Resque will be your primary asynchronous handler but if it fails queueing the job Rollbar will use GirlFriday at first, and just a thread in case that GirlFriday fails too.
 
 ## Using with rollbar-agent
 
