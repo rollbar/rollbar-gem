@@ -86,6 +86,12 @@ module Rollbar
       value.is_a?(Hash) ? use_sidekiq(value) : use_sidekiq
     end
 
+    def use_thread
+      require 'rollbar/delay/thread'
+      @use_async = true
+      @async_handler = Rollbar::Delay::Thread
+    end
+
     def use_sucker_punch
       require 'rollbar/delay/sucker_punch' if defined?(SuckerPunch)
       @use_async      = true
