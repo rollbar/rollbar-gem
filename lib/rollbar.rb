@@ -450,12 +450,17 @@ module Rollbar
       configuration.async_handler ||= default_async_handler
       configuration.async_handler.call(payload)
     rescue
-      raise unless configuration.failover_handlers.any?
+      if configuration.failover_handlers.empty?
+        log_error '[Rollbar] Async handler failed and there aren\'t any failover handler configured.'
+        return
+      end
 
       async_failover(payload)
     end
 
     def async_failover(payload)
+      log_warning '[Rollbar] Main async handler failed. Trying failovers...'
+
       failover_handlers = configuration.failover_handlers
 
       failover_handlers.each do |handler|
@@ -463,7 +468,8 @@ module Rollbar
           handler.call(payload)
         rescue
           next unless handler == failover_handlers.last
-          raise
+
+          log_error '[Rollbar] All failover handlers failed while processing payload'
         end
       end
     end

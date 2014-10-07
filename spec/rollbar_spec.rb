@@ -501,54 +501,76 @@ describe Rollbar do
       end
 
       context 'with async failover handlers' do
-        let(:async_handler) do
-          proc { |_| fail 'this handler will crash' }
-        end
-
-        let(:exception) { StandardError.new('the error') }
-
         before do
           Rollbar.reconfigure do |config|
             config.use_async = true
             config.async_handler = async_handler
             config.failover_handlers = handlers
+            config.logger = logger_mock
           end
         end
 
-        context 'if the handler success' do
+        let(:exception) { StandardError.new('the error') }
+
+        context 'if the async handler doesnt fail' do
+          let(:async_handler) { proc { |_| 'success' } }
           let(:handler) { proc { |_| 'success' } }
           let(:handlers) { [handler] }
 
-          it 'calls the failover handler and doesnt report internal error' do
-            Rollbar.should_not_receive(:report_internal_error)
-            handler.should_receive(:call)
+          it 'doesnt call any failover handler' do
+            expect(handler).not_to receive(:call)
 
             Rollbar.report_exception(exception)
           end
         end
 
-        context 'with two handlers, the first failing' do
-          let(:handler1) { proc { |_| fail 'this handler fails' } }
-          let(:handler2) { proc { |_| 'success' } }
-          let(:handlers) { [handler1, handler2] }
+        context 'if the async handler fails' do
+          let(:async_handler) { proc { |_| fail 'this handler will crash' } }
 
-          it 'calls the second handler and doesnt report internal error' do
-            Rollbar.should_not_receive(:report_internal_error)
-            handler2.should_receive(:call)
+          context 'if any failover handlers is configured' do
+            let(:handlers) { [] }
 
-            Rollbar.report_exception(exception)
+            it 'logs the error but doesnt try to report an internal error' do
+              expect(logger_mock).to receive(:error).with('[Rollbar] Async handler failed and there aren\'t any failover handler configured.')
+
+              Rollbar.report_exception(exception)
+            end
           end
-        end
 
-        context 'with two handlers, both failing' do
-          let(:handler1) { proc { |_| fail 'this handler fails' } }
-          let(:handler2) { proc { |_| fail 'this will also fail' } }
-          let(:handlers) { [handler1, handler2] }
+          context 'if the first failover handler success' do
+            let(:handler) { proc { |_| 'success' } }
+            let(:handlers) { [handler] }
 
-          it 'reports internal error' do
-            Rollbar.should_receive(:report_internal_error)
+            it 'calls the failover handler and doesnt report internal error' do
+              expect(Rollbar).not_to receive(:report_internal_error)
+              expect(handler).to receive(:call)
 
-            Rollbar.report_exception(exception)
+              Rollbar.report_exception(exception)
+            end
+          end
+
+          context 'with two handlers, the first failing' do
+            let(:handler1) { proc { |_| fail 'this handler fails' } }
+            let(:handler2) { proc { |_| 'success' } }
+            let(:handlers) { [handler1, handler2] }
+
+            it 'calls the second handler and doesnt report internal error' do
+              expect(handler2).to receive(:call)
+
+              Rollbar.report_exception(exception)
+            end
+          end
+
+          context 'with two handlers, both failing' do
+            let(:handler1) { proc { |_| fail 'this handler fails' } }
+            let(:handler2) { proc { |_| fail 'this will also fail' } }
+            let(:handlers) { [handler1, handler2] }
+
+            it 'reports internal error' do
+              expect(logger_mock).to receive(:error).with('[Rollbar] All failover handlers failed while processing payload')
+
+              Rollbar.report_exception(exception)
+            end
           end
         end
       end
