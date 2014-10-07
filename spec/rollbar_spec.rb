@@ -529,9 +529,12 @@ describe Rollbar do
 
           context 'if any failover handlers is configured' do
             let(:handlers) { [] }
+            let(:log_message) do
+              '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
+            end
 
             it 'logs the error but doesnt try to report an internal error' do
-              expect(logger_mock).to receive(:error).with('[Rollbar] Async handler failed and there aren\'t any failover handler configured.')
+              expect(logger_mock).to receive(:error).with(log_message)
 
               Rollbar.report_exception(exception)
             end
@@ -567,7 +570,7 @@ describe Rollbar do
             let(:handlers) { [handler1, handler2] }
 
             it 'reports internal error' do
-              expect(logger_mock).to receive(:error).with('[Rollbar] All failover handlers failed while processing payload')
+              expect(logger_mock).to receive(:error)
 
               Rollbar.report_exception(exception)
             end

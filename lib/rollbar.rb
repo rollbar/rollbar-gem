@@ -451,7 +451,7 @@ module Rollbar
       configuration.async_handler.call(payload)
     rescue
       if configuration.failover_handlers.empty?
-        log_error '[Rollbar] Async handler failed and there aren\'t any failover handler configured.'
+        log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
         return
       end
 
@@ -459,7 +459,7 @@ module Rollbar
     end
 
     def async_failover(payload)
-      log_warning '[Rollbar] Main async handler failed. Trying failovers...'
+      log_warning '[Rollbar] Primary async handler failed. Trying failovers...'
 
       failover_handlers = configuration.failover_handlers
 
@@ -469,7 +469,7 @@ module Rollbar
         rescue
           next unless handler == failover_handlers.last
 
-          log_error '[Rollbar] All failover handlers failed while processing payload'
+          log_error "[Rollbar] All failover handlers failed while processing payload: #{MultiJson.dump(payload)}"
         end
       end
     end
