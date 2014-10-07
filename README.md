@@ -296,7 +296,7 @@ config.use_resque
 You can also supply a custom Resque queue:
 
 ```ruby
-config.use_resque 'queue' => 'my_queue'
+config.use_resque :queue => 'my_queue'
 ```
 
 Now you can just start a new Resque worker processing jobs in that queue:
