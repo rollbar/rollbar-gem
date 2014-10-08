@@ -298,7 +298,7 @@ describe Rollbar do
           raise
         end
       rescue => e
-        notifier.report_exception(e)
+        Rollbar.report_exception(e)
       end
 
       test_var.should == 2
@@ -311,7 +311,7 @@ describe Rollbar do
         payload = args[0]
       end
 
-      notifier.report_exception(StandardError.new('oops'))
+      Rollbar.report_exception(StandardError.new('oops'))
 
       payload['data'][:body][:trace][:frames].should == []
       payload['data'][:body][:trace][:exception][:class].should == 'StandardError'
@@ -322,7 +322,7 @@ describe Rollbar do
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
         notifier.stub(:schedule_payload) do |*args| end
 
-        exception_data = notifier.report_exception(StandardError.new('oops'))
+        exception_data = Rollbar.report_exception(StandardError.new('oops'))
         exception_data[:uuid].should_not be_nil
       end
     end
@@ -342,7 +342,7 @@ describe Rollbar do
 
       exception = CustomException.new('oops')
 
-      notifier.report_exception(exception)
+      Rollbar.report_exception(exception)
 
       payload['data'][:body][:trace][:frames][0][:method].should == 'custom backtrace line'
     end
@@ -354,11 +354,11 @@ describe Rollbar do
         payload = args[0]
       end
 
-      notifier.report_exception(@exception)
+      Rollbar.report_exception(@exception)
 
       payload['data'][:level].should == 'error'
 
-      notifier.report_exception(@exception, nil, nil, 'debug')
+      Rollbar.report_exception(@exception, nil, nil, 'debug')
 
       payload['data'][:level].should == 'debug'
     end
