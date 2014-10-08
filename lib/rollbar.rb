@@ -27,10 +27,9 @@ module Rollbar
     ActionDispatch::Http::UploadedFile
     Rack::Multipart::UploadedFile
   ].freeze
-  PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log report_exception
-                               logger report_message report_message_with_request process_payload
-                               scope send_failsafe log_info log_debug log_warning log_error
-                               silenced)
+  PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
+                               process_payload scope send_failsafe log_info log_debug
+                               log_warning log_error silenced)
 
   class Notifier
     attr_accessor :configuration
@@ -159,38 +158,7 @@ module Rollbar
       end
     end
 
-    # Provided for backwards compatibility
-    def report_exception(exception, request_data = nil, person_data = nil, level = 'error')
-      log_warning('[Rollbar] report_exception() has been deprecated, please use log() or one of the level functions')
-      notifier = notifier_for_request_data(request_data, person_data)
-      notifier.log(level, exception)
-    end
-
-    # Provided for backwards compatibility
-    def report_message(message, level = 'info', extra_data = {})
-      log_warning('[Rollbar] report_message() has been deprecated, please use log() or one of the level functions')
-      log(level, message, extra_data)
-    end
-
-    # Provided for backwards compatibility
-    def report_message_with_request(message, level = 'info', request_data = nil, person_data = nil, extra_data = {})
-      log_warning('[Rollbar] report_message_with_request() has been deprecated, please use log() or one of the level functions')
-      notifier = notifier_for_request_data(request_data, person_data)
-      notifier.log(level, message, extra_data)
-    end
-
     private
-
-    def notifier_for_request_data(request_data, person_data)
-      if request_data || person_data
-        scope({
-            :request => request_data || {},
-            :person => person_data || {}
-          })
-      else
-        self
-      end
-    end
 
     def ignored?(exception)
       return false unless exception
@@ -752,6 +720,30 @@ module Rollbar
       self.notifier = old_notifier
 
       result
+    end
+
+    # Backwards compatibility methods
+
+    def report_exception(exception, request_data = {}, person_data = {}, level = 'error')
+      log_warning('[Rollbar] report_exception() has been deprecated, please use log() or one of the level functions')
+
+      Rollbar.scoped(:request => request_data, :person => person_data) do
+        Rollbar.notifier.log(level, exception)
+      end
+    end
+
+    def report_message(message, level = 'info', extra_data = {})
+      log_warning('[Rollbar] report_message() has been deprecated, please use log() or one of the level functions')
+
+      Rollbar.notifier.log(level, message, extra_data)
+    end
+
+    def report_message_with_request(message, level = 'info', request_data = {}, person_data = {}, extra_data = {})
+      log_warning('[Rollbar] report_message_with_request() has been deprecated, please use log() or one of the level functions')
+
+      Rollbar.scoped(:request => request_data, :person => person_data) do
+        Rollbar.notifier.log(level, message, extra_data)
+      end
     end
   end
 end

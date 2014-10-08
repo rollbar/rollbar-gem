@@ -86,6 +86,7 @@ describe Rollbar do
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
     it 'should report simple messages' do
+      allow(Rollbar).to receive(:notifier).and_return(notifier)
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.report_message_with_request('Test message')
@@ -305,6 +306,8 @@ describe Rollbar do
     end
 
     it 'should report exception objects with no backtrace' do
+      allow(Rollbar).to receive(:notifier).and_return(notifier)
+
       payload = nil
 
       notifier.stub(:schedule_payload) do |*args|
@@ -328,6 +331,8 @@ describe Rollbar do
     end
 
     it 'should report exception objects with nonstandard backtraces' do
+      allow(Rollbar).to receive(:notifier).and_return(notifier)
+
       payload = nil
 
       notifier.stub(:schedule_payload) do |*args|
@@ -348,6 +353,7 @@ describe Rollbar do
     end
 
     it 'should report exceptions with a custom level' do
+      allow(Rollbar).to receive(:notifier).and_return(notifier)
       payload = nil
 
       notifier.stub(:schedule_payload) do |*args|
