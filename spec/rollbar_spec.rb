@@ -260,166 +260,164 @@ describe Rollbar do
       end
     end
 
-    pending do
-      context 'build_payload' do
-        after(:each) do
-          Rollbar.unconfigure
-          configure
+    context 'build_payload' do
+      after(:each) do
+        Rollbar.unconfigure
+        configure
+      end
+
+      context 'a basic payload' do
+        let(:extra_data) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
+        let(:payload) { notifier.send(:build_payload, 'info', 'message', nil, extra_data) }
+
+        it 'should have the correct root-level keys' do
+          payload.keys.should match_array(['access_token', 'data'])
         end
 
-        context 'a basic payload' do
-          let(:extra_data) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
-          let(:payload) { notifier.send(:build_payload, 'info', 'message', nil, extra_data) }
-
-          it 'should have the correct root-level keys' do
-            payload.keys.should match_array(['access_token', 'data'])
-          end
-
-          it 'should have the correct data keys' do
-            payload['data'].keys.should include(:timestamp, :environment, :level, :language, :framework, :server,
-              :notifier, :body)
-          end
-
-          it 'should have the correct notifier name and version' do
-            payload['data'][:notifier][:name].should == 'rollbar-gem'
-            payload['data'][:notifier][:version].should == Rollbar::VERSION
-          end
-
-          it 'should have the correct language and framework' do
-            payload['data'][:language].should == 'ruby'
-            payload['data'][:framework].should == Rollbar.configuration.framework
-            payload['data'][:framework].should match(/^Rails/)
-          end
-
-          it 'should have the correct server keys' do
-            payload['data'][:server].keys.should match_array([:host, :root])
-          end
-
-          it 'should have the correct level and message body' do
-            payload['data'][:level].should == 'info'
-            payload['data'][:body][:message][:body].should == 'message'
-          end
+        it 'should have the correct data keys' do
+          payload['data'].keys.should include(:timestamp, :environment, :level, :language, :framework, :server,
+            :notifier, :body)
         end
 
-        it 'should merge in a new key from payload_options' do
-          notifier.configure do |config|
-            config.payload_options = { :some_new_key => 'some new value' }
-          end
-
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-          payload['data'][:some_new_key].should == 'some new value'
+        it 'should have the correct notifier name and version' do
+          payload['data'][:notifier][:name].should == 'rollbar-gem'
+          payload['data'][:notifier][:version].should == Rollbar::VERSION
         end
 
-        it 'should overwrite existing keys from payload_options' do
-          payload_options = {
-            :notifier => 'bad notifier',
-            :server => { :host => 'new host', :new_server_key => 'value' }
+        it 'should have the correct language and framework' do
+          payload['data'][:language].should == 'ruby'
+          payload['data'][:framework].should == Rollbar.configuration.framework
+          payload['data'][:framework].should match(/^Rails/)
+        end
+
+        it 'should have the correct server keys' do
+          payload['data'][:server].keys.should match_array([:host, :root])
+        end
+
+        it 'should have the correct level and message body' do
+          payload['data'][:level].should == 'info'
+          payload['data'][:body][:message][:body].should == 'message'
+        end
+      end
+
+      it 'should merge in a new key from payload_options' do
+        notifier.configure do |config|
+          config.payload_options = { :some_new_key => 'some new value' }
+        end
+
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+
+        payload['data'][:some_new_key].should == 'some new value'
+      end
+
+      it 'should overwrite existing keys from payload_options' do
+        payload_options = {
+          :notifier => 'bad notifier',
+          :server => { :host => 'new host', :new_server_key => 'value' }
+        }
+
+        notifier.configure do |config|
+          config.payload_options = payload_options
+        end
+
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+
+        payload['data'][:notifier].should == 'bad notifier'
+        payload['data'][:server][:host].should == 'new host'
+        payload['data'][:server][:root].should_not be_nil
+        payload['data'][:server][:new_server_key].should == 'value'
+      end
+
+      it 'should have default environment "unspecified"' do
+        Rollbar.unconfigure
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+        payload['data'][:environment].should == 'unspecified'
+      end
+
+      it 'should have an overridden environment' do
+        Rollbar.configure do |config|
+          config.environment = 'overridden'
+        end
+
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+        payload['data'][:environment].should == 'overridden'
+      end
+
+      it 'should not have custom data under default configuration' do
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+        payload['data'][:body][:message][:extra].should be_nil
+      end
+
+      it 'should have custom message data when custom_data_method is configured' do
+        Rollbar.configure do |config|
+          config.custom_data_method = lambda { {:a => 1, :b => [2, 3, 4]} }
+        end
+
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+        payload['data'][:body][:message][:extra].should_not be_nil
+        payload['data'][:body][:message][:extra][:a].should == 1
+        payload['data'][:body][:message][:extra][:b][2].should == 4
+      end
+
+      it 'should merge extra data into custom message data' do
+        custom_method = lambda do
+          { :a => 1,
+            :b => [2, 3, 4],
+            :c => { :d => 'd', :e => 'e' },
+            :f => ['1', '2']
           }
-
-          notifier.configure do |config|
-            config.payload_options = payload_options
-          end
-
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-          payload['data'][:notifier].should == 'bad notifier'
-          payload['data'][:server][:host].should == 'new host'
-          payload['data'][:server][:root].should_not be_nil
-          payload['data'][:server][:new_server_key].should == 'value'
         end
 
-        it 'should have default environment "unspecified"' do
-          Rollbar.unconfigure
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-          payload['data'][:environment].should == 'unspecified'
+        Rollbar.configure do |config|
+          config.custom_data_method = custom_method
         end
 
-        it 'should have an overridden environment' do
-          Rollbar.configure do |config|
-            config.environment = 'overridden'
-          end
+        payload = notifier.send(:build_payload, 'info', 'message', nil, {:c => {:e => 'g'}, :f => 'f'})
+        payload['data'][:body][:message][:extra].should_not be_nil
+        payload['data'][:body][:message][:extra][:a].should == 1
+        payload['data'][:body][:message][:extra][:b][2].should == 4
+        payload['data'][:body][:message][:extra][:c][:d].should == 'd'
+        payload['data'][:body][:message][:extra][:c][:e].should == 'g'
+        payload['data'][:body][:message][:extra][:f].should == 'f'
+      end
 
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-          payload['data'][:environment].should == 'overridden'
+      it 'should include project_gem_paths' do
+        notifier.configure do |config|
+          config.project_gems = ['rails', 'rspec']
         end
 
-        it 'should not have custom data under default configuration' do
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-          payload['data'][:body][:message][:extra].should be_nil
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+
+        payload['data'][:project_package_paths].should have(2).items
+      end
+
+      it 'should include a code_version' do
+        notifier.configure do |config|
+          config.code_version = 'abcdef'
         end
 
-        it 'should have custom message data when custom_data_method is configured' do
-          Rollbar.configure do |config|
-            config.custom_data_method = lambda { {:a => 1, :b => [2, 3, 4]} }
-          end
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
 
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-          payload['data'][:body][:message][:extra].should_not be_nil
-          payload['data'][:body][:message][:extra][:a].should == 1
-          payload['data'][:body][:message][:extra][:b][2].should == 4
+        payload['data'][:code_version].should == 'abcdef'
+      end
+
+      it 'should have the right hostname' do
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
+
+        payload['data'][:server][:host].should == Socket.gethostname
+      end
+
+      it 'should have root and branch set when configured' do
+        configure
+        Rollbar.configure do |config|
+          config.root = '/path/to/root'
+          config.branch = 'master'
         end
 
-        it 'should merge extra data into custom message data' do
-          custom_method = lambda do
-            { :a => 1,
-              :b => [2, 3, 4],
-              :c => { :d => 'd', :e => 'e' },
-              :f => ['1', '2']
-            }
-          end
+        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
 
-          Rollbar.configure do |config|
-            config.custom_data_method = custom_method
-          end
-
-          payload = notifier.send(:build_payload, 'info', 'message', nil, {:c => {:e => 'g'}, :f => 'f'})
-          payload['data'][:body][:message][:extra].should_not be_nil
-          payload['data'][:body][:message][:extra][:a].should == 1
-          payload['data'][:body][:message][:extra][:b][2].should == 4
-          payload['data'][:body][:message][:extra][:c][:d].should == 'd'
-          payload['data'][:body][:message][:extra][:c][:e].should == 'g'
-          payload['data'][:body][:message][:extra][:f].should == 'f'
-        end
-
-        it 'should include project_gem_paths' do
-          notifier.configure do |config|
-            config.project_gems = ['rails', 'rspec']
-          end
-
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-          payload['data'][:project_package_paths].should have(2).items
-        end
-
-        it 'should include a code_version' do
-          notifier.configure do |config|
-            config.code_version = 'abcdef'
-          end
-
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-          payload['data'][:code_version].should == 'abcdef'
-        end
-
-        it 'should have the right hostname' do
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-          payload['data'][:server][:host].should == Socket.gethostname
-        end
-
-        it 'should have root and branch set when configured' do
-          configure
-          Rollbar.configure do |config|
-            config.root = '/path/to/root'
-            config.branch = 'master'
-          end
-
-          payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-          payload['data'][:server][:root].should == '/path/to/root'
-          payload['data'][:server][:branch].should == 'master'
-        end
+        payload['data'][:server][:root].should == '/path/to/root'
+        payload['data'][:server][:branch].should == 'master'
       end
     end
 
