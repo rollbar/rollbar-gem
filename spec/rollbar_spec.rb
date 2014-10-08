@@ -536,6 +536,58 @@ describe Rollbar do
         trace[:extra][:key].should == 'value'
         trace[:extra][:hash].should == {:inner_key => 'inner_value'}
       end
+
+      context 'with nested exceptions' do
+        let(:crashing_code) do
+          proc do
+            begin
+              begin
+                fail CauseException.new('the cause')
+              rescue
+                fail StandardError.new('the error')
+              end
+            rescue => e
+              e
+            end
+          end
+        end
+
+        let(:rescued_exception) { crashing_code.call }
+        let(:message) { 'message' }
+        let(:extra) { {} }
+
+        context 'using ruby >= 2.1' do
+          next unless Exception.instance_methods.include?(:cause)
+
+          it 'sends the two exceptions in the trace_chain attribute' do
+            body = notifier.send(:build_payload_body_exception, message, rescued_exception, extra)
+
+            body[:trace].should be_nil
+            body[:trace_chain].should be_kind_of(Array)
+
+            chain = body[:trace_chain]
+            chain[0][:exception][:class].should match(/StandardError/)
+            chain[0][:exception][:message].should match(/the error/)
+
+            chain[1][:exception][:class].should match(/CauseException/)
+            chain[1][:exception][:message].should match(/the cause/)
+          end
+
+          context 'using ruby <= 2.1' do
+            next if Exception.instance_methods.include?(:cause)
+
+            it 'sends only the last exception in the trace attribute' do
+              body = notifier.send(:build_payload_body_exception, message, rescued_exception, extra)
+
+              body[:trace].should be_kind_of(Hash)
+              body[:trace_chain].should be_nil
+
+              body[:trace][:exception][:class].should match(/StandardError/)
+              body[:trace][:exception][:message].should match(/the error/)
+            end
+          end
+        end
+      end
     end
 
     context 'build_payload_body_message' do
