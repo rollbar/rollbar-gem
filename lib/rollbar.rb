@@ -11,6 +11,7 @@ end
 
 require 'rollbar/version'
 require 'rollbar/configuration'
+require 'rollbar/logger_proxy'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
@@ -573,6 +574,13 @@ module Rollbar
     end
 
     ## Logging
+    %w(debug info warn error).each do |level|
+      define_method(:"log_#{level}") do |message|
+        logger.send(level, message)
+      end
+    end
+
+    alias_method :log_warning, :log_warn
 
     def log_instance_link(data)
       if data[:uuid]
@@ -581,47 +589,7 @@ module Rollbar
     end
 
     def logger
-      # init if not set
-      unless configuration.logger
-        configuration.logger = configuration.default_logger.call
-      end
-      configuration.logger
-    end
-
-    def log_error(message)
-      begin
-        logger.error message
-      rescue
-        puts "[Rollbar] Error logging error:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_info(message)
-      begin
-        logger.info message
-      rescue
-        puts "[Rollbar] Error logging info:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_warning(message)
-      begin
-        logger.warn message
-      rescue
-        puts "[Rollbar] Error logging warning:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_debug(message)
-      begin
-        logger.debug message
-      rescue
-        puts "[Rollbar] Error logging debug:"
-        puts "[Rollbar] #{message}"
-      end
+      @logger ||= LoggerProxy.new(configuration.logger)
     end
   end
 

@@ -1311,15 +1311,18 @@ describe Rollbar do
 
     it 'should have use the Rails logger when configured to do so' do
       configure
-      Rollbar.send(:logger).should == ::Rails.logger
+      expect(Rollbar.send(:logger)).to be_kind_of(Rollbar::LoggerProxy)
+      expect(Rollbar.send(:logger).object).should == ::Rails.logger
     end
 
     it 'should use the default_logger when no logger is set' do
       logger = Logger.new(STDERR)
+
       Rollbar.configure do |config|
         config.default_logger = lambda { logger }
       end
-      Rollbar.send(:logger).should == logger
+
+      Rollbar.send(:logger).object.should == logger
     end
 
     it 'should have a default default_logger' do

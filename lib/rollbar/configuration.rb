@@ -74,10 +74,10 @@ module Rollbar
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
     end
-    
+
     def initialize_copy(orig)
       super
-      
+
       instance_variables.each do |var|
         instance_var = instance_variable_get(var)
         instance_variable_set(var, Rollbar::Util::deep_copy(instance_var))
@@ -128,6 +128,10 @@ module Rollbar
     # allow params to be read like a hash
     def [](option)
       send(option)
+    end
+
+    def logger
+      @logger ||= default_logger.call
     end
   end
 end
