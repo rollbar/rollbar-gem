@@ -1594,7 +1594,7 @@ describe Rollbar do
       end
 
       let(:scope) do
-        { foo: 'bar' }
+        { :foo => 'bar' }
       end
 
       it 'maintains the parent thread notifier scope' do
