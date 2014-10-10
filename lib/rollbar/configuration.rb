@@ -15,6 +15,7 @@ module Rollbar
     attr_accessor :endpoint
     attr_accessor :environment
     attr_accessor :exception_level_filters
+    attr_accessor :failover_handlers
     attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :ignored_person_ids
@@ -55,6 +56,7 @@ module Rollbar
         'AbstractController::ActionNotFound' => 'warning',
         'ActionController::RoutingError' => 'warning'
       }
+      @failover_handlers = []
       @framework = 'Plain'
       @ignored_person_ids = []
       @payload_options = {}
@@ -90,11 +92,26 @@ module Rollbar
       @async_handler  = Rollbar::Delay::Sidekiq.new(options)
     end
 
+    def use_resque(options = {})
+      require 'rollbar/delay/resque' if defined?(Resque)
+
+      Rollbar::Delay::Resque::Job.queue = options[:queue] if options[:queue]
+
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::Resque
+    end
+
     def use_sidekiq=(value)
       deprecation_message = "#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration."
       defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
 
       value.is_a?(Hash) ? use_sidekiq(value) : use_sidekiq
+    end
+
+    def use_thread
+      require 'rollbar/delay/thread'
+      @use_async = true
+      @async_handler = Rollbar::Delay::Thread
     end
 
     def use_sucker_punch

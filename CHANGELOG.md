@@ -1,8 +1,9 @@
 # Change Log
 
-**Next release (tbd)**
-- Fix handling of utf8 sequences in payload symbols. See [#131](https://github.com/rollbar/rollbar-gem/pull/131). Thanks [@kroky](https://github.com/kroky) for the fix and [@jondeandres](https://github.com/jondeandres) for reviewing.
+**1.1.0**
+- New feature: `failover_handlers`. You can specify a list of async handlers, which will be tried in sequence upon failure. See [#135](https://github.com/rollbar/rollbar-gem/pull/135).
 - Support nested exceptions for Ruby 2.1. See [#136](https://github.com/rollbar/rollbar-gem/pull/136)
+- Fix handling of utf8 sequences in payload symbols. See [#131](https://github.com/rollbar/rollbar-gem/pull/131). Thanks [@kroky](https://github.com/kroky) for the fix and [@jondeandres](https://github.com/jondeandres) for reviewing.
 - Fix logic bugs in assignments for `scrub_fields` and `scrub_headers`. See [#137](https://github.com/rollbar/rollbar-gem/pull/137)
 
 **1.0.1**
