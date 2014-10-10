@@ -19,6 +19,7 @@ require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
 require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
+require 'rollbar/core_ext/thread'
 
 unless ''.respond_to? :encode
   require 'iconv'

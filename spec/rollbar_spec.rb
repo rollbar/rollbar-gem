@@ -1582,6 +1582,27 @@ describe Rollbar do
         expect(notifier).to be_eql(Rollbar.notifier)
       end
     end
+
+    context 'if the block creates a new thread' do
+      let(:block) do
+        proc do
+          Thread.new do
+            scope = Rollbar.notifier.configuration.payload_options
+            Thread.main[:inner_scope] = scope
+          end.join
+        end
+      end
+
+      let(:scope) do
+        { foo: 'bar' }
+      end
+
+      it 'maintains the parent thread notifier scope' do
+        Rollbar.scoped(scope, &block)
+
+        expect(Thread.main[:inner_scope]).to be_eql(scope)
+      end
+    end
   end
 
   describe '.reset_notifier' do
