@@ -61,23 +61,11 @@ module Rollbar
       yield(configuration)
     end
 
-    # Configures the gem.
-    #
-    # Call on app startup to set the `access_token` (required) and other config params.
-    # In a Rails app, this is called by `config/initializers/rollbar.rb` which is generated
-    # with `rails generate rollbar access-token-here`
-    #
-    # @example
-    #   Rollbar.configure do |config|
-    #     config.access_token = 'abcdefg'
-    #   end
+    # Configures the notifier instance
     def configure
-      # if configuration.enabled has not been set yet (is still 'nil'), set to true.
       configuration.enabled = true if configuration.enabled.nil?
 
       yield(configuration)
-
-      require_hooks
     end
 
     def scope(options = {})
