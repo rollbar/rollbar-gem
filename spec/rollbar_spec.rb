@@ -1571,6 +1571,17 @@ describe Rollbar do
 
       expect(Rollbar.notifier.object_id).to be_eql(current_notifier_id)
     end
+
+    context 'if the block fails' do
+      let(:crashing_block) { proc { fail } }
+
+      it 'restores the old notifier' do
+        notifier = Rollbar.notifier
+
+        expect { Rollbar.scoped(&crashing_block) }.to raise_error
+        expect(notifier).to be_eql(Rollbar.notifier)
+      end
+    end
   end
 
   describe '.reset_notifier' do

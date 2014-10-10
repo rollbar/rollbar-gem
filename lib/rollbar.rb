@@ -756,10 +756,9 @@ module Rollbar
       self.notifier = old_notifier.scope(options)
 
       result = yield
-
-      self.notifier = old_notifier
-
       result
+    ensure
+      self.notifier = old_notifier
     end
 
     # Backwards compatibility methods
