@@ -15,11 +15,7 @@ And then execute:
 
 ```bash
 $ bundle install
-```
-
-Or install it yourself as:
-
-```bash
+# Or if you don't use bundler:
 $ gem install rollbar
 ```
 
@@ -32,28 +28,24 @@ $ rails generate rollbar POST_SERVER_ITEM_ACCESS_TOKEN
 <!-- RemoveNextIfProject -->
 Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
 
+That's all you need to use Rollbar with Rails.
 
 That will create the file ```config/initializers/rollbar.rb```, which holds the configuration values (currently just your access token).
 
-If you want to store your access token outside of your repo, run the same command without arguments:
+If you want to store your access token outside of your repo, run the same command without arguments, and create an environment variable ```ROLLBAR_ACCESS_TOKEN``` that holds your server-side access token:
 
 ```bash
 $ rails generate rollbar
-```
-
-Then, create an environment variable ```ROLLBAR_ACCESS_TOKEN``` and set it to your server-side access token.
-
-```bash
 $ export ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 ```
 
 ### For Heroku users
 
+If you're on Heroku, you can store the access token in your Heroku config:
+
 ```bash
 $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 ```
-
-That's all you need to use Rollbar with Rails.
 
 ## Test your installation
 
