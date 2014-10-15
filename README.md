@@ -67,10 +67,6 @@ end
 <!-- RemoveNextIfProject -->
 Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
 
-### Backwards Compatibility
-
-You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
-
 ## Test your installation
 
 To confirm that it worked, run:
@@ -498,6 +494,10 @@ Check out [resque-rollbar](https://github.com/dimko/resque-rollbar) for using Ro
 ## Using with Zeus
 
 Some users have reported problems with Zeus when ```rake``` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding ```gem 'rake'``` to your ```Gemfile```. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information.
+
+## Backwards Compatibility
+
+You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
 
 ## Help / Support
