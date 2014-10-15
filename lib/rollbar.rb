@@ -753,7 +753,7 @@ module Rollbar
     # Backwards compatibility methods
 
     def report_exception(exception, request_data = {}, person_data = {}, level = 'error')
-      log_warning('[Rollbar] report_exception() has been deprecated, please use log() or one of the level functions')
+      Kernel.warn('[DEPRECATION] Rollbar::Notifier#report_exception has been deprecated, please use log() or one of the level functions')
 
       Rollbar.scoped(:request => request_data, :person => person_data) do
         Rollbar.notifier.log(level, exception)
@@ -761,13 +761,13 @@ module Rollbar
     end
 
     def report_message(message, level = 'info', extra_data = {})
-      log_warning('[Rollbar] report_message() has been deprecated, please use log() or one of the level functions')
+      Kernel.warn('[DEPRECATION] Rollbar::Notifier#report_message has been deprecated, please use log() or one of the level functions')
 
       Rollbar.notifier.log(level, message, extra_data)
     end
 
     def report_message_with_request(message, level = 'info', request_data = {}, person_data = {}, extra_data = {})
-      log_warning('[Rollbar] report_message_with_request() has been deprecated, please use log() or one of the level functions')
+      Kernel.warn('[DEPRECATION] Rollbar::Notifier#report_message_with_request has been deprecated, please use log() or one of the level functions')
 
       Rollbar.scoped(:request => request_data, :person => person_data) do
         Rollbar.notifier.log(level, message, extra_data)

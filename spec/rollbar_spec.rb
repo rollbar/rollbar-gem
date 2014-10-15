@@ -1251,7 +1251,7 @@ describe Rollbar do
             it 'logs the error but doesnt try to report an internal error' do
               expect(logger_mock).to receive(:error).with(log_message)
 
-              Rollbar.report_exception(exception)
+              Rollbar.error(exception)
             end
           end
 
@@ -1263,7 +1263,7 @@ describe Rollbar do
               expect(Rollbar).not_to receive(:report_internal_error)
               expect(handler).to receive(:call)
 
-              Rollbar.report_exception(exception)
+              Rollbar.error(exception)
             end
           end
 
@@ -1275,7 +1275,7 @@ describe Rollbar do
             it 'calls the second handler and doesnt report internal error' do
               expect(handler2).to receive(:call)
 
-              Rollbar.report_exception(exception)
+              Rollbar.error(exception)
             end
           end
 
@@ -1287,7 +1287,7 @@ describe Rollbar do
             it 'reports internal error' do
               expect(logger_mock).to receive(:error)
 
-              Rollbar.report_exception(exception)
+              Rollbar.error(exception)
             end
           end
         end
