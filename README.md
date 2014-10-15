@@ -75,7 +75,7 @@ Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```po
 
 ### Backwards Compatibility
 
-You can find upgrading notes in [UPGRADING.md!](UPGRADING.md).
+You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
 ## Test your installation
 
