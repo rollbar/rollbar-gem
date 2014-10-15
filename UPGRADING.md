@@ -1,6 +1,6 @@
 # Upgrading
 
-## To 1.2.0
+## From 1.1.0 or lower to 1.2.0
 
 The public interface has been rewritten entirely in 1.2.0 to be more versatile and in-line with the new interface established recently in rollbar.js. The main `#report_message` and `#report_exception` methods are now deprecated in favor of the new `#log`, `#debug` `#info`, `#warn`, `#error` and `#critical` methods.
 
