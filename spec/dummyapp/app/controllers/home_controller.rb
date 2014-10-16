@@ -21,7 +21,7 @@ class HomeController < ApplicationController
     rescue => e
       Rollbar.report_exception(e)
     end
-    render json: {}
+    render :json => {}
   end
 
 
