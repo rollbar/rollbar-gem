@@ -310,7 +310,10 @@ describe HomeController do
       end
 
       context 'with logged user' do
-        let(:user) { User.first }
+        let(:user) do
+          User.create(:email => 'foo@bar.com',
+                      :username => 'the_username')
+        end
 
         before { cookies[:session_id] = user.id }
 
