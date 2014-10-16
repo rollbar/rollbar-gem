@@ -308,6 +308,22 @@ describe HomeController do
 
         get 'cause_exception'
       end
+
+      context 'with logged user' do
+        let(:user) { User.first }
+
+        before { cookies[:session_id] = user.id }
+
+        it 'sends the current user data' do
+          put 'report_exception', 'foo' => 'bar'
+
+          person_data = Rollbar.last_report[:person]
+
+          expect(person_data[:id]).to be_eql(user.id)
+          expect(person_data[:email]).to be_eql(user.email)
+          expect(person_data[:username]).to be_eql(user.username)
+        end
+      end
     end
   end
 

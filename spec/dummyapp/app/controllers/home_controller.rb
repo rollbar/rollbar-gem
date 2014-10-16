@@ -23,14 +23,14 @@ class HomeController < ApplicationController
     end
     render json: {}
   end
-  
+
 
   def cause_exception
     foo = bar
   end
 
   def current_user
-    User.find_by_encrypted_password(cookies[:session_id])
+    @current_user ||= User.find_by_id(cookies[:session_id])
   end
 
   def custom_current_user
