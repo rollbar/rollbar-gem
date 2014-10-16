@@ -28,6 +28,7 @@ RSpec.configure do |config|
   config.before(:each) do
     DatabaseCleaner.start
     DatabaseCleaner.clean
+    Rollbar.reset_notifier!
   end
 
   config.after(:each) do

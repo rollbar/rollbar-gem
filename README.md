@@ -9,7 +9,7 @@ Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https:/
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar', '~> 1.1.0'
+    gem 'rollbar', '~> 1.2.0'
 
 And then execute:
 
@@ -19,7 +19,9 @@ $ bundle install
 $ gem install rollbar
 ```
 
-Then, run the following command from your rails root:
+### If using Rails
+
+Run the following command from your Rails root:
 
 ```bash
 $ rails generate rollbar POST_SERVER_ITEM_ACCESS_TOKEN
@@ -39,13 +41,31 @@ $ rails generate rollbar
 $ export ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 ```
 
-### For Heroku users
+For Heroku users:
 
 If you're on Heroku, you can store the access token in your Heroku config:
 
 ```bash
 $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 ```
+
+That's all you need to use Rollbar with Rails.
+
+### If not using Rails
+
+Be sure to initialize Rollbar with your access token somewhere during startup:
+
+```ruby
+Rollbar.configure do |config|
+  config.access_token = POST_SERVER_ITEM_ACCESS_TOKEN
+  # other configuration settings
+  # ...
+end
+```
+
+
+<!-- RemoveNextIfProject -->
+Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
 
 ## Test your installation
 
@@ -57,7 +77,50 @@ $ rake rollbar:test
 
 This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Rollbar dashboard.
 
-## Reporting form validation errors
+## Usage
+
+### Uncaught exceptions
+
+Uncaught exceptions in Rails controllers will be automatically reported to Rollbar.
+
+### Caught exceptions and messages
+
+You can use one of `Rollbar.log(level, ...)`, `Rollbar.debug()`, `Rollbar.info()`, `Rollbar.warning()`, `Rollbar.error()` and `Rollbar.critical()` to report exceptions and messages.
+
+The methods take in any number of arguments, but the last exception is used as the reported exception, the last string is used as the message/description, and the last hash is used as the extra data.
+
+For example:
+
+```ruby
+begin
+  result = user_info[:key1][:key2][:key3]
+rescue NoMethodError => e
+  # simple exception report (level can be 'debug', 'info', 'warning', 'error' and 'critical')
+  Rollbar.log('error', e)
+  
+  # same functionality as above
+  Rollbar.error(e)
+  
+  # with a description
+  Rollbar.error(e, 'The user info hash doesn\'t contain the correct data')
+  
+  # with extra data giving more insight about the exception
+  Rollbar.error(e, :user_info => user_info, :job_id => job_id)
+end
+```
+
+You can also log individual messages:
+
+```ruby
+Rollbar.warning('Unexpected input')
+
+# can also include extra data
+Rollbar.info("Login successful", :username => @username)
+
+Rollbar.log('debug', 'Settings saved', :account_id => account.id)
+```
+
+### Reporting form validation errors
 
 To get form validation errors automatically reported to Rollbar just add the following ```after_validation``` callback to your models:
 
@@ -65,59 +128,97 @@ To get form validation errors automatically reported to Rollbar just add the fol
 after_validation :report_validation_errors_to_rollbar
 ```
 
-## Manually reporting exceptions and messages
+### Advanced usage
 
-To report a caught exception to Rollbar, simply call ```Rollbar.report_exception```:
+You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar. 
+
+For example:
 
 ```ruby
-begin
-  foo = bar
-rescue Exception => e
-  Rollbar.report_exception(e)
+while job
+  user = job.user
+
+  # Overwrites any existing person data
+  notifier = Rollbar.scope({
+    :person => {:id => user.id, :username => user.username, :email => user.email}
+  })
+
+  begin
+    job.do_work
+  rescue => e
+    # Sends a report with the above person data
+    notifier.critical(e)
+  end
+
+  job = next_job
+end
+
+# Wipe person data
+notifier = notifier.scope({
+  :person => nil
+})
+
+# No associated person data
+notifier.info('Jobs processed')
+```
+
+If you don't want to work with a new `Notifier` instance `#scoped` will do it for you:
+
+```ruby
+while job
+  user = job.user
+
+  # Overwrites any existing person data
+  scope = {
+    :person => {:id => user.id, :username => user.username, :email => user.email}
+  }
+
+  Rollbar.scoped(scope) do
+    begin
+      job.do_work
+    rescue => e
+      # Sends a report with the above person data
+      Rollbar.critical(e)
+    end
+  end
+
+  job = next_job
 end
 ```
 
-If you're reporting an exception in the context of a request and are in a controller, you can pass along the same request and person context as the global exception handler, like so:
+## Person tracking
+
+Rollbar will send information about the current user (called a "person" in Rollbar parlance) along with each error report, when available. This works by calling the ```current_user``` controller method. The return value should be an object with an ```id``` method and, optionally, ```username``` and ```email``` methods.
+
+This will happen automatically for uncaught Rails exceptions and for any manual exception or log reporting done within a Rails request.
+
+If the gem should call a controller method besides ```current_user```, add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
-begin
-  foo = bar
-rescue Exception => e
-  Rollbar.report_exception(e, rollbar_request_data, rollbar_person_data)
+Rollbar.configure do |config|
+  config.person_method = "my_current_user"
 end
 ```
 
-Exceptions are reported with an "error" level by default. You can override the level by passing it in as the fourth argument:
+If the methods to extract the ```id```, ```username```, and ```email``` from the object returned by the ```person_method``` have other names, configure like so in ```config/initializers/rollbar.rb```:
 
 ```ruby
-begin
-  foo = bar
-rescue Exception => e
-  # all levels: debug, info, warning, error, critical
-  Rollbar.report_exception(e, rollbar_request_data, rollbar_person_data, "warning")
+Rollbar.configure do |config|
+  config.person_id_method = "user_id"  # default is "id"
+  config.person_username_method = "user_name"  # default is "username"
+  config.person_email_method = "email_address"  # default is "email"
 end
-
 ```
 
-You can also log individual messages:
+## Special note about reporting within a request
 
-```ruby
-Rollbar.report_message("Unexpected input", "warning")
+The gem instantiates one `Notifier` instance on initialization, which will be the base notifier that is used for all reporting (via a `method_missing` proxy in the `Rollbar` module). Calling `Rollbar.configure()` will configure this base notifier that will be used globally in a ruby app.
 
-# default level is "info"
-Rollbar.report_message("Login successful")
-
-# can also include additional data as a hash in the final param. :body is reserved.
-Rollbar.report_message("Login successful", "info", :username => @username)
-
-# pass request and person data
-Rollbar.report_message_with_request("Settings saved", "debug", rollbar_request_data,
-                                    rollbar_person_data, :account_id => account.id)
-```
+However, the Rails middleware will actually scope this base notifier for use within a request by storing it in thread-local storage (see [here](https://github.com/rollbar/rollbar-gem/blob/5f4e6135f0e61148672b0190c88767aa52e5cdb3/lib/rollbar/middleware/rails/rollbar.rb#L35-L39)). This is done to make any manual logging within a request automatically contain request and person data. Calling `Rollbar.configure()` therefore will only affect the notifier for the duration of the request, and not the base notifier used globally.
 
 ## Data sanitization (scrubbing)
 
-By default, the notifier will "scrub" the following fields from requests before sending to Rollbar
+By default, the notifier will "scrub" the following fields from payloads before sending to Rollbar
 
 - ```:passwd```
 - ```:password```
@@ -147,34 +248,9 @@ And ```Rollbar.configuration.scrub_headers```:
 Rollbar.configuration.scrub_headers |= ["X-Access-Token"]
 ```
 
-
-## Person tracking
-
-Rollbar will send information about the current user (called a "person" in Rollbar parlance) along with each error report, when available. This works by calling the ```current_user``` controller method. The return value should be an object with an ```id``` method and, optionally, ```username``` and ```email``` methods.
-
-If the gem should call a controller method besides ```current_user```, add the following in ```config/initializers/rollbar.rb```:
-
-```ruby
-config.person_method = "my_current_user"
-```
-
-If the methods to extract the ```id```, ```username```, and ```email``` from the object returned by the ```person_method``` have other names, configure like so in ```config/initializers/rollbar.rb```:
-
-```ruby
-config.person_id_method = "user_id"  # default is "id"
-config.person_username_method = "user_name"  # default is "username"
-config.person_email_method = "email_address"  # default is "email"
-```
-
-### If using Rails and not ActiveRecord
-
-By default, the `Rollbar::Middleware::Rails::RollbarRequestStore` middleware is inserted just before the `ActiveRecord::ConnectionAdapters::ConnectionManagement` middleware if `ActiveRecord` is defined. This middleware ensures that any database calls needed to grab person data are executed before connections are cleaned up in the `ConnectionManagement` middleware.
-
-If you are not using `ActiveRecord`, make sure you include the `RollbarRequestStore` middleware before any middlewares that do similar connection clean up.
-
 ## Including additional runtime data
 
-You can provide a lambda that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
+You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -188,7 +264,7 @@ This data will appear in the Occurrences tab and on the Occurrence Detail pages 
 
 ## Exception level filters
 
-By default, all exceptions reported through ```Rollbar.report_exception()``` are reported at the "error" level, except for the following, which are reported at "warning" level:
+By default, all uncaught exceptions are reported at the "error" level, except for the following, which are reported at "warning" level:
 
 - ```ActiveRecord::RecordNotFound```
 - ```AbstractController::ActionNotFound```
@@ -418,6 +494,10 @@ Check out [resque-rollbar](https://github.com/dimko/resque-rollbar) for using Ro
 ## Using with Zeus
 
 Some users have reported problems with Zeus when ```rake``` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding ```gem 'rake'``` to your ```Gemfile```. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information.
+
+## Backwards Compatibility
+
+You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
 
 ## Help / Support

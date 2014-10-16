@@ -11,6 +11,7 @@ end
 
 require 'rollbar/version'
 require 'rollbar/configuration'
+require 'rollbar/logger_proxy'
 require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
@@ -18,6 +19,7 @@ require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
 require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
+require 'rollbar/core_ext/thread'
 
 unless ''.respond_to? :encode
   require 'iconv'
@@ -25,8 +27,29 @@ end
 
 module Rollbar
   MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
+  ATTACHMENT_CLASSES = %w[
+    ActionDispatch::Http::UploadedFile
+    Rack::Multipart::UploadedFile
+  ].freeze
+  PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
+                               process_payload scope send_failsafe log_info log_debug
+                               log_warning log_error silenced)
 
-  class << self
+  class Notifier
+    attr_accessor :configuration
+
+    def initialize(parent_notifier = nil, payload_options = nil)
+      if parent_notifier
+        @configuration = parent_notifier.configuration.clone
+
+        if payload_options
+          Rollbar::Util.deep_merge(@configuration.payload_options, payload_options)
+        end
+      else
+        @configuration = ::Rollbar::Configuration.new
+      end
+    end
+
     attr_writer :configuration
     attr_accessor :last_report
 
@@ -38,140 +61,19 @@ module Rollbar
       yield(configuration)
     end
 
-    # Configures the gem.
-    #
-    # Call on app startup to set the `access_token` (required) and other config params.
-    # In a Rails app, this is called by `config/initializers/rollbar.rb` which is generated
-    # with `rails generate rollbar access-token-here`
-    #
-    # @example
-    #   Rollbar.configure do |config|
-    #     config.access_token = 'abcdefg'
-    #   end
+    # Configures the notifier instance
     def configure
-      # if configuration.enabled has not been set yet (is still 'nil'), set to true.
       configuration.enabled = true if configuration.enabled.nil?
 
       yield(configuration)
-
-      require_hooks
     end
 
-    def reconfigure
-      @configuration = Configuration.new
-      @configuration.enabled = true
+    def scope(options = {})
+      self.class.new(self, options)
+    end
+
+    def configure
       yield(configuration)
-    end
-
-    def unconfigure
-      @configuration = nil
-    end
-
-    # Returns the configuration object.
-    #
-    # @return [Rollbar::Configuration] The configuration object
-    def configuration
-      @configuration ||= Configuration.new
-    end
-
-    # Reports an exception to Rollbar. Returns the exception data hash.
-    #
-    # @example
-    #   begin
-    #     foo = bar
-    #   rescue => e
-    #     Rollbar.report_exception(e)
-    #   end
-    #
-    # @param exception [Exception] The exception object to report
-    # @param request_data [Hash] Data describing the request. Should be the result of calling
-    #   `rollbar_request_data`.
-    # @param person_data [Hash] Data describing the affected person. Should be the result of calling
-    #   `rollbar_person_data`
-    def report_exception(exception, request_data = nil, person_data = nil, level = nil)
-      if person_data
-        person_id = person_data[Rollbar.configuration.person_id_method.to_sym]
-        return 'ignored' if configuration.ignored_person_ids.include?(person_id)
-      end
-
-      return 'disabled' unless configuration.enabled
-      return 'ignored' if ignored?(exception)
-
-      data = exception_data(exception, level ? level : filtered_level(exception))
-
-      attach_request_data(data, request_data) if request_data
-      data[:person] = person_data if person_data
-
-      @last_report = data
-
-      payload = build_payload(data)
-      schedule_payload(payload)
-      log_instance_link(data)
-      data
-    rescue Exception => e
-      report_internal_error(e)
-      'error'
-    end
-
-    # Reports an arbitrary message to Rollbar
-    #
-    # @example
-    #   Rollbar.report_message("User login failed", 'info', :user_id => 123)
-    #
-    # @param message [String] The message body. This will be used to identify the message within
-    #   Rollbar. For best results, avoid putting variables in the message body; pass them as
-    #   `extra_data` instead.
-    # @param level [String] The level. One of: 'critical', 'error', 'warning', 'info', 'debug'
-    # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as
-    #   it is reserved.
-    def report_message(message, level = 'info', extra_data = {})
-      return 'disabled' unless configuration.enabled
-
-      data = message_data(message, level, extra_data)
-
-      @last_report = data
-
-      payload = build_payload(data)
-      schedule_payload(payload)
-      log_instance_link(data)
-      data
-    rescue Exception => e
-      report_internal_error(e)
-      'error'
-    end
-
-    # Reports an arbitrary message to Rollbar with request and person data
-    #
-    # @example
-    #   Rollbar.report_message_with_request("User login failed", 'info', rollbar_request_data, rollbar_person_data, :foo => 'bar')
-    #
-    # @param message [String] The message body. This will be used to identify the message within
-    #   Rollbar. For best results, avoid putting variables in the message body; pass them as
-    #   `extra_data` instead.
-    # @param level [String] The level. One of: 'critical', 'error', 'warning', 'info', 'debug'
-    # @param request_data [Hash] Data describing the request. Should be the result of calling
-    #   `rollbar_request_data`.
-    # @param person_data [Hash] Data describing the affected person. Should be the result of calling
-    #   `rollbar_person_data`
-    # @param extra_data [Hash] Additional data to include alongside the body. Don't use 'body' as
-    #   it is reserved.
-    def report_message_with_request(message, level = 'info', request_data = nil, person_data = nil, extra_data = {})
-      return 'disabled' unless configuration.enabled
-
-      data = message_data(message, level, extra_data)
-
-      attach_request_data(data, request_data) if request_data
-      data[:person] = person_data if person_data
-
-      @last_report = data
-
-      payload = build_payload(data)
-      schedule_payload(payload)
-      log_instance_link(data)
-      data
-    rescue => e
-      report_internal_error(e)
-      'error'
     end
 
     # Turns off reporting for the given block.
@@ -181,110 +83,109 @@ module Rollbar
     #
     # @yield Block which exceptions won't be reported.
     def silenced
-      begin
-        yield
-      rescue => e
-        e.instance_variable_set(:@_rollbar_do_not_report, true)
-        raise
+      yield
+    rescue => e
+      e.instance_variable_set(:@_rollbar_do_not_report, true)
+      raise
+    end
+
+    # Sends a report to Rollbar.
+    #
+    # Accepts any number of arguments. The last String argument will become
+    # the message or description of the report. The last Exception argument
+    # will become the associated exception for the report. The last hash
+    # argument will be used as the extra data for the report.
+    #
+    # @example
+    #   begin
+    #     foo = bar
+    #   rescue => e
+    #     Rollbar.log(e)
+    #   end
+    #
+    # @example
+    #   Rollbar.log('This is a simple log message')
+    #
+    # @example
+    #   Rollbar.log(e, 'This is a description of the exception')
+    #
+    def log(level, *args)
+      return 'disabled' unless configuration.enabled
+
+      message = nil
+      exception = nil
+      extra = nil
+
+      args.each do |arg|
+        if arg.is_a?(String)
+          message = arg
+        elsif arg.is_a?(Exception)
+          exception = arg
+        elsif arg.is_a?(Hash)
+          extra = arg
+        end
       end
+
+      return 'ignored' if ignored?(exception)
+
+      begin
+        report(level, message, exception, extra)
+      rescue Exception => e
+        report_internal_error(e)
+        'error'
+      end
+    end
+
+    # See log() above
+    def debug(*args)
+      log('debug', *args)
+    end
+
+    # See log() above
+    def info(*args)
+      log('info', *args)
+    end
+
+    # See log() above
+    def warn(*args)
+      log('warning', *args)
+    end
+
+    # See log() above
+    def warning(*args)
+      log('warning', *args)
+    end
+
+    # See log() above
+    def error(*args)
+      log('error', *args)
+    end
+
+    # See log() above
+    def critical(*args)
+      log('critical', *args)
     end
 
     def process_payload(payload)
-      begin
-        if configuration.write_to_file
-          write_payload(payload)
+      if configuration.write_to_file
+        if configuration.use_async
+          @file_semaphore.synchronize {
+            write_payload(payload)
+          }
         else
-          send_payload(payload)
+          write_payload(payload)
         end
-      rescue => e
-        log_error "[Rollbar] Error processing payload: #{e}"
+      else
+        send_payload(payload)
       end
-    end
-
-    # wrappers around logger methods
-    def log_error(message)
-      begin
-        logger.error message
-      rescue => e
-        puts "[Rollbar] Error logging error:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_info(message)
-      begin
-        logger.info message
-      rescue => e
-        puts "[Rollbar] Error logging info:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_warning(message)
-      begin
-        logger.warn message
-      rescue => e
-        puts "[Rollbar] Error logging warning:"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def log_debug(message)
-      begin
-        logger.debug message
-      rescue => e
-        puts "[Rollbar] Error logging debug"
-        puts "[Rollbar] #{message}"
-      end
-    end
-
-    def default_async_handler
-      return Rollbar::Delay::GirlFriday if defined?(GirlFriday)
-
-      Rollbar::Delay::Thread
     end
 
     private
 
-    def attach_request_data(payload, request_data)
-      if request_data[:route]
-        route = request_data[:route]
-
-        # make sure route is a hash built by RequestDataExtractor in rails apps
-        if route.is_a?(Hash) and not route.empty?
-          payload[:context] = "#{request_data[:route][:controller]}" + '#' + "#{request_data[:route][:action]}"
-        end
-      end
-
-      request_data[:env].reject!{|k, v| v.is_a?(IO) } if request_data[:env]
-      payload[:request] = request_data
-    end
-
-    def require_hooks()
-      if defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
-        require 'rollbar/delayed_job'
-        Rollbar::Delayed::wrap_worker
-      end
-
-      require 'rollbar/sidekiq' if defined?(Sidekiq)
-      require 'rollbar/goalie' if defined?(Goalie)
-      require 'rollbar/rack' if defined?(Rack)
-      require 'rollbar/rake' if defined?(Rake)
-      require 'rollbar/better_errors' if defined?(BetterErrors)
-    end
-
-    def log_instance_link(data)
-      log_info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
-    end
-
     def ignored?(exception)
-      if filtered_level(exception) == 'ignore'
-        return true
-      end
-
-      if exception.instance_variable_get(:@_rollbar_do_not_report)
-        return true
-      end
+      return false unless exception
+      return true if filtered_level(exception) == 'ignore'
+      return true if exception.instance_variable_get(:@_rollbar_do_not_report)
 
       false
     end
@@ -298,53 +199,114 @@ module Rollbar
       end
     end
 
-    def message_data(message, level, extra_data)
-      data = base_data(level)
+    def report(level, message, exception, extra)
+      unless message || exception || extra
+        log_error "[Rollbar] Tried to send a report with no message, exception or extra data."
+        return 'error'
+      end
 
-      data[:body] = {
-        :message => {
-          :body => message.to_s
+      payload = build_payload(level, message, exception, extra)
+      data = payload['data']
+      evaluate_payload(data)
+
+      if data[:person]
+        person_id = data[:person][configuration.person_id_method.to_sym]
+        return 'ignored' if configuration.ignored_person_ids.include?(person_id)
+      end
+
+      schedule_payload(payload)
+
+      log_instance_link(data)
+
+      Rollbar.last_report = data
+
+      data
+    end
+
+    # Reports an internal error in the Rollbar library. This will be reported within the configured
+    # Rollbar project. We'll first attempt to provide a report including the exception traceback.
+    # If that fails, we'll fall back to a more static failsafe response.
+    def report_internal_error(exception)
+      log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar."
+
+      begin
+        payload = build_payload('error', nil, exception, {:internal => true})
+      rescue => e
+        send_failsafe("build_payload in exception_data", e)
+        return
+      end
+
+      begin
+        process_payload(payload)
+      rescue => e
+        send_failsafe("error in process_payload", e)
+        return
+      end
+
+      begin
+        log_instance_link(payload['data'])
+      rescue => e
+        send_failsafe("error logging instance link", e)
+        return
+      end
+    end
+
+    ## Payload building functions
+
+    def build_payload(level, message, exception, extra)
+      environment = configuration.environment
+      environment = 'unspecified' if environment.nil? || environment.empty?
+
+      data = {
+        :timestamp => Time.now.to_i,
+        :environment => environment,
+        :level => level,
+        :language => 'ruby',
+        :framework => configuration.framework,
+        :server => server_data,
+        :notifier => {
+          :name => 'rollbar-gem',
+          :version => VERSION
         }
       }
-      data[:body][:message].merge!(extra_data)
-      data[:server] = server_data
 
-      data
+      data[:body] = build_payload_body(message, exception, extra)
+      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
+      data[:code_version] = configuration.code_version if configuration.code_version
+      data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
+
+      Rollbar::Util.deep_merge(data, configuration.payload_options)
+
+      {
+        'access_token' => configuration.access_token,
+        'data' => data
+      }
     end
 
-    def exception_data(exception, force_level = nil)
-      data = base_data
+    def build_payload_body(message, exception, extra)
+      unless configuration.custom_data_method.nil?
+        custom = Rollbar::Util.deep_copy(configuration.custom_data_method.call)
+        extra = Rollbar::Util.deep_merge(custom, extra || {})
+      end
 
-      data[:level] = force_level if force_level
+      if exception
+        build_payload_body_exception(message, exception, extra)
+      else
+        build_payload_body_message(message, extra)
+      end
+    end
 
+    def build_payload_body_exception(message, exception, extra)
       traces = trace_chain(exception)
 
+      traces[0][:exception][:description] = message if message
+      traces[0][:extra] = extra if extra
+
       if traces.size > 1
-        body = {
-          :trace_chain => traces
-        }
+        { :trace_chain => traces }
       elsif traces.size == 1
-        body = {
-          :trace => traces[0]
-        }
+        { :trace => traces[0] }
       end
-
-      data[:body] = body
-
-      data[:server] = server_data
-
-      data
-    end
-
-    def trace_chain(exception)
-      traces = [trace_data(exception)]
-
-      while exception.respond_to?(:cause) && (cause = exception.cause)
-        traces << trace_data(cause)
-        exception = cause
-      end
-
-      traces
     end
 
     def trace_data(exception)
@@ -374,12 +336,162 @@ module Rollbar
       }
     end
 
-    def logger
-      # init if not set
-      unless configuration.logger
-        configuration.logger = configuration.default_logger.call
+    def trace_chain(exception)
+      traces = [trace_data(exception)]
+
+      while exception.respond_to?(:cause) && (cause = exception.cause)
+        traces << trace_data(cause)
+        exception = cause
       end
-      configuration.logger
+
+      traces
+    end
+
+    def build_payload_body_message(message, extra)
+      result = { :body => message || 'Empty message'}
+      result[:extra] = extra if extra
+
+      { :message => result }
+    end
+
+    def server_data
+      data = {
+        :host => Socket.gethostname
+      }
+      data[:root] = configuration.root.to_s if configuration.root
+      data[:branch] = configuration.branch if configuration.branch
+
+      data
+    end
+
+    # Walks the entire payload and replaces callable values with
+    # their results
+    def evaluate_payload(payload)
+      evaluator = proc do |key, value|
+        result = value
+
+        if value.respond_to? :call
+          begin
+            result = value.call
+          rescue
+            log_error "[Rollbar] Error while evaluating callable in payload for key #{key}"
+            result = nil
+          end
+        end
+
+        result
+      end
+
+      Rollbar::Util.iterate_and_update_hash(payload, evaluator)
+    end
+
+    def enforce_valid_utf8(payload)
+      normalizer = lambda do |object|
+        is_symbol = object.is_a?(Symbol)
+
+        return object unless object == object.to_s || is_symbol
+
+        value = object.to_s
+
+        if value.respond_to? :encode
+          encoded_value = value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
+        else
+          encoded_value = ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
+        end
+
+        is_symbol ? encoded_value.to_sym : encoded_value
+      end
+
+      Rollbar::Util.iterate_and_update(payload, normalizer)
+    end
+
+    # Walks the entire payload and truncates string values that
+    # are longer than the byte_threshold
+    def truncate_payload(payload, byte_threshold)
+      truncator = proc do |value|
+        if value.is_a?(String) && value.bytesize > byte_threshold
+          Rollbar::Util.truncate(value, byte_threshold)
+        else
+          value
+        end
+      end
+
+      Rollbar::Util.iterate_and_update(payload, truncator)
+    end
+
+    ## Delivery functions
+
+    def schedule_payload(payload)
+      log_info '[Rollbar] Scheduling payload'
+
+      if configuration.use_async
+        unless configuration.async_handler
+          configuration.async_handler = method(:default_async_handler)
+        end
+
+        if configuration.write_to_file
+          unless @file_semaphore
+            @file_semaphore = Mutex.new
+          end
+        end
+
+        configuration.async_handler.call(payload)
+      else
+        process_payload(payload)
+      end
+    end
+
+    def send_payload_using_eventmachine(payload)
+      body = dump_payload(payload)
+      headers = { 'X-Rollbar-Access-Token' => payload['access_token'] }
+      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
+
+      req.callback do
+        if req.response_header.status == 200
+          log_info '[Rollbar] Success'
+        else
+          log_warning "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
+          log_info "[Rollbar] Response: #{req.response}"
+        end
+      end
+
+      req.errback do
+        log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+        log_info "[Rollbar] Error's response: #{req.response}"
+      end
+    end
+
+    def send_payload(payload)
+      log_info '[Rollbar] Sending payload'
+      payload = MultiJson.load(payload) if payload.is_a?(String)
+
+      if configuration.use_eventmachine
+        send_payload_using_eventmachine(payload)
+        return
+      end
+
+      body = dump_payload(payload)
+
+      uri = URI.parse(configuration.endpoint)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.read_timeout = configuration.request_timeout
+
+      if uri.scheme == 'https'
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request.body = body
+      request.add_field('X-Rollbar-Access-Token', payload['access_token'])
+      response = http.request(request)
+
+      if response.code == '200'
+        log_info '[Rollbar] Success'
+      else
+        log_warning "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
+        log_info "[Rollbar] Response: #{response.body}"
+      end
     end
 
     def write_payload(payload)
@@ -408,54 +520,43 @@ module Rollbar
       end
     end
 
-    def send_payload_using_eventmachine(payload)
-      body = dump_payload(payload)
-      headers = { 'X-Rollbar-Access-Token' => payload['access_token'] }
-      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
-
-      req.callback do
-        if req.response_header.status == 200
-          log_info '[Rollbar] Success'
-        else
-          log_warning "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
-          log_info "[Rollbar] Response: #{req.response}"
+    def send_failsafe(message, exception)
+      log_error "[Rollbar] Sending failsafe response due to #{message}."
+      if exception
+        begin
+          log_error "[Rollbar] #{exception.class.name}: #{exception}"
+        rescue => e
         end
       end
-      req.errback do
-        log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
-        log_info "[Rollbar] Error's response: #{req.response}"
-      end
-    end
 
-    def send_payload(payload)
-      log_info '[Rollbar] Sending payload'
-      payload = MultiJson.load(payload) if payload.is_a?(String)
+      config = configuration
+      environment = config.environment
 
-      if configuration.use_eventmachine
-        send_payload_using_eventmachine(payload)
-        return
-      end
+      failsafe_data = {
+        :level => 'error',
+        :environment => environment.to_s,
+        :body => {
+          :message => {
+            :body => "Failsafe from rollbar-gem: #{message}"
+          }
+        },
+        :notifier => {
+          :name => 'rollbar-gem',
+          :version => VERSION
+        },
+        :internal => true,
+        :failsafe => true
+      }
 
-      body = dump_payload(payload)
-      uri = URI.parse(configuration.endpoint)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.read_timeout = configuration.request_timeout
+      failsafe_payload = {
+        'access_token' => configuration.access_token,
+        'data' => failsafe_data
+      }
 
-      if uri.scheme == 'https'
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
-
-      request = Net::HTTP::Post.new(uri.request_uri)
-      request.body = body
-      request.add_field('X-Rollbar-Access-Token', payload['access_token'])
-      response = http.request(request)
-
-      if response.code == '200'
-        log_info '[Rollbar] Success'
-      else
-        log_warning "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
-        log_info "[Rollbar] Response: #{response.body}"
+      begin
+        schedule_payload(failsafe_payload)
+      rescue => e
+        log_error "[Rollbar] Error sending failsafe : #{e}"
       end
     end
 
@@ -471,10 +572,16 @@ module Rollbar
       end
     end
 
+    def default_async_handler
+      return Rollbar::Delay::GirlFriday if defined?(GirlFriday)
+
+      Rollbar::Delay::Thread
+    end
+
     def process_async_payload(payload)
       configuration.async_handler ||= default_async_handler
       configuration.async_handler.call(payload)
-    rescue
+    rescue => e
       if configuration.failover_handlers.empty?
         log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
         return
@@ -497,16 +604,6 @@ module Rollbar
           log_error "[Rollbar] All failover handlers failed while processing payload: #{MultiJson.dump(payload)}"
         end
       end
-    end
-
-    def build_payload(data)
-      payload = {
-        'access_token' => configuration.access_token,
-        'data' => data
-      }
-
-      enforce_valid_utf8(payload)
-      payload
     end
 
     def dump_payload(payload)
@@ -537,154 +634,153 @@ module Rollbar
       result
     end
 
-    def base_data(level = 'error')
-      config = configuration
-
-      environment = config.environment
-      if environment.nil? || environment.empty?
-        environment = 'unspecified'
-      end
-
-      data = {
-        :timestamp => Time.now.to_i,
-        :environment => environment,
-        :level => level,
-        :language => 'ruby',
-        :framework => config.framework,
-        :project_package_paths => config.project_gem_paths,
-        :notifier => {
-          :name => 'rollbar-gem',
-          :version => VERSION
-        }
-      }
-
-      if config.code_version
-        data[:code_version] = config.code_version
-      end
-
-      if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-        data[:uuid] = SecureRandom.uuid
-      end
-
-      unless config.custom_data_method.nil?
-        data[:custom] = config.custom_data_method.call
-      end
-
-      data
-    end
-
-    def server_data
-      config = configuration
-
-      data = {
-        :host => Socket.gethostname
-      }
-      data[:root] = config.root.to_s if config.root
-      data[:branch] = config.branch if config.branch
-
-      data
-    end
-
-    # Reports an internal error in the Rollbar library. This will be reported within the configured
-    # Rollbar project. We'll first attempt to provide a report including the exception traceback.
-    # If that fails, we'll fall back to a more static failsafe response.
-    def report_internal_error(exception)
-      log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar."
-
-      begin
-        data = exception_data(exception, 'error')
-      rescue => e
-        send_failsafe("error in exception_data", e)
-        return
-      end
-
-      data[:internal] = true
-
-      begin
-        payload = build_payload(data)
-      rescue => e
-        send_failsafe("error in build_payload", e)
-        return
-      end
-
-      begin
-        schedule_payload(payload)
-      rescue => e
-        send_failsafe("error in schedule_payload", e)
-        return
-      end
-
-      begin
-        log_instance_link(data)
-      rescue => e
-        send_failsafe("error logging instance link", e)
-        return
+    ## Logging
+    %w(debug info warn error).each do |level|
+      define_method(:"log_#{level}") do |message|
+        logger.send(level, message)
       end
     end
 
-    def send_failsafe(message, exception)
-      log_error "[Rollbar] Sending failsafe response due to #{message}."
-      if exception
-        begin
-          log_error "[Rollbar] #{exception.class.name}: #{exception}"
-        rescue => e
-        end
-      end
+    alias_method :log_warning, :log_warn
 
-      config = configuration
-      environment = config.environment
-
-      failsafe_data = {
-        :level => 'error',
-        :environment => "#{environment}",
-        :body => { :message => { :body => "Failsafe from rollbar-gem: #{message}" } },
-        :notifier => { :name => 'rollbar-gem', :version => "#{VERSION}" },
-        :internal => true,
-        :failsafe => true
-      }
-
-      failsafe_payload = build_payload(failsafe_data)
-
-      begin
-        schedule_payload(failsafe_payload)
-      rescue => e
-        log_error "[Rollbar] Error sending failsafe : #{e}"
+    def log_instance_link(data)
+      if data[:uuid]
+        log_info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
       end
     end
 
-    def enforce_valid_utf8(payload)
-      normalizer = lambda do |object|
-        is_symbol = object.is_a?(Symbol)
+    def logger
+      @logger ||= LoggerProxy.new(configuration.logger)
+    end
+  end
 
-        return object unless object == object.to_s || is_symbol
+  class << self
+    extend Forwardable
 
-        value = object.to_s
+    def_delegators :notifier, *PUBLIC_NOTIFIER_METHODS
 
-        if value.respond_to? :encode
-          encoded_value = value.encode('UTF-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
-        else
-          encoded_value = ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
-        end
-
-        is_symbol ? encoded_value.to_sym : encoded_value
-      end
-
-      Rollbar::Util.iterate_and_update(payload, normalizer)
+    # Similar to configure below, but used only internally within the gem
+    # to configure it without initializing any of the third party hooks
+    def preconfigure
+      yield(configuration)
     end
 
-    def truncate_payload(payload, byte_threshold)
-      truncator = Proc.new do |value|
-        if value.is_a?(String) and value.bytesize > byte_threshold
-          Rollbar::Util::truncate(value, byte_threshold)
-        else
-          value
-        end
-      end
+    def configure
+      # if configuration.enabled has not been set yet (is still 'nil'), set to true.
+      configuration.enabled = true if configuration.enabled.nil?
 
-      Rollbar::Util::iterate_and_update(payload, truncator)
+      yield(configuration)
+
+      require_hooks
+    end
+
+    def reconfigure
+      @configuration = Configuration.new
+      @configuration.enabled = true
+      yield(configuration)
+    end
+
+    def unconfigure
+      @configuration = nil
+    end
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
+
+    def require_hooks
+      wrap_delayed_worker
+
+      require 'rollbar/sidekiq' if defined?(Sidekiq)
+      require 'rollbar/goalie' if defined?(Goalie)
+      require 'rollbar/rack' if defined?(Rack)
+      require 'rollbar/rake' if defined?(Rake)
+      require 'rollbar/better_errors' if defined?(BetterErrors)
+    end
+
+    def wrap_delayed_worker
+      return unless defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
+
+      require 'rollbar/delayed_job'
+      Rollbar::Delayed.wrap_worker
+    end
+
+    def notifier
+      Thread.current[:_rollbar_notifier] ||= Notifier.new(self)
+    end
+
+    def notifier=(notifier)
+      Thread.current[:_rollbar_notifier] = notifier
+    end
+
+    def last_report
+      Thread.current[:_rollbar_last_report]
+    end
+
+    def last_report=(report)
+      Thread.current[:_rollbar_last_report] = report
+    end
+
+    def reset_notifier!
+      self.notifier = nil
+    end
+
+    # Create a new Notifier instance using the received options and
+    # set it as the current thread notifier.
+    # The calls to Rollbar inside the received block will use then this
+    # new Notifier object.
+    #
+    # @example
+    #
+    #   new_scope = { job_type: 'scheduled' }
+    #   Rollbar.scoped(new_scope) do
+    #     begin
+    #       # do stuff
+    #     rescue => e
+    #       Rollbar.log(e)
+    #     end
+    #   end
+    def scoped(options = {})
+      old_notifier = notifier
+      self.notifier = old_notifier.scope(options)
+
+      result = yield
+      result
+    ensure
+      self.notifier = old_notifier
+    end
+
+    # Backwards compatibility methods
+
+    def report_exception(exception, request_data = {}, person_data = {}, level = 'error')
+      Kernel.warn('[DEPRECATION] Rollbar.report_exception has been deprecated, please use log() or one of the level functions')
+
+      scope = {}
+      scope[:request] = request_data if request_data && request_data.any?
+      scope[:person] = person_data if person_data && person_data.any?
+
+      Rollbar.scoped(scope) do
+        Rollbar.notifier.log(level, exception)
+      end
+    end
+
+    def report_message(message, level = 'info', extra_data = {})
+      Kernel.warn('[DEPRECATION] Rollbar.report_message has been deprecated, please use log() or one of the level functions')
+
+      Rollbar.notifier.log(level, message, extra_data)
+    end
+
+    def report_message_with_request(message, level = 'info', request_data = {}, person_data = {}, extra_data = {})
+      Kernel.warn('[DEPRECATION] Rollbar.report_message_with_request has been deprecated, please use log() or one of the level functions')
+
+      scope = {}
+      scope[:request] = request_data if request_data && request_data.any?
+      scope[:person] = person_data if person_data && person_data.any?
+
+
+      Rollbar.scoped(:request => request_data, :person => person_data) do
+        Rollbar.notifier.log(level, message, extra_data)
+      end
     end
   end
 end
-
-# Setting Ratchetio as an alias to Rollbar for ratchetio-gem backwards compatibility
-Ratchetio = Rollbar
