@@ -15,6 +15,16 @@ class HomeController < ApplicationController
     end
   end
 
+  def deprecated_report_exception
+    begin
+      foo = bar
+    rescue => e
+      Rollbar.report_exception(e)
+    end
+    render json: {}
+  end
+  
+
   def cause_exception
     foo = bar
   end
@@ -22,7 +32,7 @@ class HomeController < ApplicationController
   def current_user
     User.find_by_encrypted_password(cookies[:session_id])
   end
-  
+
   def custom_current_user
     user = User.new
     user.id = 123

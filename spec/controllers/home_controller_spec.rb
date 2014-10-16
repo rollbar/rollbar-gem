@@ -244,6 +244,17 @@ describe HomeController do
       Rollbar.last_report[:request][:params]["putparam"].should == "putval"
     end
 
+    context 'using deprecated report_exception' do
+      it 'reports the errors successfully' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success')
+
+        put '/deprecated_report_exception', :putparam => "putval"
+
+        Rollbar.last_report.should_not be_nil
+        Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+      end
+    end
+
     it "should raise a NameError and have JSON POST params" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       @request.env["HTTP_ACCEPT"] = "application/json"
