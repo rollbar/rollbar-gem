@@ -1,5 +1,10 @@
 # Change Log
 
+**1.2.0**
+- Added new, much nicer interface for sending exceptions and messages to Rollbar. This is a backwards-compatible release: the old interface (`report_message`, `report_exception`, `report_message_with_request`) is deprecated but will continue to work at least until 2.0.
+  
+  See the docs for [basic](https://github.com/rollbar/rollbar-gem#caught-exceptions-and-messages) and [advanced](https://github.com/rollbar/rollbar-gem#advanced-usage) usage for a guide to the new interface. If you've used [rollbar.js](https://github.com/rollbar/rollbar.js), it will be familiar.
+
 **1.1.0**
 - Support nested exceptions for Ruby 2.1. See [#136](https://github.com/rollbar/rollbar-gem/pull/136). NOTE: for exceptions that have causes, this will change how they are grouped in Rollbar. If you have custom grouping rules, they will need to be updated to replace `body.trace.exception` with `body.trace_chain[0].exception` to maintain the same behavior for these exceptions.
 - New feature: `failover_handlers`. You can specify a list of async handlers, which will be tried in sequence upon failure. See [#135](https://github.com/rollbar/rollbar-gem/pull/135).
