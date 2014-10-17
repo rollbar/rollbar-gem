@@ -1,4 +1,5 @@
 require 'multi_json'
+require 'rack'
 
 module Rollbar
   module RequestDataExtractor
@@ -14,7 +15,7 @@ module Rollbar
     end
 
     def extract_request_data_from_rack(env)
-      rack_req = Rack::Request.new(env)
+      rack_req = ::Rack::Request.new(env)
 
       sensitive_params = sensitive_params_list(env)
       request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
