@@ -1,5 +1,8 @@
 # Change Log
 
+**Next release (tbd)**
+- Explicitly require 'rack' in request_data_extractor. See [#144](https://github.com/rollbar/rollbar-gem/pull/144)
+
 **1.2.1**
 - Revert change made as part of 1.2.0 where all procs in the payload would be evaluated. See [#143](https://github.com/rollbar/rollbar-gem/pull/143).
 
