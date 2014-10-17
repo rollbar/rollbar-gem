@@ -1,5 +1,8 @@
 # Change Log
 
+**1.2.1**
+- Revert change made as part of 1.2.0 where all procs in the payload would be evaluated. See [#143](https://github.com/rollbar/rollbar-gem/pull/143).
+
 **1.2.0**
 - Added new, much nicer interface for sending exceptions and messages to Rollbar. This is a backwards-compatible release: the old interface (`report_message`, `report_exception`, `report_message_with_request`) is deprecated but will continue to work at least until 2.0.
   
