@@ -250,16 +250,6 @@ describe Rollbar do
         result = notifier.send(:report, 'info', 'message', nil, nil)
         result.should == 'ignored'
       end
-
-      it 'should evaluate callables in the payload' do
-        notifier.should receive(:schedule_payload) do |payload|
-          data = payload['data']
-          data[:body][:message][:extra][:callable].should == 2
-        end
-
-        callable = proc { 1 + 1 }
-        notifier.send(:report, 'warning', 'message', nil, { :callable => callable })
-      end
     end
 
     context 'build_payload' do
@@ -613,65 +603,6 @@ describe Rollbar do
         body[:message][:body].should == 'Empty message'
         body[:message][:extra][:key].should == 'value'
         body[:message][:extra][:hash].should == {:inner_key => 'inner_value'}
-      end
-    end
-
-    context 'evaluate_payload' do
-      let(:notifier) do
-        notifier = Rollbar.notifier
-
-        notifier.configure do |config|
-          config.logger = logger_mock
-        end
-
-        notifier
-      end
-
-      let(:logger_mock) { double("Rails.logger").as_null_object }
-
-      before(:each) do
-        configure
-        notifier.configure do |config|
-          config.logger = logger_mock
-        end
-      end
-
-      it 'should evaluate callables and store the result' do
-        a = 'some string'
-
-        payload = {
-          :evaluate1 => lambda { 1 + 1 },
-          :evaluate2 => Proc.new { 2 + 2 },
-          :hash => {
-            :inner_evaluate1 => a.method(:to_s),
-            :inner_evaluate2 => lambda { {:key => 'value'} }
-          }
-        }
-
-        payload_copy = payload.clone
-        notifier.send(:evaluate_payload, payload_copy)
-
-        payload_copy[:evaluate1].should == 2
-        payload_copy[:evaluate2].should == 4
-        payload_copy[:hash][:inner_evaluate1].should == 'some string'
-        payload_copy[:hash][:inner_evaluate2][:key].should == 'value'
-      end
-
-      it 'should not crash when the callable raises an exception' do
-        logger_mock.should_receive(:error).with("[Rollbar] Error while evaluating callable in payload for key evaluate1")
-
-        payload = {
-          :evaluate1 => lambda { a = b },
-          :evaluate2 => Proc.new { 2 + 2 },
-          :key => 'value'
-        }
-
-        payload_copy = payload.clone
-        notifier.send(:evaluate_payload, payload_copy)
-
-        payload_copy[:evaluate1].should be_nil
-        payload_copy[:evaluate2].should == 4
-        payload_copy[:key].should == 'value'
       end
     end
 

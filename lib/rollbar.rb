@@ -207,11 +207,13 @@ module Rollbar
 
       payload = build_payload(level, message, exception, extra)
       data = payload['data']
-      evaluate_payload(data)
 
       if data[:person]
         person_id = data[:person][configuration.person_id_method.to_sym]
         return 'ignored' if configuration.ignored_person_ids.include?(person_id)
+
+        is_proc = data[:person].respond_to?(:call)
+        data[:person] = data[:person].call if is_proc
       end
 
       schedule_payload(payload)
@@ -362,27 +364,6 @@ module Rollbar
       data[:branch] = configuration.branch if configuration.branch
 
       data
-    end
-
-    # Walks the entire payload and replaces callable values with
-    # their results
-    def evaluate_payload(payload)
-      evaluator = proc do |key, value|
-        result = value
-
-        if value.respond_to? :call
-          begin
-            result = value.call
-          rescue
-            log_error "[Rollbar] Error while evaluating callable in payload for key #{key}"
-            result = nil
-          end
-        end
-
-        result
-      end
-
-      Rollbar::Util.iterate_and_update_hash(payload, evaluator)
     end
 
     def enforce_valid_utf8(payload)
