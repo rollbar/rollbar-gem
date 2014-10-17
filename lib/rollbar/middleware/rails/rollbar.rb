@@ -44,9 +44,7 @@ module Rollbar
           block = proc { extract_person_data_from_controller(env) }
           return block unless defined?(ActiveRecord::Base)
 
-          proc do
-            ActiveRecord::Base.connection_pool.with_connection(&block)
-          end
+          proc { ActiveRecord::Base.connection_pool.with_connection(&block) }
         end
 
         def context(request_data)
