@@ -733,31 +733,30 @@ module Rollbar
 
     # Backwards compatibility methods
 
-    def report_exception(exception, request_data = {}, person_data = {}, level = 'error')
+    def report_exception(exception, request_data = nil, person_data = nil, level = 'error')
       Kernel.warn('[DEPRECATION] Rollbar.report_exception has been deprecated, please use log() or one of the level functions')
 
       scope = {}
-      scope[:request] = request_data if request_data && request_data.any?
-      scope[:person] = person_data if person_data && person_data.any?
+      scope[:request] = request_data if request_data
+      scope[:person] = person_data if person_data
 
       Rollbar.scoped(scope) do
         Rollbar.notifier.log(level, exception)
       end
     end
 
-    def report_message(message, level = 'info', extra_data = {})
+    def report_message(message, level = 'info', extra_data = nil)
       Kernel.warn('[DEPRECATION] Rollbar.report_message has been deprecated, please use log() or one of the level functions')
 
       Rollbar.notifier.log(level, message, extra_data)
     end
 
-    def report_message_with_request(message, level = 'info', request_data = {}, person_data = {}, extra_data = {})
+    def report_message_with_request(message, level = 'info', request_data = nil, person_data = nil, extra_data = nil)
       Kernel.warn('[DEPRECATION] Rollbar.report_message_with_request has been deprecated, please use log() or one of the level functions')
 
       scope = {}
-      scope[:request] = request_data if request_data && request_data.any?
-      scope[:person] = person_data if person_data && person_data.any?
-
+      scope[:request] = request_data if request_data
+      scope[:person] = person_data if person_data
 
       Rollbar.scoped(:request => request_data, :person => person_data) do
         Rollbar.notifier.log(level, message, extra_data)
