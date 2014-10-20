@@ -1,6 +1,7 @@
 # Change Log
 
-**Next release (tbd)**
+**1.2.2**
+- Fix issue with delayed_job and Rollbar.report_exception (bug introduced in 1.2.0). See [#145](https://github.com/rollbar/rollbar-gem/issues/145)
 - Explicitly require 'rack' in request_data_extractor. See [#144](https://github.com/rollbar/rollbar-gem/pull/144)
 
 **1.2.1**
