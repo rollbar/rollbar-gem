@@ -26,5 +26,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'genspec', '>= 0.2.7'
   gem.add_development_dependency 'sinatra'
   gem.add_development_dependency 'resque'
-	gem.add_development_dependency 'delayed_job'
+  gem.add_development_dependency 'delayed_job'
 end
