@@ -103,10 +103,11 @@ module Rollbar
     def rollbar_raw_post_params(rack_req)
       return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
 
-      params = MultiJson.decode(rack_req.body.read)
+      MultiJson.decode(rack_req.body.read)
+    rescue
+      {}
+    ensure
       rack_req.body.rewind
-
-      params
     end
 
     def rollbar_request_params(env)
