@@ -279,10 +279,14 @@ module Rollbar
 
       Rollbar::Util.deep_merge(data, configuration.payload_options)
 
-      {
+      payload = {
         'access_token' => configuration.access_token,
         'data' => data
       }
+
+      enforce_valid_utf8(payload)
+
+      payload
     end
 
     def build_payload_body(message, exception, extra)
