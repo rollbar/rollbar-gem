@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://secure.travis-ci.org/rollbar/rollbar-gem.png?branch=master)](https://travis-ci.org/rollbar/rollbar-gem)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.2.2)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https://rollbar.com).
