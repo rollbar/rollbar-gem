@@ -34,6 +34,7 @@ RSpec.configure do |config|
   config.after(:each) do
     DatabaseCleaner.clean
   end
+  config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
 end
 
 def reset_configuration
