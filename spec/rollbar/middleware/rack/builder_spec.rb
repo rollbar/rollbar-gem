@@ -40,7 +40,6 @@ describe Rollbar::Middleware::Rack::Builder do
         request.get('/will_crash', :params => params)
       end.to raise_error(exception)
 
-
       expect(Rollbar.last_report[:request][:params]).to be_eql(params)
     end
   end
@@ -52,10 +51,22 @@ describe Rollbar::Middleware::Rack::Builder do
 
     it 'sends them to Rollbar' do
       expect do
-        request.post('/will_crash', :params => params, 'CONTENT_TYPE' => 'application/json')
+        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
       expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+    end
+
+    context 'with crashing payload' do
+      let(:body) { 'this is not a valid json' }
+
+      it 'returns {} and doesnt raise' do
+        expect do
+          request.post('/dont_crash', :input => body, 'CONTENT_TYPE' => 'application/json')
+        end.to raise_error(exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql({})
+      end
     end
   end
 end
