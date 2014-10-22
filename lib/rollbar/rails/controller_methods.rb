@@ -1,3 +1,5 @@
+require 'rollbar/request_data_extractor'
+
 module Rollbar
   module Rails
     module ControllerMethods
