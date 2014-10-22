@@ -12,7 +12,6 @@ end
 require 'rollbar/version'
 require 'rollbar/configuration'
 require 'rollbar/logger_proxy'
-require 'rollbar/request_data_extractor'
 require 'rollbar/exception_reporter'
 require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'

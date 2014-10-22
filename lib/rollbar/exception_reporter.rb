@@ -1,12 +1,10 @@
 module Rollbar
   module ExceptionReporter
-    include RequestDataExtractor
-
     def report_exception_to_rollbar(env, exception)
       Rollbar.log_debug "[Rollbar] Reporting exception: #{exception.try(:message)}"
-      
+
       exception_data = Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception)
-      
+
       if exception_data.is_a?(Hash)
         env['rollbar.exception_uuid'] = exception_data[:uuid]
         Rollbar.log_debug "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
