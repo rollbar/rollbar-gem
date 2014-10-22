@@ -870,6 +870,19 @@ describe Rollbar do
 
       payload['data'][:level].should == 'debug'
     end
+
+    context 'with invalid utf8 encoding' do
+      let(:extra) do
+        { :extra => "bad value 1\255" }
+      end
+
+      it 'removes te invalid characteres' do
+        Rollbar.info('removing invalid chars', extra)
+
+        extra_value = Rollbar.last_report[:body][:message][:extra][:extra]
+        expect(extra_value).to be_eql('bad value 1')
+      end
+    end
   end
 
   # Backwards
