@@ -1,7 +1,9 @@
 # Change Log
 
-**1.2.3**
+**1.2.4**
 - Fix issue where requiring 'rack' unnecessarily broke things in non-rack apps. See [#150](https://github.com/rollbar/rollbar-gem/pull/150)
+
+**1.2.3**
 - Bring back `enforce_valid_utf8`, which got lost in the 1.2.0 upgrade. See [#148](https://github.com/rollbar/rollbar-gem/pull/148)
 - Fix bug with raw post extraction for application/json requests. See [#147](https://github.com/rollbar/rollbar-gem/pull/147)
 
