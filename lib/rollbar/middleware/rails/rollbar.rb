@@ -1,3 +1,6 @@
+require 'rollbar/request_data_extractor'
+require 'rollbar/exception_reporter'
+
 module Rollbar
   module Middleware
     module Rails

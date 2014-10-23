@@ -606,44 +606,6 @@ describe Rollbar do
       end
     end
 
-    context 'enforce_valid_utf8' do
-      it 'should replace invalid utf8 values' do
-        payload = {
-          :bad_value => "bad value 1\255",
-          :bad_value_2 => "bad\255 value 2",
-          "bad\255 key" => "good value",
-          :hash => {
-            :inner_bad_value => "\255\255bad value 3",
-            "inner \255bad key" => 'inner good value',
-            "bad array key\255" => [
-              'good array value 1',
-              "bad\255 array value 1\255",
-              {
-                :inner_inner_bad => "bad inner \255inner value"
-              }
-            ]
-          }
-        }
-
-        payload_copy = payload.clone
-        notifier.send(:enforce_valid_utf8, payload_copy)
-
-        payload_copy[:bad_value].should == "bad value 1"
-        payload_copy[:bad_value_2].should == "bad value 2"
-        payload_copy["bad key"].should == "good value"
-        payload_copy.keys.should_not include("bad\456 key")
-        payload_copy[:hash][:inner_bad_value].should == "bad value 3"
-        payload_copy[:hash]["inner bad key"].should == 'inner good value'
-        payload_copy[:hash]["bad array key"].should == [
-          'good array value 1',
-          'bad array value 1',
-          {
-            :inner_inner_bad => 'bad inner inner value'
-          }
-        ]
-      end
-    end
-
     context 'truncate_payload' do
       it 'should truncate all nested strings in the payload' do
         payload = {
@@ -907,6 +869,19 @@ describe Rollbar do
       Rollbar.log('debug', exception)
 
       payload['data'][:level].should == 'debug'
+    end
+
+    context 'with invalid utf8 encoding' do
+      let(:extra) do
+        { :extra => "bad value 1\255" }
+      end
+
+      it 'removes te invalid characteres' do
+        Rollbar.info('removing invalid chars', extra)
+
+        extra_value = Rollbar.last_report[:body][:message][:extra][:extra]
+        expect(extra_value).to be_eql('bad value 1')
+      end
     end
   end
 
