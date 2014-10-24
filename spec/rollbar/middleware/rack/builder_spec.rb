@@ -68,5 +68,25 @@ describe Rollbar::Middleware::Rack::Builder do
         expect(Rollbar.last_report[:request][:params]).to be_eql({})
       end
     end
+
+    context 'with array POST parameters' do
+      let(:params) do
+        ['this will not be parsed']
+      end
+
+      let(:expected) do
+        {"can't process params"=>"[\"this will not be parsed\"]"}
+      end
+
+      it 'sends them to Rollbar' do
+        expect do
+          request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        end.to raise_error(exception)
+
+#        require 'byebug';byebug
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql(expected)
+      end
+    end
   end
 end
