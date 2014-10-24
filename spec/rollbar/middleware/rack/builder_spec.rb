@@ -68,5 +68,44 @@ describe Rollbar::Middleware::Rack::Builder do
         expect(Rollbar.last_report[:request][:params]).to be_eql({})
       end
     end
+
+    context 'with an single element array params in POST' do
+      before do
+        Rollbar.configure do |config|
+          config.scrub_fields = [:secret]
+        end
+      end
+
+      let(:params) do
+        [{ :secret => 'hidden', :willsee => 'visible'}]
+      end
+
+      it 'scrub custom fields in array params' do
+        expect do
+          request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        end.to raise_error(exception)
+
+        filtered = Rollbar.last_report[:request][:params]
+
+        expect(filtered['secret']).to be_eql('******')
+        expect(filtered['willsee']).to be_eql('visible')
+      end
+    end
+
+    context 'with an two element array params in POST' do
+      let(:params) do
+        [{ :secret => 'hidden', :willsee => 'visible'},
+         { :foo => 'bar', :key => 'value'}]
+      end
+
+      it 'doesnt merge the post params in the reported params' do
+        expect do
+          request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        end.to raise_error(exception)
+
+        reported_params = Rollbar.last_report[:request][:params]
+        expect(reported_params).to be_eql({})
+      end
+    end
   end
 end

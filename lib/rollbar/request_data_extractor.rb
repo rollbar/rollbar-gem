@@ -21,7 +21,7 @@ module Rollbar
       request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
       get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
-      raw_post_params = rollbar_filtered_params(sensitive_params, rollbar_raw_post_params(rack_req))
+      raw_post_params = rollbar_filtered_params(sensitive_params, mergeable_raw_post_params(rack_req))
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
@@ -47,6 +47,18 @@ module Rollbar
     end
 
     private
+
+    def mergeable_raw_post_params(rack_req)
+      raw_post_params = rollbar_raw_post_params(rack_req)
+
+      if raw_post_params.is_a?(Hash)
+        raw_post_params
+      elsif raw_post_params.is_a?(Array) && raw_post_params.size == 1
+        raw_post_params[0]
+      else
+        {}
+      end
+    end
 
     def rollbar_request_method(env)
       env['REQUEST_METHOD'] || env[:method]
@@ -101,6 +113,9 @@ module Rollbar
     end
 
     def rollbar_raw_post_params(rack_req)
+      correct_method = rack_req.post? || rack_req.put? || rack_req.patch?
+
+      return {} unless correct_method
       return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
 
       MultiJson.decode(rack_req.body.read)
@@ -138,6 +153,8 @@ module Rollbar
 
       if params.nil?
         {}
+      elsif params.is_a?(Array)
+        params.map { |value| rollbar_filtered_params(sensitive_params, value) }
       else
         params.to_hash.inject({}) do |result, (key, value)|
           if sensitive_params_regexp =~ key.to_s
