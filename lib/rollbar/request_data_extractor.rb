@@ -138,7 +138,7 @@ module Rollbar
 
       if params.nil?
         {}
-      elsif !params.respond_to(:to_hash)
+      elsif !params.respond_to?(:to_hash)
         {"can't process params" => params.inspect }
       else
         params.to_hash.inject({}) do |result, (key, value)|
