@@ -130,8 +130,11 @@ module Rollbar
     end
 
     def rollbar_route_params(env)
+      return {} unless defined?(Rails)
+
       begin
         route = ::Rails.application.routes.recognize_path(env['PATH_INFO'])
+
         {
           :controller => route[:controller],
           :action => route[:action],
