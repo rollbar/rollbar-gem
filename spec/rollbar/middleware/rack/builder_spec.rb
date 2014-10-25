@@ -56,56 +56,33 @@ describe Rollbar::Middleware::Rack::Builder do
 
       expect(Rollbar.last_report[:request][:params]).to be_eql(params)
     end
+  end
 
-    context 'with crashing payload' do
-      let(:body) { 'this is not a valid json' }
-
-      it 'returns {} and doesnt raise' do
-        expect do
-          request.post('/dont_crash', :input => body, 'CONTENT_TYPE' => 'application/json')
-        end.to raise_error(exception)
-
-        expect(Rollbar.last_report[:request][:params]).to be_eql({})
-      end
+  context 'with array POST parameters' do
+    let(:params) do
+      [{ :key => 'value'}, 'string', 10]
     end
 
-    context 'with an single element array params in POST' do
-      before do
-        Rollbar.configure do |config|
-          config.scrub_fields = [:secret]
-        end
-      end
+    it 'sends a body.multi key in params' do
+      expect do
+        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+      end.to raise_error(exception)
 
-      let(:params) do
-        [{ :secret => 'hidden', :willsee => 'visible'}]
-      end
-
-      it 'scrub custom fields in array params' do
-        expect do
-          request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
-        end.to raise_error(exception)
-
-        filtered = Rollbar.last_report[:request][:params]
-
-        expect(filtered['secret']).to be_eql('******')
-        expect(filtered['willsee']).to be_eql('visible')
-      end
+      reported_params = Rollbar.last_report[:request][:params]
+      expect(reported_params['body.multi']).to be_eql([{'key' => 'value'}, 'string', 10])
     end
+  end
 
-    context 'with an two element array params in POST' do
-      let(:params) do
-        [{ :secret => 'hidden', :willsee => 'visible'},
-         { :foo => 'bar', :key => 'value'}]
-      end
+  context 'with not array or hash POST parameters' do
+    let(:params) { 1000 }
 
-      it 'doesnt merge the post params in the reported params' do
-        expect do
-          request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
-        end.to raise_error(exception)
+    it 'sends a body.multi key in params' do
+      expect do
+        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+      end.to raise_error(exception)
 
-        reported_params = Rollbar.last_report[:request][:params]
-        expect(reported_params).to be_eql({})
-      end
+      reported_params = Rollbar.last_report[:request][:params]
+      expect(reported_params['body.value']).to be_eql(1000)
     end
   end
 end
