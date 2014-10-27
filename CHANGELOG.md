@@ -1,5 +1,8 @@
 # Change Log
 
+**1.2.5**
+- Fix issues handling hashes, arrays, and other values as the raw POST body. See [#153](https://github.com/rollbar/rollbar-gem/pull/153)
+
 **1.2.4**
 - Fix issue where requiring 'rack' unnecessarily broke things in non-rack apps. See [#150](https://github.com/rollbar/rollbar-gem/pull/150)
 
