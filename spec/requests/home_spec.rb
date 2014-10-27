@@ -5,14 +5,7 @@ describe HomeController do
 
   before(:each) do
     reset_configuration
-    Rollbar.configure do |config|
-      config.access_token = 'bfec94a1ede64984b862880224edd0ed'
-      config.environment = ::Rails.env
-      config.root = ::Rails.root
-      config.framework = "Rails: #{::Rails::VERSION::STRING}"
-      config.logger = logger_mock
-      config.request_timeout = 60
-    end
+    reconfigure_notifier
   end
 
   context "with broken request" do

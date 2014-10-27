@@ -15,6 +15,8 @@ Rake::Task['dummy:db:setup'].invoke
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|
+  config.include(NotifierHelpers)
+
   config.color_enabled = true
   config.formatter = 'documentation'
 
@@ -35,11 +37,6 @@ RSpec.configure do |config|
     DatabaseCleaner.clean
   end
   config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
-end
-
-def reset_configuration
-  Rollbar.reconfigure do |config|
-  end
 end
 
 def local?

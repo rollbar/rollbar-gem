@@ -5,7 +5,7 @@ require 'rack/mock'
 require 'rollbar/middleware/rack/builder'
 
 
-describe Rollbar::Middleware::Rack::Builder do
+describe Rollbar::Middleware::Rack::Builder, reconfigure_notifier: true do
   class RackMockError < Exception; end
 
   let(:action) do

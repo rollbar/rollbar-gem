@@ -21,7 +21,7 @@ class SinatraDummy < Sinatra::Base
   end
 end
 
-describe Rollbar::Middleware::Sinatra do
+describe Rollbar::Middleware::Sinatra, reconfigure_notifier: true do
   include Rack::Test::Methods
 
   def app
