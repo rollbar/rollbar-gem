@@ -3,6 +3,7 @@ require 'socket'
 require 'thread'
 require 'uri'
 require 'multi_json'
+require 'forwardable'
 
 begin
   require 'securerandom'
