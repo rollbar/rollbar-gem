@@ -11,7 +11,7 @@ module NotifierHelpers
   end
 
   def test_access_token
-    'aaaabbbbccccddddeeeeffff00001111'
+    'bfec94a1ede64984b862880224edd0ed'
   end
 
   def reset_configuration
