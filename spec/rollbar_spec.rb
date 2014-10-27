@@ -1415,7 +1415,7 @@ describe Rollbar do
     end
   end
 
-  context 'report_internal_error', reconfigure_notifier: true do
+  context 'report_internal_error', :reconfigure_notifier => true do
     it "should not crash when given an exception object" do
       begin
         1 / 0

@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'delayed_job'
 require 'rollbar/delayed_job'
 
-describe Rollbar::Delayed, reconfigure_notifier: true do
+describe Rollbar::Delayed, :reconfigure_notifier => true do
   class FailingJob
     class TestException < Exception; end
 
