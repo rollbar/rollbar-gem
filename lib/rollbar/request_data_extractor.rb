@@ -21,12 +21,12 @@ module Rollbar
       request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
       get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
-      raw_post_params = rollbar_filtered_params(sensitive_params, rollbar_raw_post_params(rack_req))
+      raw_body_params = rollbar_filtered_params(sensitive_params, mergeable_raw_body_params(rack_req))
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
       session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
-      params = request_params.merge(get_params).merge(post_params).merge(raw_post_params)
+      params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
 
       data = {
         :params => params,
@@ -47,6 +47,18 @@ module Rollbar
     end
 
     private
+
+    def mergeable_raw_body_params(rack_req)
+      raw_body_params = rollbar_raw_body_params(rack_req)
+
+      if raw_body_params.is_a?(Hash)
+        raw_body_params
+      elsif raw_body_params.is_a?(Array)
+        { 'body.multi' => raw_body_params }
+      else
+        { 'body.value' => raw_body_params }
+      end
+    end
 
     def rollbar_request_method(env)
       env['REQUEST_METHOD'] || env[:method]
@@ -100,7 +112,10 @@ module Rollbar
       {}
     end
 
-    def rollbar_raw_post_params(rack_req)
+    def rollbar_raw_body_params(rack_req)
+      correct_method = rack_req.post? || rack_req.put? || rack_req.patch?
+
+      return {} unless correct_method
       return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
 
       MultiJson.decode(rack_req.body.read)
@@ -115,8 +130,11 @@ module Rollbar
     end
 
     def rollbar_route_params(env)
+      return {} unless defined?(Rails)
+
       begin
         route = ::Rails.application.routes.recognize_path(env['PATH_INFO'])
+
         {
           :controller => route[:controller],
           :action => route[:action],
@@ -136,30 +154,28 @@ module Rollbar
     def rollbar_filtered_params(sensitive_params, params)
       sensitive_params_regexp = Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
 
-      if params.nil?
-        {}
-      else
-        params.to_hash.inject({}) do |result, (key, value)|
-          if sensitive_params_regexp =~ key.to_s
-            result[key] = rollbar_scrubbed(value)
-          elsif value.is_a?(Hash)
-            result[key] = rollbar_filtered_params(sensitive_params, value)
-          elsif value.is_a?(Array)
-            result[key] = value.map do |v|
-              v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v
-            end
-          elsif ATTACHMENT_CLASSES.include?(value.class.name)
-            result[key] = {
-              :content_type => value.content_type,
-              :original_filename => value.original_filename,
-              :size => value.tempfile.size
-            } rescue 'Uploaded file'
-          else
-            result[key] = value
-          end
+      return {} unless params
 
-          result
+      params.to_hash.inject({}) do |result, (key, value)|
+        if sensitive_params_regexp =~ key.to_s
+          result[key] = rollbar_scrubbed(value)
+        elsif value.is_a?(Hash)
+          result[key] = rollbar_filtered_params(sensitive_params, value)
+        elsif value.is_a?(Array)
+          result[key] = value.map do |v|
+            v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v
+          end
+        elsif ATTACHMENT_CLASSES.include?(value.class.name)
+          result[key] = {
+            :content_type => value.content_type,
+            :original_filename => value.original_filename,
+            :size => value.tempfile.size
+          } rescue 'Uploaded file'
+        else
+          result[key] = value
         end
+
+        result
       end
     end
 
