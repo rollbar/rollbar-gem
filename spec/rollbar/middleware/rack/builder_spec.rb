@@ -85,4 +85,45 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
       expect(reported_params['body.value']).to be_eql(1000)
     end
   end
+
+  context 'with multiple HTTP_X_FORWARDED_PROTO values' do
+    let(:headers) do
+      { 'HTTP_X_FORWARDED_PROTO' => 'https,http' }
+    end
+
+    it 'uses the first scheme to generate the url' do
+      expect do
+        request.post('/will_crash', headers)
+      end.to raise_error(exception)
+
+      last_report = Rollbar.last_report
+      expect(last_report[:request][:url]).to match(/https:/)
+    end
+  end
+
+  context 'without HTTP_X_FORWARDED_PROTO' do
+    it 'will send the url_scheme set by Rack' do
+      expect do
+        request.post('/will_crash')
+      end.to raise_error(exception)
+
+      last_report = Rollbar.last_report
+      expect(last_report[:request][:url]).to match(/http:/)
+    end
+  end
+
+  context 'with single HTTP_X_FORWARDED_PROTO value' do
+    let(:headers) do
+      { 'HTTP_X_FORWARDED_PROTO' => 'https' }
+    end
+
+    it 'will send the url_scheme set by Rack' do
+      expect do
+        request.post('/will_crash', headers)
+      end.to raise_error(exception)
+
+      last_report = Rollbar.last_report
+      expect(last_report[:request][:url]).to match(/https:/)
+    end
+  end
 end
