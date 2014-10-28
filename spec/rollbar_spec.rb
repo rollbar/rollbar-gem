@@ -1415,7 +1415,7 @@ describe Rollbar do
     end
   end
 
-  context "report_internal_error" do
+  context 'report_internal_error', :reconfigure_notifier => true do
     it "should not crash when given an exception object" do
       begin
         1 / 0
@@ -1522,18 +1522,6 @@ describe Rollbar do
 
   # configure with some basic params
   def configure
-    Rollbar.reconfigure do |config|
-      # special test access token
-      config.access_token = test_access_token
-      config.logger = ::Rails.logger
-      config.root = ::Rails.root
-      config.framework = "Rails: #{::Rails::VERSION::STRING}"
-      config.request_timeout = 60
-    end
+    reconfigure_notifier
   end
-
-  def test_access_token
-    'aaaabbbbccccddddeeeeffff00001111'
-  end
-
 end
