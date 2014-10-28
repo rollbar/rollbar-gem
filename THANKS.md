@@ -4,6 +4,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 
 - [alexdunae](https://github.com/alexdunae)
 - [allspiritseve](https://github.com/allspiritseve)
+- [antico5](https://github.com/antico5)
 - [arr-ee](https://github.com/arr-ee)
 - [awmichel](https://github.com/awmichel)
 - [bradx3](https://github.com/bradx3)
