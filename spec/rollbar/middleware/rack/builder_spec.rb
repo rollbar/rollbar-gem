@@ -102,7 +102,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
   end
 
   context 'without HTTP_X_FORWARDED_PROTO' do
-    it 'will send the url_scheme set by Rack' do
+    it 'uses the the url_scheme set by Rack' do
       expect do
         request.post('/will_crash')
       end.to raise_error(exception)
@@ -117,7 +117,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
       { 'HTTP_X_FORWARDED_PROTO' => 'https' }
     end
 
-    it 'will send the url_scheme set by Rack' do
+    it 'uses the scheme received in X-Forwarded-Proto header' do
       expect do
         request.post('/will_crash', headers)
       end.to raise_error(exception)
