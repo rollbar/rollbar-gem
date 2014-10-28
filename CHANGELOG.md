@@ -1,5 +1,9 @@
 # Change Log
 
+**1.2.6**
+- Fix bug in non-Rails environments. See [#155](https://github.com/rollbar/rollbar-gem/pull/155)
+- Fix intermittent test failures
+
 **1.2.5**
 - Fix issues handling hashes, arrays, and other values as the raw POST body. See [#153](https://github.com/rollbar/rollbar-gem/pull/153)
 
