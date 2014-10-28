@@ -79,7 +79,7 @@ module Rollbar
 
     def rollbar_url(env)
       forwarded_proto = env['HTTP_X_FORWARDED_PROTO'] || env['rack.url_scheme'] || ''
-      scheme = (forwarded_proto).split(',').first
+      scheme = forwarded_proto.split(',').first
 
       host = env['HTTP_X_FORWARDED_HOST'] || env['HTTP_HOST'] || env['SERVER_NAME']
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
