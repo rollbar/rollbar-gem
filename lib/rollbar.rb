@@ -128,6 +128,9 @@ module Rollbar
 
       return 'ignored' if ignored?(exception)
 
+      exception_level = filtered_level(exception)
+      level = exception_level if exception_level
+
       begin
         report(level, message, exception, extra)
       rescue Exception => e
@@ -191,6 +194,8 @@ module Rollbar
     end
 
     def filtered_level(exception)
+      return unless exception
+
       filter = configuration.exception_level_filters[exception.class.name]
       if filter.respond_to?(:call)
         filter.call(exception)

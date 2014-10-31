@@ -725,6 +725,15 @@ describe Rollbar do
       Rollbar.error(exception)
     end
 
+    it 'sends the correct filtered level' do
+      Rollbar.configure do |config|
+        config.exception_level_filters = { 'NameError' => 'warning' }
+      end
+
+      Rollbar.error(exception)
+      expect(Rollbar.last_report[:level]).to be_eql('warning')
+    end
+
     it "should work with an IO object as rack.errors" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
