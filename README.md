@@ -57,7 +57,7 @@ Be sure to initialize Rollbar with your access token somewhere during startup:
 
 ```ruby
 Rollbar.configure do |config|
-  config.access_token = POST_SERVER_ITEM_ACCESS_TOKEN
+  config.access_token = 'POST_SERVER_ITEM_ACCESS_TOKEN'
   # other configuration settings
   # ...
 end
