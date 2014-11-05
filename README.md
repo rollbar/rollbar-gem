@@ -501,13 +501,13 @@ You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
 ## Issues
 
-We've received some issues from users having problems when they use [Oj](https://github.com/ohler55/oj) as JSON serialization library with [MultiJson](https://github.com/intridea/multi_json). To avoid problems with it we recommend you to upgrade Oj to 2.11.0 version:
+We've received some issues from users having problems when they use [Oj](https://github.com/ohler55/oj) as the JSON serialization library with [MultiJson](https://github.com/intridea/multi_json). To avoid these problems, we recommend upgrading to Oj version 2.11.0:
 
 ```ruby
 gem 'oj', '~> 2.11.0'
 ```
 
-If you are using Oj but cannot upgrade cause any uncompatible dependency you can fix the problems in this way:
+If you are using Oj but cannot upgrade, you can work around this with:
 
 ```ruby
 require 'json'
