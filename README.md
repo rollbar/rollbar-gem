@@ -499,6 +499,21 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 
 You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
+## Issues
+
+We've received some issues from users having problems when they use [Oj](https://github.com/ohler55/oj) as JSON serialization library with [MultiJson](https://github.com/intridea/multi_json). To avoid problems with it we recommend you to upgrade Oj to 2.11.0 version:
+
+```ruby
+gem 'oj', '~> 2.11.0'
+```
+
+If you are using Oj but cannot upgrade cause any uncompatible dependency you can fix the problems in this way:
+
+```ruby
+require 'json'
+MultiJson.use(:json_common)
+```
+
 
 ## Help / Support
 
