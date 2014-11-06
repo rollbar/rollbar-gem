@@ -349,9 +349,11 @@ module Rollbar
 
     def trace_chain(exception)
       traces = [trace_data(exception)]
+      visited = [exception]
 
-      while exception.respond_to?(:cause) && (cause = exception.cause)
+      while exception.respond_to?(:cause) && (cause = exception.cause) && !visited.include?(cause)
         traces << trace_data(cause)
+        visited << cause
         exception = cause
       end
 
