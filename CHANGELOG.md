@@ -1,5 +1,8 @@
 # Change Log
 
+**Next Release (TBD)**
+- Remove internal calls to deprecated methods. See [#166](https://github.com/rollbar/rollbar-gem/pull/166)
+
 **1.2.7**
 - Restore `exception_level_filters` feature, which was inadvertently removed in 1.2.0. See [#160](https://github.com/rollbar/rollbar-gem/pull/160) 
 - Fix bug where rollbar_url incorrectly handled comma-separated X-Forwarded-Proto header values. See [#112](https://github.com/rollbar/rollbar-gem/issues/112)
