@@ -10,8 +10,9 @@ if Sidekiq::VERSION < '3'
           yield
         rescue Exception => e
           params = msg.reject{ |k| PARAM_BLACKLIST.include?(k) }
+          scope = { :request => { :params => params } }
 
-          Rollbar.report_exception(e, :params => params)
+          Rollbar.scope(scope).report_exception(e)
           raise
         end
       end
@@ -27,8 +28,9 @@ else
   Sidekiq.configure_server do |config|
     config.error_handlers << Proc.new do |e, context|
       params = context.reject{ |k| PARAM_BLACKLIST.include?(k) }
-      
-      Rollbar.report_exception(e, :params => params)
+      scope = { :request => { :params => params } }
+
+      Rollbar.scope(scope).error(e)
     end
   end
 end

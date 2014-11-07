@@ -19,7 +19,7 @@ namespace :rollbar do
       exit
     end
 
-    Rollbar.report_message("Test error from rollbar:test", "error")
+    Rollbar.error('Test error from rollbar:test')
 
     begin
       require './app/controllers/application_controller'

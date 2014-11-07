@@ -15,7 +15,7 @@ module BetterErrors
         controller = env['action_controller.instance']
         request_data = controller.rollbar_request_data rescue nil
         person_data = controller.rollbar_person_data rescue nil
-        exception_data = Rollbar.report_exception(exception, request_data, person_data)
+        exception_data = Rollbar.scope(:request => request_data, :person => person_data).error(exception)
       rescue => e
         Rollbar.log_warning "[Rollbar] Exception while reporting exception to Rollbar: #{e}"
       end

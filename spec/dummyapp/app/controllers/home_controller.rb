@@ -19,7 +19,7 @@ class HomeController < ApplicationController
     begin
       foo = bar
     rescue => e
-      Rollbar.report_exception(e)
+      Rollbar.error(e)
     end
     render :json => {}
   end
