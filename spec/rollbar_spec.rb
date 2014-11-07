@@ -909,7 +909,7 @@ describe Rollbar do
     it 'should report simple messages' do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message("Test message")
+      Rollbar.error('Test message')
     end
 
     it 'should not report anything when disabled' do
@@ -918,7 +918,7 @@ describe Rollbar do
         config.enabled = false
       end
 
-      Rollbar.report_message("Test message that should be ignored")
+      Rollbar.error('Test message that should be ignored')
 
       Rollbar.configure do |config|
         config.enabled = true
@@ -927,8 +927,8 @@ describe Rollbar do
 
     it 'should report messages with extra data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message("Test message with extra data", 'debug', :foo => "bar",
-                               :hash => { :a => 123, :b => "xyz" })
+      Rollbar.debug('Test message with extra data', 'debug', :foo => "bar",
+                                                             :hash => { :a => 123, :b => "xyz" })
     end
 
     # END Backwards
@@ -1127,7 +1127,7 @@ describe Rollbar do
       it 'sends a payload generated as String, not as a Hash' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-        Rollbar.report_exception(exception)
+        Rollbar.error(exception)
       end
 
       context 'with async failover handlers' do
@@ -1150,7 +1150,7 @@ describe Rollbar do
           it 'doesnt call any failover handler' do
             expect(handler).not_to receive(:call)
 
-            Rollbar.report_exception(exception)
+            Rollbar.error(exception)
           end
         end
 
