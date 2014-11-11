@@ -303,6 +303,8 @@ describe Rollbar do
       end
 
       it 'should overwrite existing keys from payload_options' do
+        reconfigure_notifier
+
         payload_options = {
           :notifier => 'bad notifier',
           :server => { :host => 'new host', :new_server_key => 'value' }
