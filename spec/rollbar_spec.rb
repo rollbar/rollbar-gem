@@ -12,6 +12,10 @@ rescue LoadError
 end
 
 describe Rollbar do
+  it 'should have a notifier enabled when Thread.new has been called', :reset_notifier => true do
+    Rollbar.notifier.configuration.enabled.should be_truthy
+  end
+
   let(:notifier) { Rollbar.notifier }
   context 'Notifier' do
     context 'log' do

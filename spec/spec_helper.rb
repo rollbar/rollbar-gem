@@ -30,7 +30,13 @@ RSpec.configure do |config|
   config.before(:each) do
     DatabaseCleaner.start
     DatabaseCleaner.clean
-    Rollbar.reset_notifier!
+    Rollbar.reset_notifier! unless ENV['RESET']
+  end
+
+  if ENV['RESET']
+    config.filter_run(:reset_notifier => true)
+  else
+    config.filter_run_excluding(:reset_notifier => true)
   end
 
   config.after(:each) do
