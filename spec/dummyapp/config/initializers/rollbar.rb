@@ -1,4 +1,5 @@
 require 'rollbar/rails'
+
 Rollbar.configure do |config|
   config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
   config.request_timeout = 60
@@ -18,4 +19,4 @@ Rollbar.configure do |config|
   # Valid levels: 'critical', 'error', 'warning', 'info', 'debug', 'ignore'
   # 'ignore' will cause the exception to not be reported at all.
   # config.exception_level_filters.merge!('MyCriticalException' => 'critical')
-end
+end unless ENV['SKIP_DUMMY_ROLLBAR']

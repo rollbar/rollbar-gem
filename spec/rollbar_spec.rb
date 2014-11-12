@@ -23,7 +23,24 @@ describe Rollbar do
         end
       end
 
-  let(:configuration) { Rollbar.configuration }
+      let(:configuration) { Rollbar.configuration }
+
+      context 'executing a Thread before Rollbar is configured', :skip_dummy_rollbar => true do
+        before do
+          Rollbar.reset_notifier!
+          Rollbar.unconfigure
+
+          Thread.new {}
+
+          Rollbar.configure do |config|
+            config.access_token = 'my-access-token'
+          end
+        end
+
+        it 'sets correct configuration for Rollbar.notifier' do
+          expect(Rollbar.notifier.configuration.enabled).to be_truthy
+        end
+      end
 
       it 'should report a simple message' do
         expect(notifier).to receive(:report).with('error', 'test message', nil, nil)
