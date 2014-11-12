@@ -2,7 +2,8 @@
 
 **Next Release (TBD)**
 - Remove internal calls to deprecated methods. See [#166](https://github.com/rollbar/rollbar-gem/pull/166)
-- Fix an intermittently failing. See [#167](https://github.com/rollbar/rollbar-gem/pull/167)
+- Fix an intermittently failing test. See [#167](https://github.com/rollbar/rollbar-gem/pull/167)
+- Add config option to not monkeypatch `Rack::Builder`. See [#169](https://github.com/rollbar/rollbar-gem/pull/169)
 
 **1.2.7**
 - Restore `exception_level_filters` feature, which was inadvertently removed in 1.2.0. See [#160](https://github.com/rollbar/rollbar-gem/pull/160) 
