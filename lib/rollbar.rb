@@ -679,6 +679,7 @@ module Rollbar
     end
 
     def require_hooks
+      return if configuration.disable_monkey_patch
       wrap_delayed_worker
 
       require 'rollbar/sidekiq' if defined?(Sidekiq)

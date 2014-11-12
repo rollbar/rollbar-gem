@@ -10,6 +10,7 @@ module Rollbar
     attr_accessor :custom_data_method
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
+    attr_accessor :disable_monkey_patch
     attr_accessor :dj_threshold
     attr_accessor :enabled
     attr_accessor :endpoint
@@ -47,6 +48,7 @@ module Rollbar
       @custom_data_method = nil
       @default_logger = lambda { Logger.new(STDERR) }
       @delayed_job_enabled = true
+      @disable_monkey_patch = false
       @dj_threshold = 0
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
