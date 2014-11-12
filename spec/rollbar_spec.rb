@@ -584,18 +584,36 @@ describe Rollbar do
             chain[1][:exception][:message].should match(/the cause/)
           end
 
-          context 'using ruby <= 2.1' do
-            next if Exception.instance_methods.include?(:cause)
+          context 'with cyclic nested exceptions' do
+            let(:exception1) { Exception.new('exception1') }
+            let(:exception2) { Exception.new('exception2') }
 
-            it 'sends only the last exception in the trace attribute' do
-              body = notifier.send(:build_payload_body_exception, message, rescued_exception, extra)
-
-              body[:trace].should be_kind_of(Hash)
-              body[:trace_chain].should be_nil
-
-              body[:trace][:exception][:class].should match(/StandardError/)
-              body[:trace][:exception][:message].should match(/the error/)
+            before do
+              allow(exception1).to receive(:cause).and_return(exception2)
+              allow(exception2).to receive(:cause).and_return(exception1)
             end
+
+            it 'doesnt loop for ever' do
+              body = notifier.send(:build_payload_body_exception, message, exception1, extra)
+              chain = body[:trace_chain]
+
+              expect(chain[0][:exception][:message]).to be_eql('exception1')
+              expect(chain[1][:exception][:message]).to be_eql('exception2')
+            end
+          end
+        end
+
+        context 'using ruby <= 2.1' do
+          next if Exception.instance_methods.include?(:cause)
+
+          it 'sends only the last exception in the trace attribute' do
+            body = notifier.send(:build_payload_body_exception, message, rescued_exception, extra)
+
+            body[:trace].should be_kind_of(Hash)
+            body[:trace_chain].should be_nil
+
+            body[:trace][:exception][:class].should match(/StandardError/)
+            body[:trace][:exception][:message].should match(/the error/)
           end
         end
       end
