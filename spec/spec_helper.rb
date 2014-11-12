@@ -2,6 +2,7 @@ require 'rubygems'
 
 ENV['RAILS_ENV'] = ENV['RACK_ENV'] = 'test'
 require File.expand_path('../dummyapp/config/environment', __FILE__)
+require 'active_support/all'
 require 'rspec/rails'
 require 'database_cleaner'
 require 'genspec'
@@ -37,6 +38,12 @@ RSpec.configure do |config|
     DatabaseCleaner.clean
   end
   config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
+
+  if ENV['SKIP_DUMMY_ROLLBAR']
+    config.filter_run(:skip_dummy_rollbar => true)
+  else
+    config.filter_run_excluding(:skip_dummy_rollbar => true)
+  end
 end
 
 def local?
