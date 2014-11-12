@@ -51,7 +51,7 @@ $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 
 That's all you need to use Rollbar with Rails.
 
-### If not using Rails
+### If using Rack
 
 Be sure to initialize Rollbar with your access token somewhere during startup:
 
@@ -66,6 +66,28 @@ end
 
 <!-- RemoveNextIfProject -->
 Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
+
+This monkey patches `Rack::Builder` to work with Rollbar automatically.
+
+For more control, disable the monkey patch in the rollbar configuration:
+
+```ruby
+Rollbar.configure do |config|
+  config.disable_monkey_patch = true
+  # other configuration settings
+  # ...
+end
+```
+
+Then mount the middleware in your app, like:
+
+```ruby
+class MyApp < Sinatra::Base
+  use Rollbar::Middleware::Sinatra
+  # other middleware/etc
+  # ...
+end
+```
 
 ## Test your installation
 
