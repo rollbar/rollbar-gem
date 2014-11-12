@@ -300,7 +300,7 @@ describe Rollbar do
         end
 
         it 'should have the correct server keys' do
-          payload['data'][:server].keys.should match_array([:host, :root])
+          payload['data'][:server].keys.should match_array([:host, :root, :pid])
         end
 
         it 'should have the correct level and message body' do
