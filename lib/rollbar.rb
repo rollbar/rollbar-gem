@@ -679,6 +679,7 @@ module Rollbar
     end
 
     def require_hooks
+      return unless configuration.inject_exception_hook
       wrap_delayed_worker
 
       require 'rollbar/sidekiq' if defined?(Sidekiq)

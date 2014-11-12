@@ -11,6 +11,7 @@ module Rollbar
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
     attr_accessor :dj_threshold
+    attr_accessor :inject_exception_hook
     attr_accessor :enabled
     attr_accessor :endpoint
     attr_accessor :environment
@@ -59,6 +60,7 @@ module Rollbar
       @failover_handlers = []
       @framework = 'Plain'
       @ignored_person_ids = []
+      @inject_exception_hook = true
       @payload_options = {}
       @person_method = 'current_user'
       @person_id_method = 'id'
@@ -84,6 +86,10 @@ module Rollbar
         instance_var = instance_variable_get(var)
         instance_variable_set(var, Rollbar::Util::deep_copy(instance_var))
       end
+    end
+
+    def do_not_inject_exception_hook
+      @inject_exception_hook = false
     end
 
     def use_sidekiq(options = {})
