@@ -370,6 +370,7 @@ module Rollbar
       }
       data[:root] = configuration.root.to_s if configuration.root
       data[:branch] = configuration.branch if configuration.branch
+      data[:pid] = Process.pid
 
       data
     end
