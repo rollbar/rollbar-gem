@@ -25,6 +25,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [kavu](https://github.com/kavu)
 - [kroky](https://github.com/kroky)
 - [lanej](https://github.com/lanej)
+- [lesliev-figured](https://github.com/lesliev-figured)
 - [magnolia-fan](https://github.com/magnolia-fan)
 - [mauricio](https://github.com/mauricio)
 - [metaskills](https://github.com/metaskills)
