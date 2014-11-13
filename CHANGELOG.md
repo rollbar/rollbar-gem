@@ -6,6 +6,7 @@
 - Add config option to not monkeypatch `Rack::Builder`. See [#169](https://github.com/rollbar/rollbar-gem/pull/169)
 - Fix configuration issue when an initializer calls `Thread.new` before Rollbar is initialized. See [#170](https://github.com/rollbar/rollbar-gem/pull/170) and [#168](https://github.com/rollbar/rollbar-gem/pull/168)
 - Track server PID. See [#171](https://github.com/rollbar/rollbar-gem/pull/171)
+- Fix infinite loop with cyclic inner exceptions. See [#172](https://github.com/rollbar/rollbar-gem/pull/172)
 
 **1.2.7**
 - Restore `exception_level_filters` feature, which was inadvertently removed in 1.2.0. See [#160](https://github.com/rollbar/rollbar-gem/pull/160) 
