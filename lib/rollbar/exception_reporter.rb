@@ -1,7 +1,8 @@
 module Rollbar
   module ExceptionReporter
     def report_exception_to_rollbar(env, exception)
-      Rollbar.log_debug "[Rollbar] Reporting exception: #{exception.try(:message)}"
+      exception_message = exception.respond_to?(:message) ? exception.message : 'No Exception Message'
+      Rollbar.log_debug "[Rollbar] Reporting exception: #{exception_message}"
 
       exception_data = Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception)
 
