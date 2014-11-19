@@ -15,7 +15,9 @@ module Rollbar
         def call(env)
           Rollbar.reset_notifier!
 
-          Rollbar.scoped(fetch_scope(env)) do
+          env['rollbar.scope'] = scope = fetch_scope(env)
+
+          Rollbar.scoped(scope) do
             begin
               response = @app.call(env)
 
