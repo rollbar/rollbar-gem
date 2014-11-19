@@ -330,6 +330,15 @@ describe HomeController do
     end
   end
 
+  context 'with routing errors', :type => :request do
+    it 'raises a RoutingError exception' do
+      expect { get '/foo/bar', :foo => :bar }.to raise_exception
+
+      report = Rollbar.last_report
+      expect(report[:request][:params]['foo']).to be_eql('bar')
+    end
+  end
+
   after(:each) do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger
