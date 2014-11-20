@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.2.9
+
+Bug fixes:
+
+- Fix issue causing request and person data to not be collected for RoutingErrors. See [#178](https://github.com/rollbar/rollbar-gem/pull/178)
+
+
 ## 1.2.8
 
 New features:
