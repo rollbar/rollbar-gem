@@ -33,7 +33,7 @@ module Rollbar
 
         def extract_scope_from(env)
           scope = env['rollbar.scope']
-          Rollbar.log_warn('[Rollbar] rollbar.scope key has being removed from Rack env.') unless scope
+          Rollbar.log_warn('[Rollbar] rollbar.scope key has been removed from Rack env.') unless scope
 
           scope || {}
         end
