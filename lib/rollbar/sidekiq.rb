@@ -12,7 +12,7 @@ if Sidekiq::VERSION < '3'
           params = msg.reject{ |k| PARAM_BLACKLIST.include?(k) }
           scope = { :request => { :params => params } }
 
-          Rollbar.scope(scope).report_exception(e)
+          Rollbar.scope(scope).error(e)
           raise
         end
       end
