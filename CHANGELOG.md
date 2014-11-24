@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.2.10
+
+Bug fixes:
+
+- Fix bug introduced in 1.2.8 with Sidekiq version < 3. See [#181](https://github.com/rollbar/rollbar-gem/issues/181)
+
+
 ## 1.2.9
 
 Bug fixes:
