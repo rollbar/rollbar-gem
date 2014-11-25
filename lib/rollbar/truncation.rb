@@ -17,12 +17,14 @@ module Rollbar
                  ]
 
     def self.truncate(payload)
+      result = nil
+
       STRATEGIES.each do |strategy|
         result = strategy.call(payload)
-        return result unless truncate?(result)
+        break unless truncate?(result)
       end
 
-      nil
+      result
     end
   end
 end
