@@ -1,0 +1,530 @@
+{
+  "body": {
+    "trace_chain": [
+      {
+        "frames": [
+          {
+            "method": "main",
+            "lineno": 832,
+            "filename": "kernel/loader.rb"
+          },
+          {
+            "method": "epilogue",
+            "lineno": 720,
+            "filename": "kernel/loader.rb"
+          },
+          {
+            "method": "run_at_exits",
+            "lineno": 695,
+            "filename": "kernel/loader.rb"
+          },
+          {
+            "method": "call",
+            "lineno": 20,
+            "filename": "kernel/bootstrap/proc.rb"
+          },
+          {
+            "method": "autorun",
+            "lineno": 17,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/runner.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 103,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/runner.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 21,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/command_line.rb"
+          },
+          {
+            "method": "report",
+            "lineno": 58,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/reporter.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/command_line.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/command_line.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 497,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 497,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 496,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "run_examples",
+            "lineno": 511,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "run_examples",
+            "lineno": 515,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 113,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example.rb"
+          },
+          {
+            "method": "with_around_each_hooks",
+            "lineno": 248,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 116,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example.rb"
+          },
+          {
+            "method": "instance_eval_with_args",
+            "lineno": 16,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/extensions/instance_eval_with_args.rb"
+          },
+          {
+            "method": "instance_exec",
+            "lineno": 101,
+            "filename": "kernel/common/eval.rb"
+          },
+          {
+            "method": "__script__",
+            "lineno": 15,
+            "filename": "/home/travis/build/rollbar/rollbar-gem/spec/requests/home_spec.rb"
+          },
+          {
+            "method": "to",
+            "lineno": 117,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/expectations/expectation_target.rb"
+          },
+          {
+            "method": "to",
+            "lineno": 59,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/expectations/expectation_target.rb"
+          },
+          {
+            "method": "handle_matcher",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/expectations/handler.rb"
+          },
+          {
+            "method": "matches?",
+            "lineno": 42,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/matchers/built_in/raise_error.rb"
+          },
+          {
+            "method": "call",
+            "lineno": 20,
+            "filename": "kernel/bootstrap/proc.rb"
+          },
+          {
+            "method": "__script__",
+            "lineno": 15,
+            "filename": "/home/travis/build/rollbar/rollbar-gem/spec/requests/home_spec.rb"
+          },
+          {
+            "method": "__script__",
+            "lineno": 333,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/actionpack-3.2.17/lib/action_dispatch/testing/integration.rb"
+          },
+          {
+            "method": "get",
+            "lineno": 33,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/actionpack-3.2.17/lib/action_dispatch/testing/integration.rb"
+          },
+          {
+            "method": "process",
+            "lineno": 299,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/actionpack-3.2.17/lib/action_dispatch/testing/integration.rb"
+          },
+          {
+            "method": "request",
+            "lineno": 122,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test.rb"
+          },
+          {
+            "method": "env_for (env_for_with_rollbar)",
+            "lineno": 8,
+            "filename": "/home/travis/build/rollbar/rollbar-gem/lib/rollbar/middleware/rack/test_session.rb"
+          },
+          {
+            "method": "env_for_without_rollbar (env_for)",
+            "lineno": 220,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test.rb"
+          },
+          {
+            "method": "set_cookie",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/mock_session.rb"
+          },
+          {
+            "method": "merge",
+            "lineno": 132,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test/cookie_jar.rb"
+          },
+          {
+            "method": "each",
+            "lineno": 76,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "merge",
+            "lineno": 133,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test/cookie_jar.rb"
+          },
+          {
+            "method": "initialize",
+            "lineno": 21,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test/cookie_jar.rb"
+          },
+          {
+            "method": "parse_query",
+            "lineno": 70,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-1.4.5/lib/rack/utils.rb"
+          },
+          {
+            "method": "each",
+            "lineno": 76,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "parse_query",
+            "lineno": 72,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-1.4.5/lib/rack/utils.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "call (__yield__)",
+            "lineno": 172,
+            "filename": "kernel/common/proc.rb"
+          },
+          {
+            "method": "call",
+            "lineno": 71,
+            "filename": "kernel/common/method.rb"
+          },
+          {
+            "method": "unescape",
+            "lineno": 41,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-1.4.5/lib/rack/utils.rb"
+          },
+          {
+            "method": "decode_www_form_component",
+            "lineno": 898,
+            "filename": "/home/travis/.rvm/rubies/rbx/gems/gems/rubysl-uri-2.0.0/lib/uri/common.rb"
+          }
+        ],
+        "exception": {
+          "message": "Exception1: invalid %-encoding (8%B)",
+          "class": "ArgumentErrorException1"
+        }
+      },
+      {
+        "frames": [
+          {
+            "method": "main",
+            "lineno": 832,
+            "filename": "kernel/loader.rb"
+          },
+          {
+            "method": "epilogue",
+            "lineno": 720,
+            "filename": "kernel/loader.rb"
+          },
+          {
+            "method": "run_at_exits",
+            "lineno": 695,
+            "filename": "kernel/loader.rb"
+          },
+          {
+            "method": "call",
+            "lineno": 20,
+            "filename": "kernel/bootstrap/proc.rb"
+          },
+          {
+            "method": "autorun",
+            "lineno": 17,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/runner.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 103,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/runner.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 21,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/command_line.rb"
+          },
+          {
+            "method": "report",
+            "lineno": 58,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/reporter.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/command_line.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/command_line.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 497,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 497,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 496,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "run_examples",
+            "lineno": 511,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "run_examples",
+            "lineno": 515,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example_group.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 113,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example.rb"
+          },
+          {
+            "method": "with_around_each_hooks",
+            "lineno": 248,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example.rb"
+          },
+          {
+            "method": "run",
+            "lineno": 116,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/example.rb"
+          },
+          {
+            "method": "instance_eval_with_args",
+            "lineno": 16,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-core-2.99.2/lib/rspec/core/extensions/instance_eval_with_args.rb"
+          },
+          {
+            "method": "instance_exec",
+            "lineno": 101,
+            "filename": "kernel/common/eval.rb"
+          },
+          {
+            "method": "__script__",
+            "lineno": 15,
+            "filename": "/home/travis/build/rollbar/rollbar-gem/spec/requests/home_spec.rb"
+          },
+          {
+            "method": "to",
+            "lineno": 117,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/expectations/expectation_target.rb"
+          },
+          {
+            "method": "to",
+            "lineno": 59,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/expectations/expectation_target.rb"
+          },
+          {
+            "method": "handle_matcher",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/expectations/handler.rb"
+          },
+          {
+            "method": "matches?",
+            "lineno": 42,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rspec-expectations-2.99.2/lib/rspec/matchers/built_in/raise_error.rb"
+          },
+          {
+            "method": "call",
+            "lineno": 20,
+            "filename": "kernel/bootstrap/proc.rb"
+          },
+          {
+            "method": "__script__",
+            "lineno": 15,
+            "filename": "/home/travis/build/rollbar/rollbar-gem/spec/requests/home_spec.rb"
+          },
+          {
+            "method": "__script__",
+            "lineno": 333,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/actionpack-3.2.17/lib/action_dispatch/testing/integration.rb"
+          },
+          {
+            "method": "get",
+            "lineno": 33,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/actionpack-3.2.17/lib/action_dispatch/testing/integration.rb"
+          },
+          {
+            "method": "process",
+            "lineno": 299,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/actionpack-3.2.17/lib/action_dispatch/testing/integration.rb"
+          },
+          {
+            "method": "request",
+            "lineno": 122,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test.rb"
+          },
+          {
+            "method": "env_for (env_for_with_rollbar)",
+            "lineno": 8,
+            "filename": "/home/travis/build/rollbar/rollbar-gem/lib/rollbar/middleware/rack/test_session.rb"
+          },
+          {
+            "method": "env_for_without_rollbar (env_for)",
+            "lineno": 220,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test.rb"
+          },
+          {
+            "method": "set_cookie",
+            "lineno": 24,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/mock_session.rb"
+          },
+          {
+            "method": "merge",
+            "lineno": 132,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test/cookie_jar.rb"
+          },
+          {
+            "method": "each",
+            "lineno": 76,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "merge",
+            "lineno": 133,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test/cookie_jar.rb"
+          },
+          {
+            "method": "initialize",
+            "lineno": 21,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-test-0.6.2/lib/rack/test/cookie_jar.rb"
+          },
+          {
+            "method": "parse_query",
+            "lineno": 70,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-1.4.5/lib/rack/utils.rb"
+          },
+          {
+            "method": "each",
+            "lineno": 76,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "parse_query",
+            "lineno": 72,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-1.4.5/lib/rack/utils.rb"
+          },
+          {
+            "method": "map",
+            "lineno": 97,
+            "filename": "kernel/bootstrap/array.rb"
+          },
+          {
+            "method": "call (__yield__)",
+            "lineno": 172,
+            "filename": "kernel/common/proc.rb"
+          },
+          {
+            "method": "call",
+            "lineno": 71,
+            "filename": "kernel/common/method.rb"
+          },
+          {
+            "method": "unescape",
+            "lineno": 41,
+            "filename": "/home/travis/.rvm/gems/rbx/gems/rack-1.4.5/lib/rack/utils.rb"
+          },
+          {
+            "method": "decode_www_form_component",
+            "lineno": 898,
+            "filename": "/home/travis/.rvm/rubies/rbx/gems/gems/rubysl-uri-2.0.0/lib/uri/common.rb"
+          }
+        ],
+        "exception": {
+          "message": "Exception2: invalid %-encoding (8%B)",
+          "class": "ArgumentErrorException2"
+        }
+      }
+    ]
+  },
+  "uuid": "d9a419d7-7b11-4435-bf5a-ffaa0fa9ff8c",
+  "language": "ruby",
+  "level": "error",
+  "timestamp": 1416877955,
+  "server": {
+    "pid": 3586,
+    "host": "testing-worker-linux-docker-eeafdf0f-2420-linux-9",
+    "root": "/home/travis/build/rollbar/rollbar-gem/spec/dummyapp"
+  },
+  "environment": "unspecified",
+  "framework": "Rails: 3.2.17",
+  "notifier": {
+    "version": "1.2.9",
+    "name": "rollbar-gem"
+  },
+  "metadata": {
+    "customer_timestamp": 1416877955
+  }
+}
