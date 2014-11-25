@@ -12,14 +12,13 @@ module Rollbar
       def call(payload)
         new_payload = payload.clone
         body = new_payload['data'].delete(:body)
-        trace_key = body[:trace_chain] ? :trace_chain : :trace
 
-        if trace_key == :trace_chain
-          body[:trace_chain] = body[trace_key].map do |trace_data|
+        if body[:trace_chain]
+          body[:trace_chain] = body[:trace_chain].map do |trace_data|
             truncate_trace_data(trace_data)
           end
-        elsif trace_key == :trace
-          body[:trace] = truncate_trace_data(body[trace_key])
+        else
+          body[:trace] = truncate_trace_data(body[:trace])
         end
       end
 
