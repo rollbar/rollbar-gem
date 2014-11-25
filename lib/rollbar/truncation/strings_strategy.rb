@@ -22,10 +22,10 @@ module Rollbar
           ::Rollbar::Util.iterate_and_update(new_payload, truncate_proc)
           result = dump(new_payload)
 
-          return result unless truncate?(result)
+          break unless truncate?(result)
         end
 
-        result # Here we are just returning the last result value
+        result
       end
 
       def truncate_strings_proc(threshold)
