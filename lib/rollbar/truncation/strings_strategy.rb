@@ -14,11 +14,12 @@ module Rollbar
 
       def call(payload)
         result = nil
+        new_payload = payload.clone
 
         STRING_THRESHOLDS.each do |threshold|
-          new_payload = payload.clone
+          truncate_proc = truncate_strings_proc(threshold)
 
-          ::Rollbar::Util.iterate_and_update(payload, truncate_strings_proc(threshold))
+          ::Rollbar::Util.iterate_and_update(new_payload, truncate_proc)
           result = dump(new_payload)
 
           return result unless truncate?(result)
