@@ -6,14 +6,7 @@ describe Rollbar::Truncation::FramesStrategy do
     frames * (1 + 300 / frames.count)
   end
 
-  describe '.call' do
-    let(:payload) do
-      {
-        'data' => load_payload_fixture(payload_fixture).deep_symbolize_keys,
-        'access_token' => 'the-token'
-      }
-    end
-
+  describe '.call', :fixture => :payload do
     context 'with trace key' do
       let(:payload_fixture) { 'payloads/sample.trace.json' }
       let(:frames) { payload['data'][:body][:trace][:frames].clone }
