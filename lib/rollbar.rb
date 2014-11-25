@@ -600,15 +600,14 @@ module Rollbar
 
     def dump_payload(payload)
       result = Truncation.truncate(payload)
+      return result unless Truncation.truncate?(result)
 
-      if Truncation.truncate?(result)
-        original_size = MultiJson.dump(payload).bytesize
-        final_size = result.bytesize
-        send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-        log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
-      end
+      original_size = MultiJson.dump(payload).bytesize
+      final_size = result.bytesize
+      send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
+      log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
 
-      result
+      nil
     end
 
     ## Logging
