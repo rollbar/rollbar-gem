@@ -38,7 +38,7 @@ RSpec.configure do |config|
   end
   config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
 
-  if ENV['SKIP_DUMMY_ROLLBAR']
+  if ENV['SKIP_DUMMY_ROLLBAR'] == 'true'
     config.filter_run(:skip_dummy_rollbar => true)
   else
     config.filter_run_excluding(:skip_dummy_rollbar => true)
