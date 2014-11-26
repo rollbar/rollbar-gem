@@ -14,7 +14,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
       end
 
       it 'truncates the exception message and frames array' do
-        result = MultiJson.load(described_class.call(payload)).deep_symbolize_keys
+        result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
 
         trace = result[:data][:body][:trace]
         expect(trace[:frames]).to have(2).items
@@ -33,7 +33,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
       end
 
       it 'truncates the exception message and frames array' do
-        result = MultiJson.load(described_class.call(payload)).deep_symbolize_keys
+        result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
 
         traces = result[:data][:body][:trace_chain]
         expect(traces[0][:frames]).to have(2).items

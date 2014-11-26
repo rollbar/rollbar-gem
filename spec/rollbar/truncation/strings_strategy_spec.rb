@@ -19,7 +19,7 @@ describe Rollbar::Truncation::StringsStrategy do
     end
 
     it 'should truncate all nested strings in the payload' do
-      result = MultiJson.load(described_class.call(payload)).deep_symbolize_keys
+      result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
 
       expect(result[:truncated].size).to be_eql(1024)
       expect(result[:hash][:inner_truncated].size).to be_eql(1024)
@@ -36,7 +36,7 @@ describe Rollbar::Truncation::StringsStrategy do
       end
 
       it 'should truncate utf8 strings properly' do
-        result = MultiJson.load(described_class.call(payload)).deep_symbolize_keys
+        result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
         expect(result[:truncated]).to match(/^Ŝǻмρļẻ śţяịņģa*\.{3}/)
       end
     end

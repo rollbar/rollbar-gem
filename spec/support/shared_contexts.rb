@@ -5,7 +5,7 @@ end
 shared_context 'payload from fixture', :fixture => :payload do
   let(:payload) do
     {
-      'data' => load_payload_fixture(payload_fixture).deep_symbolize_keys,
+      'data' => symbolize_recursive(load_payload_fixture(payload_fixture)),
       'access_token' => 'the-token'
     }
   end
