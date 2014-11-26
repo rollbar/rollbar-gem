@@ -667,12 +667,16 @@ module Rollbar
       # This monkey patch is always needed in order
       # to use Rollbar.scoped
       require 'rollbar/core_ext/thread'
+
+      reset_notifier!
     end
 
     def reconfigure
       @configuration = Configuration.new
       @configuration.enabled = true
       yield(configuration)
+
+      reset_notifier!
     end
 
     def unconfigure

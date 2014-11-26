@@ -13,6 +13,23 @@ end
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
+
+  context 'when notifier has been used before configure it' do
+    before do
+      Rollbar.unconfigure
+      Rollbar.reset_notifier!
+    end
+
+    it 'is finally reset' do
+      Rollbar.notifier.log_debug('Testing notifier')
+      expect(Rollbar.error('error message')).to be_eql('disabled')
+
+      reconfigure_notifier
+
+      expect(Rollbar.error('error message')).not_to be_eql('disabled')
+    end
+  end
+
   context 'Notifier' do
     context 'log' do
       let(:exception) do
