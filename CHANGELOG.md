@@ -1,5 +1,16 @@
 # Change Log
 
+## 1.2.11
+
+New features:
+
+- Improved truncation algorithm, so that more kinds of large payloads will be successfully brought below the 128kb limit and successfully reported. See [#185](https://github.com/rollbar/rollbar-gem/pull/185)
+
+Bug fixes:
+
+- Fix issue where using Rollbar outside of a web process was prone to errors being silently ignored. See [#183](https://github.com/rollbar/rollbar-gem/issues/183)
+
+
 ## 1.2.10
 
 Bug fixes:
