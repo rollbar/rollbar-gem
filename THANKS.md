@@ -20,6 +20,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [ixti](https://github.com/ixti)
 - [jeremyvdw](https://github.com/jeremyvdw)
 - [johnknott](https://github.com/johnknott)
+- [jonah-williams](https://github.com/jonah-williams)
 - [jondeandres](https://github.com/jondeandres)
 - [JoshuaOSHickman](https://github.com/JoshuaOSHickman)
 - [juggler](https://github.com/juggler)
