@@ -21,7 +21,7 @@ describe Rollbar do
     end
 
     it 'is finally reset' do
-      Rollbar.notifier.log_debug('Testing notifier')
+      Rollbar.log_debug('Testing notifier')
       expect(Rollbar.error('error message')).to be_eql('disabled')
 
       reconfigure_notifier
