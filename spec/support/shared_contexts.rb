@@ -1,3 +1,12 @@
 shared_context 'reconfigure notifier', :reconfigure_notifier => true do
   before { reconfigure_notifier }
 end
+
+shared_context 'payload from fixture', :fixture => :payload do
+  let(:payload) do
+    {
+      'data' => symbolize_recursive(load_payload_fixture(payload_fixture)),
+      'access_token' => 'the-token'
+    }
+  end
+end

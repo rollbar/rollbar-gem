@@ -642,42 +642,6 @@ describe Rollbar do
         body[:message][:extra][:hash].should == {:inner_key => 'inner_value'}
       end
     end
-
-    context 'truncate_payload' do
-      it 'should truncate all nested strings in the payload' do
-        payload = {
-          :truncated => '1234567',
-          :not_truncated => '123456',
-          :hash => {
-            :inner_truncated => '123456789',
-            :inner_not_truncated => '567',
-            :array => ['12345678', '12', {:inner_inner => '123456789'}]
-          }
-        }
-
-        payload_copy = payload.clone
-        notifier.send(:truncate_payload, payload_copy, 6)
-
-        payload_copy[:truncated].should == '123...'
-        payload_copy[:not_truncated].should == '123456'
-        payload_copy[:hash][:inner_truncated].should == '123...'
-        payload_copy[:hash][:inner_not_truncated].should == '567'
-        payload_copy[:hash][:array].should == ['123...', '12', {:inner_inner => '123...'}]
-      end
-
-      it 'should truncate utf8 strings properly' do
-        payload = {
-          :truncated => 'Ŝǻмρļẻ śţяịņģ',
-          :not_truncated => '123456',
-        }
-
-        payload_copy = payload.clone
-        notifier.send(:truncate_payload, payload_copy, 6)
-
-        payload_copy[:truncated].should == "Ŝǻм..."
-        payload_copy[:not_truncated].should == '123456'
-      end
-    end
   end
 
   context 'reporting' do

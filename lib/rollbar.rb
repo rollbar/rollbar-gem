@@ -19,13 +19,13 @@ require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
 require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
+require 'rollbar/truncation'
 
 unless ''.respond_to? :encode
   require 'iconv'
 end
 
 module Rollbar
-  MAX_PAYLOAD_SIZE = 128 * 1024 #128kb
   ATTACHMENT_CLASSES = %w[
     ActionDispatch::Http::UploadedFile
     Rack::Multipart::UploadedFile
@@ -599,31 +599,15 @@ module Rollbar
     end
 
     def dump_payload(payload)
-      result = MultiJson.dump(payload)
+      result = Truncation.truncate(payload)
+      return result unless Truncation.truncate?(result)
 
-      # Try to truncate strings in the payload a few times if the payload is too big
-      original_size = result.bytesize
-      if original_size > MAX_PAYLOAD_SIZE
-        thresholds = [1024, 512, 256]
-        thresholds.each_with_index do |threshold, i|
-          new_payload = payload.clone
+      original_size = MultiJson.dump(payload).bytesize
+      final_size = result.bytesize
+      send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
+      log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
 
-          truncate_payload(new_payload, threshold)
-
-          result = MultiJson.dump(new_payload)
-
-          if result.bytesize <= MAX_PAYLOAD_SIZE
-            break
-          elsif i == thresholds.length - 1
-            final_size = result.bytesize
-            send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-            log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
-            return
-          end
-        end
-      end
-
-      result
+      nil
     end
 
     ## Logging
