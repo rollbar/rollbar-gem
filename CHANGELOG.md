@@ -1,5 +1,12 @@
 # Change Log
 
+## Next release (tbd)
+
+Bug fixes:
+
+- Skip Rake monkeypatch for Rake < 0.9.0. Fixes [#187](https://github.com/rollbar/rollbar-gem/issues/187)
+
+
 ## 1.2.11
 
 New features:
