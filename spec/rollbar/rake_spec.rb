@@ -20,7 +20,7 @@ describe Rollbar::Rake do
     end
   end
 
-  context 'with supported rake version' do
+  context 'with unsupported rake version' do
     before do
       allow(Rollbar::Rake).to receive(:rake_version).and_return('0.8.7')
     end
