@@ -23,7 +23,10 @@ module Rollbar
 
         def fetch_scope(env)
           request_data = extract_request_data_from_rack(env)
-          { :request => request_data }
+          {
+            :request => request_data,
+            :person => extract_person_data_from_controller(env)
+          }
         rescue Exception => e
           report_exception_to_rollbar(env, e)
           raise

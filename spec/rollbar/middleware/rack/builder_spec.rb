@@ -126,4 +126,26 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
       expect(last_report[:request][:url]).to match(/https:/)
     end
   end
+
+  context 'with person data' do
+    let(:person_data) do
+      { 'email' => 'person@example.com' }
+    end
+
+    it 'includes person data from env' do
+      expect do
+        request.get('/will_crash', 'rollbar.person_data' => person_data)
+      end.to raise_error(exception)
+
+      expect(Rollbar.last_report[:person]).to be_eql(person_data)
+    end
+
+    it 'includes empty person data when not in env' do
+      expect do
+        request.get('/will_crash')
+      end.to raise_error(exception)
+
+      expect(Rollbar.last_report[:person]).to be_eql({})
+    end
+  end
 end
