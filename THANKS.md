@@ -14,6 +14,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [dlackty](https://github.com/dlackty)
 - [fab](https://github.com/fab)
 - [firstbanco](https://github.com/firstbanco)
+- [flomotlik](https://github.com/flomotlik)
 - [Florent2](https://github.com/Florent2)
 - [gersmann](https://github.com/gersmann)
 - [grosser](https://github.com/grosser)

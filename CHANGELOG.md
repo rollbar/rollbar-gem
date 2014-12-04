@@ -1,9 +1,10 @@
 # Change Log
 
-## Next release (tbd)
+## 1.2.12
 
 Bug fixes:
 
+- Fix bug introduced in 1.2.11 that broke the sidekiq async handler. See [#190](https://github.com/rollbar/rollbar-gem/issues/190)
 - Skip Rake monkeypatch for Rake < 0.9.0. Fixes [#187](https://github.com/rollbar/rollbar-gem/issues/187)
 
 
