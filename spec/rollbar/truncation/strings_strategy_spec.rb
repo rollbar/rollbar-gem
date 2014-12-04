@@ -8,36 +8,36 @@ describe Rollbar::Truncation::StringsStrategy do
     let(:long_message) { 'a' * 2000 }
     let(:payload) do
       {
-        :truncated => long_message,
-        :not_truncated => '123456',
-        :hash => {
-          :inner_truncated => long_message,
-          :inner_not_truncated => '567',
-          :array => ['12345678', '12', { :inner_inner => long_message }]
+        'truncated' => long_message,
+        'not_truncated' => '123456',
+        'hash' => {
+          'inner_truncated' => long_message,
+          'inner_not_truncated' => '567',
+          'array' => ['12345678', '12', { 'inner_inner' => long_message }]
         }
       }
     end
 
     it 'should truncate all nested strings in the payload' do
-      result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
+      result = MultiJson.load(described_class.call(payload))
 
-      expect(result[:truncated].size).to be_eql(1024)
-      expect(result[:hash][:inner_truncated].size).to be_eql(1024)
-      expect(result[:hash][:array][2][:inner_inner].size).to be_eql(1024)
+      expect(result['truncated'].size).to be_eql(1024)
+      expect(result['hash']['inner_truncated'].size).to be_eql(1024)
+      expect(result['hash']['array'][2]['inner_inner'].size).to be_eql(1024)
     end
 
     context 'with utf8 strings' do
       let(:long_message) { 'Ŝǻмρļẻ śţяịņģ' + 'a' * 2000 }
       let(:payload) do
         {
-          :truncated => long_message,
-          :not_truncated => '123456',
+          'truncated' => long_message,
+          'not_truncated' => '123456',
         }
       end
 
       it 'should truncate utf8 strings properly' do
-        result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
-        expect(result[:truncated]).to match(/^Ŝǻмρļẻ śţяịņģa*\.{3}/)
+        result = MultiJson.load(described_class.call(payload))
+        expect(result['truncated']).to match(/^Ŝǻмρļẻ śţяịņģa*\.{3}/)
       end
     end
 

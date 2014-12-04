@@ -11,14 +11,14 @@ module Rollbar
 
       def call(payload)
         new_payload = payload.clone
-        body = new_payload['data'][:body]
+        body = new_payload['data']['body']
 
-        if body[:trace_chain]
-          body[:trace_chain] = body[:trace_chain].map do |trace_data|
+        if body['trace_chain']
+          body['trace_chain'] = body['trace_chain'].map do |trace_data|
             truncate_trace_data(trace_data)
           end
         else
-          body[:trace] = truncate_trace_data(body[:trace])
+          body['trace'] = truncate_trace_data(body['trace'])
         end
 
 
@@ -26,9 +26,9 @@ module Rollbar
       end
 
       def truncate_trace_data(trace_data)
-        trace_data[:exception].delete(:description)
-        trace_data[:exception][:message] = trace_data[:exception][:message][0, 255]
-        trace_data[:frames] = select_frames(trace_data[:frames], 1)
+        trace_data['exception'].delete('description')
+        trace_data['exception']['message'] = trace_data['exception']['message'][0, 255]
+        trace_data['frames'] = select_frames(trace_data['frames'], 1)
 
         trace_data
       end
