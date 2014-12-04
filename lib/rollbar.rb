@@ -599,7 +599,10 @@ module Rollbar
     end
 
     def dump_payload(payload)
-      result = Truncation.truncate(payload)
+      # Ensure all keys are strings since we can receive the payload inline or
+      # from an async handler job, which can be serialized.
+      stringified_payload = Rollbar::Util::Hash.deep_stringify_keys(payload)
+      result = Truncation.truncate(stringified_payload)
       return result unless Truncation.truncate?(result)
 
       original_size = MultiJson.dump(payload).bytesize
