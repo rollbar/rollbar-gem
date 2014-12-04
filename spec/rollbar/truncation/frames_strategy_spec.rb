@@ -9,16 +9,16 @@ describe Rollbar::Truncation::FramesStrategy do
   describe '.call', :fixture => :payload do
     context 'with trace key' do
       let(:payload_fixture) { 'payloads/sample.trace.json' }
-      let(:frames) { payload['data'][:body][:trace][:frames].clone }
+      let(:frames) { payload['data']['body']['trace']['frames'].clone }
 
       before do
-        payload['data'][:body][:trace][:frames] = expand_frames(frames)
+        payload['data']['body']['trace']['frames'] = expand_frames(frames)
       end
 
       it 'returns a new payload with 300 frames' do
-        result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
+        result = MultiJson.load(described_class.call(payload))
 
-        new_frames = result[:data][:body][:trace][:frames]
+        new_frames = result['data']['body']['trace']['frames']
 
         expect(new_frames.count).to be_eql(300)
         expect(new_frames.first).to be_eql(frames.first)
@@ -29,19 +29,19 @@ describe Rollbar::Truncation::FramesStrategy do
     context 'with trace_chain key' do
       let(:payload_fixture) { 'payloads/sample.trace_chain.json' }
 
-      let(:frames1) { payload['data'][:body][:trace_chain][0][:frames].clone }
-      let(:frames2) { payload['data'][:body][:trace_chain][1][:frames].clone }
+      let(:frames1) { payload['data']['body']['trace_chain'][0]['frames'].clone }
+      let(:frames2) { payload['data']['body']['trace_chain'][1]['frames'].clone }
 
       before do
-        payload['data'][:body][:trace_chain][0][:frames] = expand_frames(frames1)
-        payload['data'][:body][:trace_chain][1][:frames] = expand_frames(frames2)
+        payload['data']['body']['trace_chain'][0]['frames'] = expand_frames(frames1)
+        payload['data']['body']['trace_chain'][1]['frames'] = expand_frames(frames2)
       end
 
       it 'returns a new payload with 300 frames for each chain item' do
-        result = symbolize_recursive(MultiJson.load(described_class.call(payload)))
+        result = MultiJson.load(described_class.call(payload))
 
-        new_frames1 = result[:data][:body][:trace_chain][0][:frames]
-        new_frames2 = result[:data][:body][:trace_chain][1][:frames]
+        new_frames1 = result['data']['body']['trace_chain'][0]['frames']
+        new_frames2 = result['data']['body']['trace_chain'][1]['frames']
 
         expect(new_frames1.count).to be_eql(300)
         expect(new_frames1.first).to be_eql(frames1.first)
