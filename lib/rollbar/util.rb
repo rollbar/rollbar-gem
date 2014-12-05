@@ -1,3 +1,5 @@
+require 'rollbar/util/hash'
+
 module Rollbar
   module Util
     def self.iterate_and_update(obj, block)
