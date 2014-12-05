@@ -1,5 +1,15 @@
 # Change Log
 
+## 1.2.13
+
+New features:
+
+- Person tracking for Rack/Sinatra apps. See [#192](https://github.com/rollbar/rollbar-gem/pull/192)
+
+Bug fixes:
+
+- Fix `rollbar:test` rake task (regression from 1.2.12); see [985c091](https://github.com/vyrak/rollbar-gem/commit/985c091ad58ae4f4c6997dd356497b4e5a2be498)
+
 ## 1.2.12
 
 Bug fixes:

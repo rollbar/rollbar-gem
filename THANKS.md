@@ -44,4 +44,5 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [siong1987](https://github.com/siong1987)
 - [trisweb](https://github.com/trisweb)
 - [tysontate](https://github.com/tysontate)
+- [vyrak](https://github.com/vyrak)
 - [wbond](https://github.com/wbond)
