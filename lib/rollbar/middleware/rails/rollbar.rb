@@ -13,7 +13,8 @@ module Rollbar
         end
 
         def call(env)
-          @request_data = nil
+          self.request_data = nil
+
           Rollbar.reset_notifier!
 
           env['rollbar.scope'] = scope = fetch_scope(env)
@@ -46,7 +47,11 @@ module Rollbar
         end
 
         def request_data(env)
-          @request_data ||= extract_request_data(env)
+          Thread.current[:'_rollbar.rails.request_data'] ||= extract_request_data(env)
+        end
+
+        def request_data=(value)
+          Thread.current[:'_rollbar.rails.request_data'] = value
         end
 
         def extract_request_data(env)
