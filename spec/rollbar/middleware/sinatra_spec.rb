@@ -31,7 +31,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
   let(:logger_mock) { double('logger').as_null_object }
 
   before do
-    Rollbar.reconfigure do |config|
+    Rollbar.configure do |config|
       config.logger = logger_mock
       config.framework = 'Sinatra'
     end
