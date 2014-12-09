@@ -220,6 +220,10 @@ module Rollbar
         data[:person] = data[:person].call if is_proc
       end
 
+      data[:request] = data[:request].call if data[:request].respond_to?(:call)
+      data[:context] = data[:context].call if data[:context].respond_to?(:call)
+      data.delete(:context) unless data[:context]
+
       schedule_payload(payload)
 
       log_instance_link(data)

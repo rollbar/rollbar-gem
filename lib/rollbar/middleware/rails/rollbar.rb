@@ -13,6 +13,7 @@ module Rollbar
         end
 
         def call(env)
+          @request_data = nil
           Rollbar.reset_notifier!
 
           env['rollbar.scope'] = scope = fetch_scope(env)
@@ -34,15 +35,22 @@ module Rollbar
         end
 
         def fetch_scope(env)
-          request_data = extract_request_data_from_rack(env)
-
           # Scope a new notifier with request data and a Proc for person data
           # for any reports that happen while a controller is handling a request
+
           {
-            :request => request_data,
+            :request => proc { request_data(env) },
             :person => person_data_proc(env),
-            :context => context(request_data)
+            :context => proc { context(request_data(env)) }
           }
+        end
+
+        def request_data(env)
+          @request_data ||= extract_request_data(env)
+        end
+
+        def extract_request_data(env)
+          extract_request_data_from_rack(env)
         end
 
         def person_data_proc(env)
