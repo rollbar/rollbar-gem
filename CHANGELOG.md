@@ -1,5 +1,16 @@
 # Change Log
 
+## 1.3.0
+
+Performance improvements:
+
+- In the Rails, Rack, and Sinatra middlewares, request data is now gathered only when needed instead of in advance on every request. See [#194](https://github.com/rollbar/rollbar-gem/pull/194); fixes [#180](https://github.com/rollbar/rollbar-gem/issues/180)
+
+Possible breaking changes:
+
+- If the scope's `:request` or `:context` value is an object that responds to `:call`, those values will now be called when a a report is made (and their result will be used in the payload). This is very unlikely to affect anyone, but we're releasing this as a version bump just to be safe.
+
+
 ## 1.2.13
 
 New features:
