@@ -15,7 +15,7 @@ module Rollbar
 
         if body['trace_chain']
           truncate_trace_chain(body)
-        else
+        elsif body['trace']
           truncate_trace(body)
         end
 
