@@ -17,7 +17,7 @@ describe Rollbar::Delay::SuckerPunch, :if => RUBY_VERSION != '1.8.7' do
     let(:payload) { "anything" }
 
     it "performs the task asynchronously" do
-      Rollbar.should_receive(:process_payload)
+      Rollbar.should_receive(:process_payload_safely)
 
       Rollbar::Delay::SuckerPunch.call payload
     end

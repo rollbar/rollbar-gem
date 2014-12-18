@@ -1561,6 +1561,19 @@ describe Rollbar do
     end
   end
 
+  describe '.process_payload_safely' do
+    context 'with errors' do
+      let(:exception) { StandardError.new('the error') }
+
+      it 'doesnt raise anything and sends internal error' do
+        allow(Rollbar.notifier).to receive(:process_payload).and_raise(exception)
+        expect(Rollbar.notifier).to receive(:report_internal_error).with(exception)
+
+        Rollbar.notifier.process_payload_safely({})
+      end
+    end
+  end
+
   # configure with some basic params
   def configure
     reconfigure_notifier

@@ -16,7 +16,7 @@ module Rollbar
       include ::Sidekiq::Worker
 
       def perform(*args)
-        Rollbar.process_payload(*args)
+        Rollbar.process_payload_safely(*args)
       end
     end
   end
