@@ -1547,6 +1547,20 @@ describe Rollbar do
     end
   end
 
+  describe '.process_payload' do
+    context 'if there is an exception sending the payload' do
+      let(:exception) { StandardError.new('error message') }
+      let(:payload) { { :foo => :bar } }
+
+      it 'logs the error and the payload' do
+        allow(Rollbar.notifier).to receive(:send_payload).and_raise(exception)
+        expect(Rollbar.notifier).to receive(:log_error)
+
+        expect { Rollbar.notifier.process_payload(payload) }.to raise_error(exception)
+      end
+    end
+  end
+
   # configure with some basic params
   def configure
     reconfigure_notifier

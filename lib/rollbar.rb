@@ -180,6 +180,9 @@ module Rollbar
       else
         send_payload(payload)
       end
+    rescue => e
+      log_error("[Rollbar] Error processing the payload: #{e.class}, #{e.message}. Payload: #{payload.inspect}")
+      raise e
     end
 
     private
