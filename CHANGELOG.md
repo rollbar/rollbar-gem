@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.3.1
+
+Bug fixes:
+
+- Fix bug with smart truncation for messages. See [#195](https://github.com/rollbar/rollbar-gem/issues/195) and [#196](https://github.com/rollbar/rollbar-gem/issues/196)
+- Safely catch exceptions in `process_payload` when called from an async handler. See [#196](https://github.com/rollbar/rollbar-gem/pull/196)
+
+
 ## 1.3.0
 
 Performance improvements:
