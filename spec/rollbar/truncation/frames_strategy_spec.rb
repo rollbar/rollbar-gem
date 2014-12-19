@@ -52,5 +52,19 @@ describe Rollbar::Truncation::FramesStrategy do
         expect(new_frames2.last).to be_eql(frames2.last)
       end
     end
+
+    context 'without trace or trace_chain', :fixture => :payload do
+      let(:payload_fixture) { 'payloads/sample.trace.json' }
+
+      before do
+        payload['data']['body'].delete('trace')
+      end
+
+      it 'returns the original payload' do
+        result = MultiJson.load(described_class.call(payload))
+
+        expect(result).to be_eql(payload)
+      end
+    end
   end
 end

@@ -410,11 +410,11 @@ You can supply your own handler using ```config.async_handler```. The object to 
 ```ruby
 config.use_async
 config.async_handler = Proc.new { |payload|
-  Thread.new { Rollbar.process_payload(payload) }
+  Thread.new { Rollbar.process_payload_safely(payload) }
 }
 ```
 
-Make sure you pass ```payload``` to ```Rollbar.process_payload``` in your own implementation.
+Make sure you pass ```payload``` to ```Rollbar.process_payload_safely``` in your own implementation.
 
 ## Failover handlers
 

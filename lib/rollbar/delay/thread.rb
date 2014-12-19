@@ -6,7 +6,7 @@ module Rollbar
       end
 
       def call(payload)
-        ::Thread.new { Rollbar.process_payload(payload) }
+        ::Thread.new { Rollbar.process_payload_safely(payload) }
       end
     end
   end

@@ -31,7 +31,7 @@ module Rollbar
     Rack::Multipart::UploadedFile
   ].freeze
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
-                               process_payload scope send_failsafe log_info log_debug
+                               process_payload process_payload_safely scope send_failsafe log_info log_debug
                                log_warning log_error silenced)
 
   class Notifier
@@ -180,6 +180,15 @@ module Rollbar
       else
         send_payload(payload)
       end
+    rescue => e
+      log_error("[Rollbar] Error processing the payload: #{e.class}, #{e.message}. Payload: #{payload.inspect}")
+      raise e
+    end
+
+    def process_payload_safely(payload)
+      process_payload(payload)
+    rescue => e
+      report_internal_error(e)
     end
 
     private

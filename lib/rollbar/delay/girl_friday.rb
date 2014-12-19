@@ -16,7 +16,7 @@ module Rollbar
 
       def call(payload)
         self.class.queue = queue_class.new(nil, :size => 5) do |payload|
-          Rollbar.process_payload(payload)
+          Rollbar.process_payload_safely(payload)
         end
 
         self.class.queue.push(payload)

@@ -23,7 +23,7 @@ module Rollbar
         end
 
         def perform(payload)
-          Rollbar.process_payload(payload)
+          Rollbar.process_payload_safely(payload)
         end
       end
     end

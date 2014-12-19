@@ -11,7 +11,7 @@ module Rollbar
       end
 
       def perform(*args)
-        Rollbar.process_payload(*args)
+        Rollbar.process_payload_safely(*args)
       end
     end
   end

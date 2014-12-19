@@ -17,7 +17,7 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
 
   describe "#perform" do
     it "performs payload" do
-      Rollbar.should_receive(:process_payload).with(payload)
+      Rollbar.should_receive(:process_payload_safely).with(payload)
       subject.perform payload
     end
   end
@@ -26,7 +26,7 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
     shared_examples "a Rollbar processor" do
 
       it "processes payload" do
-        Rollbar.should_receive(:process_payload).with(payload)
+        Rollbar.should_receive(:process_payload_safely).with(payload)
 
         subject.call payload
         described_class.drain
