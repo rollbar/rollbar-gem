@@ -20,14 +20,12 @@ module Rollbar
   end
 end
 
-if Sidekiq::VERSION < '3'
-  Sidekiq.configure_server do |config|
+Sidekiq.configure_server do |config|
+  if Sidekiq::VERSION < '3'
     config.server_middleware do |chain|
       chain.add Rollbar::Sidekiq
     end
-  end
-else
-  Sidekiq.configure_server do |config|
+  else
     config.error_handlers << Proc.new do |e, context|
       Rollbar::Sidekiq.handle_exception(context, e)
     end
