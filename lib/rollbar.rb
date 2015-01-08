@@ -512,12 +512,14 @@ module Rollbar
     def do_write_payload(payload)
       log_info '[Rollbar] Writing payload to file'
 
+      body = dump_payload(payload)
+
       begin
         unless @file
           @file = File.open(configuration.filepath, "a")
         end
 
-        @file.puts payload
+        @file.puts(body)
         @file.flush
         log_info "[Rollbar] Success"
       rescue IOError => e
