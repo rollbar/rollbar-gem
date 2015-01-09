@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.3.2
+
+Bug fixes:
+
+- Fix bug with the `write_to_file` method where values were dumped as ruby hashes instead of json. See [#198](https://github.com/rollbar/rollbar-gem/pull/198)
+
 ## 1.3.1
 
 Bug fixes:
