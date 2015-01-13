@@ -127,8 +127,10 @@ module Rollbar
 
       return 'ignored' if ignored?(exception)
 
-      exception_level = filtered_level(exception)
-      level = exception_level if exception_level
+      if extra && extra.delete(:use_exception_level_filters) == true
+        exception_level = filtered_level(exception)
+        level = exception_level if exception_level
+      end
 
       begin
         report(level, message, exception, extra)

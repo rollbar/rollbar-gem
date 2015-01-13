@@ -743,13 +743,26 @@ describe Rollbar do
       Rollbar.error(exception)
     end
 
-    it 'sends the correct filtered level' do
-      Rollbar.configure do |config|
-        config.exception_level_filters = { 'NameError' => 'warning' }
-      end
+    context 'using :use_exception_level_filters option as true' do
+      it 'sends the correct filtered level' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'warning' }
+        end
 
-      Rollbar.error(exception)
-      expect(Rollbar.last_report[:level]).to be_eql('warning')
+        Rollbar.error(exception, :use_exception_level_filters => true)
+        expect(Rollbar.last_report[:level]).to be_eql('warning')
+      end
+    end
+
+    context 'if not using :use_exception_level_filters option' do
+      it 'sends the level defined by the used method' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'warning' }
+        end
+
+        Rollbar.error(exception)
+        expect(Rollbar.last_report[:level]).to be_eql('error')
+      end
     end
 
     it "should work with an IO object as rack.errors" do

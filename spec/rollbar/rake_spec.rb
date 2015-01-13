@@ -12,7 +12,7 @@ describe Rollbar::Rake do
 
     it 'reports error to Rollbar' do
       expect(Rollbar::Rake).not_to receive(:skip_patch)
-      expect(Rollbar).to receive(:error).with(exception)
+      expect(Rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
       expect(application).to receive(:orig_display_error_message).with(exception)
 
       Rollbar::Rake.patch! # Really here Rake is already patched

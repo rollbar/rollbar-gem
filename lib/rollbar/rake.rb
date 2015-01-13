@@ -9,7 +9,7 @@ module Rollbar
         alias_method :orig_display_error_message, :display_error_message
 
         def display_error_message(ex)
-          Rollbar.error(ex)
+          Rollbar.error(ex, :use_exception_level_filters => true)
           orig_display_error_message(ex)
         end
       end
