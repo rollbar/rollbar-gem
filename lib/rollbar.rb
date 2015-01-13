@@ -125,9 +125,11 @@ module Rollbar
         end
       end
 
-      return 'ignored' if ignored?(exception)
+      use_exception_level_filters = extra && extra.delete(:use_exception_level_filters) == true
 
-      if extra && extra.delete(:use_exception_level_filters) == true
+      return 'ignored' if ignored?(exception, use_exception_level_filters)
+
+      if use_exception_level_filters
         exception_level = filtered_level(exception)
         level = exception_level if exception_level
       end
@@ -195,9 +197,9 @@ module Rollbar
 
     private
 
-    def ignored?(exception)
+    def ignored?(exception, use_exception_level_filters = false)
       return false unless exception
-      return true if filtered_level(exception) == 'ignore'
+      return true if use_exception_level_filters && filtered_level(exception) == 'ignore'
       return true if exception.instance_variable_get(:@_rollbar_do_not_report)
 
       false
@@ -764,7 +766,7 @@ module Rollbar
       scope[:person] = person_data if person_data
 
       Rollbar.scoped(scope) do
-        Rollbar.notifier.log(level, exception)
+        Rollbar.notifier.log(level, exception, :use_exception_level_filters => true)
       end
     end
 

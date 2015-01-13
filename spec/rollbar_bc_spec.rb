@@ -276,7 +276,7 @@ describe Rollbar do
       Rollbar.last_report.should_not be_nil
     end
 
-    it 'should allow callables to set exception filtered level' do
+    it 'should allow callables to set exception filtered level with :use_exception_level_filters option' do
       callable_mock = double
       Rollbar.configure do |config|
         config.exception_level_filters = { 'NameError' => callable_mock }
