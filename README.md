@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.3.2)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.4.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https://rollbar.com).
@@ -9,7 +9,7 @@ Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https:/
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar', '~> 1.3.2'
+    gem 'rollbar', '~> 1.4.0'
 
 And then execute:
 
@@ -293,6 +293,12 @@ By default, all uncaught exceptions are reported at the "error" level, except fo
 - ```ActionController::RoutingError```
 
 If you'd like to customize this list, see the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all.
+
+This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error()`, `Rollbar.warning()`, etc. If you are making a direct call to one of the log methods and want exception level filters to apply, pass an extra keyword argument:
+
+```ruby
+Rollbar.error(exception, :use_exception_level_filters => true)
+```
 
 ## Silencing exceptions at runtime
 

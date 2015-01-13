@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.4.0
+
+Possible breaking changes:
+
+- `exception_level_filters` is now applied only to "uncaught" errors (i.e. those detected by middlewares) but not to direct calls to `Rollbar.error`. If you were previously using `Rollbar.error` (or `Rollbar.warning`, etc.), the new behavior is *probably* desirable, but if it isn't, you can get the old behavior via `Rollbar.error(e, :use_exception_level_filters => true)`. The middlewares that ship with the gem also now pass this new flag.
+
 ## 1.3.2
 
 Bug fixes:
