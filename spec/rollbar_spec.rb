@@ -731,25 +731,48 @@ describe Rollbar do
       Rollbar.error(exception).should == 'disabled'
     end
 
-    it 'should ignore ignored exception classes' do
-      Rollbar.configure do |config|
-        config.exception_level_filters = { 'NameError' => 'ignore' }
+    context 'using :use_exception_level_filters option as true' do
+      it 'sends the correct filtered level' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'warning' }
+        end
+
+        Rollbar.error(exception, :use_exception_level_filters => true)
+        expect(Rollbar.last_report[:level]).to be_eql('warning')
       end
 
-      logger_mock.should_not_receive(:info)
-      logger_mock.should_not_receive(:warn)
-      logger_mock.should_not_receive(:error)
+      it 'ignore ignored exception classes' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'ignore' }
+        end
 
-      Rollbar.error(exception)
+        logger_mock.should_not_receive(:info)
+        logger_mock.should_not_receive(:warn)
+        logger_mock.should_not_receive(:error)
+
+        Rollbar.error(exception, :use_exception_level_filters => true)
+      end
     end
 
-    it 'sends the correct filtered level' do
-      Rollbar.configure do |config|
-        config.exception_level_filters = { 'NameError' => 'warning' }
+    context 'if not using :use_exception_level_filters option' do
+      it 'sends the level defined by the used method' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'warning' }
+        end
+
+        Rollbar.error(exception)
+        expect(Rollbar.last_report[:level]).to be_eql('error')
       end
 
-      Rollbar.error(exception)
-      expect(Rollbar.last_report[:level]).to be_eql('warning')
+      it 'ignore ignored exception classes' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'ignore' }
+        end
+
+        Rollbar.error(exception)
+
+        expect(Rollbar.last_report[:level]).to be_eql('error')
+      end
     end
 
     it "should work with an IO object as rack.errors" do
@@ -813,6 +836,7 @@ describe Rollbar do
     it 'should allow callables to set exception filtered level' do
       callable_mock = double
       saved_filters = Rollbar.configuration.exception_level_filters
+
       Rollbar.configure do |config|
         config.exception_level_filters = { 'NameError' => callable_mock }
       end
@@ -822,7 +846,7 @@ describe Rollbar do
       logger_mock.should_not_receive(:warn)
       logger_mock.should_not_receive(:error)
 
-      Rollbar.error(exception)
+      Rollbar.error(exception, :use_exception_level_filters => true)
     end
 
     it 'should not report exceptions when silenced' do

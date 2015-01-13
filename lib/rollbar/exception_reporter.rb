@@ -4,7 +4,7 @@ module Rollbar
       exception_message = exception.respond_to?(:message) ? exception.message : 'No Exception Message'
       Rollbar.log_debug "[Rollbar] Reporting exception: #{exception_message}"
 
-      exception_data = Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception)
+      exception_data = Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception, :use_exception_level_filters => true)
 
       if exception_data.is_a?(Hash)
         env['rollbar.exception_uuid'] = exception_data[:uuid]

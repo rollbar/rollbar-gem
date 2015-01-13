@@ -42,7 +42,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
   end
 
   let(:expected_report_args) do
-    [uncaught_level, exception]
+    [uncaught_level, exception, { :use_exception_level_filters => true }]
   end
 
   describe '#call' do

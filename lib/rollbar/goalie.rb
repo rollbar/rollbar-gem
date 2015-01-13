@@ -1,7 +1,7 @@
 module Goalie
   class CustomErrorPages
     alias_method :orig_render_exception, :render_exception
-    
+
     private
 
     def render_exception(env, exception)
@@ -10,7 +10,7 @@ module Goalie
         controller = env['action_controller.instance']
         request_data = controller.rollbar_request_data rescue nil
         person_data = controller.rollbar_person_data rescue nil
-        exception_data = Rollbar.scope(:request => request_data, :person => person_data).error(exception)
+        exception_data = Rollbar.scope(:request => request_data, :person => person_data).error(exception, :use_exception_level_filters => true)
       rescue => e
         Rollbar.log_warning "[Rollbar] Exception while reporting exception to Rollbar: #{e}"
       end

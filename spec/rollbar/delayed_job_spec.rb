@@ -32,8 +32,12 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     Delayed::Worker.backend = DummyBackend::Job
   end
 
+  let(:expected_args) do
+    [kind_of(FailingJob::TestException), { :use_exception_level_filters => true}]
+  end
+
   it 'sends the exception' do
-    expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(kind_of(FailingJob::TestException))
+    expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*expected_args)
 
     expect do
       Delayed::Job.enqueue(FailingJob.new)
