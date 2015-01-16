@@ -232,6 +232,50 @@ Rollbar.configure do |config|
 end
 ```
 
+### Person tracking with Rack applications
+
+For non Rails application Rollbar gem has a simple method to report the person data to our API. By default the gem will check if the key `rollbar.person_data` exists in the Rack environment when will generate the exception report. Because each Rack application can be different and having non standard authentication strategies or cannot be uniform, we don't provide a generic solution for this. It'll be your responsability set a value for `env['rollbar.person_data']`.
+
+However, you have here an idea for a middleware that will populate `rollbar.person_data` with some user information:
+
+```ruby
+class RollbarPersonData
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    token = Rack::Request.new(env).params['token']
+    user = User.find_by_token(token)
+
+    if user
+      env['rollbar.person_data'] = extract_person_data(user)
+    end
+
+    @app.call(env)
+  end
+
+  def extract_person_data(user)
+    {
+      id: user.id,
+      username: user.username,
+      email: user.email
+    }
+  end
+end
+
+# You can add the middleware to your application, for ex:
+
+class App < Sinatra::Base
+  use Rollbar::Middleware::Sinatra
+  use RollbarPersonData
+
+  # ...
+  # ...
+end
+
+```
+
 ## Special note about reporting within a request
 
 The gem instantiates one `Notifier` instance on initialization, which will be the base notifier that is used for all reporting (via a `method_missing` proxy in the `Rollbar` module). Calling `Rollbar.configure()` will configure this base notifier that will be used globally in a ruby app.
