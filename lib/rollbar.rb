@@ -293,6 +293,7 @@ module Rollbar
         }
       }
 
+      data[:custom] = extra.delete(:custom) if extra && extra[:custom]
       data[:body] = build_payload_body(message, exception, extra)
       data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
       data[:code_version] = configuration.code_version if configuration.code_version
