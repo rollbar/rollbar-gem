@@ -232,6 +232,57 @@ Rollbar.configure do |config|
 end
 ```
 
+### Person tracking with Rack applications
+
+To track information about the current user in non-Rails applications, you can populate the `rollbar.person_data` key in the Rack environment with the desired data. Its value should be a hash like:
+
+```ruby
+{
+  :id => "123",  # required; string up to 40 characters
+  :username => "adalovelace",  # optional; string up to 255 characters
+  :email => "ada@lovelace.net"  # optional; string up to 255 characters
+}
+```
+
+Because Rack applications can vary so widely, we don't provide a default implementation in the gem, but here is an example middleware:
+
+```ruby
+class RollbarPersonData
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    token = Rack::Request.new(env).params['token']
+    user = User.find_by_token(token)
+
+    if user
+      env['rollbar.person_data'] = extract_person_data(user)
+    end
+
+    @app.call(env)
+  end
+
+  def extract_person_data(user)
+    {
+      id: user.id,
+      username: user.username,
+      email: user.email
+    }
+  end
+end
+
+# You can add the middleware to your application, for ex:
+
+class App < Sinatra::Base
+  use Rollbar::Middleware::Sinatra
+  use RollbarPersonData
+
+  # ...
+  # ...
+end
+```
+
 ## Special note about reporting within a request
 
 The gem instantiates one `Notifier` instance on initialization, which will be the base notifier that is used for all reporting (via a `method_missing` proxy in the `Rollbar` module). Calling `Rollbar.configure()` will configure this base notifier that will be used globally in a ruby app.
