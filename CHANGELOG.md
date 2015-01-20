@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.4.1
+
+Bug fixes:
+
+- Fix internal error when ActiveRecord was present, but not used. See [#204](https://github.com/rollbar/rollbar-gem/pull/204)
+
 ## 1.4.0
 
 Possible breaking changes:

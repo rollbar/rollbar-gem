@@ -19,6 +19,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [gdeglin](https://github.com/gdeglin)
 - [gersmann](https://github.com/gersmann)
 - [grosser](https://github.com/grosser)
+- [GUI](https://github.com/GUI)
 - [ixti](https://github.com/ixti)
 - [jeremyvdw](https://github.com/jeremyvdw)
 - [johnknott](https://github.com/johnknott)
