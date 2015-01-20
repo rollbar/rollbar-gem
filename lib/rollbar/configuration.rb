@@ -26,6 +26,7 @@ module Rollbar
     attr_accessor :person_id_method
     attr_accessor :person_username_method
     attr_accessor :person_email_method
+    attr_accessor :populate_empty_backtraces
     attr_accessor :report_dj_data
     attr_accessor :request_timeout
     attr_accessor :root
@@ -67,6 +68,7 @@ module Rollbar
       @person_username_method = 'username'
       @person_email_method = 'email'
       @project_gems = []
+      @populate_empty_backtraces = false
       @report_dj_data = true
       @request_timeout = 3
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,

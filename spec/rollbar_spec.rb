@@ -879,6 +879,23 @@ describe Rollbar do
       payload["data"][:body][:trace][:exception][:message].should == "oops"
     end
 
+    it 'gets the backtrace from the caller' do
+      Rollbar.configure do |config|
+        config.populate_empty_backtraces = true
+      end
+
+      exception = Exception.new
+
+      Rollbar.error(exception)
+
+      gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
+      last_report = Rollbar.last_report
+      filepaths = last_report[:body][:trace][:frames].map {|frame| frame[:filename] }
+
+      expect(filepaths).not_to include(gem_dir)
+      expect(filepaths).not_to be_empty
+    end
+
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
         exception_data = Rollbar.error(StandardError.new("oops"))

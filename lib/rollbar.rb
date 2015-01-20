@@ -337,22 +337,19 @@ module Rollbar
     end
 
     def trace_data(exception)
-      # parse backtrace
-      if exception.backtrace.respond_to?( :map )
-        frames = exception.backtrace.map { |frame|
-          # parse the line
-          match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-          if match
-            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
-          else
-            { :filename => "<unknown>", :lineno => 0, :method => frame }
-          end
-        }
-        # reverse so that the order is as rollbar expects
-        frames.reverse!
-      else
-        frames = []
+      frames = exception_backtrace(exception).map do |frame|
+        # parse the line
+        match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
+
+        if match
+          { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
+        else
+          { :filename => "<unknown>", :lineno => 0, :method => frame }
+        end
       end
+
+        # reverse so that the order is as rollbar expects
+      frames.reverse!
 
       {
         :frames => frames,
@@ -361,6 +358,18 @@ module Rollbar
           :message => exception.message
         }
       }
+    end
+
+    def exception_backtrace(exception)
+      return exception.backtrace if exception.backtrace.respond_to?( :map )
+      return [] unless configuration.populate_empty_backtraces
+
+      cleaned_backtrace = caller.reject {|path| path =~ /#{rollbar_gem_dir}/ }
+      cleaned_backtrace
+    end
+
+    def rollbar_gem_dir
+      Gem::Specification.find_by_name('rollbar').gem_dir
     end
 
     def trace_chain(exception)
