@@ -234,9 +234,17 @@ end
 
 ### Person tracking with Rack applications
 
-For non Rails application Rollbar gem has a simple method to report the person data to our API. By default the gem will check if the key `rollbar.person_data` exists in the Rack environment when will generate the exception report. Because each Rack application can be different and having non standard authentication strategies or cannot be uniform, we don't provide a generic solution for this. It'll be your responsability set a value for `env['rollbar.person_data']`.
+To track information about the current user in non-Rails applications, you can populate the `rollbar.person_data` key in the Rack environment with the desired data. Its value should be a hash like:
 
-However, you have here an idea for a middleware that will populate `rollbar.person_data` with some user information:
+```ruby
+{
+  :id => "123",  # required; string up to 40 characters
+  :username => "adalovelace",  # optional; string up to 255 characters
+  :email => "ada@lovelace.net"  # optional; string up to 255 characters
+}
+```
+
+Because Rack applications can vary so widely, we don't provide a default implementation in the gem, but here is an example middleware:
 
 ```ruby
 class RollbarPersonData
@@ -273,7 +281,6 @@ class App < Sinatra::Base
   # ...
   # ...
 end
-
 ```
 
 ## Special note about reporting within a request
