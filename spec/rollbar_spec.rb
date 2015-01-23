@@ -1490,6 +1490,23 @@ describe Rollbar do
     end
   end
 
+  context 'when reporting internal error with nil context' do
+    let(:context_proc) { proc {} }
+    let(:scoped_notifier) { notifier.scope(:context => context_proc) }
+    let(:exception) { Exception.new }
+    let(:logger_mock) { double("Rails.logger").as_null_object }
+
+    it 'reports successfully' do
+      Rollbar.configure do |config|
+        config.logger = logger_mock
+      end
+
+      logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      scoped_notifier.send(:report_internal_error, exception)
+    end
+  end
+
   context "request_data_extractor" do
     before(:each) do
       class DummyClass
