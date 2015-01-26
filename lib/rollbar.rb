@@ -228,14 +228,7 @@ module Rollbar
       if data[:person]
         person_id = data[:person][configuration.person_id_method.to_sym]
         return 'ignored' if configuration.ignored_person_ids.include?(person_id)
-
-        is_proc = data[:person].respond_to?(:call)
-        data[:person] = data[:person].call if is_proc
       end
-
-      data[:request] = data[:request].call if data[:request].respond_to?(:call)
-      data[:context] = data[:context].call if data[:context].respond_to?(:call)
-      data.delete(:context) unless data[:context]
 
       schedule_payload(payload)
 
@@ -299,6 +292,14 @@ module Rollbar
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
       Rollbar::Util.deep_merge(data, configuration.payload_options)
+
+      data[:person] = data[:person].call if data[:person].respond_to?(:call)
+      data[:request] = data[:request].call if data[:request].respond_to?(:call)
+      data[:context] = data[:context].call if data[:context].respond_to?(:call)
+
+      # Our API doesn't allow null context values, so just delete
+      # the key if value is nil.
+      data.delete(:context) unless data[:context]
 
       payload = {
         'access_token' => configuration.access_token,
