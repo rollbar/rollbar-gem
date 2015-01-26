@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# encoding: utf-8
 
 require 'logger'
 require 'socket'
@@ -1497,6 +1497,8 @@ describe Rollbar do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'reports successfully' do
+      configure
+
       Rollbar.configure do |config|
         config.logger = logger_mock
       end
