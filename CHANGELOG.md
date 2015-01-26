@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.4.2
+
+Bug fixes:
+
+- Fix null 'context' in internal error reports. See [#208](https://github.com/rollbar/rollbar-gem/pull/208)
+
 ## 1.4.1
 
 Bug fixes:
