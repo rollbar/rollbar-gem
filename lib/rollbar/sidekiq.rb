@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-PARAM_BLACKLIST = ['backtrace', 'error_backtrace', 'error_message', 'error_class']
+PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
 
 if Sidekiq::VERSION < '3'
   module Rollbar
