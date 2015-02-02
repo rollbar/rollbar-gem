@@ -2,21 +2,25 @@
 
 PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
 
-if Sidekiq::VERSION < '3'
-  module Rollbar
-    class Sidekiq
-      def call(worker, msg, queue)
-        yield
-      rescue Exception => e
-        params = msg.reject{ |k| PARAM_BLACKLIST.include?(k) }
-        scope = { :request => { :params => params } }
+module Rollbar
+  class Sidekiq
+    def self.handle_exception(msg_or_context, e)
+      params = msg_or_context.reject{ |k| PARAM_BLACKLIST.include?(k) }
+      scope = { :request => { :params => params } }
 
-        Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
-        raise
-      end
+      Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
+    end
+
+    def call(worker, msg, queue)
+      yield
+    rescue Exception => e
+      Rollbar::Sidekiq.handle_exception(msg, e)
+      raise
     end
   end
+end
 
+if Sidekiq::VERSION < '3'
   Sidekiq.configure_server do |config|
     config.server_middleware do |chain|
       chain.add Rollbar::Sidekiq
@@ -25,10 +29,7 @@ if Sidekiq::VERSION < '3'
 else
   Sidekiq.configure_server do |config|
     config.error_handlers << Proc.new do |e, context|
-      params = context.reject{ |k| PARAM_BLACKLIST.include?(k) }
-      scope = { :request => { :params => params } }
-
-      Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
+      Rollbar::Sidekiq.handle_exception(context, e)
     end
   end
 end
