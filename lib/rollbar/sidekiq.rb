@@ -1,9 +1,9 @@
 # encoding: utf-8
 
-PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
-
 module Rollbar
   class Sidekiq
+    PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
+
     def self.handle_exception(msg_or_context, e)
       params = msg_or_context.reject{ |k| PARAM_BLACKLIST.include?(k) }
       scope = { :request => { :params => params } }
