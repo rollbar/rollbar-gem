@@ -1586,6 +1586,8 @@ describe Rollbar do
       { :person => { :id => 1 } }
     end
 
+    before { reconfigure_notifier }
+
     it 'adds the new scope to the payload options' do
       configuration = Rollbar.notifier.configuration
       Rollbar.scope!(new_scope)
