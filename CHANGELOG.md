@@ -1,5 +1,17 @@
 # Change Log
 
+## 1.4.3
+
+New features:
+
+- The current thread's scope can now be modified using `Rollbar.scope!`. This can be used to provide context data which will be included if the current request/job/etc. later throws an exception. See [#212](https://github.com/rollbar/rollbar-gem/pull/212)
+
+Bug fixes:
+
+- Remove duplicate `#configure` definition. See [#207](https://github.com/rollbar/rollbar-gem/pull/207)
+- In the capistrano task, don't override set variables. See [#210](https://github.com/rollbar/rollbar-gem/pull/210)
+- Style fix in sidekiq handler. See [#209](https://github.com/rollbar/rollbar-gem/pull/209)
+
 ## 1.4.2
 
 Bug fixes:
