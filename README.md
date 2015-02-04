@@ -184,7 +184,7 @@ notifier = notifier.scope({
 notifier.info('Jobs processed')
 ```
 
-If you don't want to work with a new `Notifier` instance `#scoped` will do it for you:
+If you don't want to work with a new `Notifier` instance `.scoped` will do it for you:
 
 ```ruby
 while job
@@ -207,6 +207,24 @@ while job
   job = next_job
 end
 ```
+
+To modify the current scope (rather than creating a new one), use `Rollbar.scope!`. You can use this to add additional context data from inside a web request, background job, etc.
+
+```ruby
+class NotificationJob
+  include Sidekiq::Worker
+
+  def perform(user_id)
+    Rollbar.scope!(:person => { :id => :user_id })
+
+    # If this next line causes an exception, the reported exception (which will
+    # be reported by Rollbar's standard Sidekiq instrumentation) will also
+    # include the above person information.
+    Notification.send_to_user(user_id)
+  end
+end
+```
+
 
 ## Person tracking
 

@@ -1581,6 +1581,21 @@ describe Rollbar do
     end
   end
 
+  describe '.scope!' do
+    let(:new_scope) do
+      { :person => { :id => 1 } }
+    end
+
+    before { reconfigure_notifier }
+
+    it 'adds the new scope to the payload options' do
+      configuration = Rollbar.notifier.configuration
+      Rollbar.scope!(new_scope)
+
+      expect(configuration.payload_options).to be_eql(new_scope)
+    end
+  end
+
   describe '.reset_notifier' do
     it 'resets the notifier' do
       notifier1_id = Rollbar.notifier.object_id

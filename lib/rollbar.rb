@@ -71,6 +71,11 @@ module Rollbar
       self.class.new(self, options)
     end
 
+    def scope!(options = {})
+      Rollbar::Util.deep_merge(@configuration.payload_options, options)
+      self
+    end
+
     # Turns off reporting for the given block.
     #
     # @example
@@ -751,6 +756,10 @@ module Rollbar
       result
     ensure
       self.notifier = old_notifier
+    end
+
+    def scope!(options = {})
+      notifier.scope!(options)
     end
 
     # Backwards compatibility methods
