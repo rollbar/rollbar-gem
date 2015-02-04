@@ -208,7 +208,7 @@ while job
 end
 ```
 
-It can be interesting changing the scope of the current notifier outside of any block. You can use `Rollbar.scope!` in those cases:
+To modify the current scope (rather than creating a new one), use `Rollbar.scope!`. You can use this to add additional context data from inside a web request, background job, etc.
 
 ```ruby
 class NotificationJob
@@ -217,6 +217,9 @@ class NotificationJob
   def perform(user_id)
     Rollbar.scope!(:person => { :id => :user_id })
 
+    # If this next line causes an exception, the reported exception (which will
+    # be reported by Rollbar's standard Sidekiq instrumentation) will also
+    # include the above person information.
     Notification.send_to_user(user_id)
   end
 end
