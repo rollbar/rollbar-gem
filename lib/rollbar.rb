@@ -71,10 +71,6 @@ module Rollbar
       self.class.new(self, options)
     end
 
-    def configure
-      yield(configuration)
-    end
-
     # Turns off reporting for the given block.
     #
     # @example
