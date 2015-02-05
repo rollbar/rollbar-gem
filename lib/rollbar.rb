@@ -339,22 +339,19 @@ module Rollbar
     end
 
     def trace_data(exception)
-      # parse backtrace
-      if exception.backtrace.respond_to?( :map )
-        frames = exception.backtrace.map { |frame|
-          # parse the line
-          match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-          if match
-            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
-          else
-            { :filename => "<unknown>", :lineno => 0, :method => frame }
-          end
-        }
-        # reverse so that the order is as rollbar expects
-        frames.reverse!
-      else
-        frames = []
+      frames = exception_backtrace(exception).map do |frame|
+        # parse the line
+        match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
+
+        if match
+          { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
+        else
+          { :filename => "<unknown>", :lineno => 0, :method => frame }
+        end
       end
+
+        # reverse so that the order is as rollbar expects
+      frames.reverse!
 
       {
         :frames => frames,
@@ -363,6 +360,28 @@ module Rollbar
           :message => exception.message
         }
       }
+    end
+
+    # Returns the backtrace to be sent to our API. There are 3 options:
+    #
+    # 1. The exception received has a backtrace, then that backtrace is returned.
+    # 2. configuration.populate_empty_backtraces is disabled, we return [] here
+    # 3. The user has configuration.populate_empty_backtraces is enabled, then:
+    #
+    # We want to send the caller as backtrace, but the first lines of that array
+    # are those from the user's Rollbar.error line until this method. We want
+    # to remove those lines.
+    def exception_backtrace(exception)
+      return exception.backtrace if exception.backtrace.respond_to?( :map )
+      return [] unless configuration.populate_empty_backtraces
+
+      caller_backtrace = caller
+      caller_backtrace.shift while caller_backtrace[0].include?(rollbar_lib_gem_dir)
+      caller_backtrace
+    end
+
+    def rollbar_lib_gem_dir
+      Gem::Specification.find_by_name('rollbar').gem_dir + '/lib'
     end
 
     def trace_chain(exception)
