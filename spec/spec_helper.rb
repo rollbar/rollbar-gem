@@ -6,12 +6,6 @@ require 'rspec/rails'
 require 'database_cleaner'
 require 'genspec'
 
-if RUBY_VERSION[0].to_i > 1
-  require 'byebug'
-else
-  require 'ruby-debug';
-end
-
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
 end
