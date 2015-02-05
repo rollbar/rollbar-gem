@@ -889,11 +889,13 @@ describe Rollbar do
       Rollbar.error(exception)
 
       gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
+      gem_lib_dir = gem_dir + '/lib'
       last_report = Rollbar.last_report
-      filepaths = last_report[:body][:trace][:frames].map {|frame| frame[:filename] }
 
-      expect(filepaths).not_to include(gem_dir)
-      expect(filepaths).not_to be_empty
+      filepaths = last_report[:body][:trace][:frames].map {|frame| frame[:filename] }.reverse
+
+      expect(filepaths[0]).not_to include(gem_lib_dir)
+      expect(filepaths.any? {|filepath| filepath.include?(gem_dir) }).to be_true
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do

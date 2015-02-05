@@ -364,12 +364,13 @@ module Rollbar
       return exception.backtrace if exception.backtrace.respond_to?( :map )
       return [] unless configuration.populate_empty_backtraces
 
-      cleaned_backtrace = caller.reject {|path| path =~ /#{rollbar_gem_dir}/ }
-      cleaned_backtrace
+      caller_backtrace = caller
+      caller_backtrace.shift while caller_backtrace[0].include?(rollbar_lib_gem_dir)
+      caller_backtrace
     end
 
-    def rollbar_gem_dir
-      Gem::Specification.find_by_name('rollbar').gem_dir
+    def rollbar_lib_gem_dir
+      Gem::Specification.find_by_name('rollbar').gem_dir + '/lib'
     end
 
     def trace_chain(exception)
