@@ -360,6 +360,15 @@ module Rollbar
       }
     end
 
+    # Returns the backtrace to be sent to our API. There are 3 options:
+    #
+    # 1. The exception received has a backtrace, then that backtrace is returned.
+    # 2. configuration.populate_empty_backtraces is disabled, we return [] here
+    # 3. The user has configuration.populate_empty_backtraces is enabled, then:
+    #
+    # We want to send the caller as backtrace, but the first lines of that array
+    # are those from the user's Rollbar.error line until this method. We want
+    # to remove those lines.
     def exception_backtrace(exception)
       return exception.backtrace if exception.backtrace.respond_to?( :map )
       return [] unless configuration.populate_empty_backtraces
