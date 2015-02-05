@@ -28,10 +28,4 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'resque'
   gem.add_development_dependency 'delayed_job'
   gem.add_development_dependency 'rake', '>= 0.9.0'
-
-  if RUBY_VERSION[0].to_i > 1
-    gem.add_development_dependency 'byebug'
-  else
-    gem.add_development_dependency 'debugger'
-  end
 end

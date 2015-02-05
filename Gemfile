@@ -12,3 +12,9 @@ gem 'racc',                             :platform => :rbx
 gem 'minitest',                         :platform => :rbx
 gem 'rubysl-test-unit',                 :platform => :rbx
 gem 'rubinius-developer_tools',         :platform => :rbx
+
+if RUBY_VERSION[0].to_i > 1
+  gem 'byebug'
+else
+  gem 'debugger'
+end
