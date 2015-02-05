@@ -5,50 +5,43 @@ unless RUBY_VERSION == '1.8.7'
   require 'rollbar/sidekiq'
 end
 
-describe "Sidekiq integration", :reconfigure_notifier => false do
-  before{ skip if RUBY_VERSION == '1.8.7' }
-
-  describe "Rollbar::Sidekiq.handle_exception" do
-    let(:msg_or_context) { ["hello", "error_backtrace", "backtrace", "goodbye"] }
-    let(:exception) { StandardError.new("oh noes") }
+describe Rollbar::Sidekiq, :reconfigure_notifier => false do
+  describe '.handle_exception' do
+    let(:msg_or_context) { ['hello', 'error_backtrace', 'backtrace', 'goodbye'] }
+    let(:exception) { StandardError.new('oh noes') }
     let(:rollbar) { double }
-    subject do
-      Rollbar::Sidekiq.handle_exception(msg_or_context, exception)
+    let(:expected_args) { { :request => { :params => ['hello', 'goodbye'] } } }
+
+    subject { described_class }
+
+    it 'constructs scope from filtered params' do
+      allow(rollbar).to receive(:error)
+      expect(Rollbar).to receive(:scope).with(expected_args) {rollbar}
+
+      described_class.handle_exception(msg_or_context, exception)
     end
 
-    it "constructs scope from filtered params" do
-      rollbar.stub(:error)
-      Rollbar.should_receive(:scope).with(
-        { :request => { :params => ["hello", "goodbye"] } }
-      ) {rollbar}
-      subject
-    end
-    it "sends the passed-in error to rollbar" do
-      Rollbar.stub(:scope) { rollbar }
-      rollbar.should_receive(:error).with(exception, :use_exception_level_filters => true)
-      subject
+    it 'sends the passed-in error to rollbar' do
+      allow(Rollbar).to receive(:scope).and_return(rollbar)
+      expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
+
+      described_class.handle_exception(msg_or_context, exception)
     end
   end
 
-  describe "middleware" do
-    let(:middleware) { Rollbar::Sidekiq.new }
-    let(:msg) { ["hello"] }
-    let(:exception) { StandardError.new("oh noes") }
-    subject do
-      middleware.call(nil, msg, nil) do
-        raise exception
-      end
-    end
+  describe '#call' do
+    let(:msg) { ['hello'] }
+    let(:exception) { StandardError.new('oh noes') }
+    let(:middleware_block) { proc { raise exception } }
 
-    it "sends the error to Rollbar::Sidekiq.handle_exception" do
-      Rollbar::Sidekiq.should_receive(:handle_exception).with(msg, exception)
-      subject rescue nil
-    end
+    subject { Rollbar::Sidekiq.new }
 
-    it "re-raises the exception" do
-      assert_raises StandardError do
-        subject
-      end
+    it 'sends the error to Rollbar::Sidekiq.handle_exception' do
+      expect(Rollbar::Sidekiq).to receive(:handle_exception).with(msg, exception)
+
+      expect { subject.call(nil, msg, nil, &middleware_block) }.to raise_error(exception)
     end
   end
-end
+end unless RUBY_VERSION == '1.8.7'
+
+
