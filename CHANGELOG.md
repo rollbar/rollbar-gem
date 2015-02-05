@@ -1,5 +1,19 @@
 # Change Log
 
+## 1.4.4
+
+New features:
+
+- Added configuration option to gather backtraces for exceptions that don't already have one (i.e. if you do `Rollbar.error(Exception.new)`). Set `config.populate_empty_backtraces = true` to enable it. See [#206](https://github.com/rollbar/rollbar-gem/pull/206)
+
+Bug fixes:
+
+- Reverted capistrano change as it causes problems in some setups. See [#210](https://github.com/rollbar/rollbar-gem/pull/210)
+
+Other:
+
+- Refactored the Sidekiq handler (no changes to the interface). See [#197](https://github.com/rollbar/rollbar-gem/pull/197)
+
 ## 1.4.3
 
 New features:

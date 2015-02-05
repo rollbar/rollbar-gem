@@ -23,6 +23,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [GUI](https://github.com/GUI)
 - [ixti](https://github.com/ixti)
 - [jeremyvdw](https://github.com/jeremyvdw)
+- [jjb](https://github.com/jjb)
 - [johnknott](https://github.com/johnknott)
 - [jonah-williams](https://github.com/jonah-williams)
 - [jondeandres](https://github.com/jondeandres)

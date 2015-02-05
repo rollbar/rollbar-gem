@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.4.3)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.4.4)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https://rollbar.com).
@@ -9,7 +9,7 @@ Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https:/
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar', '~> 1.4.3'
+    gem 'rollbar', '~> 1.4.4'
 
 And then execute:
 
