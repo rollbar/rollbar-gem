@@ -535,6 +535,28 @@ config.filepath = '/path/to/file.rollbar' #should end in '.rollbar' for use with
 
 For this to work, you'll also need to set up rollbar-agent--see its docs for details.
 
+## Rails booting process
+
+Rails doesn't provide a way to hook into its booting process, however this can be useful when you are deploying and some error may happen and finally the server doesn't boot up. You can instead make some small changes in your project files so errors while booting are reported.
+
+First you'll need to move your `config/initializers/rollbar.rb` file to `config/rollbar.rb`. Then be sure your `config/environment.rb` looks similar to this:
+
+```ruby
+# config/environment.rb
+
+require File.expand_path('../application', __FILE__)
+require File.expand_path('../rollbar', __FILE__)
+
+begin
+  Rails.application.initialize!
+rescue Exception => e
+  Rollbar.error(e)
+  raise
+end
+```
+
+In the lines from above the Rollbar config you moved to `config/rollbar.rb` is required . And later `Rails.application/initialize` statement is wrapped with a `begin/rescue`  so it's possible to report it to Rollbar using `Rollbar.error(e)`.
+
 ## Deploy Tracking with Capistrano
 
 ### Capistrano 3
