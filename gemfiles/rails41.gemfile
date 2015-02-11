@@ -10,6 +10,6 @@ gem "rubysl", "~> 2.0", :platform => :rbx
 gem "racc", :platform => :rbx
 gem "minitest", :platform => :rbx
 gem "rubinius-developer_tools", :platform => :rbx
-gem "rails", "4.1.0"
+gem "rails", "4.1.9"
 
 gemspec :path => "../"
