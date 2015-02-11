@@ -17,7 +17,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
         result = MultiJson.load(described_class.call(payload))
 
         trace = result['data']['body']['trace']
-        expect(trace['frames']).to have(2).items
+        expect(trace['frames'].size).to eq(2)
         expect(trace['exception']['message']).to be_eql('a' * 255)
       end
     end

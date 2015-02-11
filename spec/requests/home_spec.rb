@@ -12,7 +12,7 @@ describe HomeController do
     it "should report uncaught exceptions" do
       # only seems to be relevant in 3.1 and 3.2
       if ::Rails::VERSION::STRING.starts_with? "3.1" or ::Rails::VERSION::STRING.starts_with? "3.2"
-        expect{ get 'current_user', nil, :cookie => '8%B' }.to raise_exception
+        expect { get '/current_user', nil, :cookie => '8%B' }.to raise_exception
 
         Rollbar.last_report.should_not be_nil
 
@@ -37,7 +37,7 @@ describe HomeController do
     end
 
     it "should report uncaught exceptions" do
-      expect { get 'current_user' }.to raise_exception
+      expect { get '/current_user' }.to raise_exception
 
       body = Rollbar.last_report[:body]
       trace = body[:trace] && body[:trace] || body[:trace_chain][0]

@@ -8,8 +8,14 @@ Dummy::Application.configure do
   config.consider_all_requests_local       = false
   config.action_controller.perform_caching = true
 
-  # Disable Rails's static asset server (Apache or nginx will already do this)
-  config.serve_static_assets = false
+  if ::Rails::VERSION::STRING.starts_with? "4.2"
+    # Disable Rails's static asset server (Apache or nginx will already do this)
+    config.config.serve_static_files = false
+
+    config.eager_load = true
+  else
+    config.serve_static_assets = false
+  end
 
   # Compress JavaScripts and CSS
   config.assets.compress = true
