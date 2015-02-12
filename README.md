@@ -537,9 +537,9 @@ For this to work, you'll also need to set up rollbar-agent--see its docs for det
 
 ## Rails booting process
 
-Rails doesn't provide a way to hook into its booting process, however this can be useful when you are deploying and some error may happen and finally the server doesn't boot up. You can instead make some small changes in your project files so errors while booting are reported.
+Rails doesn't provide a way to hook into its booting process, so we can't catch errors during boot out of the box. To report these errors to Rollbar, make the following changes to your project files.
 
-First you'll need to move your `config/initializers/rollbar.rb` file to `config/rollbar.rb`. Then be sure your `config/environment.rb` looks similar to this:
+First, move your `config/initializers/rollbar.rb` file to `config/rollbar.rb`. Then be sure your `config/environment.rb` looks similar to this:
 
 ```ruby
 # config/environment.rb
@@ -555,7 +555,7 @@ rescue Exception => e
 end
 ```
 
-In the lines from above the Rollbar config you moved to `config/rollbar.rb` is required . And later `Rails.application/initialize` statement is wrapped with a `begin/rescue`  so it's possible to report it to Rollbar using `Rollbar.error(e)`.
+How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.
 
 ## Deploy Tracking with Capistrano
 
