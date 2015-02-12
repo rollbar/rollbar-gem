@@ -29,7 +29,7 @@ module Rollbar
 
     config.after_initialize do
       Rollbar.preconfigure do |config|
-        config.logger ||= ::Rails.logger
+        config.default_logger = proc { ::Rails.logger }
         config.environment ||= ::Rails.env
         config.root ||= ::Rails.root
         config.framework = "Rails: #{::Rails::VERSION::STRING}"
