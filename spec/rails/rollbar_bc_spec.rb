@@ -1,7 +1,8 @@
 # encoding: UTF-8
 
 require 'logger'
-require 'spec_helper'
+require 'rails_helper'
+require 'rollbar'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
@@ -372,6 +373,6 @@ describe Rollbar do
 
   # configure with some basic params
   def configure
-    reconfigure_notifier
+    reconfigure_notifier_for_rails
   end
 end

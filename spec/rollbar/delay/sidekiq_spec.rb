@@ -17,7 +17,7 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
 
   describe "#perform" do
     it "performs payload" do
-      Rollbar.should_receive(:process_payload_safely).with(payload)
+      expect(Rollbar).to receive(:process_payload_safely).with(payload)
       subject.perform payload
     end
   end
@@ -26,7 +26,7 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
     shared_examples "a Rollbar processor" do
 
       it "processes payload" do
-        Rollbar.should_receive(:process_payload_safely).with(payload)
+        expect(Rollbar).to receive(:process_payload_safely).with(payload)
 
         subject.call payload
         described_class.drain
@@ -36,7 +36,7 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
     context "with default options" do
       it "enqueues to default queue" do
         options = Rollbar::Delay::Sidekiq::OPTIONS.merge('args' => payload)
-        ::Sidekiq::Client.should_receive(:push).with options
+        expect(::Sidekiq::Client).to receive(:push).with(options)
 
         subject.call payload
       end
@@ -50,7 +50,7 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
 
       it "enqueues to custom queue" do
         options = Rollbar::Delay::Sidekiq::OPTIONS.merge(custom_config.merge('args' => payload))
-        ::Sidekiq::Client.should_receive(:push).with options
+        expect(::Sidekiq::Client).to receive(:push).with(options)
 
         subject.call payload
       end

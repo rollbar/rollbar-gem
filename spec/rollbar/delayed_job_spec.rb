@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'delayed_job'
+require 'rollbar'
 require 'rollbar/delayed_job'
 
 describe Rollbar::Delayed, :reconfigure_notifier => true do

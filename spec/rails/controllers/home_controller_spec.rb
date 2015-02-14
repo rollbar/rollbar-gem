@@ -1,6 +1,6 @@
-require 'spec_helper'
+require 'rails_helper'
 
-describe HomeController do
+describe HomeController, :type => :controller do
   let(:logger_mock) { double("Rails.logger").as_null_object }
   let(:notifier) { Rollbar.notifier }
 

@@ -1,3 +1,7 @@
+shared_context 'reconfigure notifier for rails', :reconfigure_notifier_for_rails => true do
+  before { reconfigure_notifier_for_rails }
+end
+
 shared_context 'reconfigure notifier', :reconfigure_notifier => true do
   before { reconfigure_notifier }
 end

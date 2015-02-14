@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 require 'spec_helper'
-require 'rollbar/truncation/frames_strategy'
+require 'rollbar/truncation/strings_strategy'
 
 describe Rollbar::Truncation::StringsStrategy do
   describe '.call' do
