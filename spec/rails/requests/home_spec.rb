@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 
 describe HomeController do
   let(:logger_mock) { double("Rails.logger").as_null_object }

@@ -119,13 +119,13 @@ begin
 rescue NoMethodError => e
   # simple exception report (level can be 'debug', 'info', 'warning', 'error' and 'critical')
   Rollbar.log('error', e)
-  
+
   # same functionality as above
   Rollbar.error(e)
-  
+
   # with a description
   Rollbar.error(e, 'The user info hash doesn\'t contain the correct data')
-  
+
   # with extra data giving more insight about the exception
   Rollbar.error(e, :user_info => user_info, :job_id => job_id)
 end
@@ -152,7 +152,7 @@ after_validation :report_validation_errors_to_rollbar
 
 ### Advanced usage
 
-You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar. 
+You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar.
 
 For example:
 
@@ -534,6 +534,28 @@ config.filepath = '/path/to/file.rollbar' #should end in '.rollbar' for use with
 ```
 
 For this to work, you'll also need to set up rollbar-agent--see its docs for details.
+
+## Rails booting process
+
+Rails doesn't provide a way to hook into its booting process, so we can't catch errors during boot out of the box. To report these errors to Rollbar, make the following changes to your project files.
+
+First, move your `config/initializers/rollbar.rb` file to `config/rollbar.rb`. Then be sure your `config/environment.rb` looks similar to this:
+
+```ruby
+# config/environment.rb
+
+require File.expand_path('../application', __FILE__)
+require File.expand_path('../rollbar', __FILE__)
+
+begin
+  Rails.application.initialize!
+rescue Exception => e
+  Rollbar.error(e)
+  raise
+end
+```
+
+How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.
 
 ## Deploy Tracking with Capistrano
 

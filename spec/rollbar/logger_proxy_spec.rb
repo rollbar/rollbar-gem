@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'rollbar/logger_proxy'
 
 describe Rollbar::LoggerProxy do
   let(:logger) { double(:logger) }
@@ -28,7 +29,7 @@ describe Rollbar::LoggerProxy do
       it 'doesnt raise' do
         allow(logger).to receive(:info).and_raise(exception)
 
-        expect { subject.log('info', message) }.not_to raise_error(exception)
+        expect { subject.log('info', message) }.not_to raise_error
       end
     end
   end

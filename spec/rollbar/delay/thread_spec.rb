@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'rollbar/delay/thread'
 
 describe Rollbar::Delay::Thread do
   describe '.call' do

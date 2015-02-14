@@ -1,7 +1,8 @@
 # encoding: UTF-8
 
 require 'logger'
-require 'spec_helper'
+require 'rails_helper'
+require 'rollbar'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
@@ -26,7 +27,7 @@ describe Rollbar do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      Rollbar.report_message('Test message')
+      Rollbar.log('Test message')
     end
 
     it 'should not report anything when disabled' do
@@ -36,12 +37,12 @@ describe Rollbar do
         config.enabled = false
       end
 
-      Rollbar.report_message('Test message that should be ignored')
+      Rollbar.log('Test message that should be ignored')
     end
 
     it 'should report messages with extra data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message('Test message with extra data', 'debug', :foo => 'bar',
+      Rollbar.log('Test message with extra data', 'debug', :foo => 'bar',
                                :hash => { :a => 123, :b => 'xyz' })
     end
 
@@ -53,7 +54,7 @@ describe Rollbar do
 
       logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
 
-      Rollbar.report_message('Test message with circular extra data', 'debug', a)
+      Rollbar.log('Test message with circular extra data', 'debug', a)
     end
 
     it 'should be able to report form validation errors when they are present' do
@@ -145,7 +146,7 @@ describe Rollbar do
 
     it 'should report exceptions without person or request data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_exception(@exception)
+      Rollbar.log(@exception)
     end
 
     it 'should not report anything when disabled' do
@@ -154,7 +155,7 @@ describe Rollbar do
         config.enabled = false
       end
 
-      Rollbar.report_exception(@exception)
+      Rollbar.log(@exception)
     end
 
     it 'should be enabled when freshly configured' do
@@ -165,7 +166,7 @@ describe Rollbar do
       Rollbar.unconfigure
 
       Rollbar.configuration.enabled.should be_nil
-      Rollbar.report_exception(@exception).should == 'disabled'
+      Rollbar.log(@exception).should == 'disabled'
     end
 
     it 'should stay disabled if configure is called again' do
@@ -180,7 +181,7 @@ describe Rollbar do
       Rollbar.configure do |config| end
 
       Rollbar.configuration.enabled.should == false
-      Rollbar.report_exception(@exception).should == 'disabled'
+      Rollbar.log(@exception).should == 'disabled'
     end
 
     it 'should report exceptions with request and person data' do
@@ -199,7 +200,7 @@ describe Rollbar do
         :username => 'test',
         :email => 'test@example.com'
       }
-      Rollbar.report_exception(@exception, request_data, person_data)
+      Rollbar.log(@exception, request_data, person_data)
     end
 
     it 'should work with an IO object as rack.errors' do
@@ -222,7 +223,7 @@ describe Rollbar do
         :email => 'test@example.com'
       }
 
-      Rollbar.report_exception(@exception, request_data, person_data)
+      Rollbar.log(@exception, request_data, person_data)
     end
 
     it 'should ignore ignored exception classes' do
@@ -233,7 +234,7 @@ describe Rollbar do
       logger_mock.should_not_receive(:info)
       logger_mock.should_not_receive(:error)
 
-      Rollbar.report_exception(@exception)
+      Rollbar.log(@exception)
     end
 
     it 'should ignore ignored persons' do
@@ -249,7 +250,7 @@ describe Rollbar do
         :username => 'test',
         :email => 'test@example.com'
       }
-      Rollbar.report_exception(@exception, {}, person_data)
+      Rollbar.log(@exception, {}, person_data)
     end
 
     it 'should not ignore non-ignored persons' do
@@ -264,7 +265,7 @@ describe Rollbar do
         :username => 'test',
         :email => 'test@example.com'
       }
-      Rollbar.report_exception(@exception, {}, person_data)
+      Rollbar.log(@exception, {}, person_data)
       Rollbar.last_report.should be_nil
 
       person_data = {
@@ -272,7 +273,7 @@ describe Rollbar do
         :username => 'test2',
         :email => 'test2@example.com'
       }
-      Rollbar.report_exception(@exception, {}, person_data)
+      Rollbar.log(@exception, {}, person_data)
       Rollbar.last_report.should_not be_nil
     end
 
@@ -286,7 +287,7 @@ describe Rollbar do
       logger_mock.should_receive(:info)
       logger_mock.should_not_receive(:error)
 
-      Rollbar.report_exception(@exception)
+      Rollbar.log(@exception)
     end
 
     it 'should not report exceptions when silenced' do
@@ -299,7 +300,7 @@ describe Rollbar do
           raise
         end
       rescue => e
-        Rollbar.report_exception(e)
+        Rollbar.log(e)
       end
 
       test_var.should == 2
@@ -314,7 +315,7 @@ describe Rollbar do
         payload = args[0]
       end
 
-      Rollbar.report_exception(StandardError.new('oops'))
+      Rollbar.log(StandardError.new('oops'))
 
       payload['data'][:body][:trace][:frames].should == []
       payload['data'][:body][:trace][:exception][:class].should == 'StandardError'
@@ -325,7 +326,7 @@ describe Rollbar do
       if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
         notifier.stub(:schedule_payload) do |*args| end
 
-        exception_data = Rollbar.report_exception(StandardError.new('oops'))
+        exception_data = Rollbar.log(StandardError.new('oops'))
         exception_data[:uuid].should_not be_nil
       end
     end
@@ -347,7 +348,7 @@ describe Rollbar do
 
       exception = CustomException.new('oops')
 
-      Rollbar.report_exception(exception)
+      Rollbar.log(exception)
 
       payload['data'][:body][:trace][:frames][0][:method].should == 'custom backtrace line'
     end
@@ -360,11 +361,11 @@ describe Rollbar do
         payload = args[0]
       end
 
-      Rollbar.report_exception(@exception)
+      Rollbar.log(@exception)
 
       payload['data'][:level].should == 'error'
 
-      Rollbar.report_exception(@exception, nil, nil, 'debug')
+      Rollbar.log(@exception, nil, nil, 'debug')
 
       payload['data'][:level].should == 'debug'
     end
@@ -372,6 +373,6 @@ describe Rollbar do
 
   # configure with some basic params
   def configure
-    reconfigure_notifier
+    reconfigure_notifier_for_rails
   end
 end
