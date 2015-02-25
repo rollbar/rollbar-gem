@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe HomeController, :type => :controller do
+describe HomeController, :type => :request do
   let(:logger_mock) { double("Rails.logger").as_null_object }
 
   before(:each) do
