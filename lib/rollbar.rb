@@ -14,7 +14,6 @@ require 'rollbar/version'
 require 'rollbar/configuration'
 require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
-require 'rollbar/active_record_extension' if defined?(ActiveRecord)
 require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails)
 require 'rollbar/delay/girl_friday'
@@ -718,6 +717,7 @@ module Rollbar
       return if configuration.disable_monkey_patch
       wrap_delayed_worker
 
+      require 'rollbar/active_record_extension' if defined?(ActiveRecord)
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
