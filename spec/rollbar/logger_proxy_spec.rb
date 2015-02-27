@@ -28,7 +28,7 @@ describe Rollbar::LoggerProxy do
       it 'doesnt raise' do
         allow(logger).to receive(:info).and_raise(exception)
 
-        expect { subject.log('info', message) }.not_to raise_error(exception)
+        expect { subject.log('info', message) }.not_to raise_error
       end
     end
   end

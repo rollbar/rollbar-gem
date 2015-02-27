@@ -1,6 +1,7 @@
 require 'spec_helper'
+require 'generators/rollbar/rollbar_generator'
 
-describe :rollbar do
+describe Rollbar::Generators::RollbarGenerator do
   context "with no arguments" do
     it "outputs a help message" do
       subject.should output(/You'll need to add an environment variable ROLLBAR_ACCESS_TOKEN with your access token/)
