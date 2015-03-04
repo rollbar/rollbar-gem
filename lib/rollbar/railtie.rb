@@ -6,13 +6,13 @@ module Rollbar
     rake_tasks do
       require 'rollbar/rake_tasks'
     end
-    
+
     initializer 'rollbar.middleware.rails' do |app|
       if defined?(ActionDispatch::DebugExceptions)
         # Rails 3.2.x+
         require 'rollbar/middleware/rails/rollbar'
         require 'rollbar/middleware/rails/show_exceptions'
-        
+
         app.config.middleware.insert_after ActionDispatch::DebugExceptions,
           Rollbar::Middleware::Rails::RollbarMiddleware
         ActionDispatch::DebugExceptions.send(:include, Rollbar::Middleware::Rails::ShowExceptions)
@@ -20,7 +20,7 @@ module Rollbar
         # Rails 3.0.x and 3.1.x
         require 'rollbar/middleware/rails/rollbar'
         require 'rollbar/middleware/rails/show_exceptions'
-        
+
         app.config.middleware.insert_after ActionDispatch::ShowExceptions,
           Rollbar::Middleware::Rails::RollbarMiddleware
         ActionDispatch::ShowExceptions.send(:include, Rollbar::Middleware::Rails::ShowExceptions)

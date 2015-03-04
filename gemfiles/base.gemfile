@@ -10,13 +10,11 @@ gem "minitest", :platform => :rbx
 gem "rubysl-test-unit", :platform => :rbx
 gem "rubinius-developer_tools", :platform => :rbx
 
+gem "rspec", "~> 3.2.0"
 gem "girl_friday", ">= 0.11.1"
-gem "rails", "3.2.21"
-gem "rspec-rails", "2.14.0"
-gem "database_cleaner", "~> 1.0.0"
-gem "genspec", ">= 0.2.8"
-gem "sqlite3", :platform => [:ruby, :mswin, :mingw]
-gem "jruby-openssl", :platform => :jruby
-gem "activerecord-jdbcsqlite3-adapter", :platform => :jruby
+gem "sucker_punch", ">= 1.0.0"
+gem "sidekiq", ">= 2.13.0"
+gem "resque"
+gem "delayed_job"
 
 gemspec :path => "../"

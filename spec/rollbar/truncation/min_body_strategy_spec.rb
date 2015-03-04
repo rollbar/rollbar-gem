@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'rollbar/truncation/frames_strategy'
+require 'rollbar/truncation/min_body_strategy'
 
 describe Rollbar::Truncation::MinBodyStrategy do
   describe '.call', :fixture => :payload do
@@ -17,7 +17,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
         result = MultiJson.load(described_class.call(payload))
 
         trace = result['data']['body']['trace']
-        expect(trace['frames']).to have(2).items
+        expect(trace['frames'].size).to eq(2)
         expect(trace['exception']['message']).to be_eql('a' * 255)
       end
     end
@@ -36,10 +36,10 @@ describe Rollbar::Truncation::MinBodyStrategy do
         result = MultiJson.load(described_class.call(payload))
 
         traces = result['data']['body']['trace_chain']
-        expect(traces[0]['frames']).to have(2).items
+        expect(traces[0]['frames'].size).to eq(2)
         expect(traces[0]['exception']['message']).to be_eql('a' * 255)
 
-        expect(traces[1]['frames']).to have(2).items
+        expect(traces[1]['frames'].size).to eq(2)
         expect(traces[1]['exception']['message']).to be_eql('a' * 255)
       end
     end

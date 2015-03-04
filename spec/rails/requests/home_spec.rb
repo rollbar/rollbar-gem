@@ -1,11 +1,11 @@
-require 'spec_helper'
+require 'rails_helper'
 
-describe HomeController do
+describe HomeController, :type => :request do
   let(:logger_mock) { double("Rails.logger").as_null_object }
 
   before(:each) do
     reset_configuration
-    reconfigure_notifier
+    reconfigure_notifier_for_rails
   end
 
   context "with broken request" do
@@ -24,9 +24,9 @@ describe HomeController do
   end
 
   context "with error hiding deep inside" do
-    let!(:cookie_method_name){ :[] }
-    let!(:original_cookie_method){ ActionDispatch::Cookies::CookieJar.instance_method(cookie_method_name) }
-    let!(:broken_cookie_method){ Proc.new{ |name| "1" - 1 } }
+    let!(:cookie_method_name) { :[] }
+    let!(:original_cookie_method) { ActionDispatch::Cookies::CookieJar.instance_method(cookie_method_name) }
+    let!(:broken_cookie_method) { Proc.new { |name| "1" - 1 } }
 
     before(:each) do
       ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name, broken_cookie_method)

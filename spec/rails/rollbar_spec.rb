@@ -2,8 +2,9 @@
 
 require 'logger'
 require 'socket'
-require 'spec_helper'
+require 'rails_helper'
 require 'girl_friday'
+require 'rollbar'
 
 begin
   require 'sucker_punch'
@@ -55,7 +56,7 @@ describe Rollbar do
         end
 
         it 'sets correct configuration for Rollbar.notifier' do
-          expect(Rollbar.notifier.configuration.enabled).to be_truthy
+          expect(Rollbar.notifier.configuration.enabled).to eq true
         end
       end
 
@@ -337,7 +338,7 @@ describe Rollbar do
       end
 
       it 'should overwrite existing keys from payload_options' do
-        reconfigure_notifier
+        reconfigure_notifier_for_rails
 
         payload_options = {
           :notifier => 'bad notifier',
@@ -416,7 +417,7 @@ describe Rollbar do
 
         payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
 
-        payload['data'][:project_package_paths].should have(2).items
+        expect(payload['data'][:project_package_paths].size).to eq(2)
       end
 
       it 'should include a code_version' do
@@ -895,7 +896,7 @@ describe Rollbar do
       filepaths = last_report[:body][:trace][:frames].map {|frame| frame[:filename] }.reverse
 
       expect(filepaths[0]).not_to include(gem_lib_dir)
-      expect(filepaths.any? {|filepath| filepath.include?(gem_dir) }).to be_true
+      expect(filepaths.any? {|filepath| filepath.include?(gem_dir) }).to eq true
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
@@ -1313,7 +1314,7 @@ describe Rollbar do
     it 'should have use the Rails logger when configured to do so' do
       configure
       expect(Rollbar.send(:logger)).to be_kind_of(Rollbar::LoggerProxy)
-      expect(Rollbar.send(:logger).object).should == ::Rails.logger
+      expect(Rollbar.send(:logger).object).to eq(::Rails.logger)
     end
 
     it 'should use the default_logger when no logger is set' do
@@ -1485,7 +1486,7 @@ describe Rollbar do
     end
   end
 
-  context 'report_internal_error', :reconfigure_notifier => true do
+  context 'report_internal_error', :reconfigure_notifier_with_rails => true do
     it "should not crash when given an exception object" do
       begin
         1 / 0
@@ -1653,6 +1654,6 @@ describe Rollbar do
 
   # configure with some basic params
   def configure
-    reconfigure_notifier
+    reconfigure_notifier_for_rails
   end
 end

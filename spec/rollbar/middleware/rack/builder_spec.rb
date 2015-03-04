@@ -2,11 +2,13 @@ require 'spec_helper'
 require 'rack'
 require 'rack/builder'
 require 'rack/mock'
+require 'rollbar'
 require 'rollbar/middleware/rack/builder'
 
-
-describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
+describe Rollbar::Middleware::Rack::Builder do
   class RackMockError < Exception; end
+
+  before { Rollbar.configure {} }
 
   let(:action) do
     proc { fail(RackMockError, 'the-error') }
@@ -40,7 +42,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.get('/will_crash', :params => params)
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      expect(Rollbar.last_report[:request][:params]).to eq(params)
     end
   end
 
@@ -54,7 +56,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      expect(Rollbar.last_report[:request][:params]).to eq(params)
     end
   end
 
@@ -69,7 +71,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
       end.to raise_error(exception)
 
       reported_params = Rollbar.last_report[:request][:params]
-      expect(reported_params['body.multi']).to be_eql([{'key' => 'value'}, 'string', 10])
+      expect(reported_params['body.multi']).to eq([{'key' => 'value'}, 'string', 10])
     end
   end
 
@@ -82,7 +84,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
       end.to raise_error(exception)
 
       reported_params = Rollbar.last_report[:request][:params]
-      expect(reported_params['body.value']).to be_eql(1000)
+      expect(reported_params['body.value']).to eq(1000)
     end
   end
 
@@ -137,7 +139,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.get('/will_crash', 'rollbar.person_data' => person_data)
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:person]).to be_eql(person_data)
+      expect(Rollbar.last_report[:person]).to eq(person_data)
     end
 
     it 'includes empty person data when not in env' do
@@ -145,7 +147,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.get('/will_crash')
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:person]).to be_eql({})
+      expect(Rollbar.last_report[:person]).to eq({})
     end
   end
 end
