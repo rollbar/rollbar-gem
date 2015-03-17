@@ -5,6 +5,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Rollbar, Inc."]
   gem.email         = ["support@rollbar.com"]
   gem.description   = %q{Rails plugin to catch and send exceptions to Rollbar}
+  gem.executables   = ['rollbar-rails-runner']
   gem.summary       = %q{Reports exceptions to Rollbar}
   gem.homepage      = "https://github.com/rollbar/rollbar-gem"
   gem.license       = 'MIT'

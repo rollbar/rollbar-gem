@@ -557,6 +557,16 @@ end
 
 How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.
 
+## Rails runner command
+
+We cannot monkey patch the code executed by `rails runner` so errors are reported to Rollbar, but we provide a command `rollbar-rails-runner` that you can use for the same purpose. Example:
+
+```shell
+$ bundle exec rollbar-rails-runner 'puts User.count'
+45
+```
+If any error occurs during that command, the exception will be reported.
+
 ## Deploy Tracking with Capistrano
 
 ### Capistrano 3
