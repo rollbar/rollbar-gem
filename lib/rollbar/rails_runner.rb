@@ -5,6 +5,19 @@ APP_PATH = File.expand_path('config/application', Dir.pwd)
 
 module Rollbar
   class RailsRunner
+    class GemResolver
+      def railties_gem
+        Gem::Specification.find_by_name('railties')
+      end
+    end
+
+    class LegacyGemResolver
+      def railties_gem
+        searcher = Gem::GemPathSearcher.new
+        searcher.find('rails')
+      end
+    end
+
     def run
       prepare_environment
 
@@ -36,7 +49,9 @@ module Rollbar
     end
 
     def railties_gem
-      gem = Gem::Specification.find_by_name('railties')
+      resolver_class = Gem::Specification.respond_to?(:find_by_name) ? GemResolver : LegacyGemResolver
+      gem = resolver_class.new.railties_gem
+
       abort 'railties gem not found' unless gem
 
       gem
