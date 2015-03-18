@@ -5,7 +5,7 @@ source "https://rubygems.org"
 gem "sqlite3", :platform => [:ruby, :mswin, :mingw]
 gem "jruby-openssl", :platform => :jruby
 gem "activerecord-jdbcsqlite3-adapter", :platform => :jruby
-gem "appraisal"
+gem "appraisal", '= 1.0.2'
 gem "rubysl", "~> 2.0", :platform => :rbx
 gem "racc", :platform => :rbx
 gem "minitest", :platform => :rbx
