@@ -18,6 +18,12 @@ module Rollbar
       end
     end
 
+    attr_reader :command
+
+    def initialize
+      @command = ARGV[0]
+    end
+
     def run
       prepare_environment
 
@@ -34,13 +40,13 @@ module Rollbar
 
       Module.module_eval(<<-EOL,__FILE__,__LINE__ + 2)
           #{string_to_eval}
-        EOL
+      EOL
     end
 
     def rollbar_managed
       yield
     rescue => e
-      Rollbar.error(e)
+      Rollbar.scope(:context => command).error(e)
       raise
     end
 
