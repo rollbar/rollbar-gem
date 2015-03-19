@@ -46,7 +46,7 @@ module Rollbar
     def rollbar_managed
       yield
     rescue => e
-      Rollbar.scope(:context => command).error(e)
+      Rollbar.scope(:custom => { :command => command }).error(e)
       raise
     end
 
