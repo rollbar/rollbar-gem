@@ -559,13 +559,14 @@ How this works: first, Rollbar config (which is now at `config/rollbar.rb` is re
 
 ## Rails runner command
 
-We cannot monkey patch the code executed by `rails runner` so errors are reported to Rollbar, but we provide a command `rollbar-rails-runner` that you can use for the same purpose. Example:
+We aren't able to instrument `rails runner` directly, but we do provide a wrapper, `rollbar-rails-runner`, which you can use to capture errors when running commands in a `rails runner`-like way. For example:
 
 ```shell
 $ bundle exec rollbar-rails-runner 'puts User.count'
 45
 ```
-If any error occurs during that command, the exception will be reported.
+
+If an error occurs during that command, the exception will be reported to Rollbar.
 
 ## Deploy Tracking with Capistrano
 
