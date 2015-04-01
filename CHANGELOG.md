@@ -1,5 +1,12 @@
 # Change Log
 
+## Next release:
+
+Bug fixes:
+
+- Removed duplicated `schedule_payload` definition. See [#231](https://github.com/rollbar/rollbar-gem/pull/231)
+
+
 ## 1.4.4
 
 New features:
