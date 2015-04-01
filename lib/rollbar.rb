@@ -450,26 +450,6 @@ module Rollbar
 
     ## Delivery functions
 
-    def schedule_payload(payload)
-      log_info '[Rollbar] Scheduling payload'
-
-      if configuration.use_async
-        unless configuration.async_handler
-          configuration.async_handler = method(:default_async_handler)
-        end
-
-        if configuration.write_to_file
-          unless @file_semaphore
-            @file_semaphore = Mutex.new
-          end
-        end
-
-        configuration.async_handler.call(payload)
-      else
-        process_payload(payload)
-      end
-    end
-
     def send_payload_using_eventmachine(payload)
       body = dump_payload(payload)
       headers = { 'X-Rollbar-Access-Token' => payload['access_token'] }
