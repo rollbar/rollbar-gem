@@ -1,9 +1,10 @@
 # Change Log
 
-## Next release:
+## 1.4.5
 
 Bug fixes:
 
+- Fixed internal error reporting IpSpoofAttackErrors. See [#233](https://github.com/rollbar/rollbar-gem/pull/233)
 - Removed duplicated `schedule_payload` definition. See [#231](https://github.com/rollbar/rollbar-gem/pull/231)
 
 
