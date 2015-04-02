@@ -339,6 +339,16 @@ describe HomeController do
     end
   end
 
+  context 'with ip parsing raising error' do
+    it 'raise a IpSpoofAttackError exception' do
+      controller.request.env['action_dispatch.remote_ip'] = GetIpRaising.new
+
+      expect do
+        expect(controller.send(:rollbar_request_data)[:user_ip]).to be_nil
+      end.not_to raise_exception(GetIpRaising::IpSpoofAttackError)
+    end
+  end
+
   after(:each) do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger
