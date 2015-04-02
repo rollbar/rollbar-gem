@@ -423,7 +423,14 @@ module Rollbar
         value = object.to_s
 
         if value.respond_to? :encode
-          encoded_value = value.encode('UTF-8', :invalid => :replace, :undef => :replace, :replace => '')
+          options = { :invalid => :replace, :undef => :replace, :replace => '' }
+          ascii_encodings = [Encoding.find('US-ASCII'), Encoding.find('ASCII-8BIT')]
+
+          args = ['UTF-8']
+          args << 'binary' if ascii_encodings.include?(value.encoding)
+          args << options
+
+          encoded_value = value.encode(*args)
         else
           encoded_value = ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
         end
