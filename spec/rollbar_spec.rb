@@ -1336,6 +1336,19 @@ describe Rollbar do
   end
 
   context 'enforce_valid_utf8' do
+    context 'with utf8 string and ruby > 1.8' do
+      next unless String.instance_methods.include?(:force_encoding)
+
+      let(:payload) { { :foo => 'Изменение' } }
+
+      it 'just returns the same string' do
+        payload_copy = payload.clone
+        notifier.send(:enforce_valid_utf8, payload_copy)
+
+        expect(payload_copy[:foo]).to be_eql('Изменение')
+      end
+    end
+
     it 'should replace invalid utf8 values' do
       bad_key = force_to_ascii("inner \x92bad key")
 
