@@ -943,7 +943,7 @@ describe Rollbar do
 
     context 'with invalid utf8 encoding' do
       let(:extra) do
-        { :extra => "bad value 1\255" }
+        { :extra => force_to_ascii("bad value 1\255") }
       end
 
       it 'removes te invalid characteres' do
@@ -1336,26 +1336,39 @@ describe Rollbar do
   end
 
   context 'enforce_valid_utf8' do
+    context 'with utf8 string and ruby > 1.8' do
+      next unless String.instance_methods.include?(:force_encoding)
+
+      let(:payload) { { :foo => 'Изменение' } }
+
+      it 'just returns the same string' do
+        payload_copy = payload.clone
+        notifier.send(:enforce_valid_utf8, payload_copy)
+
+        expect(payload_copy[:foo]).to be_eql('Изменение')
+      end
+    end
+
     it 'should replace invalid utf8 values' do
-      bad_key = "inner \x92bad key"
-      bad_key.force_encoding('ASCII-8BIT') if bad_key.respond_to?('force_encoding')
+      bad_key = force_to_ascii("inner \x92bad key")
 
       payload = {
-        :bad_value => "bad value 1\255",
-        :bad_value_2 => "bad\255 value 2",
-        "bad\255 key" => "good value",
+        :bad_value => force_to_ascii("bad value 1\255"),
+        :bad_value_2 => force_to_ascii("bad\255 value 2"),
+        force_to_ascii("bad\255 key") => "good value",
         :hash => {
-          :inner_bad_value => "\255\255bad value 3",
+          :inner_bad_value => force_to_ascii("\255\255bad value 3"),
           bad_key.to_sym => 'inner good value',
-          "bad array key\255" => [
+          force_to_ascii("bad array key\255") => [
             'good array value 1',
-            "bad\255 array value 1\255",
+            force_to_ascii("bad\255 array value 1\255"),
             {
-              :inner_inner_bad => "bad inner \255inner value"
+              :inner_inner_bad => force_to_ascii("bad inner \255inner value")
             }
           ]
         }
       }
+
 
       payload_copy = payload.clone
       notifier.send(:enforce_valid_utf8, payload_copy)
