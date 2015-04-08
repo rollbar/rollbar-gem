@@ -1,5 +1,16 @@
 # Change Log
 
+## 1.5.0
+
+Bug fixes:
+
+- Fixed support for extended unicode characters. See [#234](https://github.com/rollbar/rollbar-gem/pull/234)
+
+Possible breaking changes:
+
+- Some characters that previously were stripped are now encoded. This could cause some events to be grouped into new items by Rollbar.
+
+
 ## 1.4.5
 
 Bug fixes:
