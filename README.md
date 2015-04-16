@@ -1,15 +1,19 @@
 # Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.5.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
-Ruby gem for reporting exceptions, errors, and log messages to [Rollbar](https://rollbar.com).
+[Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
+
+This is the Ruby library for Rollbar. It will instrument many kinds of Ruby applications automatically at the framework level. You can also make direct calls to send exceptions and messages to Rollbar.
 
 <!-- Sub:[TOC] -->
 
-## Installation
+## Getting Started
 
 Add this line to your application's Gemfile:
 
-    gem 'rollbar', '~> 1.5.0
+```ruby
+gem 'rollbar', '~> 1.5.0'
+```
 
 And then execute:
 
@@ -30,11 +34,9 @@ $ rails generate rollbar POST_SERVER_ITEM_ACCESS_TOKEN
 <!-- RemoveNextIfProject -->
 Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
 
-That's all you need to use Rollbar with Rails.
+That will create the file ```config/initializers/rollbar.rb```, which initializes Rollbar and holds your access token and other configuration values.
 
-That will create the file ```config/initializers/rollbar.rb```, which holds the configuration values (currently just your access token).
-
-If you want to store your access token outside of your repo, run the same command without arguments, and create an environment variable ```ROLLBAR_ACCESS_TOKEN``` that holds your server-side access token:
+If you want to store your access token outside of your repo, run the same command without arguments and create an environment variable ```ROLLBAR_ACCESS_TOKEN``` that holds your server-side access token:
 
 ```bash
 $ rails generate rollbar
@@ -51,9 +53,10 @@ $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 
 That's all you need to use Rollbar with Rails.
 
+
 ### If using Rack
 
-Be sure to initialize Rollbar with your access token somewhere during startup:
+Initialize Rollbar with your access token somewhere during startup:
 
 ```ruby
 Rollbar.configure do |config|
@@ -63,13 +66,12 @@ Rollbar.configure do |config|
 end
 ```
 
-
 <!-- RemoveNextIfProject -->
 Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
 
 This monkey patches `Rack::Builder` to work with Rollbar automatically.
 
-For more control, disable the monkey patch in the rollbar configuration:
+For more control, disable the monkey patch:
 
 ```ruby
 Rollbar.configure do |config|
@@ -109,7 +111,7 @@ Uncaught exceptions in Rails controllers will be automatically reported to Rollb
 
 You can use one of `Rollbar.log(level, ...)`, `Rollbar.debug()`, `Rollbar.info()`, `Rollbar.warning()`, `Rollbar.error()` and `Rollbar.critical()` to report exceptions and messages.
 
-The methods take in any number of arguments, but the last exception is used as the reported exception, the last string is used as the message/description, and the last hash is used as the extra data.
+The methods accept any number of arguments. The last exception is used as the reported exception, the last string is used as the message/description, and the last hash is used as the extra data.
 
 For example:
 
@@ -290,7 +292,7 @@ class RollbarPersonData
   end
 end
 
-# You can add the middleware to your application, for ex:
+# You can add the middleware to your application, for example:
 
 class App < Sinatra::Base
   use Rollbar::Middleware::Sinatra
@@ -646,7 +648,7 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 
 You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
-## Issues
+## Known Issues
 
 We've received some issues from users having problems when they use [Oj](https://github.com/ohler55/oj) as the JSON serialization library with [MultiJson](https://github.com/intridea/multi_json). To avoid these problems, we recommend upgrading to Oj version 2.11.0:
 
