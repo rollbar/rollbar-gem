@@ -409,6 +409,24 @@ describe Rollbar do
         payload['data'][:body][:message][:extra][:f].should == 'f'
       end
 
+      context 'with custom_data_method crashing' do
+        let(:crashing_exception) { StandardError.new }
+        let(:extra) { { :foo => :bar } }
+
+        it 'doesnt crash the report' do
+          custom_method = lambda do
+            raise crashing_exception
+          end
+
+          Rollbar.configure do |config|
+            config.custom_data_method = custom_method
+          end
+
+          payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
+          expect(payload['data'][:body][:message][:extra]).to be_eql(extra)
+        end
+      end
+
       it 'should include project_gem_paths' do
         notifier.configure do |config|
           config.project_gems = ['rails', 'rspec']

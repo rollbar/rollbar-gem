@@ -312,16 +312,24 @@ module Rollbar
     end
 
     def build_payload_body(message, exception, extra)
-      unless configuration.custom_data_method.nil?
-        custom = Rollbar::Util.deep_copy(configuration.custom_data_method.call)
-        extra = Rollbar::Util.deep_merge(custom, extra || {})
-      end
+      extra = Rollbar::Util.deep_merge(custom_data, extra || {}) if custom_data_method?
 
       if exception
         build_payload_body_exception(message, exception, extra)
       else
         build_payload_body_message(message, extra)
       end
+    end
+
+    def custom_data
+      data = configuration.custom_data_method.call
+      Rollbar::Util.deep_copy(data)
+    rescue
+      {}
+    end
+
+    def custom_data_method?
+      !!configuration.custom_data_method
     end
 
     def build_payload_body_exception(message, exception, extra)
