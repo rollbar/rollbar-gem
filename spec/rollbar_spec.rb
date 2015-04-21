@@ -409,6 +409,8 @@ describe Rollbar do
       end
 
       context 'with custom_data_method crashing' do
+        next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
+
         let(:crashing_exception) { StandardError.new }
         let(:custom_method) { proc { raise crashing_exception } }
         let(:extra) { { :foo => :bar } }
@@ -1697,6 +1699,8 @@ describe Rollbar do
     end
 
     context 'with uuid in reported data' do
+      next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
+
       let(:report_data) { { :uuid => SecureRandom.uuid } }
       let(:expected_url) { "https://rollbar.com/instance/uuid?uuid=#{report_data[:uuid]}" }
 
