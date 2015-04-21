@@ -35,6 +35,9 @@ module Rollbar
 
   class Notifier
     attr_accessor :configuration
+    attr_accessor :last_report
+
+    @file_semaphore = Mutex.new
 
     def initialize(parent_notifier = nil, payload_options = nil)
       if parent_notifier
@@ -47,11 +50,6 @@ module Rollbar
         @configuration = ::Rollbar::Configuration.new
       end
     end
-
-    attr_writer :configuration
-    attr_accessor :last_report
-
-    @file_semaphore = Mutex.new
 
     # Similar to configure below, but used only internally within the gem
     # to configure it without initializing any of the third party hooks
@@ -73,6 +71,17 @@ module Rollbar
     def scope!(options = {})
       Rollbar::Util.deep_merge(@configuration.payload_options, options)
       self
+    end
+
+    # Returns a new notifier with same configuration options
+    # but it sets Configuration#safely to true.
+    # We are using this flag to avoid having inifite loops
+    # when evaluating some custom user methods.
+    def safely
+      new_notifier = scope
+      new_notifier.configuration.safely = true
+
+      new_notifier
     end
 
     # Turns off reporting for the given block.
@@ -193,6 +202,15 @@ module Rollbar
       process_payload(payload)
     rescue => e
       report_internal_error(e)
+    end
+
+    def custom_data
+      data = configuration.custom_data_method.call
+      Rollbar::Util.deep_copy(data)
+    rescue => e
+      return {} if configuration.safely?
+
+      report_custom_data_error(e)
     end
 
     private
@@ -321,15 +339,18 @@ module Rollbar
       end
     end
 
-    def custom_data
-      data = configuration.custom_data_method.call
-      Rollbar::Util.deep_copy(data)
-    rescue
-      {}
-    end
-
     def custom_data_method?
       !!configuration.custom_data_method
+    end
+
+    def report_custom_data_error(e)
+      data = safely.error(e)
+
+      return {} unless data[:uuid]
+
+      uuid_url = uuid_rollbar_url(data)
+
+      { :_error_in_custom_data_method => uuid_url }
     end
 
     def build_payload_body_exception(message, exception, extra)
@@ -658,8 +679,13 @@ module Rollbar
 
     def log_instance_link(data)
       if data[:uuid]
-        log_info "[Rollbar] Details: #{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]} (only available if report was successful)"
+        uuid_url = uuid_rollbar_url(data)
+        log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
       end
+    end
+
+    def uuid_rollbar_url(data)
+      "#{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
     end
 
     def logger
@@ -706,6 +732,10 @@ module Rollbar
 
     def configuration
       @configuration ||= Configuration.new
+    end
+
+    def safely?
+      configuration.safely?
     end
 
     def require_hooks
