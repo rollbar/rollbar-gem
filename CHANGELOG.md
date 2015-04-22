@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.5.1
+
+Bug fixes:
+
+- Fixed crashes when `Configuration#custom_data_method` fails. Now a report for that crash will be reported also. See [#235](https://github.com/rollbar/rollbar-gem/pull/235)
+
 ## 1.5.0
 
 Bug fixes:
