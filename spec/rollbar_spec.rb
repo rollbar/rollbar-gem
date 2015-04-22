@@ -13,6 +13,10 @@ end
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
+  before do
+    Rollbar.unconfigure
+    configure
+  end
 
   context 'when notifier has been used before configure it' do
     before do
@@ -287,11 +291,6 @@ describe Rollbar do
     end
 
     context 'build_payload' do
-      after(:each) do
-        Rollbar.unconfigure
-        configure
-      end
-
       context 'a basic payload' do
         let(:extra_data) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
         let(:payload) { notifier.send(:build_payload, 'info', 'message', nil, extra_data) }
@@ -407,6 +406,32 @@ describe Rollbar do
         payload['data'][:body][:message][:extra][:c][:d].should == 'd'
         payload['data'][:body][:message][:extra][:c][:e].should == 'g'
         payload['data'][:body][:message][:extra][:f].should == 'f'
+      end
+
+      context 'with custom_data_method crashing' do
+        next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
+
+        let(:crashing_exception) { StandardError.new }
+        let(:custom_method) { proc { raise crashing_exception } }
+        let(:extra) { { :foo => :bar } }
+        let(:custom_data_report) do
+          { :_error_in_custom_data_method => SecureRandom.uuid }
+        end
+        let(:expected_extra) { extra.merge(custom_data_report) }
+
+        before do
+          notifier.configure do |config|
+            config.custom_data_method = custom_method
+          end
+
+          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
+        end
+
+        it 'doesnt crash the report' do
+          payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
+
+          expect(payload['data'][:body][:message][:extra]).to be_eql(expected_extra)
+        end
       end
 
       it 'should include project_gem_paths' do
@@ -1660,6 +1685,35 @@ describe Rollbar do
         expect(Rollbar.notifier).to receive(:report_internal_error).with(exception)
 
         Rollbar.notifier.process_payload_safely({})
+      end
+    end
+  end
+
+  describe '#custom_data' do
+    before do
+      Rollbar.configure do |config|
+        config.custom_data_method = proc { raise 'this-will-raise' } 
+      end
+
+      expect_any_instance_of(Rollbar::Notifier).to receive(:error).and_return(report_data)
+    end
+
+    context 'with uuid in reported data' do
+      next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
+
+      let(:report_data) { { :uuid => SecureRandom.uuid } }
+      let(:expected_url) { "https://rollbar.com/instance/uuid?uuid=#{report_data[:uuid]}" }
+
+      it 'returns the uuid in :_error_in_custom_data_method' do
+        expect(notifier.custom_data).to be_eql(:_error_in_custom_data_method => expected_url)
+      end
+    end
+
+    context 'without uuid in reported data' do
+      let(:report_data) { { :some => 'other-data' } }
+
+      it 'returns the uuid in :_error_in_custom_data_method' do
+        expect(notifier.custom_data).to be_eql({})
       end
     end
   end

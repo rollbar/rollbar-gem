@@ -30,6 +30,7 @@ module Rollbar
     attr_accessor :report_dj_data
     attr_accessor :request_timeout
     attr_accessor :root
+    attr_accessor :safely
     attr_accessor :scrub_fields
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
@@ -39,6 +40,8 @@ module Rollbar
     attr_accessor :write_to_file
 
     attr_reader :project_gem_paths
+
+    alias_method :safely?, :safely
 
     DEFAULT_ENDPOINT = 'https://api.rollbar.com/api/1/item/'
     DEFAULT_WEB_BASE = 'https://rollbar.com'
@@ -75,6 +78,7 @@ module Rollbar
                        :confirm_password, :password_confirmation, :secret_token]
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
+      @safely = false
       @use_async = false
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE

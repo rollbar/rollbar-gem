@@ -355,6 +355,8 @@ config.custom_data_method = lambda {
 
 This data will appear in the Occurrences tab and on the Occurrence Detail pages in the Rollbar interface.
 
+If your `custom_data_method` crashes while reporting an error, Rollbar will report that new error and will attach its uuid URL to the parent error report.
+
 ## Exception level filters
 
 By default, all uncaught exceptions are reported at the "error" level, except for the following, which are reported at "warning" level:
