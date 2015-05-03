@@ -23,6 +23,29 @@ $ bundle install
 $ gem install rollbar
 ```
 
+### If using Lotus
+
+Be sure to initialize Rollbar with your access token in ```config/environment.rb```:
+
+```ruby
+require 'rollbar/lotus'
+
+Rollbar.configure do |config|
+  config.access_token = config.access_token = ENV['ROLLBAR_ACCESS_TOKEN']
+  # other configuration settings
+  # ...
+end
+
+# .. other original codes
+```
+
+If you are in development, you could set ROLLBAR_ACCESS_TOKEN
+variable by appending into ```config/.env.development```:
+
+```
+ROLLBAR_ACCESS_TOKEN = 'POST_SERVER_ITEM_ACCESS_TOKEN'
+```
+
 ### If using Rails
 
 Run the following command from your Rails root:
@@ -121,13 +144,13 @@ begin
 rescue NoMethodError => e
   # simple exception report (level can be 'debug', 'info', 'warning', 'error' and 'critical')
   Rollbar.log('error', e)
-  
+
   # same functionality as above
   Rollbar.error(e)
-  
+
   # with a description
   Rollbar.error(e, 'The user info hash doesn\'t contain the correct data')
-  
+
   # with extra data giving more insight about the exception
   Rollbar.error(e, :user_info => user_info, :job_id => job_id)
 end
@@ -154,7 +177,7 @@ after_validation :report_validation_errors_to_rollbar
 
 ### Advanced usage
 
-You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar. 
+You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar.
 
 For example:
 

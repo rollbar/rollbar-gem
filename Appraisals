@@ -17,3 +17,7 @@ end
 appraise "rails41" do
   gem "rails", "4.1.9"
 end
+
+appraise "lotusrb" do
+  gem "lotusrb", "0.2.1"
+end
