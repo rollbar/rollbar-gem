@@ -1,0 +1,25 @@
+{
+  "body": {
+    "message": {
+      "body": "Test message"
+    }
+  },
+  "uuid": "7160cbee-de83-4e5d-bdc9-3fe195b711e4",
+  "language": "ruby",
+  "level": "info",
+  "timestamp": 1429703495,
+  "server": {
+    "pid": 2515,
+    "host": "testing-worker-linux-docker-0201352d-3376-linux-15",
+    "root": "/home/travis/build/rollbar/rollbar-gem/spec/dummyapp"
+  },
+  "environment": "unspecified",
+  "framework": "Rails: 3.2.21",
+  "notifier": {
+    "version": "1.5.1",
+    "name": "rollbar-gem"
+  },
+  "metadata": {
+    "customer_timestamp": 1429703494
+  }
+}

@@ -43,5 +43,15 @@ describe Rollbar::Truncation::MinBodyStrategy do
         expect(traces[1]['exception']['message']).to be_eql('a' * 255)
       end
     end
+
+    context 'with a message payload' do
+      let(:payload_fixture) { 'payloads/sample.trace_chain.json' }
+
+      it "doesn't truncate anything and returns same payload" do
+        result = MultiJson.load(described_class.call(payload))
+
+        expect(result).to be_eql(payload)
+      end
+    end
   end
 end
