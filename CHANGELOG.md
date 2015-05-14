@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.5.2
+
+Bug fixes:
+
+- Fix minimum body truncation strategy when the payload is a message without exception. See [#240](https://github.com/rollbar/rollbar-gem/pull/240)
+
 ## 1.5.1
 
 Bug fixes:
