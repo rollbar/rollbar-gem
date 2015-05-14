@@ -17,7 +17,7 @@ module Rollbar
           body['trace_chain'] = body['trace_chain'].map do |trace_data|
             truncate_trace_data(trace_data)
           end
-        else
+        elsif body['trace']
           body['trace'] = truncate_trace_data(body['trace'])
         end
 
