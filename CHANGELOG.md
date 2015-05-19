@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.5.3
+
+Bug fixes:
+
+- Run `rollbar-rails-runner` in the context of `Rails` module so we avoid namespace conflitcs. See [#242](https://github.com/rollbar/rollbar-gem/pull/242)
+
 ## 1.5.2
 
 Bug fixes:
