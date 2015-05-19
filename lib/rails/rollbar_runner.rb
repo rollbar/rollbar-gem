@@ -3,8 +3,8 @@ require 'rollbar'
 
 APP_PATH = File.expand_path('config/application', Dir.pwd)
 
-module Rollbar
-  class RailsRunner
+module Rails
+  class RollbarRunner
     class GemResolver
       def railties_gem
         Gem::Specification.find_by_name('railties')
@@ -38,7 +38,7 @@ module Rollbar
     def eval_runner
       string_to_eval = File.read(runner_path)
 
-      Module.module_eval(<<-EOL,__FILE__,__LINE__ + 2)
+      ::Rails.module_eval(<<-EOL,__FILE__,__LINE__ + 2)
           #{string_to_eval}
       EOL
     end
