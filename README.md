@@ -121,13 +121,13 @@ begin
 rescue NoMethodError => e
   # simple exception report (level can be 'debug', 'info', 'warning', 'error' and 'critical')
   Rollbar.log('error', e)
-  
+
   # same functionality as above
   Rollbar.error(e)
-  
+
   # with a description
   Rollbar.error(e, 'The user info hash doesn\'t contain the correct data')
-  
+
   # with extra data giving more insight about the exception
   Rollbar.error(e, :user_info => user_info, :job_id => job_id)
 end
@@ -154,7 +154,7 @@ after_validation :report_validation_errors_to_rollbar
 
 ### Advanced usage
 
-You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar. 
+You can use `Rollbar.scope()` to copy a notifier instance and customize the payload data for one-off reporting. The hash argument to `scope()` will be merged into the copied notifier's "payload options", a hash that will be merged into the final payload just before it is reported to Rollbar.
 
 For example:
 
@@ -504,7 +504,7 @@ config.use_thread
 You can supply your own handler using ```config.async_handler```. The object to set for `async_handler` should respond to `#call` and receive the payload. The handler should schedule the payload for later processing (i.e. with a delayed_job, in a resque queue, etc.) and should itself return immediately. For example:
 
 ```ruby
-config.use_async
+config.use_async = true
 config.async_handler = Proc.new { |payload|
   Thread.new { Rollbar.process_payload_safely(payload) }
 }
