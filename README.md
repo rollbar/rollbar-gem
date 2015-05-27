@@ -590,6 +590,8 @@ set :rollbar_env, Proc.new { fetch :stage }
 set :rollbar_role, Proc.new { :app }
 ```
 
+It seems there are problems with version `3.0.x` of Capistrano and this gem. Please, upgrade to `>= 3.1.0` if possible.
+
 ### Capistrano 2
 
 Add the following to ```deploy.rb```:

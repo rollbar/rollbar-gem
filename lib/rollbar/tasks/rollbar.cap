@@ -7,6 +7,8 @@ namespace :rollbar do
   desc 'Send the deployment notification to Rollbar.'
   task :deploy do
     on roles fetch(:rollbar_role) do
+      warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar") if Capistrano::VERSION =~ /^3\.0/
+
       uri    = URI.parse 'https://api.rollbar.com/api/1/deploy/'
       params = {
         :local_username => fetch(:rollbar_user),
