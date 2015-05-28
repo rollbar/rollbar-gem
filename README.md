@@ -590,7 +590,7 @@ set :rollbar_env, Proc.new { fetch :stage }
 set :rollbar_role, Proc.new { :app }
 ```
 
-It seems there are problems with version `3.0.x` of Capistrano and this gem. Please, upgrade to `>= 3.1.0` if possible.
+NOTE: We've seen problems with Capistrano version `3.0.x` where the revision reported is incorrect. Version `3.1.0` and higher works correctly.
 
 ### Capistrano 2
 
