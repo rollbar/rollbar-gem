@@ -12,6 +12,7 @@ end
 
 require 'rollbar/version'
 require 'rollbar/configuration'
+require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
 require 'rollbar/util'
@@ -444,28 +445,7 @@ module Rollbar
     end
 
     def enforce_valid_utf8(payload)
-      normalizer = lambda do |object|
-        is_symbol = object.is_a?(Symbol)
-
-        return object unless object == object.to_s || is_symbol
-
-        value = object.to_s
-
-        if value.respond_to? :encode
-          options = { :invalid => :replace, :undef => :replace, :replace => '' }
-          ascii_encodings = [Encoding.find('US-ASCII'), Encoding.find('ASCII-8BIT')]
-
-          args = ['UTF-8']
-          args << 'binary' if ascii_encodings.include?(value.encoding)
-          args << options
-
-          encoded_value = value.encode(*args)
-        else
-          encoded_value = ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', value)
-        end
-
-        is_symbol ? encoded_value.to_sym : encoded_value
-      end
+      normalizer = lambda { |object| Encoding.encode(object) }
 
       Rollbar::Util.iterate_and_update(payload, normalizer)
     end
