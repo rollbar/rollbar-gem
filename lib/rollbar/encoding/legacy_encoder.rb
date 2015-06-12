@@ -1,3 +1,5 @@
+require 'iconv'
+
 module Rollbar
   class LegacyEncoder
     attr_accessor :object

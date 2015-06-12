@@ -21,10 +21,6 @@ require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
 
-unless ''.respond_to? :encode
-  require 'iconv'
-end
-
 module Rollbar
   ATTACHMENT_CLASSES = %w[
     ActionDispatch::Http::UploadedFile

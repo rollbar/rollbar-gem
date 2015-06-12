@@ -1,5 +1,5 @@
 require 'rollbar/encoding/encoder' unless RUBY_VERSION.start_with?('1.8')
-require 'rollbar/encoding/legacy_encoder'
+require 'rollbar/encoding/legacy_encoder' if RUBY_VERSION.start_with?('1.8')
 
 module Rollbar
   module Encoding
