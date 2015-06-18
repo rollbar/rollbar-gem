@@ -15,6 +15,13 @@ rvm:
   - jruby-19mode
   - jruby-head
   - rbx
+jdk:
+  - openjdk6
+  - openjdk7
+  - openjdk8
+  - oraclejdk6
+  - oraclejdk7
+  - oraclejdk8
 env:
   - SKIP_DUMMY_ROLLBAR=true
   - SKIP_DUMMY_ROLLBAR=false
@@ -22,7 +29,6 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-18mode
-    - rvm: jruby-19mode
     - rvm: jruby-head
     - rvm: rbx
   exclude:
