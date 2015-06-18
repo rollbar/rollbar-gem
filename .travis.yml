@@ -18,8 +18,6 @@ rvm:
 jdk:
   - openjdk6
   - openjdk7
-  - openjdk8
-  - oraclejdk6
   - oraclejdk7
   - oraclejdk8
 env:
