@@ -23,12 +23,77 @@ jdk:
 env:
   - SKIP_DUMMY_ROLLBAR=true
   - SKIP_DUMMY_ROLLBAR=false
+gemfile:
+  - gemfiles/rails30.gemfile
+  - gemfiles/rails31.gemfile
+  - gemfiles/rails32.gemfile
+  - gemfiles/rails40.gemfile
+  - gemfiles/rails41.gemfile
 matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-18mode
     - rvm: jruby-head
   exclude:
+    # Don't run tests for non-jruby environments with the JDK
+    - rvm: 1.8.7
+      jdk: openjdk6
+    - rvm: 1.8.7
+      jdk: openjdk7
+    - rvm: 1.8.7
+      jdk: oraclejdk7
+    - rvm: 1.8.7
+      jdk: oraclejdk8
+    - rvm: 1.9.2
+      jdk: openjdk6
+    - rvm: 1.9.2
+      jdk: openjdk7
+    - rvm: 1.9.2
+      jdk: oraclejdk7
+    - rvm: 1.9.2
+      jdk: oraclejdk8
+    - rvm: 1.9.3
+      jdk: openjdk6
+    - rvm: 1.9.3
+      jdk: openjdk7
+    - rvm: 1.9.3
+      jdk: oraclejdk7
+    - rvm: 1.9.3
+      jdk: oraclejdk8
+    - rvm: 2.0.0
+      jdk: openjdk6
+    - rvm: 2.0.0
+      jdk: openjdk7
+    - rvm: 2.0.0
+      jdk: oraclejdk7
+    - rvm: 2.0.0
+      jdk: oraclejdk8
+    - rvm: 2.1.0
+      jdk: openjdk6
+    - rvm: 2.1.0
+      jdk: openjdk7
+    - rvm: 2.1.0
+      jdk: oraclejdk7
+    - rvm: 2.1.0
+      jdk: oraclejdk8
+    - rvm: ruby-head
+      jdk: openjdk6
+    - rvm: ruby-head
+      jdk: openjdk7
+    - rvm: ruby-head
+      jdk: oraclejdk7
+    - rvm: ruby-head
+      jdk: oraclejdk8
+    - rvm: rbx
+      jdk: openjdk6
+    - rvm: rbx
+      jdk: openjdk7
+    - rvm: rbx
+      jdk: oraclejdk7
+    - rvm: rbx
+      jdk: oraclejdk8
+
+    # TODO: comment as to why these are excluded
     - rvm: 1.8.7
       gemfile: gemfiles/rails40.gemfile
     - rvm: 1.8.7
@@ -87,9 +152,3 @@ matrix:
       gemfile: gemfiles/rails40.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails41.gemfile
-gemfile:
-  - gemfiles/rails30.gemfile
-  - gemfiles/rails31.gemfile
-  - gemfiles/rails32.gemfile
-  - gemfiles/rails40.gemfile
-  - gemfiles/rails41.gemfile
