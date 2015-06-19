@@ -43,7 +43,7 @@ describe HomeController do
       trace = body[:trace] && body[:trace] || body[:trace_chain][0]
 
       trace[:exception][:class].should == 'NoMethodError'
-      trace[:exception][:message].should == 'undefined method `-\' for "1":String'
+      trace[:exception][:message].should =~ /^undefined method `-'/
     end
   end
 end
