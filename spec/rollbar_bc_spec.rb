@@ -202,27 +202,29 @@ describe Rollbar do
       Rollbar.report_exception(@exception, request_data, person_data)
     end
 
-    it 'should work with an IO object as rack.errors' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
-
-      request_data = {
-        :params => { :foo => 'bar' },
-        :url => 'http://localhost/',
-        :user_ip => '127.0.0.1',
-        :headers => {},
-        :GET => { 'baz' => 'boz' },
-        :session => { :user_id => 123 },
-        :method => 'GET',
-        :env => { :'rack.errors' => IO.new(2, File::WRONLY) },
-      }
-
-      person_data = {
-        :id => 1,
-        :username => 'test',
-        :email => 'test@example.com'
-      }
-
-      Rollbar.report_exception(@exception, request_data, person_data)
+    # Skip jruby 1.9+ (https://github.com/jruby/jruby/issues/2373)
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && not RUBY_VERSION.match(/^1\.9/)
+      it 'should work with an IO object as rack.errors' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success')
+ 
+        request_data = {
+          :params => { :foo => 'bar' },
+          :url => 'http://localhost/',
+          :user_ip => '127.0.0.1',
+          :headers => {},
+          :GET => { 'baz' => 'boz' },
+          :session => { :user_id => 123 },
+          :method => 'GET',
+          :env => { :'rack.errors' => IO.new(2, File::WRONLY) },
+        }
+ 
+        person_data = {
+          :id => 1,
+          :username => 'test',
+          :email => 'test@example.com'
+        }
+ 
+        Rollbar.report_exception(@exception, request_data, person_data)
     end
 
     it 'should ignore ignored exception classes' do
