@@ -801,7 +801,7 @@ describe Rollbar do
     end
 
     # Skip jruby 1.9+ (https://github.com/jruby/jruby/issues/2373)
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && not (RUBY_VERSION =~ /^1\.9/)
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (not RUBY_VERSION =~ /^1\.9/)
         it "should work with an IO object as rack.errors" do
           logger_mock.should_receive(:info).with('[Rollbar] Success')
 
