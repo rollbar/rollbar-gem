@@ -225,6 +225,7 @@ describe Rollbar do
         }
  
         Rollbar.report_exception(@exception, request_data, person_data)
+      end  
     end
 
     it 'should ignore ignored exception classes' do
