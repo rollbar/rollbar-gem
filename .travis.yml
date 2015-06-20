@@ -34,6 +34,13 @@ matrix:
     - rvm: ruby-head
     - rvm: jruby-18mode
     - rvm: jruby-head
+
+    # NOTE: Allowing this to fail because of some strange error in rspec-core `undefined method `example_group_finished'`.
+    # Seems to work with oraclejdk7.
+    - rvm: jruby-19mode
+      jdk: openjdk7
+      env: SKIP_DUMMY_ROLLBAR=false
+
   exclude:
     # Don't run tests for non-jruby environments with the JDK.
     # NOTE: openjdk7 is missing from these exclusions so that Travis will run at least 1 build for the given rvm.
