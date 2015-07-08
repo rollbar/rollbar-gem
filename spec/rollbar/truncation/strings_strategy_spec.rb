@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# encoding: utf-8
 
 require 'spec_helper'
 require 'rollbar/truncation/frames_strategy'
@@ -19,7 +19,7 @@ describe Rollbar::Truncation::StringsStrategy do
     end
 
     it 'should truncate all nested strings in the payload' do
-      result = MultiJson.load(described_class.call(payload))
+      result = Rollbar::JSON.load(described_class.call(payload))
 
       expect(result['truncated'].size).to be_eql(1024)
       expect(result['hash']['inner_truncated'].size).to be_eql(1024)
@@ -36,7 +36,7 @@ describe Rollbar::Truncation::StringsStrategy do
       end
 
       it 'should truncate utf8 strings properly' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
         expect(result['truncated']).to match(/^Ŝǻмρļẻ śţяịņģa*\.{3}/)
       end
     end
@@ -50,7 +50,7 @@ describe Rollbar::Truncation::StringsStrategy do
       end
 
       it 'truncates to 512 size strings' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         expect(result['0'].size).to be_eql(512)
       end
@@ -65,7 +65,7 @@ describe Rollbar::Truncation::StringsStrategy do
       end
 
       it 'truncates to 256 size strings, the third threshold' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         expect(result['0'].size).to be_eql(256)
       end
@@ -80,7 +80,7 @@ describe Rollbar::Truncation::StringsStrategy do
       end
 
       it 'just return the value for third threshold' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         expect(result['0'].size).to be_eql(256)
       end

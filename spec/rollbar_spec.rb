@@ -1199,7 +1199,7 @@ describe Rollbar do
       let(:async_handler) do
         proc do |payload|
           # simulate previous gem version
-          string_payload = MultiJson.dump(payload)
+          string_payload = Rollbar::JSON.dump(payload)
 
           Rollbar.process_payload(string_payload)
         end

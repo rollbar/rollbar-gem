@@ -11,6 +11,7 @@ rescue LoadError
 end
 
 require 'rollbar/version'
+require 'rollbar/json'
 require 'rollbar/configuration'
 require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
@@ -508,7 +509,7 @@ module Rollbar
 
     def send_payload(payload)
       log_info '[Rollbar] Sending payload'
-      payload = MultiJson.load(payload) if payload.is_a?(String)
+      payload = Rollbar::JSON.load(payload) if payload.is_a?(String)
 
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
@@ -648,7 +649,7 @@ module Rollbar
         rescue
           next unless handler == failover_handlers.last
 
-          log_error "[Rollbar] All failover handlers failed while processing payload: #{MultiJson.dump(payload)}"
+          log_error "[Rollbar] All failover handlers failed while processing payload: #{Rollbar::JSON.dump(payload)}"
         end
       end
     end
@@ -660,10 +661,10 @@ module Rollbar
       result = Truncation.truncate(stringified_payload)
       return result unless Truncation.truncate?(result)
 
-      original_size = MultiJson.dump(payload).bytesize
+      original_size = Rollbar::JSON.dump(payload).bytesize
       final_size = result.bytesize
       send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-      log_error "[Rollbar] Payload too large to be sent: #{MultiJson.dump(payload)}"
+      log_error "[Rollbar] Payload too large to be sent: #{Rollbar::JSON.dump(payload)}"
 
       nil
     end
