@@ -477,7 +477,7 @@ describe Rollbar do
       end
 
       context "with Redis instance in payload and ActiveSupport is enabled" do
-        let(:redis) { ::Redis.connect }
+        let(:redis) { ::Redis.new }
         let(:payload) do
           {
             :key => {
