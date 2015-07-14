@@ -1,6 +1,3 @@
-require 'rollbar/encoding/encoder' unless RUBY_VERSION.start_with?('1.8')
-require 'rollbar/encoding/legacy_encoder' if RUBY_VERSION.start_with?('1.8')
-
 module Rollbar
   module Encoding
     def self.encode(object)
@@ -13,8 +10,10 @@ module Rollbar
 
     def self.encoding_class
       if String.instance_methods.include?(:encode)
+        require 'rollbar/encoding/encoder'
         Encoder
       else
+        require 'rollbar/encoding/legacy_encoder'
         LegacyEncoder
       end
     end

@@ -31,13 +31,13 @@ module Rollbar
 
       def detect_encoding(v)
         value = v.dup
+
         ALL_ENCODINGS.detect do |encoding|
           begin
             value.force_encoding(encoding).encode(::Encoding::UTF_8).codepoints
+            true
           rescue
             false
-          else
-            true
           end
         end
       end

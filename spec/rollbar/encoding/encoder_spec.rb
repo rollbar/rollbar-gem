@@ -2,9 +2,9 @@
 require 'spec_helper'
 
 unless RUBY_VERSION.start_with?('1.8')
-  require 'rollbar/encoding/encoder' unless
+  require 'rollbar/encoding/encoder'
 
-    describe Rollbar::Encoding::Encoder do
+  describe Rollbar::Encoding::Encoder do
     subject { described_class.new(object) }
 
     shared_examples 'encoding' do
