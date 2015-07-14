@@ -20,7 +20,6 @@ require 'rollbar/railtie' if defined?(Rails::VERSION)
 require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
-require 'rollbar/core_ext/socket'
 
 unless ''.respond_to? :encode
   require 'iconv'
@@ -713,9 +712,7 @@ module Rollbar
       yield(configuration)
 
       require_hooks
-      # This monkey patch is always needed in order
-      # to use Rollbar.scoped
-      require 'rollbar/core_ext/thread'
+      require_core_extensions
 
       reset_notifier!
     end
@@ -752,6 +749,16 @@ module Rollbar
       require 'rollbar/better_errors' if defined?(BetterErrors)
     end
 
+    def require_core_extensions
+      # This monkey patch is always needed in order
+      # to use Rollbar.scoped
+      require 'rollbar/core_ext/thread'
+
+      return if configuration.disable_core_monkey_patch
+
+      # Needed to avoid active_support bug serializing JSONs.
+      require 'rollbar/core_ext/socket'
+    end
     def wrap_delayed_worker
       return unless defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
 
