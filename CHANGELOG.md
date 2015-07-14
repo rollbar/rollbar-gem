@@ -1,5 +1,21 @@
 # Change Log
 
+## 2.0.0
+
+Major version release since we're monkey patching `Socket` to avoid an existing bug in active_support < 4.1.0.
+
+Bug fixes:
+
+- Use JSON gem or native by default. This tries to fix the existing bug in active_support < 4.1.0 serializing Socket instances.
+  -- You can still use MultiJson setting `config.use_multi_json = true`.
+  -- Socket is monkey patched by default. You can disable it with `config.disable_core_monkey_patch = true`.
+- Add Encoding module, with Encoder and LegacyEncoder classes. This fixes some issues with ISO-8859 strings
+
+Other changes:
+
+- Update README.md and warn about upgrade to capistrano >= 3.1
+- Fix error in code example for custom Async handlers
+
 ## 1.5.3
 
 Bug fixes:
