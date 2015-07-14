@@ -160,7 +160,7 @@ describe HomeController do
       end
 
       it "should save controller and action in the payload body" do
-        post 'report_exception'
+        post '/report_exception'
 
         route = controller.send(:rollbar_request_data)[:route]
 
@@ -183,7 +183,7 @@ describe HomeController do
         :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6",
       }
 
-      post 'report_exception', params
+      post '/report_exception', params
 
       filtered = Rollbar.last_report[:request][:params]
 
@@ -206,7 +206,7 @@ describe HomeController do
         :notpass => "hidden"
       }
 
-      post 'report_exception', params
+      post '/report_exception', params
 
       filtered = Rollbar.last_report[:request][:params]
 
@@ -231,14 +231,14 @@ describe HomeController do
     it "should raise a NameError and report an exception after a GET" do
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
-      get 'report_exception'
+      get '/report_exception'
       response.should be_success
     end
 
     it "should raise a NameError and have PUT params in the reported exception" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      put 'report_exception', :putparam => "putval"
+      put '/report_exception', :putparam => "putval"
 
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:params]["putparam"].should == "putval"
@@ -260,7 +260,7 @@ describe HomeController do
       @request.env["HTTP_ACCEPT"] = "application/json"
 
       params = { :jsonparam => 'jsonval' }.to_json
-      post 'report_exception', params, { 'CONTENT_TYPE' => 'application/json' }
+      post '/report_exception', params, { 'CONTENT_TYPE' => 'application/json' }
 
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'
@@ -271,7 +271,7 @@ describe HomeController do
     it "should raise an uncaught exception and report a message" do
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
-      expect { get 'cause_exception' }.to raise_exception
+      expect { get '/cause_exception' }.to raise_exception
     end
 
     context 'show_exceptions' do
@@ -298,7 +298,7 @@ describe HomeController do
       it "middleware should catch the exception and only report to rollbar once" do
         logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
-        get 'cause_exception'
+        get '/cause_exception'
       end
 
       it 'should not fail if the controller doesnt contain the person method' do
@@ -306,7 +306,7 @@ describe HomeController do
           config.person_method = 'invalid_method'
         end
 
-        get 'cause_exception'
+        get '/cause_exception'
       end
 
       context 'with logged user' do
@@ -318,7 +318,7 @@ describe HomeController do
         before { cookies[:session_id] = user.id }
 
         it 'sends the current user data' do
-          put 'report_exception', 'foo' => 'bar'
+          put '/report_exception', 'foo' => 'bar'
 
           person_data = Rollbar.last_report[:person]
 

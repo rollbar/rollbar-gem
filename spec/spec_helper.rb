@@ -19,7 +19,7 @@ RSpec.configure do |config|
   config.include(FixtureHelpers)
   config.include(EncodingHelpers)
 
-  config.color_enabled = true
+  config.color = true
   config.formatter = 'documentation'
 
   config.use_transactional_fixtures = true

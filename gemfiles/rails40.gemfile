@@ -2,6 +2,7 @@
 
 source "https://rubygems.org"
 
+gem "test-unit"   # Please see https://github.com/rspec/rspec-rails/issues/1273
 gem "sqlite3", :platform => [:ruby, :mswin, :mingw]
 gem "jruby-openssl", :platform => :jruby
 gem "activerecord-jdbcsqlite3-adapter", :platform => :jruby
