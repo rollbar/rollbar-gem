@@ -2,7 +2,6 @@ require 'net/https'
 require 'socket'
 require 'thread'
 require 'uri'
-require 'multi_json'
 require 'forwardable'
 
 begin
@@ -695,7 +694,7 @@ module Rollbar
     end
 
     def configure_json_backend
-      Rollbar::JSON.setup(configuration)
+      Rollbar::JSON.setup
     end
 
     def reconfigure
