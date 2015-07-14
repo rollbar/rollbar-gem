@@ -14,7 +14,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
       end
 
       it 'truncates the exception message and frames array' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         trace = result['data']['body']['trace']
         expect(trace['frames']).to have(2).items
@@ -33,7 +33,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
       end
 
       it 'truncates the exception message and frames array' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         traces = result['data']['body']['trace_chain']
         expect(traces[0]['frames']).to have(2).items
@@ -48,7 +48,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
       let(:payload_fixture) { 'payloads/sample.trace_chain.json' }
 
       it "doesn't truncate anything and returns same payload" do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         expect(result).to be_eql(payload)
       end

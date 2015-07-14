@@ -12,7 +12,7 @@ describe Rollbar::Delay::Resque do
     end
 
     it 'process the payload' do
-      loaded_hash = MultiJson.load(MultiJson.dump(payload))
+      loaded_hash = Rollbar::JSON.load(Rollbar::JSON.dump(payload))
 
       expect(Rollbar).to receive(:process_payload_safely).with(loaded_hash)
       described_class.call(payload)

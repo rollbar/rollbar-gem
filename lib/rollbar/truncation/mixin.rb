@@ -4,7 +4,7 @@ module Rollbar
   module Truncation
     module Mixin
       def dump(payload)
-        MultiJson.dump(payload)
+        Rollbar::JSON.dump(payload)
       end
 
       def truncate?(result)
