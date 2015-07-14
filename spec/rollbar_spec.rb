@@ -4,6 +4,9 @@ require 'logger'
 require 'socket'
 require 'spec_helper'
 require 'girl_friday'
+require 'redis'
+require 'active_support/core_ext/object'
+require 'active_support/json/encoding'
 
 begin
   require 'sucker_punch'
@@ -471,6 +474,23 @@ describe Rollbar do
 
         payload['data'][:server][:root].should == '/path/to/root'
         payload['data'][:server][:branch].should == 'master'
+      end
+
+      context "with Redis instance in payload and ActiveSupport is enabled" do
+        let(:redis) { ::Redis.new }
+        let(:payload) do
+          {
+            :key => {
+              :value => redis
+            }
+          }
+        end
+        it 'dumps to JSON correctly' do
+          redis.set('foo', 'bar')
+          json = notifier.send(:dump_payload, payload)
+
+          expect(json).to be_kind_of(String)
+        end
       end
     end
 
@@ -1199,7 +1219,7 @@ describe Rollbar do
       let(:async_handler) do
         proc do |payload|
           # simulate previous gem version
-          string_payload = MultiJson.dump(payload)
+          string_payload = Rollbar::JSON.dump(payload)
 
           Rollbar.process_payload(string_payload)
         end

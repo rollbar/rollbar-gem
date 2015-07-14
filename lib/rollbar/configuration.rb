@@ -11,6 +11,7 @@ module Rollbar
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
     attr_accessor :disable_monkey_patch
+    attr_accessor :disable_core_monkey_patch
     attr_accessor :dj_threshold
     attr_accessor :enabled
     attr_accessor :endpoint
@@ -38,6 +39,7 @@ module Rollbar
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
+    attr_accessor :use_multi_json
 
     attr_reader :project_gem_paths
 
@@ -53,6 +55,7 @@ module Rollbar
       @default_logger = lambda { Logger.new(STDERR) }
       @delayed_job_enabled = true
       @disable_monkey_patch = false
+      @disable_core_monkey_patch = false
       @dj_threshold = 0
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
@@ -83,6 +86,7 @@ module Rollbar
       @use_eventmachine = false
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
+      @use_multi_json = false
     end
 
     def initialize_copy(orig)

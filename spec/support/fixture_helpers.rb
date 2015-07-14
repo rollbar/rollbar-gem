@@ -5,6 +5,6 @@ module FixtureHelpers
   end
 
   def load_payload_fixture(relative_path)
-    MultiJson.load(File.read(fixture_file(relative_path)))
+    Rollbar::JSON.load(File.read(fixture_file(relative_path)))
   end
 end

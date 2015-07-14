@@ -121,7 +121,7 @@ module Rollbar
       return {} unless correct_method
       return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
 
-      MultiJson.decode(rack_req.body.read)
+      Rollbar::JSON.load(rack_req.body.read)
     rescue
       {}
     ensure

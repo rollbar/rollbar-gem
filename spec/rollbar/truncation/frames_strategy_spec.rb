@@ -16,7 +16,7 @@ describe Rollbar::Truncation::FramesStrategy do
       end
 
       it 'returns a new payload with 300 frames' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         new_frames = result['data']['body']['trace']['frames']
 
@@ -38,7 +38,7 @@ describe Rollbar::Truncation::FramesStrategy do
       end
 
       it 'returns a new payload with 300 frames for each chain item' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         new_frames1 = result['data']['body']['trace_chain'][0]['frames']
         new_frames2 = result['data']['body']['trace_chain'][1]['frames']
@@ -61,7 +61,7 @@ describe Rollbar::Truncation::FramesStrategy do
       end
 
       it 'returns the original payload' do
-        result = MultiJson.load(described_class.call(payload))
+        result = Rollbar::JSON.load(described_class.call(payload))
 
         expect(result).to be_eql(payload)
       end
