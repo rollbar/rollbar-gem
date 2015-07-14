@@ -1381,6 +1381,11 @@ describe Rollbar do
   end
 
   context 'enforce_valid_utf8' do
+    # TODO(jon): all these tests should be removed since they are in
+    # in spec/rollbar/encoding/encoder.rb.
+    #
+    # This should just check that in payload with simple values and
+    # nested values are each one passed through Rollbar::Encoding.encode
     context 'with utf8 string and ruby > 1.8' do
       next unless String.instance_methods.include?(:force_encoding)
 
