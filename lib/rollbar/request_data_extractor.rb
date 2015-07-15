@@ -166,19 +166,25 @@ module Rollbar
           result[key] = rollbar_filtered_params(sensitive_params, value)
         elsif value.is_a?(Array)
           result[key] = value.map do |v|
-            v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : v
+            v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : rollbar_filtered_param_value(v)
           end
-        elsif ATTACHMENT_CLASSES.include?(value.class.name)
-          result[key] = {
-            :content_type => value.content_type,
-            :original_filename => value.original_filename,
-            :size => value.tempfile.size
-          } rescue 'Uploaded file'
         else
-          result[key] = value
+          result[key] = rollbar_filtered_param_value(value)
         end
 
         result
+      end
+    end
+
+    def rollbar_filtered_param_value(value)
+      if ATTACHMENT_CLASSES.include?(value.class.name)
+        {
+          :content_type => value.content_type,
+          :original_filename => value.original_filename,
+          :size => value.tempfile.size
+        } rescue 'Uploaded file'
+      else
+        value
       end
     end
 
