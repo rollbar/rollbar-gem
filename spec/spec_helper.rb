@@ -10,6 +10,11 @@ namespace :dummy do
   load 'spec/dummyapp/Rakefile'
 end
 
+if ENV['TRAVIS_JDK_VERSION'] == 'oraclejdk7'
+  require 'rollbar/configuration'
+  Rollbar::Configuration::DEFAULT_ENDPOINT = 'https://api-alt.rollbar.com/api/1/item/'
+end
+
 Rake::Task['dummy:db:setup'].invoke
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
@@ -50,3 +55,4 @@ end
 def local?
   ENV['LOCAL'] == '1'
 end
+
