@@ -2,7 +2,6 @@ require 'net/https'
 require 'socket'
 require 'thread'
 require 'uri'
-require 'multi_json'
 require 'forwardable'
 
 begin
@@ -695,7 +694,7 @@ module Rollbar
     end
 
     def configure_json_backend
-      Rollbar::JSON.setup(configuration)
+      Rollbar::JSON.setup
     end
 
     def reconfigure
@@ -738,8 +737,9 @@ module Rollbar
       return if configuration.disable_core_monkey_patch
 
       # Needed to avoid active_support bug serializing JSONs.
-      require 'rollbar/core_ext/socket'
+      require 'rollbar/core_ext/basic_socket'
     end
+
     def wrap_delayed_worker
       return unless defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
 
