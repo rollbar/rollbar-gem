@@ -667,6 +667,14 @@ require 'json'
 MultiJson.use(:json_common)
 ```
 
+If you are using jRuby with Oracle and JDK7, you may be expecting some errors sending reports to our API. This is caused by a bug in that JDK and the primer number used in the SSL algorithm. In order to fix this you can set the next configuration:
+
+```ruby
+Rollbar.configure do|config|
+  config.endpoint = 'https://api-alt.rollbar.com/api/1/item/'
+end
+```
+
 
 ## Help / Support
 
