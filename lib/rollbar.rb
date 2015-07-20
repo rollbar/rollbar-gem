@@ -723,6 +723,7 @@ module Rollbar
 
       require 'rollbar/active_record_extension' if defined?(ActiveRecord)
       require 'rollbar/sidekiq' if defined?(Sidekiq)
+      require 'rollbar/active_job' if defined?(ActiveJob)
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
       require 'rollbar/rake' if defined?(Rake)

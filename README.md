@@ -400,6 +400,18 @@ Rollbar.configure do |config|
 end
 ```
 
+## ActiveJob integration
+
+Include the module `Rollbar::ActiveJob` in you jobs to report any uncaught errors in a job to Rollbar.
+
+```ruby
+class YourAwesomeJob < ActiveJob::Base
+  include Rollbar::ActiveJob
+end
+```
+
+If you need to customize the reporting write your own `rescue_from` handler instead of using the `Rollbar::ActiveJob` module.
+
 ## Delayed::Job integration
 
 If `delayed_job` is defined, Rollbar will automatically install a plugin that reports any uncaught exceptions that occur in jobs.
