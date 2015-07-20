@@ -1,5 +1,21 @@
 # Change Log
 
+## 2.0.0
+
+Possibly breaking changes:
+
+- If active_support version < 4.1.0 is installed, this gem will now monkeypatch `BasicSocket#to_json`. This is needed to work around a bug causing JSON serialization to fail when the payload contains a Socket instance. We don't expect this to break anything for anyone, unless you are using active_support version < 4.1.0 and also happened to be relying on the buggy Socket serialization behavior.
+
+Bug fixes:
+
+- Use the JSON gem or native by default. Along with the aforementioned monkeypatch, this fixes the existing bug in active_support < 4.1.0 serializing Socket instances. To disable the monkeypatch, set `config.disable_core_monkey_patch = true`.
+- Add Encoding module, with Encoder and LegacyEncoder classes. This fixes some issues with ISO-8859 strings
+
+Other changes:
+
+- Update README.md and warn about upgrade to capistrano >= 3.1
+- Fix error in code example for custom Async handlers
+
 ## 1.5.3
 
 Bug fixes:
