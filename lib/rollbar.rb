@@ -736,8 +736,19 @@ module Rollbar
 
       return if configuration.disable_core_monkey_patch
 
-      # Needed to avoid active_support bug serializing JSONs.
-      require 'rollbar/core_ext/basic_socket'
+      # Needed to avoid active_support (< 4.1.0) bug serializing JSONs
+      require 'rollbar/core_ext/basic_socket' if monkey_patch_socket?
+    end
+
+    def monkey_patch_socket?
+      return false unless defined?(ActiveSupport::VERSION::STRING)
+
+      major, minor = ActiveSupport::VERSION::STRING.split('.').map(&:to_i)
+
+      return true if major == 3
+      return true if major == 4 && minor == 0
+
+      false
     end
 
     def wrap_delayed_worker
