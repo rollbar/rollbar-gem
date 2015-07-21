@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.1
+
+Bug fixes:
+
+- Remove requires for multi_json gem. Thanks @albertyw.
+
 ## 2.0.0
 
 Possibly breaking changes:
