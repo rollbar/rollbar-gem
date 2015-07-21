@@ -1,5 +1,3 @@
-require 'multi_json'
-
 module Rollbar
   module Truncation
     module Mixin
