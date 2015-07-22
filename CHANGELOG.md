@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.2
+
+Bug fixes:
+
+- Fix capistrano task cause a namespace conflict between JSON and Rollbar::JSON.
+
 ## 2.0.1
 
 Bug fixes:
