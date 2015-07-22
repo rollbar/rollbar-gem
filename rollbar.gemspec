@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Rails plugin to catch and send exceptions to Rollbar}
   gem.executables   = ['rollbar-rails-runner']
   gem.summary       = %q{Reports exceptions to Rollbar}
-  gem.homepage      = "https://github.com/rollbar/rollbar-gem"
+  gem.homepage      = "https://rollbar.com"
   gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($\)
