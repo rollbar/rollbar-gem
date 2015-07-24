@@ -12,10 +12,9 @@ rvm:
   - 1.9.3
   - 2.0.0
   - 2.1.0
-  - ruby-head
+  - 2.2.2
   - jruby-18mode
   - jruby-19mode
-  - jruby-head
   - rbx
 jdk:
   - openjdk6
@@ -91,60 +90,69 @@ matrix:
 
     # TODO: comment as to why these are excluded
     - rvm: 1.8.7
-      gemfile: gemfiles/rails40.gemfile
-    - rvm: 1.8.7
-      gemfile: gemfiles/rails41.gemfile
+      gemfile: gemfiles/rails31.gemfile
     - rvm: 1.8.7
       gemfile: gemfiles/rails32.gemfile
     - rvm: 1.8.7
-      gemfile: gemfiles/rails31.gemfile
-    - rvm: 1.9.2
       gemfile: gemfiles/rails40.gemfile
-    - rvm: 1.9.2
+    - rvm: 1.8.7
       gemfile: gemfiles/rails41.gemfile
+    - rvm: 1.8.7
+      gemfile: gemfiles/rails42.gemfile
+    - rvm: 1.9.2
+      gemfile: gemfiles/rails31.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails32.gemfile
     - rvm: 1.9.2
-      gemfile: gemfiles/rails31.gemfile
-    - rvm: 1.9.3
-      gemfile: gemfiles/rails41.gemfile
-    - rvm: ruby-head
-      gemfile: gemfiles/rails30.gemfile
-    - rvm: ruby-head
-      gemfile: gemfiles/rails31.gemfile
-    - rvm: ruby-head
       gemfile: gemfiles/rails40.gemfile
-    - rvm: ruby-head
+    - rvm: 1.9.2
       gemfile: gemfiles/rails41.gemfile
+    - rvm: 1.9.2
+      gemfile: gemfiles/rails42.gemfile
+    - rvm: 2.2.2
+      gemfile: gemfiles/rails30.gemfile
+    - rvm: 2.2.2
+      gemfile: gemfiles/rails31.gemfile
     - rvm: jruby-18mode
       gemfile: gemfiles/rails30.gemfile
     - rvm: jruby-18mode
       gemfile: gemfiles/rails31.gemfile
     - rvm: jruby-18mode
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: jruby-18mode
       gemfile: gemfiles/rails40.gemfile
     - rvm: jruby-18mode
       gemfile: gemfiles/rails41.gemfile
+    - rvm: jruby-18mode
+      gemfile: gemfiles/rails42.gemfile
     - rvm: jruby-19mode
       gemfile: gemfiles/rails30.gemfile
     - rvm: jruby-19mode
       gemfile: gemfiles/rails31.gemfile
     - rvm: jruby-19mode
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: jruby-19mode
       gemfile: gemfiles/rails40.gemfile
     - rvm: jruby-19mode
       gemfile: gemfiles/rails41.gemfile
-    - rvm: jruby-head
-      gemfile: gemfiles/rails30.gemfile
-    - rvm: jruby-head
-      gemfile: gemfiles/rails31.gemfile
-    - rvm: jruby-head
-      gemfile: gemfiles/rails40.gemfile
-    - rvm: jruby-head
-      gemfile: gemfiles/rails41.gemfile
+    - rvm: jruby-19mode
+      gemfile: gemfiles/rails42.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails30.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails31.gemfile
     - rvm: rbx
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: rbx
       gemfile: gemfiles/rails40.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails41.gemfile
+    - rvm: rbx
+      gemfile: gemfiles/rails42.gemfile
+gemfile:
+  - gemfiles/rails30.gemfile
+  - gemfiles/rails31.gemfile
+  - gemfiles/rails32.gemfile
+  - gemfiles/rails40.gemfile
+  - gemfiles/rails41.gemfile
+  - gemfiles/rails42.gemfile
