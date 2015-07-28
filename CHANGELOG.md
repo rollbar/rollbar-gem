@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.1.0
+
+New feature:
+
+- If you use `ActiveJob`, you can now include the `Rollbar::ActiveJob` module into your ActiveJob classes. Then, errors happening in your jobs will be automatically reported to Rollbar.
+
 ## 2.0.2
 
 Bug fixes:
