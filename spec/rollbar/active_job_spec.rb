@@ -24,6 +24,10 @@ describe Rollbar::ActiveJob do
   it "reports the error to Rollbar" do
     expected_params = { :job => "TestJob", :job_id => job_id }
     expect(Rollbar).to receive(:error).with(exception, expected_params)
-    expect { TestJob.new.perform(exception, job_id) }.not_to raise_error
+    TestJob.new.perform(exception, job_id) rescue nil
+  end
+
+  it "reraises the error so the job backend can handle the failure and retry" do
+    expect { TestJob.new.perform(exception, job_id) }.to raise_error exception
   end
 end
