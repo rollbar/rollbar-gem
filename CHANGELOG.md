@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.1.1
+
+Bug fix:
+
+- Don't swallow exceptions on `Rollbar::ActiveJob` module. With this fix we don't break the ActiveJob backends' features like retries.
+
 ## 2.1.0
 
 New feature:
