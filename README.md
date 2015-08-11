@@ -12,7 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 2.1.1
+gem 'rollbar', '~> 2.1.1'
 ```
 
 And then execute:
