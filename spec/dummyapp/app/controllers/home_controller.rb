@@ -24,9 +24,12 @@ class HomeController < ApplicationController
     render :json => {}
   end
 
-
   def cause_exception
     foo = bar
+  end
+
+  def file_upload
+    this = will_crash
   end
 
   def current_user
