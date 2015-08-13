@@ -349,6 +349,36 @@ describe HomeController do
     end
   end
 
+  context 'with file uploads',:type => "request" do
+    let(:file1) { fixture_file_upload('spec/fixtures/file1') }
+    let(:file2) { fixture_file_upload('spec/fixtures/file2') }
+
+    context 'with a single upload' do
+      it "saves attachment data" do
+        expect { post '/file_upload', :upload => file1 }.to raise_exception
+
+        upload_param = Rollbar.last_report[:request][:params]['upload']
+
+        expect(upload_param).to have_key(:filename)
+        expect(upload_param).to have_key(:type)
+        expect(upload_param).to have_key(:name)
+        expect(upload_param).to have_key(:head)
+
+        expect(upload_param[:tempfile]).to be_eql("Skipped value of class 'Tempfile'")
+      end
+    end
+
+    context 'with multiple uploads' do
+      it "saves attachment data for all uploads" do
+        expect { post '/file_upload', :upload => [file1, file2] }.to raise_exception
+        sent_params = Rollbar.last_report[:request][:params]['upload']
+
+        expect(sent_params).to be_kind_of(Array)
+        expect(sent_params).to have(2).items
+      end
+    end
+  end
+
   after(:each) do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger

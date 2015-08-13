@@ -1,7 +1,10 @@
 require 'rack'
+require 'tempfile'
 
 module Rollbar
   module RequestDataExtractor
+    SKIPPED_CLASSES = [Tempfile]
+
     def extract_person_data_from_controller(env)
       if env.has_key? 'rollbar.person_data'
         person_data = env['rollbar.person_data'] || {}
@@ -167,6 +170,8 @@ module Rollbar
           result[key] = value.map do |v|
             v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : rollbar_filtered_param_value(v)
           end
+        elsif skip_value?(value)
+          result[key] = "Skipped value of class '#{value.class.name}'"
         else
           result[key] = rollbar_filtered_param_value(value)
         end
@@ -177,11 +182,15 @@ module Rollbar
 
     def rollbar_filtered_param_value(value)
       if ATTACHMENT_CLASSES.include?(value.class.name)
-        {
-          :content_type => value.content_type,
-          :original_filename => value.original_filename,
-          :size => value.tempfile.size
-        } rescue 'Uploaded file'
+        begin
+          {
+            :content_type => value.content_type,
+            :original_filename => value.original_filename,
+            :size => value.tempfile.size
+          }
+        rescue
+          'Uploaded file'
+        end
       else
         value
       end
@@ -199,5 +208,8 @@ module Rollbar
       '*' * (value.length rescue 8)
     end
 
+    def skip_value?(value)
+      SKIPPED_CLASSES.any? { |klass| value.is_a?(klass) }
+    end
   end
 end
