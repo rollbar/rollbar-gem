@@ -25,18 +25,6 @@ module Rollbar
       Rollbar.log_debug('%p while loading JSON library: %s' % [err, err.message])
     end
 
-    def load_multi_json
-      require 'multi_json'
-
-      self.dump_method = proc { |obj| MultiJson.dump(obj) }
-      self.load_method = proc { |obj| MultiJson.load(obj) }
-      self.backend_name = :multi_json
-    rescue LoadError
-      Rollbar.log_error('[Rollbar] error occurred loading multi_json. Using native JSON instead')
-
-      load_native_json
-    end
-
     def dump(object)
       dump_method.call(object)
     end
@@ -45,12 +33,8 @@ module Rollbar
       load_method.call(string)
     end
 
-    def setup(configuration)
-      if configuration.use_multi_json
-        load_multi_json
-      else
-        load_native_json
-      end
+    def setup
+      load_native_json
     end
   end
 end

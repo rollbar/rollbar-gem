@@ -1,6 +1,6 @@
 require 'socket'
 
-class Socket
+class BasicSocket
   def as_json
     to_s
   end

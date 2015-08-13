@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v1.5.3)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.1.1)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -12,7 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 1.5.3'
+gem 'rollbar', '~> 2.1.1'
 ```
 
 And then execute:
@@ -400,6 +400,18 @@ Rollbar.configure do |config|
 end
 ```
 
+## ActiveJob integration
+
+Include the module `Rollbar::ActiveJob` in you jobs to report any uncaught errors in a job to Rollbar.
+
+```ruby
+class YourAwesomeJob < ActiveJob::Base
+  include Rollbar::ActiveJob
+end
+```
+
+If you need to customize the reporting write your own `rescue_from` handler instead of using the `Rollbar::ActiveJob` module.
+
 ## Delayed::Job integration
 
 If `delayed_job` is defined, Rollbar will automatically install a plugin that reports any uncaught exceptions that occur in jobs.
@@ -665,6 +677,14 @@ If you are using Oj but cannot upgrade, you can work around this with:
 ```ruby
 require 'json'
 MultiJson.use(:json_common)
+```
+
+If you are using jRuby with Oracle and JDK7, you may be expecting some errors sending reports to our API. This is caused by a bug in that JDK and the primer number used in the SSL algorithm. In order to fix this you can set the next configuration:
+
+```ruby
+Rollbar.configure do|config|
+  config.endpoint = 'https://api-alt.rollbar.com/api/1/item/'
+end
 ```
 
 

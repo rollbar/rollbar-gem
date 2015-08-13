@@ -24,11 +24,10 @@ describe Rollbar::LoggerProxy do
 
   describe '#call' do
     context 'if the logger fails' do
-      let(:exception) { StandardError.new }
       it 'doesnt raise' do
-        allow(logger).to receive(:info).and_raise(exception)
+        allow(logger).to receive(:info).and_raise(StandardError.new)
 
-        expect { subject.log('info', message) }.not_to raise_error(exception)
+        expect { subject.log('info', message) }.not_to raise_error
       end
     end
   end

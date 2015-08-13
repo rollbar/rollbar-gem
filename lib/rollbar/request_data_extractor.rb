@@ -1,4 +1,3 @@
-require 'multi_json'
 require 'rack'
 
 module Rollbar

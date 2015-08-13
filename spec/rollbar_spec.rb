@@ -444,7 +444,7 @@ describe Rollbar do
 
         payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
 
-        payload['data'][:project_package_paths].should have(2).items
+        expect(payload['data'][:project_package_paths].count).to eq 2
       end
 
       it 'should include a code_version' do
@@ -943,7 +943,7 @@ describe Rollbar do
       filepaths = last_report[:body][:trace][:frames].map {|frame| frame[:filename] }.reverse
 
       expect(filepaths[0]).not_to include(gem_lib_dir)
-      expect(filepaths.any? {|filepath| filepath.include?(gem_dir) }).to be_true
+      expect(filepaths.any? {|filepath| filepath.include?(gem_dir) }).to eq true
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
@@ -1361,7 +1361,7 @@ describe Rollbar do
     it 'should have use the Rails logger when configured to do so' do
       configure
       expect(Rollbar.send(:logger)).to be_kind_of(Rollbar::LoggerProxy)
-      expect(Rollbar.send(:logger).object).should == ::Rails.logger
+      expect(Rollbar.send(:logger).object).to eq ::Rails.logger
     end
 
     it 'should use the default_logger when no logger is set' do
@@ -1720,7 +1720,7 @@ describe Rollbar do
   describe '#custom_data' do
     before do
       Rollbar.configure do |config|
-        config.custom_data_method = proc { raise 'this-will-raise' } 
+        config.custom_data_method = proc { raise 'this-will-raise' }
       end
 
       expect_any_instance_of(Rollbar::Notifier).to receive(:error).and_return(report_data)
