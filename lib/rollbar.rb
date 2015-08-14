@@ -301,9 +301,6 @@ module Rollbar
         }
       }
 
-      access_token = configuration.access_token
-      access_token = extra.delete(:access_token) if extra && extra[:access_token].present?
-
       data[:body] = build_payload_body(message, exception, extra)
       data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
       data[:code_version] = configuration.code_version if configuration.code_version
@@ -320,7 +317,7 @@ module Rollbar
       data.delete(:context) unless data[:context]
 
       payload = {
-        'access_token' => access_token,
+        'access_token' => configuration.access_token,
         'data' => data
       }
 
