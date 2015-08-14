@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.2.0
+
+New feature:
+
+- Allow passing a different access_token in extra parameters. This can be useful if you have a single project that should report to different Rollbar projects.
+
+Bug fix:
+
+- Allow having multiple uploads for the same parameter. Thanks @mdominiak.
+
 ## 2.1.1
 
 Bug fix:
