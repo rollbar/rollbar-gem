@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.1.2
+
+Bug fix:
+
+- Allow having multiple uploads for the same parameter. Thanks @mdominiak.
+
 ## 2.1.1
 
 Bug fix:
