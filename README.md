@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.1.1)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.2.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -12,7 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 2.1.1'
+gem 'rollbar', '~> 2.2.0'
 ```
 
 And then execute:
@@ -226,6 +226,12 @@ class NotificationJob
   end
 end
 ```
+
+## Special extra values
+
+The value for the `extra` argument will be sent to the Rollbar API in the payload, but there are special extra keys that can be used to change the current Rollbar configuration.
+
+* `{ access_token: 'somevalue' }` will change the used access_token for the report, so you can report to different Rollbar projects using the same process.
 
 
 ## Person tracking
