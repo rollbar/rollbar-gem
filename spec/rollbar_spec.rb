@@ -302,6 +302,10 @@ describe Rollbar do
           payload.keys.should match_array(['access_token', 'data'])
         end
 
+        it 'should have the correct access_token' do
+          payload['access_token'].should == Rollbar.configuration.access_token
+        end
+
         it 'should have the correct data keys' do
           payload['data'].keys.should include(:timestamp, :environment, :level, :language, :framework, :server,
             :notifier, :body)
@@ -325,6 +329,14 @@ describe Rollbar do
         it 'should have the correct level and message body' do
           payload['data'][:level].should == 'info'
           payload['data'][:body][:message][:body].should == 'message'
+        end
+
+        context 'with access_token passed in' do
+          let(:extra_data) { {:key => 'value', :hash => {:inner_key => 'inner_value'}, :access_token => 'my-other-access-token'} }
+
+          it 'should use the access_token passed in' do
+            payload['access_token'].should == 'my-other-access-token'
+          end
         end
       end
 
