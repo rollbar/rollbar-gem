@@ -4,7 +4,7 @@ require File.expand_path('../lib/rollbar/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Rollbar, Inc."]
   gem.email         = ["support@rollbar.com"]
-  gem.description   = %q{Rails plugin to catch and send exceptions to Rollbar}
+  gem.description   = %q{Easy and powerful exception tracking for Ruby}
   gem.executables   = ['rollbar-rails-runner']
   gem.summary       = %q{Reports exceptions to Rollbar}
   gem.homepage      = "https://rollbar.com"
