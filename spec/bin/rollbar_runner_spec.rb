@@ -13,23 +13,9 @@ describe Rails::RollbarRunner do
   context 'with file contains define method in top level' do
     # refs: https://github.com/rollbar/rollbar-gem/issues/273
 
-    before do
-      with_dummyapp_dir do
-        File.open('./lib/test_ruunner.rb', 'w') do |file|
-          file.write <<-EOS
-def hello
-  puts 'world'
-end
-
-hello
-EOS
-        end
-      end
-    end
-
     it 'do not raise exceptions' do
       with_dummyapp_dir do
-        expect( `rollbar-rails-runner ./lib/test_ruunner.rb` ).to eq "world\n"
+        expect( `bundle exec rollbar-rails-runner ./lib/test_ruunner_with_define_method_in_top_level.rb` ).to eq "world\n"
       end
     end
   end
