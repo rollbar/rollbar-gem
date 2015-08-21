@@ -14,8 +14,10 @@ describe Rails::RollbarRunner do
     # refs: https://github.com/rollbar/rollbar-gem/issues/273
 
     it 'do not raise exceptions' do
-      with_dummyapp_dir do
-        expect( `bundle exec rollbar-rails-runner ./lib/test_ruunner_with_define_method_in_top_level.rb` ).to eq "world\n"
+      Bundler.with_clean_env do
+        with_dummyapp_dir do
+          expect( `bundle exec rollbar-rails-runner ./lib/test_ruunner_with_define_method_in_top_level.rb` ).to eq "world\n"
+        end
       end
     end
   end
