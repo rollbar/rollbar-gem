@@ -7,8 +7,21 @@ describe Rollbar::Delay::Thread do
     it 'process the payload in a new thread' do
       expect(Rollbar).to receive(:process_payload_safely).with(payload)
 
-      th = described_class.call(payload)
-      th.join
+      described_class.call(payload).join
+    end
+
+    context 'with exceptions processing payload' do
+      let(:exception) { StandardError.new }
+
+      before do
+        expect(Rollbar).to receive(:process_payload_safely).with(payload).and_raise(exception)
+      end
+
+      it 'doesnt raise any exception' do
+        expect do
+          described_class.call(payload).join
+        end.not_to raise_error(exception)
+      end
     end
   end
 end

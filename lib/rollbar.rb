@@ -17,7 +17,7 @@ require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
 require 'rollbar/util'
 require 'rollbar/railtie' if defined?(Rails::VERSION)
-require 'rollbar/delay/girl_friday'
+require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
 
@@ -195,10 +195,39 @@ module Rollbar
       raise e
     end
 
+    # We will reraise exceptions in this method so async queues
+    # can retry the job or, in general, handle an error report some way.
+    #
+    # At same time that exception is silenced so we don't generate
+    # infinite reports. This example is what we want to avoid:
+    #
+    # 1. New exception in a the project is raised
+    # 2. That report enqueued to Sidekiq queue.
+    # 3. The Sidekiq job tries to send the report to our API
+    # 4. The report fails, for example cause a network failure,
+    #    and a exception is raised
+    # 5. We report an internal error for that exception
+    # 6. We reraise the exception so Sidekiq job fails and
+    #    Sidekiq can retry the job reporting the original exception
+    # 7. Cause the job failed and Sidekiq can be managed by rollbar we'll
+    #    report a new exception.
+    # 8. Go to point 2.
+    #
+    # We'll then push to Sidekiq queue indefinitely until the network failure
+    # is fixed.
+    #
+    # Using Rollbar.silenced we avoid the above behavior but Sidekiq
+    # will have a chance to retry the original job.
     def process_payload_safely(payload)
-      process_payload(payload)
-    rescue => e
-      report_internal_error(e)
+      Rollbar.silenced do
+        begin
+          process_payload(payload)
+        rescue => e
+          report_internal_error(e)
+
+          raise
+        end
+      end
     end
 
     def custom_data

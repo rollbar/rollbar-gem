@@ -16,7 +16,13 @@ module Rollbar
       include ::Sidekiq::Worker
 
       def perform(*args)
-        Rollbar.process_payload_safely(*args)
+        begin
+          Rollbar.process_payload_safely(*args)
+        rescue
+          # Raise the exception so Sidekiq can track the errored job
+          # and retry it
+          raise
+        end
       end
     end
   end

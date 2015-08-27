@@ -1708,11 +1708,16 @@ describe Rollbar do
     context 'with errors' do
       let(:exception) { StandardError.new('the error') }
 
-      it 'doesnt raise anything and sends internal error' do
+      it 'raises anything and sends internal error' do
         allow(Rollbar.notifier).to receive(:process_payload).and_raise(exception)
         expect(Rollbar.notifier).to receive(:report_internal_error).with(exception)
 
-        Rollbar.notifier.process_payload_safely({})
+        expect do
+          Rollbar.notifier.process_payload_safely({})
+        end.to raise_error(exception)
+
+        rollbar_do_not_report = exception.instance_variable_get(:@_rollbar_do_not_report)
+        expect(rollbar_do_not_report).to be_eql(true)
       end
     end
   end

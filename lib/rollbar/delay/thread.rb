@@ -6,7 +6,18 @@ module Rollbar
       end
 
       def call(payload)
-        ::Thread.new { Rollbar.process_payload_safely(payload) }
+        ::Thread.new do
+          begin
+            Rollbar.process_payload_safely(payload)
+          rescue
+            # Here we swallow the exception:
+            # 1. The original report wasn't sent.
+            # 2. An internal error was sent and logged
+            #
+            # If users want to handle this in some way they
+            # can provide a more custom Thread based implementation
+          end
+        end
       end
     end
   end
