@@ -209,7 +209,7 @@ module Rollbar
     # 5. We report an internal error for that exception
     # 6. We reraise the exception so Sidekiq job fails and
     #    Sidekiq can retry the job reporting the original exception
-    # 7. Cause the job failed and Sidekiq can be managed by rollbar we'll
+    # 7. Because the job failed and Sidekiq can be managed by rollbar we'll
     #    report a new exception.
     # 8. Go to point 2.
     #
