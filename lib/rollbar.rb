@@ -27,7 +27,7 @@ module Rollbar
     Rack::Multipart::UploadedFile
   ].freeze
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
-                               process_payload process_payload_safely scope send_failsafe log_info log_debug
+                               process_payload process_from_async_handler scope send_failsafe log_info log_debug
                                log_warning log_error silenced)
 
   class Notifier
@@ -218,7 +218,7 @@ module Rollbar
     #
     # Using Rollbar.silenced we avoid the above behavior but Sidekiq
     # will have a chance to retry the original job.
-    def process_payload_safely(payload)
+    def process_from_async_handler(payload)
       Rollbar.silenced do
         begin
           process_payload(payload)

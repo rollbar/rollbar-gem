@@ -17,7 +17,7 @@ module Rollbar
 
       def perform(*args)
         begin
-          Rollbar.process_payload_safely(*args)
+          Rollbar.process_from_async_handler(*args)
         rescue
           # Raise the exception so Sidekiq can track the errored job
           # and retry it

@@ -12,7 +12,7 @@ module Rollbar
 
       def perform(*args)
         begin
-          Rollbar.process_payload_safely(*args)
+          Rollbar.process_from_async_handler(*args)
         rescue
           # SuckerPunch can configure an exception handler with:
           #

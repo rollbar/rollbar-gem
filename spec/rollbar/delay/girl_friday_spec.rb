@@ -17,7 +17,7 @@ describe Rollbar::Delay::GirlFriday do
     end
 
     it 'push the payload into the queue' do
-      expect(Rollbar).to receive(:process_payload_safely).with(payload)
+      expect(Rollbar).to receive(:process_from_async_handler).with(payload)
 
       described_class.call(payload)
     end
@@ -26,7 +26,7 @@ describe Rollbar::Delay::GirlFriday do
       let(:exception) { Exception.new }
 
       before do
-        expect(Rollbar).to receive(:process_payload_safely).with(payload).and_raise(exception)
+        expect(Rollbar).to receive(:process_from_async_handler).with(payload).and_raise(exception)
       end
 
       it 'raises an exception cause we are using immediate queue' do

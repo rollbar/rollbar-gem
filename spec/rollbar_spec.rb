@@ -1704,7 +1704,7 @@ describe Rollbar do
     end
   end
 
-  describe '.process_payload_safely' do
+  describe '.process_from_async_handler' do
     context 'with errors' do
       let(:exception) { StandardError.new('the error') }
 
@@ -1713,7 +1713,7 @@ describe Rollbar do
         expect(Rollbar.notifier).to receive(:report_internal_error).with(exception)
 
         expect do
-          Rollbar.notifier.process_payload_safely({})
+          Rollbar.notifier.process_from_async_handler({})
         end.to raise_error(exception)
 
         rollbar_do_not_report = exception.instance_variable_get(:@_rollbar_do_not_report)

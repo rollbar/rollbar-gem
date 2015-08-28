@@ -8,7 +8,7 @@ module Rollbar
       def call(payload)
         ::Thread.new do
           begin
-            Rollbar.process_payload_safely(payload)
+            Rollbar.process_from_async_handler(payload)
           rescue
             # Here we swallow the exception:
             # 1. The original report wasn't sent.
