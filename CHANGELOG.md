@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.2.0
+
+New features:
+
+- Raise internal exceptions when processing reports from async handlers, instead of swallowing them. This allows queue systems (e.g. Sidekiq, Resque) to track and retry errored jobs. See [#282](https://github.com/rollbar/rollbar-gem/pull/282)
+- Send the error class name when reporting internal errors. See [#283](https://github.com/rollbar/rollbar-gem/pull/283)
+
 ## 2.1.2
 
 Bug fix:

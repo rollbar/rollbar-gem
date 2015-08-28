@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.1.2)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.2.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -12,7 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 2.1.2'
+gem 'rollbar', '~> 2.2.0'
 ```
 
 And then execute:
@@ -665,19 +665,6 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
 
 ## Known Issues
-
-We've received some issues from users having problems when they use [Oj](https://github.com/ohler55/oj) as the JSON serialization library with [MultiJson](https://github.com/intridea/multi_json). To avoid these problems, we recommend upgrading to Oj version 2.11.0:
-
-```ruby
-gem 'oj', '~> 2.11.0'
-```
-
-If you are using Oj but cannot upgrade, you can work around this with:
-
-```ruby
-require 'json'
-MultiJson.use(:json_common)
-```
 
 If you are using jRuby with Oracle and JDK7, you may be expecting some errors sending reports to our API. This is caused by a bug in that JDK and the primer number used in the SSL algorithm. In order to fix this you can set the next configuration:
 
