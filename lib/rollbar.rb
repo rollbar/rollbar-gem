@@ -544,23 +544,28 @@ module Rollbar
     end
 
     def send_failsafe(message, exception)
+      body = 'Failsafe from rollbar-gem: '
       log_error "[Rollbar] Sending failsafe response due to #{message}."
+
       if exception
         begin
+          body += "#{exception.class.name}: #{message}"
           log_error "[Rollbar] #{exception.class.name}: #{exception}"
-        rescue => e
+        rescue
+        end
+      else
+        begin
+          body += message.to_s
+        rescue
         end
       end
 
-      config = configuration
-      environment = config.environment
-
       failsafe_data = {
         :level => 'error',
-        :environment => environment.to_s,
+        :environment => configuration.environment.to_s,
         :body => {
           :message => {
-            :body => "Failsafe from rollbar-gem: #{message}"
+            :body => body
           }
         },
         :notifier => {
@@ -581,6 +586,8 @@ module Rollbar
       rescue => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
+
+      failsafe_payload
     end
 
     def schedule_payload(payload)

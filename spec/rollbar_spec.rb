@@ -1562,16 +1562,26 @@ describe Rollbar do
   end
 
   context "send_failsafe" do
+    let(:exception) { StandardError.new }
+
     it "should not crash when given a message and exception" do
-      begin
-        1 / 0
-      rescue => e
-        notifier.send(:send_failsafe, "test failsafe", e)
-      end
+      sent_payload = notifier.send(:send_failsafe, "test failsafe", exception)
+
+      expected_message = 'Failsafe from rollbar-gem: StandardError: test failsafe'
+      expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
     end
 
     it "should not crash when given all nils" do
       notifier.send(:send_failsafe, nil, nil)
+    end
+
+    context 'without exception object' do
+      it 'just sends the given message' do
+        sent_payload = notifier.send(:send_failsafe, "test failsafe", nil)
+
+        expected_message = 'Failsafe from rollbar-gem: test failsafe'
+        expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
+      end
     end
   end
 
