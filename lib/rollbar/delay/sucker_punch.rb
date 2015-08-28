@@ -11,7 +11,20 @@ module Rollbar
       end
 
       def perform(*args)
-        Rollbar.process_payload_safely(*args)
+        begin
+          Rollbar.process_from_async_handler(*args)
+        rescue
+          # SuckerPunch can configure an exception handler with:
+          #
+          # SuckerPunch.exception_handler { # do something here }
+          #
+          # This is just passed to Celluloid.exception_handler which will
+          # push the reiceved block to an array of handlers, by default empty, [].
+          #
+          # We reraise the exception here casue it's safe and users could have defined
+          # their own exception handler for SuckerPunch
+          raise
+        end
       end
     end
   end

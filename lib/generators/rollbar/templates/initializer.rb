@@ -47,7 +47,7 @@ Rollbar.configure do |config|
   # config.use_async = true
   # Supply your own async handler:
   # config.async_handler = Proc.new { |payload|
-  #  Thread.new { Rollbar.process_payload_safely(payload) }
+  #  Thread.new { Rollbar.process_from_async_handler(payload) }
   # }
 
   # Enable asynchronous reporting (using sucker_punch)
