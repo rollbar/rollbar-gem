@@ -7,7 +7,6 @@ module Rollbar
     def self.encode(object)
       can_be_encoded = object.is_a?(Symbol) || object.is_a?(String)
 
-      return if object.frozen?
       return object unless can_be_encoded
 
       encoding_class.new(object).encode

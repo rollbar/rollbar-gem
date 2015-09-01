@@ -30,6 +30,8 @@ module Rollbar
       private
 
       def force_encoding(value)
+        return value if value.frozen?
+
         value.force_encoding(detect_encoding(value)) if value.encoding == ::Encoding::UTF_8
 
         value
