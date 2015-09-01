@@ -19,7 +19,7 @@ if String.instance_methods.include?(:encode)
   require 'rollbar/encoding/encoder'
   Rollbar::Encoding.encoding_class = Rollbar::Encoding::Encoder
 else
-  Rollbar::Encoding.encoding_class = Rollbar::Encoding::LegacyEncoder
   require 'rollbar/encoding/legacy_encoder'
+  Rollbar::Encoding.encoding_class = Rollbar::Encoding::LegacyEncoder
 end
 
