@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.2.1
+
+Improvement:
+
+- Speed-up payload encoding. See [#285](https://github.com/rollbar/rollbar-gem/pull/285)
+
 ## 2.2.0
 
 New features:
