@@ -4,6 +4,16 @@ module Rollbar
       attr_accessor :encoding_class
     end
 
+    def self.setup
+      if String.instance_methods.include?(:encode)
+        require 'rollbar/encoding/encoder'
+        self.encoding_class = Rollbar::Encoding::Encoder
+      else
+        require 'rollbar/encoding/legacy_encoder'
+        self.encoding_class = Rollbar::Encoding::LegacyEncoder
+      end
+    end
+
     def self.encode(object)
       can_be_encoded = object.is_a?(String) || object.is_a?(Symbol)
 
@@ -14,11 +24,4 @@ module Rollbar
   end
 end
 
-if String.instance_methods.include?(:encode)
-  require 'rollbar/encoding/encoder'
-  Rollbar::Encoding.encoding_class = Rollbar::Encoding::Encoder
-else
-  require 'rollbar/encoding/legacy_encoder'
-  Rollbar::Encoding.encoding_class = Rollbar::Encoding::LegacyEncoder
-end
-
+Rollbar::Encoding.setup
