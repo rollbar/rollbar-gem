@@ -32,6 +32,16 @@ class HomeController < ApplicationController
     this = will_crash
   end
 
+  def set_session_data
+    session[:some_value] = 'this-is-a-cool-value'
+
+    render :json => {}
+  end
+
+  def use_session_data
+    oh = this_is_crashing!
+  end
+
   def current_user
     @current_user ||= User.find_by_id(cookies[:session_id])
   end
