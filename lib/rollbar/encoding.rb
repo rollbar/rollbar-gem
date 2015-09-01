@@ -1,3 +1,5 @@
+require 'rollbar/encoding/encoder'
+
 module Rollbar
   module Encoding
     def self.encode(object)
@@ -5,17 +7,7 @@ module Rollbar
 
       return object unless can_be_encoded
 
-      encoding_class.new(object).encode
-    end
-
-    def self.encoding_class
-      if String.instance_methods.include?(:encode)
-        require 'rollbar/encoding/encoder'
-        Encoder
-      else
-        require 'rollbar/encoding/legacy_encoder'
-        LegacyEncoder
-      end
+      Encoder.new(object).encode
     end
   end
 end
