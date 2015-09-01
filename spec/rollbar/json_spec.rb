@@ -7,23 +7,37 @@ describe Rollbar::JSON do
     Rollbar::JSON.setup
   end
 
+  let(:payload) do
+    { :foo => :bar }
+  end
+
+  let(:options) do
+    {
+      :mode => :compat,
+      :use_to_json => false,
+      :symbol_keys => false,
+      :circular => false
+    }
+  end
+
   describe '.dump' do
     it 'has JSON as backend' do
-      expect(Rollbar::JSON.backend_name).to be_eql(:json)
+      expect(Rollbar::JSON.backend_name).to be_eql(:oj)
     end
 
-    it 'calls JSON.generate' do
-      expect(::JSON).to receive(:generate).once
 
-      Rollbar::JSON.dump(:foo => :bar)
+    it 'calls JSON.generate' do
+      expect(::Oj).to receive(:dump).once.with(payload, options)
+
+      Rollbar::JSON.dump(payload)
     end
   end
 
   describe '.load' do
     it 'calls MultiJson.load' do
-      expect(::JSON).to receive(:load).once
+      expect(::Oj).to receive(:load).once.with(payload, options)
 
-      Rollbar::JSON.load(:foo => :bar)
+      Rollbar::JSON.load(payload)
     end
   end
 end
