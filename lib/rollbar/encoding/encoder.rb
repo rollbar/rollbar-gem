@@ -14,7 +14,7 @@ module Rollbar
       end
 
       def encode
-        value = object.to_s.dup
+        value = object.to_s
         encoding = value.encoding
 
         # This will be most of cases so avoid force anything for them
