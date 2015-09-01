@@ -42,6 +42,7 @@ module Rollbar
 
         ALL_ENCODINGS.detect do |encoding|
           begin
+            # Seems #codepoints is faster than #valid_encoding?
             value.force_encoding(encoding).encode(::Encoding::UTF_8).codepoints
             true
           rescue
