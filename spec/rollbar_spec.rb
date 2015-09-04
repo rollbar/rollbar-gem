@@ -1564,14 +1564,14 @@ describe Rollbar do
   context "send_failsafe" do
     let(:exception) { StandardError.new }
 
-    it "should not crash when given a message and exception" do
+    it "doesn't crash when given a message and exception" do
       sent_payload = notifier.send(:send_failsafe, "test failsafe", exception)
 
-      expected_message = 'Failsafe from rollbar-gem: StandardError: test failsafe'
+      expected_message = 'Failsafe from rollbar-gem. StandardError: test failsafe'
       expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
     end
 
-    it "should not crash when given all nils" do
+    it "doesn't crash when given all nils" do
       notifier.send(:send_failsafe, nil, nil)
     end
 
@@ -1579,7 +1579,20 @@ describe Rollbar do
       it 'just sends the given message' do
         sent_payload = notifier.send(:send_failsafe, "test failsafe", nil)
 
-        expected_message = 'Failsafe from rollbar-gem: test failsafe'
+        expected_message = 'Failsafe from rollbar-gem. test failsafe'
+        expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
+      end
+    end
+
+    context 'if the exception has a backtrace' do
+      let(:backtrace) { ['func3', 'func2', 'func1'] }
+
+      before { exception.set_backtrace(backtrace) }
+
+      it 'adds the nearest frame to the message' do
+        sent_payload = notifier.send(:send_failsafe, "test failsafe", exception)
+
+        expected_message = 'Failsafe from rollbar-gem. StandardError in func3: test failsafe'
         expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
       end
     end
