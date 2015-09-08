@@ -9,7 +9,7 @@ module Rollbar
           block.call(job, *args)
         rescue Exception => e
           if job.attempts >= ::Rollbar.configuration.dj_threshold
-            data = ::Rollbar.configuration.report_dj_data ? job : nil
+            data = ::Rollbar.configuration.report_dj_data ? job.payload_object.to_json : nil
             ::Rollbar.scope(:request => data).error(e, :use_exception_level_filters => true)
           end
           raise e
