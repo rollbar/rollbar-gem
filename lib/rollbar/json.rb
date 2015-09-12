@@ -26,7 +26,9 @@ module Rollbar
     end
 
     def dump(object)
-      dump_method.call(object)
+      # JSON.generate defined above returnes a NoMethodError for key?, needs to be changed to to_json instead
+      # dump_method.call(object)
+      object.to_json
     end
 
     def load(string)
