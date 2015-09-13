@@ -3,11 +3,20 @@ module Rollbar
     extend self
 
     attr_accessor :backend_name
+    attr_accessor :dump_method
     attr_accessor :load_method
 
     def load_native_json
       require 'json' unless defined?(::JSON)
 
+      if ::JSON.respond_to?(:dump_default_options)
+        options = ::JSON.dump_default_options
+      else
+        # Default options from json 1.1.9 up to 1.6.1
+        options = { :allow_nan => true, :max_nesting => false }
+      end
+
+      self.dump_method = proc { |obj| ::JSON.generate(obj, options)  }
       self.load_method    = proc { |obj| ::JSON.load(obj) }
       self.backend_name   = :json
 
@@ -17,8 +26,14 @@ module Rollbar
     end
 
     def dump(object)
-      # JSON.generate defined above returnes a NoMethodError for key?, needs to be changed to to_json instead
-      object.to_json
+      # JSON.generate defined above returnes a NoMethodError for key? for some activerecord definitions
+      begin
+        dump_method.call(object)
+      rescue => e
+        # If exception caught, try to_json 
+        result = object.try(:to_json)
+        raise e if result.nil?
+      end
     end
 
     def load(string)

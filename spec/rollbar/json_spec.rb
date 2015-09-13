@@ -12,8 +12,10 @@ describe Rollbar::JSON do
       expect(Rollbar::JSON.backend_name).to be_eql(:json)
     end
 
-    it 'has correct json output' do
-      expect(Rollbar::JSON.dump(:foo => :bar)).to eq("{\"foo\":\"bar\"}")
+    it 'calls JSON.generate' do
+      expect(::JSON).to receive(:generate).once
+
+      Rollbar::JSON.dump(:foo => :bar)
     end
   end
 
