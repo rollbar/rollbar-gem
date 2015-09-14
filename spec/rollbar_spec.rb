@@ -1586,14 +1586,20 @@ describe Rollbar do
 
     context 'if the exception has a backtrace' do
       let(:backtrace) { ['func3', 'func2', 'func1'] }
+      let(:failsafe_reason) { 'StandardError in func3: test failsafe' }
+      let(:expected_body) { "Failsafe from rollbar-gem. #{failsafe_reason}" }
+      let(:expected_log_message) do
+        "[Rollbar] Sending failsafe response due to #{failsafe_reason}"
+      end
 
       before { exception.set_backtrace(backtrace) }
 
       it 'adds the nearest frame to the message' do
+        expect(notifier).to receive(:log_error).with(expected_log_message)
+
         sent_payload = notifier.send(:send_failsafe, "test failsafe", exception)
 
-        expected_message = 'Failsafe from rollbar-gem. StandardError in func3: test failsafe'
-        expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
+        expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_body)
       end
     end
   end
