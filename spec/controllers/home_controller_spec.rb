@@ -368,7 +368,7 @@ describe HomeController do
       end
     end
 
-    context 'with multiple uploads' do
+    context 'with multiple uploads', :type => :request do
       it "saves attachment data for all uploads" do
         expect { post '/file_upload', :upload => [file1, file2] }.to raise_exception
         sent_params = Rollbar.last_report[:request][:params]['upload']
@@ -376,6 +376,17 @@ describe HomeController do
         expect(sent_params).to be_kind_of(Array)
         expect(sent_params).to have(2).items
       end
+    end
+  end
+
+  context 'with session data', :type => :request do
+    before { get '/set_session_data' }
+    it 'reports the session data' do
+      expect { get '/use_session_data' }.to raise_exception
+
+      session_data = Rollbar.last_report[:request][:session]
+
+      expect(session_data['some_value']).to be_eql('this-is-a-cool-value')
     end
   end
 

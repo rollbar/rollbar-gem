@@ -573,21 +573,11 @@ module Rollbar
     end
 
     def send_failsafe(message, exception)
-      body = 'Failsafe from rollbar-gem: '
-      log_error "[Rollbar] Sending failsafe response due to #{message}."
+      exception_reason = failsafe_reason(message, exception)
 
-      if exception
-        begin
-          body += "#{exception.class.name}: #{message}"
-          log_error "[Rollbar] #{exception.class.name}: #{exception}"
-        rescue
-        end
-      else
-        begin
-          body += message.to_s
-        rescue
-        end
-      end
+      log_error "[Rollbar] Sending failsafe response due to #{exception_reason}"
+
+      body = failsafe_body(exception_reason)
 
       failsafe_data = {
         :level => 'error',
@@ -617,6 +607,34 @@ module Rollbar
       end
 
       failsafe_payload
+    end
+
+    def failsafe_reason(message, exception)
+      body = ''
+
+      if exception
+        begin
+          backtrace = exception.backtrace || []
+          nearest_frame = backtrace[0]
+
+          exception_info = exception.class.name
+          exception_info += " in #{nearest_frame}" if nearest_frame
+
+          body += "#{exception_info}: #{message}"
+        rescue
+        end
+      else
+        begin
+          body += message.to_s
+        rescue
+        end
+      end
+
+      body
+    end
+
+    def failsafe_body(reason)
+      "Failsafe from rollbar-gem. #{reason}"
     end
 
     def schedule_payload(payload)
