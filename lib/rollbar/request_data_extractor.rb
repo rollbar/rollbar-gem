@@ -25,7 +25,7 @@ module Rollbar
       post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
       raw_body_params = rollbar_filtered_params(sensitive_params, mergeable_raw_body_params(rack_req))
       cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
-      session = rollbar_filtered_params(sensitive_params, env['rack.session.options'])
+      session = rollbar_filtered_params(sensitive_params, rollbar_request_session(rack_req))
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
       params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
@@ -148,6 +148,14 @@ module Rollbar
       rescue
         {}
       end
+    end
+
+    def rollbar_request_session(rack_req)
+      session = rack_req.session
+
+      session.to_hash
+    rescue
+      {}
     end
 
     def rollbar_request_cookies(rack_req)
