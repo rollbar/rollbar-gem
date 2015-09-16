@@ -1,7 +1,26 @@
+require 'delayed_job'
+
 module Rollbar
   module Delayed
     class << self
       attr_accessor :wrapped
+    end
+
+    class JobData
+      attr_reader :job
+
+      def initialize(job)
+        @job = job
+      end
+
+      def to_hash
+        job_data = job.as_json
+        # Here job_data['handler'] is a YAML object comming
+        # from the storage backend
+        job_data['handler'] = job.payload_object.as_json
+
+        job_data
+      end
     end
 
     self.wrapped = false
@@ -33,10 +52,15 @@ module Rollbar
     def self.report(e, job)
       return unless job.attempts <= ::Rollbar.configuration.dj_threshold
 
-      job_data = job.as_json
-      data = ::Rollbar.configuration.report_dj_data ? job_data : nil
+      data = build_job_data(job)
 
       ::Rollbar.scope(:request => data).error(e, :use_exception_level_filters => true)
+    end
+
+    def self.build_job_data(job)
+      return nil unless ::Rollbar.configuration.report_dj_data
+
+      JobData.new(job).to_hash
     end
   end
 end
