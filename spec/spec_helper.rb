@@ -20,6 +20,7 @@ Rake::Task['dummy:db:setup'].invoke
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|
+  config.extend(Helpers)
   config.include(NotifierHelpers)
   config.include(FixtureHelpers)
   config.include(EncodingHelpers)
@@ -50,9 +51,5 @@ RSpec.configure do |config|
   else
     config.filter_run_excluding(:skip_dummy_rollbar => true)
   end
-end
-
-def local?
-  ENV['LOCAL'] == '1'
 end
 
