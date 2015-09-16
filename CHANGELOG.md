@@ -1,5 +1,20 @@
 # Change Log
 
+## 2.3.0
+
+Internal changes:
+
+- Use Oj instead of JSON gem for payload serializing. See [#300](https://github.com/rollbar/rollbar-gem/pull/300)
+- Send nearest backtrace entry on failsafe messages. See [#290](https://github.com/rollbar/rollbar-gem/pull/290)
+- Remove whitespace from config template. See [#295](https://github.com/rollbar/rollbar-gem/pull/295)
+
+Bug fixes:
+
+- Send correct hash value for delayed job 'handler' object. See [#301](https://github.com/rollbar/rollbar-gem/pull/301)
+- Fix delayed_job crash reports. See [#293](https://github.com/rollbar/rollbar-gem/pull/293)
+- Send session data instead of session store options. [#289](https://github.com/rollbar/rollbar-gem/pull/289)
+
+
 ## 2.2.1
 
 Improvement:
