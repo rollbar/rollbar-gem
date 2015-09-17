@@ -23,7 +23,18 @@ module Rollbar
     end
 
     def dump(object)
-      dump_method.call(object)
+      # JSON.generate defined above returnes a NoMethodError for key? for some activerecord definitions
+      begin
+        dump_method.call(object)
+      rescue => e
+        # If exception caught, try to_json 
+        result = object.try(:to_json)
+        if result.nil?
+          raise e
+        else
+          result
+        end
+      end
     end
 
     def load(string)
