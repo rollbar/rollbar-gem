@@ -28,5 +28,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'delayed_job'
   gem.add_development_dependency 'rake', '>= 0.9.0'
   gem.add_development_dependency 'redis'
-  gem.add_runtime_dependency     'oj', '~> 2.12.14'
+  gem.add_runtime_dependency     'multi_json'
+  gem.add_development_dependency 'oj', '~> 2.12.14'
 end
