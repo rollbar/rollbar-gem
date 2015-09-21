@@ -11,6 +11,7 @@ gem "racc", :platform => :rbx
 gem "minitest", :platform => :rbx
 gem "rubinius-developer_tools", :platform => :rbx
 gem "rails", "4.2.3"
+gem 'oj', '~> 2.12.14', :platform => [:ruby, :rbx]
 
 gemspec
 gem 'byebug'

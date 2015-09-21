@@ -13,5 +13,6 @@ gem "minitest", :platform => :rbx
 gem "rubysl-test-unit", :platform => :rbx
 gem "rubinius-developer_tools", :platform => :rbx
 gem "rails", "3.2.22"
+gem 'oj', '~> 2.12.14', :platform => [:ruby, :rbx]
 
 gemspec :path => "../"

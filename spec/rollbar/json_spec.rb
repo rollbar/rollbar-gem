@@ -55,23 +55,42 @@ describe Rollbar::JSON do
     end
   end
 
+  describe '.with_adapter' do
+    let(:object) { double(:foo => 'bar') }
+    let(:callback) do
+      proc { object.foo }
+    end
+    let(:adapter) { described_class.detect_multi_json_adapter }
+
+    it 'calls mock.something with an adapter' do
+      expect(MultiJson).to receive(:with_adapter).with(adapter).and_call_original
+      expect(object).to receive(:foo).once
+
+      described_class.with_adapter(&callback)
+    end
+  end
+
+  describe '.detect_multi_json_adapter' do
+    
+  end
+
   describe '.adapter_options' do
     it 'calls .options in adapter module' do
-      expect(described_class.adapter_module).to receive(:options)
+      expect(described_class.options_module).to receive(:options)
 
       described_class.adapter_options
     end
   end
 
-  describe '.adapter_module' do
-    before { described_class.adapter_module = nil }
+  describe '.options_module' do
+    before { described_class.options_module = nil }
 
     context 'with a defined rollbar adapter' do
       let(:expected_adapter) { Rollbar::JSON::MockAdapter }
 
       it 'returns the correct options' do
         MultiJson.with_adapter(MultiJson::Adapters::MockAdapter) do
-          expect(described_class.adapter_module).to be(expected_adapter)
+          expect(described_class.options_module).to be(expected_adapter)
         end
       end
     end
@@ -81,7 +100,7 @@ describe Rollbar::JSON do
 
       it 'returns the correct options' do
         MultiJson.with_adapter(MultiJson::Adapters::MissingCustomOptions) do
-          expect(described_class.adapter_module).to be(expected_adapter)
+          expect(described_class.options_module).to be(expected_adapter)
         end
       end
     end
