@@ -33,6 +33,12 @@ module Rollbar
       self.wrapped = true
     end
 
+    def self.wrap_worker!
+      self.wrapped = false
+
+      wrap_worker
+    end
+
     def self.around_invoke_job(&block)
       ::Delayed::Worker.lifecycle.around(:invoke_job, &block)
     end

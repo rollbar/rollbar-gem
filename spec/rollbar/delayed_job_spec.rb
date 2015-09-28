@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'delayed_job'
 require 'rollbar/delayed_job'
+require 'delayed/backend/test'
 
 describe Rollbar::Delayed, :reconfigure_notifier => true do
   class FailingJob
@@ -12,9 +13,10 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
   end
 
   before do
-    Rollbar::Delayed.wrap_worker
-    Delayed::Worker.backend = :test
+    Delayed::Backend::Test.prepare_worker
+    Rollbar::Delayed.wrap_worker!
 
+    Delayed::Worker.backend = :test
     Delayed::Backend::Test::Job.delete_all
   end
 
