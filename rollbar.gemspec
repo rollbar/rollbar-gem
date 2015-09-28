@@ -1,12 +1,14 @@
 # -*- encoding: utf-8 -*-
 require File.expand_path('../lib/rollbar/version', __FILE__)
 
+def jruby?
+  defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
+end
+
 Gem::Specification.new do |gem|
   gem.authors       = ["Rollbar, Inc."]
   gem.email         = ["support@rollbar.com"]
   gem.description   = %q{Easy and powerful exception tracking for Ruby}
-  gem.extensions << 'ext/mkrf_conf.rb'
-
   gem.executables   = ['rollbar-rails-runner']
   gem.summary       = %q{Reports exceptions to Rollbar}
   gem.homepage      = "https://rollbar.com"
@@ -31,4 +33,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake', '>= 0.9.0'
   gem.add_development_dependency 'redis'
   gem.add_runtime_dependency     'multi_json'
+  gem.add_development_dependency 'oj', '~> 2.12.14' unless jruby?
 end

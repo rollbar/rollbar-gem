@@ -26,7 +26,7 @@ module Rollbar
 
     def detect_multi_json_adapter
       options = {}
-      options[:adapter] = :oj if defined?(Oj)
+      options[:adapter] = :oj if defined?(::Oj)
 
       MultiJson.current_adapter(options)
     end

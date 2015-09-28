@@ -7,6 +7,12 @@ require 'database_cleaner'
 require 'genspec'
 require 'multi_json'
 
+begin
+  require 'oj'
+  MultiJson.use(:oj)
+rescue LoadError
+end
+
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
 end
