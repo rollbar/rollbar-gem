@@ -14,7 +14,13 @@ module Delayed
       end
 
       def self.worker
-        @worker ||= ::Delayed::Worker.new
+        prepare_worker unless @worker
+
+        @worker
+      end
+
+      def self.prepare_worker
+        @worker = ::Delayed::Worker.new
       end
 
       class Job

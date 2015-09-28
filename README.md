@@ -465,10 +465,11 @@ Add the following in ```config/initializers/rollbar.rb```:
 config.use_sidekiq
 ```
 
-You can also supply custom Sidekiq options:
+
+The default Sidekiq queue will be `rollbar` but you can also supply custom Sidekiq options:
 
 ```ruby
-config.use_sidekiq 'queue' => 'my_queue'
+config.use_sidekiq 'queue' => 'default'
 ```
 
 Start the redis server:
