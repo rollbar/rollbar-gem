@@ -14,7 +14,7 @@ namespace :rollbar do
         :local_username => fetch(:rollbar_user),
         :access_token   => fetch(:rollbar_token),
         :environment    => fetch(:rollbar_env),
-        :revision       => fetch(:current_revision) }
+        :revision       => fetch(:rollbar_revision) }
 
       debug "Building Rollbar POST to #{uri} with #{params.inspect}"
 
@@ -36,9 +36,10 @@ end
 
 namespace :load do
   task :defaults do
-    set :rollbar_user,  Proc.new { ENV['USER'] || ENV['USERNAME'] }
-    set :rollbar_env,   Proc.new { fetch :rails_env, 'production' }
-    set :rollbar_token, Proc.new { abort "Please specify the Rollbar access token, set :rollbar_token, 'your token'" }
-    set :rollbar_role,  Proc.new { :app }
+    set :rollbar_user,      Proc.new { ENV['USER'] || ENV['USERNAME'] }
+    set :rollbar_env,       Proc.new { fetch :rails_env, 'production' }
+    set :rollbar_token,     Proc.new { abort "Please specify the Rollbar access token, set :rollbar_token, 'your token'" }
+    set :rollbar_role,      Proc.new { :app }
+    set :rollbar_revision,  Proc.new { fetch :current_revision }
   end
 end
