@@ -1,3 +1,4 @@
+require 'multi_json'
 require 'rollbar/json/oj'
 require 'rollbar/json/default'
 

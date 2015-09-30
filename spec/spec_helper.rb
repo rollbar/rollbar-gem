@@ -5,7 +5,6 @@ require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
 require 'genspec'
-require 'multi_json'
 
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
