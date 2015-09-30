@@ -1,5 +1,3 @@
-require 'rollbar/rails'
-
 Rollbar.configure do |config|
   config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
   config.request_timeout = 60

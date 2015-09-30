@@ -1,12 +1,13 @@
 require 'spec_helper'
 
+
 describe HomeController do
   let(:logger_mock) { double("Rails.logger").as_null_object }
   let(:notifier) { Rollbar.notifier }
 
   before do
     reset_configuration
-    Rollbar::Rails.initialize
+    preconfigure_rails_notifier
     Rollbar.configure do |config|
       config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
       config.logger = logger_mock
@@ -31,7 +32,7 @@ describe HomeController do
 
     it 'should use the default "unspecified" environment if rails env ends up being empty' do
       old_env, ::Rails.env = ::Rails.env, ''
-      Rollbar::Rails.initialize
+      preconfigure_rails_notifier
 
       data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
       data['data'][:environment].should == 'unspecified'
