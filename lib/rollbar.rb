@@ -740,15 +740,10 @@ module Rollbar
 
       yield(configuration)
 
-      configure_json_backend
       require_hooks
       require_core_extensions
 
       reset_notifier!
-    end
-
-    def configure_json_backend
-      Rollbar::JSON.setup
     end
 
     def reconfigure

@@ -1,6 +1,10 @@
 # -*- encoding: utf-8 -*-
 require File.expand_path('../lib/rollbar/version', __FILE__)
 
+def jruby?
+  defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
+end
+
 Gem::Specification.new do |gem|
   gem.authors       = ["Rollbar, Inc."]
   gem.email         = ["support@rollbar.com"]
@@ -28,5 +32,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'delayed_job'
   gem.add_development_dependency 'rake', '>= 0.9.0'
   gem.add_development_dependency 'redis'
-  gem.add_runtime_dependency     'oj', '~> 2.12.14'
+  gem.add_runtime_dependency     'multi_json'
+  gem.add_development_dependency 'oj', '~> 2.12.14' unless jruby?
 end

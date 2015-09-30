@@ -44,7 +44,7 @@ module Delayed
           self.attempts = 0
           self.priority = 0
           self.id = (self.class.id += 1)
-          hash.each { |k, v| send(:"#{k}=", v) }
+          hash.each { |k, v| send("#{k}=", v) }
         end
 
         def self.all
