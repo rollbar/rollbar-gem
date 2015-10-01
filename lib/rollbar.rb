@@ -776,7 +776,6 @@ module Rollbar
       require 'rollbar/goalie' if defined?(Goalie)
       require 'rollbar/rack' if defined?(Rack)
       require 'rollbar/rake' if defined?(Rake)
-      require 'rollbar/better_errors' if defined?(BetterErrors)
     end
 
     def require_core_extensions
