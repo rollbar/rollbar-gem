@@ -1,5 +1,26 @@
 # Change Log
 
+## 2.4.0
+
+Features:
+
+- Allow custom revision name on capistrano integration. See [#312](https://github.com/rollbar/rollbar-gem/pull/312)
+
+Internal changes:
+
+- Restore MultiJson and add custom option modules. Fix #303. See [#304](https://github.com/rollbar/rollbar-gem/pull/304)
+- Don't require rollbar/rails on initializer. See [#310](https://github.com/rollbar/rollbar-gem/pull/310)
+- Fix delayed_job tests for delayed_job >= 4.1. See [#309](https://github.com/rollbar/rollbar-gem/pull/309)
+
+Documentation:
+
+- Change README.md and template to use 'default' Sidekiq queue. See [#306](https://github.com/rollbar/rollbar-gem/pull/306)
+
+Bug fixes:
+
+- Remove better errors hook. This was causing to report twice the errors. See [#313](https://github.com/rollbar/rollbar-gem/pull/300)
+
+
 ## 2.3.0
 
 Internal changes:
