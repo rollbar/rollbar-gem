@@ -528,7 +528,7 @@ module Rollbar
 
       if uri.scheme == 'https'
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
       end
 
       request = Net::HTTP::Post.new(uri.request_uri)
