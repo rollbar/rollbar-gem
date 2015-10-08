@@ -43,9 +43,9 @@ module Rollbar
     def find_options_module
       module_name = multi_json_adapter_module_name
 
-      begin
+      if constants.find{ |const| const.to_s == module_name }
         const_get(module_name)
-      rescue NameError
+      else
         Default
       end
     end
