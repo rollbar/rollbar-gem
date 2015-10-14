@@ -27,6 +27,39 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
       described_class.handle_exception(msg_or_context, exception)
     end
+
+    context 'when set a sidekiq_threshold' do
+      before do
+        Rollbar.configuration.sidekiq_threshold = 2
+      end
+
+      it 'does not send error to rollbar under the threshold' do
+        allow(Rollbar).to receive(:scope).and_return(rollbar)
+        expect(rollbar).to receive(:error).never
+
+        msg_or_context = {"retry" => true, "retry_count" => 1}
+
+        described_class.handle_exception(msg_or_context, exception)
+      end
+
+      it 'sends the error to rollbar above the threshold' do
+        allow(Rollbar).to receive(:scope).and_return(rollbar)
+        expect(rollbar).to receive(:error)
+
+        msg_or_context = {"retry" => true, "retry_count" => 2}
+
+        described_class.handle_exception(msg_or_context, exception)
+      end
+
+      it 'sends the error to rollbar if not retry' do
+        allow(Rollbar).to receive(:scope).and_return(rollbar)
+        expect(rollbar).to receive(:error)
+
+        msg_or_context = {"retry" => false}
+
+        described_class.handle_exception(msg_or_context, exception)
+      end
+    end
   end
 
   describe '#call' do
@@ -43,5 +76,3 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
     end
   end
 end unless RUBY_VERSION == '1.8.7'
-
-

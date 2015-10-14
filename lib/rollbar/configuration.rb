@@ -35,6 +35,7 @@ module Rollbar
     attr_accessor :scrub_fields
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
+    attr_accessor :sidekiq_threshold
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -80,6 +81,7 @@ module Rollbar
                        :confirm_password, :password_confirmation, :secret_token]
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
+      @sidekiq_threshold = 0
       @safely = false
       @use_async = false
       @use_eventmachine = false
