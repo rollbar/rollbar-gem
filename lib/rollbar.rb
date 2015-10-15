@@ -528,7 +528,9 @@ module Rollbar
 
       if uri.scheme == 'https'
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        # This is needed to have 1.8.7 passing tests
+        http.ca_file = ENV['ROLLBAR_SSL_CERT_FILE'] if ENV.has_key?('ROLLBAR_SSL_CERT_FILE')
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
       end
 
       request = Net::HTTP::Post.new(uri.request_uri)
