@@ -30,7 +30,9 @@ module Rollbar
       session = rollbar_filtered_params(sensitive_params, rollbar_request_session(rack_req))
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
-      url_scrubber = Rollbar::Scrubbers::URL.new(:scrub_fields => sensitive_params)
+      url_scrubber = Rollbar::Scrubbers::URL.new(:scrub_fields => sensitive_params,
+                                                 :scrub_user => Rollbar.configuration.scrub_user,
+                                                 :scrub_password => Rollbar.configuration.scrub_password)
       url = url_scrubber.call(rollbar_url(env))
 
       params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)

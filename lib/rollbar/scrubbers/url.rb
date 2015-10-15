@@ -5,14 +5,20 @@ module Rollbar
   module Scrubbers
     class URL
       attr_reader :regex
+      attr_reader :scrub_user
+      attr_reader :scrub_password
 
       def initialize(options = {})
         @regex = build_regex(options[:scrub_fields])
+        @scrub_user = options[:scrub_user]
+        @scrub_password = options[:scrub_password]
       end
 
       def call(url)
         uri = URI(url)
 
+        uri.user = filter_user(uri.user)
+        uri.password = filter_password(uri.password)
         uri.query = filter_query(uri.query)
 
         uri.to_s
@@ -26,6 +32,14 @@ module Rollbar
         fields_or = fields.map { |field| "#{field}(\\[\\])?" }.join('|')
 
         Regexp.new("^#{fields_or}$")
+      end
+
+      def filter_user(user)
+        scrub_user && user ? filtered_value : user
+      end
+
+      def filter_password(password)
+        scrub_password && password ? filtered_value : password
       end
 
       def filter_query(query)
