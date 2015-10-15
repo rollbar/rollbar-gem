@@ -391,6 +391,28 @@ describe HomeController do
     end
   end
 
+  context 'with params to be scrubed from URL', :type => :request do
+    before do
+      Rollbar.configure do |config|
+        config.scrub_fields = [:password]
+      end
+    end
+
+    let(:headers) do
+      {
+        'ORIGINAL_FULLPATH' => '/cause_exception?password=my-secret-password'
+      }
+    end
+
+    it 'scrubs sensible data from URL' do
+      expect { get '/cause_exception', { :password => 'my-secret-password' }, headers }.to raise_exception
+
+      request_data = Rollbar.last_report[:request]
+
+      expect(request_data[:url]).to be_eql('http://www.example.com/cause_exception?password=*')
+    end
+  end
+
   after(:each) do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger
