@@ -28,7 +28,12 @@ module Rollbar
       session = rollbar_filtered_params(sensitive_params, rollbar_request_session(rack_req))
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
-      params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
+      params =
+        if !raw_body_params.empty?
+          raw_body_params
+        else
+          request_params.merge(get_params).merge(post_params)
+        end
 
       data = {
         :params => params,
@@ -121,13 +126,18 @@ module Rollbar
       correct_method = rack_req.post? || rack_req.put? || rack_req.patch?
 
       return {} unless correct_method
-      return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
+      return {} unless request_has_json_body?(rack_req)
 
       Rollbar::JSON.load(rack_req.body.read)
     rescue
       {}
     ensure
       rack_req.body.rewind
+    end
+
+    def request_has_json_body?(rack_req)
+      rack_req.env['CONTENT_TYPE'] =~ %r{application/json} ||
+      rack_req.env['ACCEPT']       =~ /\bjson\b/
     end
 
     def rollbar_request_params(env)

@@ -144,9 +144,17 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
         }
       end
 
-      it 'appear in the sent payload' do
+      it 'appears in the sent payload when application/json is the content type' do
         expect do
           post '/crash_post', params.to_json, { 'CONTENT_TYPE' => 'application/json' }
+        end.to raise_error(exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      end
+
+      it 'appears in the sent payload when the accepts header contains json' do
+        expect do
+          post '/crash_post', params.to_json, { 'ACCEPT' => 'application/vnd.github.v3+json' }
         end.to raise_error(exception)
 
         expect(Rollbar.last_report[:request][:params]).to be_eql(params)
