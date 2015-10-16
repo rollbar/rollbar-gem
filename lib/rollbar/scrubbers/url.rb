@@ -1,5 +1,5 @@
-require 'uri'
 require 'cgi'
+require 'addressable/uri'
 
 module Rollbar
   module Scrubbers
@@ -45,12 +45,20 @@ module Rollbar
       def filter_query(query)
         return query unless query
 
-        params = URI.decode_www_form(query)
+        params = decode_www_form(query)
 
-        encoded_query = URI.encode_www_form(filter_query_params(params))
+        encoded_query = encode_www_form(filter_query_params(params))
 
         # We want this to rebuild array params like foo[]=1&foo[]=2
         CGI.unescape(encoded_query)
+      end
+
+      def decode_www_form(query)
+        Addressable::URI.form_unencode(query)
+      end
+
+      def encode_www_form(params)
+        Addressable::URI.form_encode(params)
       end
 
       def filter_query_params(params)
