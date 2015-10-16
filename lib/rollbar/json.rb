@@ -1,6 +1,7 @@
 require 'multi_json'
 require 'rollbar/json/oj'
 require 'rollbar/json/default'
+require 'rollbar/language_support'
 
 begin
   require 'oj'
@@ -43,8 +44,8 @@ module Rollbar
     def find_options_module
       module_name = multi_json_adapter_module_name
 
-      if Rollbar::JSON.const_defined?(module_name, false)
-        Rollbar::JSON.const_get(module_name, false)
+      if LanguageSupport.const_defined?(Rollbar::JSON, module_name, false)
+        LanguageSupport.const_get(Rollbar::JSON, module_name, false)
       else
         Default
       end
