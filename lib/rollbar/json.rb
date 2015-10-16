@@ -43,8 +43,8 @@ module Rollbar
     def find_options_module
       module_name = multi_json_adapter_module_name
 
-      if const_defined?("::Rollbar::JSON::#{module_name}")
-        const_get(module_name)
+      if Rollbar::JSON.const_defined?(module_name, false)
+        Rollbar::JSON.const_get(module_name, false)
       else
         Default
       end
