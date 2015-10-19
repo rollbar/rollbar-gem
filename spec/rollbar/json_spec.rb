@@ -24,6 +24,11 @@ module MultiJson
   end
 end
 
+module MissingCustomOptions
+  # Consider the fact that there's MultiJson::Adapters::Yajl but not
+  # Rollbar::JSON::Yajl, it should not look for ::Yajl but only
+  # Rollbar::JSON::Yajl.
+end
 
 describe Rollbar::JSON do
   let(:payload) do
