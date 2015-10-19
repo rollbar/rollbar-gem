@@ -22,8 +22,8 @@ jdk:
   - oraclejdk7
   - oraclejdk8
 env:
-  - SKIP_DUMMY_ROLLBAR=true
-  - SKIP_DUMMY_ROLLBAR=false
+  - SKIP_DUMMY_ROLLBAR=true ROLLBAR_SSL_CERT_FILE=/home/travis/build/rollbar/rollbar-gem/spec/cacert.pem
+  - SKIP_DUMMY_ROLLBAR=false ROLLBAR_SSL_CERT_FILE=/home/travis/build/rollbar/rollbar-gem/spec/cacert.pem
 gemfile:
   - gemfiles/rails30.gemfile
   - gemfiles/rails31.gemfile
