@@ -1,6 +1,7 @@
 require 'cgi'
 require 'uri'
-require 'addressable/uri'
+
+require 'rollbar/language_support'
 
 module Rollbar
   module Scrubbers
@@ -16,6 +17,8 @@ module Rollbar
       end
 
       def call(url)
+        return url unless Rollbar::LanguageSupport.can_scrub_url?
+
         uri = URI.parse(url)
 
         uri.user = filter_user(uri.user)
@@ -55,11 +58,11 @@ module Rollbar
       end
 
       def decode_www_form(query)
-        Addressable::URI.form_unencode(query)
+        URI.decode_www_form(query)
       end
 
       def encode_www_form(params)
-        Addressable::URI.form_encode(params)
+        URI.encode_www_form(params)
       end
 
       def filter_query_params(params)

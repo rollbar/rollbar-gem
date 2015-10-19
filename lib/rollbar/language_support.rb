@@ -18,6 +18,10 @@ module Rollbar
       end
     end
 
+    def can_scrub_url?
+      !version?('1.8')
+    end
+
     def ruby_18?
       version?('1.8')
     end
