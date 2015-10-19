@@ -409,7 +409,7 @@ describe HomeController do
 
       request_data = Rollbar.last_report[:request]
 
-      expect(request_data[:url]).to be_eql('http://www.example.com/cause_exception?password=*')
+      expect(request_data[:url]).to match('http:\/\/www.example.com\/cause_exception\?password=\*{3,8}')
     end
   end
 
