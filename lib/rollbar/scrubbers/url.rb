@@ -1,4 +1,5 @@
 require 'cgi'
+require 'uri'
 require 'addressable/uri'
 
 module Rollbar
@@ -15,7 +16,7 @@ module Rollbar
       end
 
       def call(url)
-        uri = URI(url)
+        uri = URI.parse(url)
 
         uri.user = filter_user(uri.user)
         uri.password = filter_password(uri.password)
@@ -72,7 +73,7 @@ module Rollbar
       end
 
       def filtered_value
-        '*'
+        '*' * (rand(5) + 3)
       end
     end
   end

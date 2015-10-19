@@ -40,9 +40,9 @@ describe Rollbar::Scrubbers::URL do
       let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
       it 'returns the URL without any change' do
-        expected_url = 'http://*:*@foo.com/some-interesting-path#fragment'
-        p subject.call(url)
-        expect(subject.call(url)).to be_eql(expected_url)
+        expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
+
+        expect(subject.call(url)).to match(expected_url)
       end
     end
 
@@ -50,18 +50,18 @@ describe Rollbar::Scrubbers::URL do
       let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue#fragment' }
 
       it 'returns the URL with some params filtered' do
-        expected_url = 'http://foo.com/some-interesting-path?foo=bar&password=*&secret=*#fragment'
+        expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{3,8}&secret=\*{3,8}#fragment/
 
-        expect(subject.call(url)).to be_eql(expected_url)
+        expect(subject.call(url)).to match(expected_url)
       end
 
       context 'having array params' do
         let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue#fragment' }
 
         it 'returns the URL with some params filtered' do
-          expected_url = 'http://foo.com/some-interesting-path?foo=bar&password[]=*&password[]=*&secret=*#fragment'
+          expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}#fragment/
 
-          expect(subject.call(url)).to be_eql(expected_url)
+          expect(subject.call(url)).to match(expected_url)
         end
       end
     end
