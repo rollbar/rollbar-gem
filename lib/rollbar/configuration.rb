@@ -33,6 +33,8 @@ module Rollbar
     attr_accessor :root
     attr_accessor :safely
     attr_accessor :scrub_fields
+    attr_accessor :scrub_user
+    attr_accessor :scrub_password
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
     attr_accessor :use_async
@@ -78,6 +80,8 @@ module Rollbar
       @request_timeout = 3
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
+      @scrub_user = true
+      @scrub_password = true
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
       @safely = false
