@@ -6,7 +6,8 @@ describe Rollbar::Scrubbers::URL do
   let(:options) do
     { :scrub_fields => [:password, :secret],
       :scrub_user => false,
-      :scrub_password => false
+      :scrub_password => false,
+      :randomize_scrub_length => true
     }
   end
 
@@ -77,6 +78,24 @@ describe Rollbar::Scrubbers::URL do
 
             expect(subject.call(url)).to match(expected_url)
           end
+        end
+      end
+
+      context 'with no-random scrub length' do
+        let(:options) do
+          { :scrub_fields => [:password, :secret],
+            :scrub_user => false,
+            :scrub_password => false,
+            :randomize_scrub_length => false
+          }
+        end
+        let(:password) { 'longpasswordishere' }
+        let(:url) { "http://foo.com/some-interesting-path?foo=bar&password=#{password}#fragment" }
+
+        it 'scrubs with same length than the scrubbed param' do
+          expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{#{password.length}}#fragment/
+
+          expect(subject.call(url)).to match(expected_url)
         end
       end
     end

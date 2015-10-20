@@ -67,10 +67,9 @@ describe HomeController do
         }
 
         filtered = controller.send( :rollbar_headers, headers )
-        filtered.should == {
-          "Authorization" => "*********",
-          "User-Agent" => "spec"
-        }
+
+        expect(filtered['Authorization']).to match(/\**/)
+        expect(filtered['User-Agent']).to be_eql('spec')
       end
 
       it 'should filter custom headers' do
@@ -85,11 +84,9 @@ describe HomeController do
         }
 
         filtered = controller.send( :rollbar_headers, headers )
-        filtered.should == {
-          "Auth" => "**********",
-          "Token" => "***********",
-          "Content-Type" => "text/html"
-        }
+        expect(filtered['Auth']).to match(/\**/)
+        expect(filtered['Token']).to match(/\**/)
+        expect(filtered['Content-Type']).to be_eql('text/html')
       end
 
     end
@@ -188,11 +185,11 @@ describe HomeController do
 
       filtered = Rollbar.last_report[:request][:params]
 
-      filtered["passwd"].should == "******"
-      filtered["password"].should == "******"
-      filtered["secret"].should == "******"
-      filtered["notpass"].should == "visible"
-      filtered["secret_token"].should == "*" * 32
+      expect(filtered["passwd"]).to match(/\**/)
+      expect(filtered["password"]).to match(/\**/)
+      expect(filtered["secret"]).to match(/\**/)
+      expect(filtered["notpass"]).to match(/\**/)
+      expect(filtered["secret_token"]).to match(/\**/)
     end
 
     it "should scrub custom scrub_fields" do
@@ -214,9 +211,9 @@ describe HomeController do
       filtered["passwd"].should == "visible"
       # config.filter_parameters is set to [:password] in
       # spec/dummyapp/config/application.rb
-      filtered["password"].should == "*******"
-      filtered["secret"].should == "******"
-      filtered["notpass"].should == "******"
+      expect(filtered["password"]).to match(/\**/)
+      expect(filtered["secret"]).to match(/\**/)
+      expect(filtered["notpass"]).to match(/\**/)
     end
   end
 

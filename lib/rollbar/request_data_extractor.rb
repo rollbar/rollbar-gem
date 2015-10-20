@@ -32,7 +32,8 @@ module Rollbar
 
       url_scrubber = Rollbar::Scrubbers::URL.new(:scrub_fields => sensitive_params,
                                                  :scrub_user => Rollbar.configuration.scrub_user,
-                                                 :scrub_password => Rollbar.configuration.scrub_password)
+                                                 :scrub_password => Rollbar.configuration.scrub_password,
+                                                 :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length)
       url = url_scrubber.call(rollbar_url(env))
 
       params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
@@ -53,6 +54,14 @@ module Rollbar
       end
 
       data
+    end
+
+    def rollbar_scrubbed(value)
+      if Rollbar.configuration.randomize_scrub_length
+        random_filtered_value
+      else
+        '*' * (value.length rescue 8)
+      end
     end
 
     private
@@ -219,8 +228,8 @@ module Rollbar
       Rollbar.configuration.scrub_headers || []
     end
 
-    def rollbar_scrubbed(value)
-      '*' * (value.length rescue 8)
+    def random_filtered_value
+      '*' * (rand(5) + 3)
     end
 
     def skip_value?(value)
