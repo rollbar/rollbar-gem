@@ -30,7 +30,7 @@ module Rollbar
 
       params =
         if json_request_missing_content_type?(env)
-          raw_body_params
+          get_params.merge(raw_body_params)
         else
           request_params.merge(get_params).merge(post_params).merge(raw_body_params)
         end
