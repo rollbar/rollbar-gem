@@ -38,6 +38,7 @@ module Rollbar
     attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
+    attr_accessor :verify_ssl_peer
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -89,6 +90,7 @@ module Rollbar
       @safely = false
       @use_async = false
       @use_eventmachine = false
+      @verify_ssl_peer = true
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
     end
