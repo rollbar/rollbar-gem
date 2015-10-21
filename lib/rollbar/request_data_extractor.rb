@@ -29,11 +29,12 @@ module Rollbar
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
       params =
-        if !raw_body_params.empty?
+        if json_request_missing_content_type?(env)
           raw_body_params
         else
-          request_params.merge(get_params).merge(post_params)
+          request_params.merge(get_params).merge(post_params).merge(raw_body_params)
         end
+
 
       data = {
         :params => params,
@@ -126,7 +127,7 @@ module Rollbar
       correct_method = rack_req.post? || rack_req.put? || rack_req.patch?
 
       return {} unless correct_method
-      return {} unless request_has_json_body?(rack_req)
+      return {} unless json_request?(rack_req)
 
       Rollbar::JSON.load(rack_req.body.read)
     rescue
@@ -135,9 +136,19 @@ module Rollbar
       rack_req.body.rewind
     end
 
-    def request_has_json_body?(rack_req)
+    def json_request?(rack_req)
       rack_req.env['CONTENT_TYPE'] =~ %r{application/json} ||
       rack_req.env['ACCEPT']       =~ /\bjson\b/
+    end
+
+    def json_request_missing_content_type?(env)
+      sensitive_params = sensitive_params_list(env)
+      rack_req = ::Rack::Request.new(env)
+      raw_body_params = rollbar_filtered_params(sensitive_params, mergeable_raw_body_params(rack_req))
+
+      env['CONTENT_TYPE'] !~ /application\/json/ &&
+      json_request?(rack_req) &&
+      !raw_body_params.empty?
     end
 
     def rollbar_request_params(env)
@@ -214,6 +225,7 @@ module Rollbar
       end
     end
 
+    # TODO: Maybe this can be memoized?
     def sensitive_params_list(env)
       Array(Rollbar.configuration.scrub_fields) | Array(env['action_dispatch.parameter_filter'])
     end
