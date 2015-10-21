@@ -9,11 +9,13 @@ module Rollbar
       attr_reader :regex
       attr_reader :scrub_user
       attr_reader :scrub_password
+      attr_reader :randomize_scrub_length
 
       def initialize(options = {})
         @regex = build_regex(options[:scrub_fields])
         @scrub_user = options[:scrub_user]
         @scrub_password = options[:scrub_password]
+        @randomize_scrub_length = options.fetch(:randomize_scrub_length, true)
       end
 
       def call(url)
@@ -39,11 +41,11 @@ module Rollbar
       end
 
       def filter_user(user)
-        scrub_user && user ? filtered_value : user
+        scrub_user && user ? filtered_value(user) : user
       end
 
       def filter_password(password)
-        scrub_password && password ? filtered_value : password
+        scrub_password && password ? filtered_value(password) : password
       end
 
       def filter_query(query)
@@ -67,7 +69,7 @@ module Rollbar
 
       def filter_query_params(params)
         params.map do |key, value|
-          [key, filter_key?(key) ? filtered_value : value]
+          [key, filter_key?(key) ? filtered_value(value) : value]
         end
       end
 
@@ -75,7 +77,15 @@ module Rollbar
         !!(key =~ regex)
       end
 
-      def filtered_value
+      def filtered_value(value)
+        if randomize_scrub_length
+          random_filtered_value
+        else
+          '*' * (value.length rescue 8)
+        end
+      end
+
+      def random_filtered_value
         '*' * (rand(5) + 3)
       end
     end

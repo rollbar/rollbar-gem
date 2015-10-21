@@ -35,6 +35,7 @@ module Rollbar
     attr_accessor :scrub_fields
     attr_accessor :scrub_user
     attr_accessor :scrub_password
+    attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
     attr_accessor :use_async
@@ -82,6 +83,7 @@ module Rollbar
                        :confirm_password, :password_confirmation, :secret_token]
       @scrub_user = true
       @scrub_password = true
+      @randomize_scrub_length = true
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
       @safely = false

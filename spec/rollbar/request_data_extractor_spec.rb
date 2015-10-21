@@ -21,7 +21,8 @@ describe Rollbar::RequestDataExtractor do
       scrubber_config = {
         :scrub_fields => kind_of(Array),
         :scrub_user => Rollbar.configuration.scrub_user,
-        :scrub_password => Rollbar.configuration.scrub_password
+        :scrub_password => Rollbar.configuration.scrub_password,
+        :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length
       }
       expect(Rollbar::Scrubbers::URL).to receive(:new).with(scrubber_config).and_return(scrubber)
       expect(scrubber).to receive(:call).with(kind_of(String))
@@ -29,6 +30,32 @@ describe Rollbar::RequestDataExtractor do
       result = subject.extract_request_data_from_rack(env)
 
       expect(result).to be_kind_of(Hash)
+    end
+  end
+
+  describe '#rollbar_scrubbed_value' do
+    context 'with random scrub length' do
+      before do
+        allow(Rollbar.configuration).to receive(:randomize_scrub_length).and_return(true)
+      end
+
+      let(:value) { 'herecomesaverylongvalue' }
+
+      it 'randomizes the scrubbed string' do
+        expect(subject.rollbar_scrubbed(value)).to match(/\*{3,8}/)
+      end
+    end
+
+    context 'with no-random scrub length' do
+      before do
+        allow(Rollbar.configuration).to receive(:randomize_scrub_length).and_return(false)
+      end
+
+      let(:value) { 'herecomesaverylongvalue' }
+
+      it 'randomizes the scrubbed string' do
+        expect(subject.rollbar_scrubbed(value)).to match(/\*{#{value.length}}/)
+      end
     end
   end
 end
