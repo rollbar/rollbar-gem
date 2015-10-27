@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.5.1
+
+Bug fix:
+
+- Fix Rollbar::JSON for MultiJson <= 1.6.0. See [#328](https://github.com/rollbar/rollbar-gem/pull/328)
+
 ## 2.5.0
 
 Features:
