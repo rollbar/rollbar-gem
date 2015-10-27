@@ -59,7 +59,7 @@ module Rollbar
     #
     # In this method we just get the last module name.
     def multi_json_adapter_module_name
-      MultiJson.current_adapter.name[/^MultiJson::Adapters::(.*)$/, 1]
+      detect_multi_json_adapter.name[/^MultiJson::Adapters::(.*)$/, 1]
     end
   end
 end
