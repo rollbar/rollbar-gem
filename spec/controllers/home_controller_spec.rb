@@ -143,6 +143,21 @@ describe HomeController do
       it "should use the remote_addr when neither is set" do
         controller.send(:rollbar_request_data)[:user_ip].should == '0.0.0.0'
       end
+
+      context "rollbar_user_ip obfuscator" do
+        before do
+          Rollbar.configure do |config|
+            config.user_ip_obfuscator_secret = 'secret'
+          end
+        end
+
+        it "should obfuscate the ip when user_ip_obfuscator_secret is set" do
+          real_ip = '1.1.1.1'
+          obfuscated_ip = '95.191.35.149'
+          controller.request.env["HTTP_X_REAL_IP"] = real_ip
+          controller.send(:rollbar_request_data)[:user_ip].should == obfuscated_ip
+        end
+      end
     end
 
     context "rollbar_route_params", :type => 'request' do
