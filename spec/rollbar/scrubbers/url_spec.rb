@@ -98,6 +98,14 @@ describe Rollbar::Scrubbers::URL do
           expect(subject.call(url)).to match(expected_url)
         end
       end
+
+      context 'with malformed URL or not able to be parsed' do
+        let(:url) { '\this\is\not\a\valid\url' }
+
+        it 'return the same url' do
+          expect(subject.call(url)).to be_eql(url)
+        end
+      end
     end
   end
 end
