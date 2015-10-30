@@ -1,6 +1,8 @@
 require 'rack'
 require 'tempfile'
 
+require 'rollbar/scrubbers/url'
+
 module Rollbar
   module RequestDataExtractor
     SKIPPED_CLASSES = [Tempfile]
@@ -28,11 +30,17 @@ module Rollbar
       session = rollbar_filtered_params(sensitive_params, rollbar_request_session(rack_req))
       route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
 
+      url_scrubber = Rollbar::Scrubbers::URL.new(:scrub_fields => sensitive_params,
+                                                 :scrub_user => Rollbar.configuration.scrub_user,
+                                                 :scrub_password => Rollbar.configuration.scrub_password,
+                                                 :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length)
+      url = url_scrubber.call(rollbar_url(env))
+
       params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
 
       data = {
         :params => params,
-        :url => rollbar_url(env),
+        :url => url,
         :user_ip => rollbar_user_ip(env),
         :headers => rollbar_headers(env),
         :cookies => cookies,
@@ -46,6 +54,14 @@ module Rollbar
       end
 
       data
+    end
+
+    def rollbar_scrubbed(value)
+      if Rollbar.configuration.randomize_scrub_length
+        random_filtered_value
+      else
+        '*' * (value.length rescue 8)
+      end
     end
 
     private
@@ -70,7 +86,7 @@ module Rollbar
       env.keys.grep(/^HTTP_/).map do |header|
         name = header.gsub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
         if name == 'Cookie'
-           {}
+          {}
         elsif sensitive_headers_list.include?(name)
           { name => rollbar_scrubbed(env[header]) }
         else
@@ -217,8 +233,8 @@ module Rollbar
       Rollbar.configuration.scrub_headers || []
     end
 
-    def rollbar_scrubbed(value)
-      '*' * (value.length rescue 8)
+    def random_filtered_value
+      '*' * (rand(5) + 3)
     end
 
     def skip_value?(value)

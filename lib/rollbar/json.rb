@@ -1,6 +1,7 @@
 require 'multi_json'
 require 'rollbar/json/oj'
 require 'rollbar/json/default'
+require 'rollbar/language_support'
 
 begin
   require 'oj'
@@ -43,9 +44,9 @@ module Rollbar
     def find_options_module
       module_name = multi_json_adapter_module_name
 
-      begin
-        const_get(module_name)
-      rescue NameError
+      if LanguageSupport.const_defined?(Rollbar::JSON, module_name, false)
+        LanguageSupport.const_get(Rollbar::JSON, module_name, false)
+      else
         Default
       end
     end
@@ -58,7 +59,7 @@ module Rollbar
     #
     # In this method we just get the last module name.
     def multi_json_adapter_module_name
-      MultiJson.current_adapter.name[/^MultiJson::Adapters::(.*)$/, 1]
+      detect_multi_json_adapter.name[/^MultiJson::Adapters::(.*)$/, 1]
     end
   end
 end
