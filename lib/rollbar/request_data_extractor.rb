@@ -131,8 +131,8 @@ module Rollbar
     end
 
     def json_request?(rack_req)
-      rack_req.env['CONTENT_TYPE'] =~ %r{application/json} ||
-      rack_req.env['ACCEPT']       =~ /\bjson\b/
+      !!(rack_req.env['CONTENT_TYPE'] =~ %r{application/json} ||
+         rack_req.env['ACCEPT']       =~ /\bjson\b/)
     end
 
     def rollbar_request_params(env)
