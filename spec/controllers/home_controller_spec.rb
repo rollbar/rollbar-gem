@@ -391,6 +391,16 @@ describe HomeController do
     end
   end
 
+  context 'with json ACCEPT header', :type => 'request' do
+    let(:params) { { :foo => :bar } }
+
+    it 'parses the correct headers' do
+      post '/report_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+
+      expect(Rollbar.last_report[:request][:params]['foo']).to be_eql('bar')
+    end
+  end
+
   after(:each) do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger
