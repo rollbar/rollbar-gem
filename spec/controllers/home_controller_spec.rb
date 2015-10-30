@@ -157,6 +157,12 @@ describe HomeController do
           controller.request.env["HTTP_X_REAL_IP"] = real_ip
           controller.send(:rollbar_request_data)[:user_ip].should == obfuscated_ip
         end
+
+        it "should clear the ip field when an invalid ip is provided" do
+          invalid_ip = '1.1.1.999'
+          controller.request.env["HTTP_X_REAL_IP"] = invalid_ip
+          controller.send(:rollbar_request_data)[:user_ip].should == nil
+        end
       end
     end
 
