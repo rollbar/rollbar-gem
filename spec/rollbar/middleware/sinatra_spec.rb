@@ -154,7 +154,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
 
       it 'appears in the sent payload when the accepts header contains json' do
         expect do
-          post '/crash_post', params.to_json, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+          post '/crash_post', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
         end.to raise_error(exception)
 
         expect(Rollbar.last_report[:request][:params]).to be_eql(params)
