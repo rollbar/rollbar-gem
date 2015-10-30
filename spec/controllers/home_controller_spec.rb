@@ -392,7 +392,9 @@ describe HomeController do
     let(:params) { { :foo => :bar } }
 
     it 'parses the correct headers' do
-      post '/report_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+      expect do
+        post '/cause_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+      end.to raise_exception
 
       expect(Rollbar.last_report[:request][:params]['foo']).to be_eql('bar')
     end
