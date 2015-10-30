@@ -28,6 +28,8 @@ module Rollbar
         uri.query = filter_query(uri.query)
 
         uri.to_s
+      rescue
+        url
       end
 
       private
