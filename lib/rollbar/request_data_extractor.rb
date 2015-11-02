@@ -137,13 +137,18 @@ module Rollbar
       correct_method = rack_req.post? || rack_req.put? || rack_req.patch?
 
       return {} unless correct_method
-      return {} unless rack_req.env['CONTENT_TYPE'] =~ %r{application/json}i
+      return {} unless json_request?(rack_req)
 
       Rollbar::JSON.load(rack_req.body.read)
     rescue
       {}
     ensure
       rack_req.body.rewind
+    end
+
+    def json_request?(rack_req)
+      !!(rack_req.env['CONTENT_TYPE'] =~ %r{application/json} ||
+         rack_req.env['ACCEPT']       =~ /\bjson\b/)
     end
 
     def rollbar_request_params(env)

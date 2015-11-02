@@ -388,6 +388,18 @@ describe HomeController do
     end
   end
 
+  context 'with json ACCEPT header', :type => 'request' do
+    let(:params) { { :foo => :bar } }
+
+    it 'parses the correct headers' do
+      expect do
+        post '/cause_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+      end.to raise_exception
+
+      expect(Rollbar.last_report[:request][:params]['foo']).to be_eql('bar')
+    end
+  end
+
   context 'with params to be scrubed from URL', :type => :request do
     next unless Rollbar::LanguageSupport.can_scrub_url?
 
