@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.5.2
+
+Bug fixes:
+
+- Use ACCEPT header to check json requests. See [#328](https://github.com/rollbar/rollbar-gem/pull/333)
+- Fix URL scrubbing when using a malformed URL. See [#328](https://github.com/rollbar/rollbar-gem/pull/332)
+
 ## 2.5.1
 
 Bug fix:
