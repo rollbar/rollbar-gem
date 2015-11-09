@@ -39,6 +39,7 @@ module Rollbar
     attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
+    attr_accessor :sidekiq_threshold
     attr_accessor :verify_ssl_peer
     attr_accessor :use_async
     attr_accessor :use_eventmachine
@@ -88,6 +89,7 @@ module Rollbar
       @randomize_scrub_length = true
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
+      @sidekiq_threshold = 0
       @safely = false
       @use_async = false
       @use_eventmachine = false
