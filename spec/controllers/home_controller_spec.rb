@@ -8,8 +8,9 @@ describe HomeController do
   before do
     reset_configuration
     preconfigure_rails_notifier
+
     Rollbar.configure do |config|
-      config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+      config.access_token = test_access_token
       config.logger = logger_mock
       config.request_timeout = 60
     end
