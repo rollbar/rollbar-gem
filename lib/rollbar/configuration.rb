@@ -35,6 +35,7 @@ module Rollbar
     attr_accessor :scrub_fields
     attr_accessor :scrub_user
     attr_accessor :scrub_password
+    attr_accessor :user_ip_obfuscator_secret
     attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
