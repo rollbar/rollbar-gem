@@ -14,4 +14,7 @@ gem 'rubinius-developer_tools', :platform => :rbx
 gem 'rails', '3.0.20'
 gem 'hitimes', '< 1.2.2'
 
+gem 'celluloid', '< 0.17.0' if RUBY_VERSION == '1.9.2'
+
+
 gemspec :path => '../'

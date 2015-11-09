@@ -33,9 +33,13 @@ module Rollbar
     attr_accessor :root
     attr_accessor :safely
     attr_accessor :scrub_fields
+    attr_accessor :scrub_user
+    attr_accessor :scrub_password
+    attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
     attr_accessor :sidekiq_threshold
+    attr_accessor :verify_ssl_peer
     attr_accessor :use_async
     attr_accessor :use_eventmachine
     attr_accessor :web_base
@@ -79,12 +83,16 @@ module Rollbar
       @request_timeout = 3
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token]
+      @scrub_user = true
+      @scrub_password = true
+      @randomize_scrub_length = true
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
       @sidekiq_threshold = 0
       @safely = false
       @use_async = false
       @use_eventmachine = false
+      @verify_ssl_peer = true
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
     end

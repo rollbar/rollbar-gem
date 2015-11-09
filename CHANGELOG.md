@@ -1,5 +1,29 @@
 # Change Log
 
+## 2.5.2
+
+Bug fixes:
+
+- Use ACCEPT header to check json requests. See [#328](https://github.com/rollbar/rollbar-gem/pull/333)
+- Fix URL scrubbing when using a malformed URL. See [#328](https://github.com/rollbar/rollbar-gem/pull/332)
+
+## 2.5.1
+
+Bug fix:
+
+- Fix Rollbar::JSON for MultiJson <= 1.6.0. See [#328](https://github.com/rollbar/rollbar-gem/pull/328)
+
+## 2.5.0
+
+Features:
+
+- URL scrubbing for Ruby > 1.8.7. See [#323](https://github.com/rollbar/rollbar-gem/pull/323) and [#235](https://github.com/rollbar/rollbar-gem/pull/325)
+
+Bug fixes:
+
+- Fix Rollbar::JSON so it resolves the correct options module. See [#321](https://github.com/rollbar/rollbar-gem/pull/321)
+- Fix SSL verify mode. See [#320](https://github.com/rollbar/rollbar-gem/pull/320) and [#326](https://github.com/rollbar/rollbar-gem/pull/326)
+
 ## 2.4.0
 
 Features:

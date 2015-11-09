@@ -24,6 +24,11 @@ module MultiJson
   end
 end
 
+module MissingCustomOptions
+  # Consider the fact that there's MultiJson::Adapters::Yajl but not
+  # Rollbar::JSON::Yajl, it should not look for ::Yajl but only
+  # Rollbar::JSON::Yajl.
+end
 
 describe Rollbar::JSON do
   let(:payload) do
@@ -70,10 +75,6 @@ describe Rollbar::JSON do
     end
   end
 
-  describe '.detect_multi_json_adapter' do
-    
-  end
-
   describe '.adapter_options' do
     it 'calls .options in adapter module' do
       expect(described_class.options_module).to receive(:options)
@@ -83,25 +84,26 @@ describe Rollbar::JSON do
   end
 
   describe '.options_module' do
-    before { described_class.options_module = nil }
+    before do
+      described_class.options_module = nil
+      allow(MultiJson).to receive(:current_adapter).and_return(multi_json_module)
+    end
 
     context 'with a defined rollbar adapter' do
+      let(:multi_json_module) { MultiJson::Adapters::MockAdapter }
       let(:expected_adapter) { Rollbar::JSON::MockAdapter }
 
       it 'returns the correct options' do
-        MultiJson.with_adapter(MultiJson::Adapters::MockAdapter) do
-          expect(described_class.options_module).to be(expected_adapter)
-        end
+        expect(described_class.options_module).to be(expected_adapter)
       end
     end
 
     context 'without a defined rollbar adapter' do
+      let(:multi_json_module) { MultiJson::Adapters::MissingCustomOptions }
       let(:expected_adapter) { Rollbar::JSON::Default }
 
       it 'returns the correct options' do
-        MultiJson.with_adapter(MultiJson::Adapters::MissingCustomOptions) do
-          expect(described_class.options_module).to be(expected_adapter)
-        end
+        expect(described_class.options_module).to be(expected_adapter)
       end
     end
   end

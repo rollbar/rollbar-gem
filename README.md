@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.4.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.5.2)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -12,7 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 2.4.0'
+gem 'rollbar', '~> 2.5.2'
 ```
 
 If you are not using JRuby we suggest using [Oj](https://github.com/ohler55/oj) for JSON serialization. In order to install Oj you can add this line to your Gemfile:
@@ -661,6 +661,16 @@ If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pa
 ## Using with Resque
 
 Check out [resque-rollbar](https://github.com/dimko/resque-rollbar) for using Rollbar as a failure backend for Resque.
+
+## SSL
+
+By default we use `OpenSSL::SSL::VERIFY_PEER` for SSL very mode. Although we don't recommend change it, you can disable peer verification in case you experience SSL connection problems:
+
+```ruby
+Rollbar.configure do |config|
+  config.verify_ssl_peer = false
+end
+```
 
 
 ## Using with Zeus
