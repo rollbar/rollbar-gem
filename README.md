@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.5.2)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.6.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -12,7 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 2.5.2'
+gem 'rollbar', '~> 2.6.0'
 ```
 
 If you are not using JRuby we suggest using [Oj](https://github.com/ohler55/oj) for JSON serialization. In order to install Oj you can add this line to your Gemfile:
@@ -347,6 +347,12 @@ And ```Rollbar.configuration.scrub_headers```:
 Rollbar.configuration.scrub_headers |= ["X-Access-Token"]
 ```
 
+If you want to obfuscate the user IP reported to the Rollbar API you can configure a secret to do it and a different IP address from the original will be reported:
+
+```
+Rollbar.configuration.user_ip_obfuscator_secret = "a-private-secret-here"
+```
+
 ## Including additional runtime data
 
 You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
@@ -488,6 +494,12 @@ Start Sidekiq from the root directory of your Rails app and declare the name of 
 
 ```bash
 $ bundle exec sidekiq -q rollbar
+```
+
+For every errored job a new report will be sent to Rollbar API, also for errored retried jobs. You can configure the retries threshold to start reporting to rollbar:
+
+```ruby
+config.sidekiq_threshold = 3 # Start reporting from 3 retries jobs
 ```
 
 ### Using Resque
