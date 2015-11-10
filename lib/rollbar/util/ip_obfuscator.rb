@@ -1,6 +1,6 @@
 module Rollbar
   module Util
-    module Obfuscator
+    module IPObfuscator
       require 'ipaddr'
       require 'digest'
 

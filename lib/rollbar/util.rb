@@ -1,5 +1,5 @@
 require 'rollbar/util/hash'
-require 'rollbar/util/obfuscator'
+
 
 module Rollbar
   module Util
