@@ -2,6 +2,7 @@ require 'rack'
 require 'tempfile'
 
 require 'rollbar/scrubbers/url'
+require 'rollbar/util/ip_obfuscator'
 
 module Rollbar
   module RequestDataExtractor
@@ -118,7 +119,7 @@ module Rollbar
     def rollbar_user_ip(env)
       user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR']).to_s
 
-      Rollbar::Util::Obfuscator.obfuscate_ip(user_ip_string)
+      Rollbar::Util::IPObfuscator.obfuscate_ip(user_ip_string)
     rescue
       nil
     end
