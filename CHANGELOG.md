@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.6.0
+
+Features
+
+- Sidekiq threshold for retried jobs. Allows you define a minimum number of retries to start reporting errors to Rollbar. See [#336](https://github.com/rollbar/rollbar-gem/pull/336).
+- User IP obfuscator. See [#331](https://github.com/rollbar/rollbar-gem/pull/331)  and [#338](https://github.com/rollbar/rollbar-gem/pull/338).
+
 ## 2.5.2
 
 Bug fixes:
