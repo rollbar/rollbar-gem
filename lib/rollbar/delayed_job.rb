@@ -56,11 +56,15 @@ module Rollbar
     end
 
     def self.report(e, job)
-      return unless job.attempts <= ::Rollbar.configuration.dj_threshold
+      return if skip_report?(job)
 
       data = build_job_data(job)
 
       ::Rollbar.scope(:request => data).error(e, :use_exception_level_filters => true)
+    end
+
+    def self.skip_report?(job)
+      job.attempts < ::Rollbar.configuration.dj_threshold
     end
 
     def self.build_job_data(job)

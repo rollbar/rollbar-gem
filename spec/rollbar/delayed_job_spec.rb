@@ -58,4 +58,29 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       end
     end
   end
+
+  describe '.skip_report' do
+    let(:configuration) { Rollbar.configuration }
+    let(:threshold) { 5 }
+
+    before do
+      allow(configuration).to receive(:dj_threshold).and_return(threshold)
+    end
+
+    context 'with attempts > configuration.dj_threshold' do
+      let(:job) { double(:attempts => 6) }
+
+      it 'returns true' do
+        expect(described_class.skip_report?(job)).to be(false)
+      end
+    end
+
+    context 'with attempts < configuration.dj_threshold' do
+      let(:job) { double(:attempts => 3) }
+
+      it 'returns false' do
+        expect(described_class.skip_report?(job)).to be(true)
+      end
+    end
+  end
 end
