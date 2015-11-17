@@ -231,8 +231,9 @@ module Rollbar
     end
 
     def custom_data
-      data = configuration.custom_data_method.call
+      data = configuration.payload_options[:extra].call
       Rollbar::Util.deep_copy(data)
+
     rescue => e
       return {} if configuration.safely?
 
@@ -344,6 +345,7 @@ module Rollbar
       # Our API doesn't allow null context values, so just delete
       # the key if value is nil.
       data.delete(:context) unless data[:context]
+      data.delete(:extra)
 
       payload = {
         'access_token' => configuration.access_token,
@@ -356,7 +358,9 @@ module Rollbar
     end
 
     def build_payload_body(message, exception, extra)
-      extra = Rollbar::Util.deep_merge(custom_data, extra || {}) if custom_data_method?
+      if custom_data_method? && configuration.payload_options[:extra].respond_to?(:call)
+        extra = Rollbar::Util.deep_merge(custom_data, extra || {})
+      end
 
       if exception
         build_payload_body_exception(message, exception, extra)
@@ -366,7 +370,7 @@ module Rollbar
     end
 
     def custom_data_method?
-      !!configuration.custom_data_method
+      !!(configuration.custom_data_method || configuration.custom_values)
     end
 
     def report_custom_data_error(e)

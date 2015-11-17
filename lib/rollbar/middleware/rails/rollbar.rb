@@ -42,7 +42,8 @@ module Rollbar
           {
             :request => proc { request_data(env) },
             :person => person_data_proc(env),
-            :context => proc { context(request_data(env)) }
+            :context => proc { context(request_data(env)) },
+            :extra => proc { request_custom_data(env) }
           }
         end
 
@@ -63,6 +64,10 @@ module Rollbar
           return block unless(defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?)
 
           proc { ActiveRecord::Base.connection_pool.with_connection(&block) }
+        end
+
+        def request_custom_data(env)
+          Thread.current[:'_rollbar.rails.custom_data'] ||= extract_custom_data_from_rack(env)
         end
 
         def context(request_data)
