@@ -370,7 +370,7 @@ module Rollbar
     end
 
     def custom_data_method?
-      !!(configuration.custom_data_method || configuration.custom_values)
+      !!(Rollbar.configuration.custom_data_method || Rollbar.configuration.custom_values.count > 0)
     end
 
     def report_custom_data_error(e)

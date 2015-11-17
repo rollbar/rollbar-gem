@@ -14,6 +14,7 @@ module Rollbar
 
         def call(env)
           self.request_data = nil
+          self.request_custom_data = nil
 
           Rollbar.reset_notifier!
 
@@ -68,6 +69,10 @@ module Rollbar
 
         def request_custom_data(env)
           Thread.current[:'_rollbar.rails.custom_data'] ||= extract_custom_data_from_rack(env)
+        end
+
+        def request_custom_data=(value)
+          Thread.current[:'_rollbar.rails.custom_data'] = value
         end
 
         def context(request_data)

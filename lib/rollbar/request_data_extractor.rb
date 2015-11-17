@@ -58,14 +58,16 @@ module Rollbar
     end
 
     def extract_custom_data_from_rack(env)
-      # Only extract custom data if we've defined a custom_data_method, or specific values on the controller
-      controller_values = Rollbar.configuration.custom_values
-      custom_data_block = Rollbar.configuration.custom_data_method
-
-      return {} if controller_values.empty? && !custom_data_block
-
       controller = env["action_controller.instance"]
-      return {} if !controller
+      if !controller
+        Rollbar.configuration.custom_data_method.call
+        return
+      end
+
+      # Only extract custom data if we've defined a custom_data_method, or specific values on the controller
+      controller_values = Rollbar.configuration.custom_values[controller.class.name.parameterize] || []
+      custom_data_block = Rollbar.configuration.custom_data_method
+      return {} if controller_values.empty? && !custom_data_block
 
       custom_data = custom_data_block ? controller.instance_exec(&custom_data_block) : {}
       custom_data.tap do |h|

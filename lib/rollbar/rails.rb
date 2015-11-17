@@ -7,7 +7,7 @@ module Rollbar
 
     module ClassMethods
       def on_exception_log_values(*vars)
-        Rollbar.configuration.custom_values = [*vars].map(&:to_s)
+        Rollbar.configuration.custom_values.merge!({ self.name.parameterize => [*vars].map(&:to_s) })
       end
     end
 

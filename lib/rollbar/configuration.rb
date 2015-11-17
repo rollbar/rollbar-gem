@@ -58,7 +58,7 @@ module Rollbar
       @async_handler = nil
       @code_version = nil
       @custom_data_method = nil
-      @custom_values = []
+      @custom_values = {}
       @default_logger = lambda { Logger.new(STDERR) }
       @delayed_job_enabled = true
       @disable_monkey_patch = false
