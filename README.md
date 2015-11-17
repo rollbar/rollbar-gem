@@ -355,7 +355,7 @@ Rollbar.configuration.user_ip_obfuscator_secret = "a-private-secret-here"
 
 ## Including additional runtime data
 
-You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
+You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash. This lambda has access to controller variables and methods.
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -368,6 +368,19 @@ config.custom_data_method = lambda {
 This data will appear in the Occurrences tab and on the Occurrence Detail pages in the Rollbar interface.
 
 If your `custom_data_method` crashes while reporting an error, Rollbar will report that new error and will attach its uuid URL to the parent error report.
+
+## Configuring additional data at the controller level
+
+Sometimes it's useful to be able to define additional runtime data to include at the controller level, rather than through a global initializer.
+
+Add the following to your controller:
+
+```ruby
+include Rollbar::Rails
+on_exception_log_values :@response_body, :@an_instance_variable, :a_private_method
+```
+
+Variables and methods can be referenced in this list, and will be evaluated before being sent to Rollbar.
 
 ## Exception level filters
 
