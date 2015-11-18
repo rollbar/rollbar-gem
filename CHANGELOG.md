@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.6.1
+
+Bug fix:
+
+- Don't skip delayed_job reports if attempts > dj_threshold. See [#340](https://github.com/rollbar/rollbar-gem/pull/340).
+
 ## 2.6.0
 
 Features
