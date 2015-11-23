@@ -59,6 +59,18 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         described_class.handle_exception(msg_or_context, exception)
       end
+      
+      it 'does not blow up and sends the error to rollbar if retry is true but there is no retry count' do
+        allow(Rollbar).to receive(:scope).and_return(rollbar)
+        expect(rollbar).to receive(:error)
+
+        msg_or_context = {"retry" => true}
+
+        expect {
+          described_class.handle_exception(msg_or_context, exception)
+        }.to_not raise_error
+      end
+      
     end
   end
 

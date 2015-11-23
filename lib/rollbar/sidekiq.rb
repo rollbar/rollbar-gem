@@ -14,7 +14,8 @@ module Rollbar
     end
 
     def self.skip_report?(msg_or_context, e)
-      msg_or_context.is_a?(Hash) && msg_or_context["retry"] && msg_or_context["retry_count"] < ::Rollbar.configuration.sidekiq_threshold
+      msg_or_context.is_a?(Hash) && msg_or_context["retry"] && 
+        msg_or_context["retry_count"] && msg_or_context["retry_count"] < ::Rollbar.configuration.sidekiq_threshold
     end
 
     def call(worker, msg, queue)
