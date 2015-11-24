@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.6.2
+
+Bug fix:
+
+- Fix crash when sidekik job has `retry` key but not `retry_count`. See [#346](https://github.com/rollbar/rollbar-gem/pull/346).
+
 ## 2.6.1
 
 Bug fix:
