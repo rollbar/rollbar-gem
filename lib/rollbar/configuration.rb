@@ -83,7 +83,8 @@ module Rollbar
       @report_dj_data = true
       @request_timeout = 3
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
-                       :confirm_password, :password_confirmation, :secret_token]
+                       :confirm_password, :password_confirmation, :secret_token,
+                       :api_key, :access_token ]
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true
