@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.6.3
+
+Change:
+
+- Add default scrub fields, "api_key" and "access_token". See [#348](https://github.com/rollbar/rollbar-gem/pull/348).
+
+
 ## 2.6.2
 
 Bug fix:
