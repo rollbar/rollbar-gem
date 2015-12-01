@@ -12,9 +12,13 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
   end
 
+  before(:all) do
+    # technically, this is called once when rollbar hooks are required
+    Rollbar::Delayed.wrap_worker!
+  end
+
   before do
     Delayed::Backend::Test.prepare_worker
-    Rollbar::Delayed.wrap_worker!
 
     Delayed::Worker.backend = :test
     Delayed::Backend::Test::Job.delete_all
