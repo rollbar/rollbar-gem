@@ -703,6 +703,11 @@ Rollbar.configure do|config|
 end
 ```
 
+## Supported Language/Framework Versions
+
+We support Ruby >= 1.8.7.
+
+We support Rails >= 3.0.
 
 ## Help / Support
 
