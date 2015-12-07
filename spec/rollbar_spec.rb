@@ -1575,6 +1575,17 @@ describe Rollbar do
       notifier.send(:send_failsafe, nil, nil)
     end
 
+    context 'with a non default exception message' do
+      let(:exception) { StandardError.new 'Something is wrong' }
+
+      it 'adds it to exception info' do
+        sent_payload = notifier.send(:send_failsafe, "test failsafe", exception)
+
+        expected_message = 'Failsafe from rollbar-gem. StandardError: "Something is wrong": test failsafe'
+        expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
+      end
+    end
+
     context 'without exception object' do
       it 'just sends the given message' do
         sent_payload = notifier.send(:send_failsafe, "test failsafe", nil)
