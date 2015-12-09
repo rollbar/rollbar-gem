@@ -23,12 +23,18 @@ module Rollbar
       end
     end
 
+    class RollbarPlugin < ::Delayed::Plugin
+      callbacks do |lifecycle|
+        lifecycle.around(:invoke_job, &Delayed::invoke_job_callback)
+      end
+    end
+
     self.wrapped = false
 
     def self.wrap_worker
       return if wrapped
 
-      around_invoke_job(&invoke_job_callback)
+      ::Delayed::Worker.plugins << RollbarPlugin
 
       self.wrapped = true
     end
@@ -37,10 +43,6 @@ module Rollbar
       self.wrapped = false
 
       wrap_worker
-    end
-
-    def self.around_invoke_job(&block)
-      ::Delayed::Worker.lifecycle.around(:invoke_job, &block)
     end
 
     def self.invoke_job_callback
