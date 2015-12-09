@@ -446,6 +446,8 @@ If you use [custom jobs](https://github.com/collectiveidea/delayed_job#custom-jo
 config.delayed_job_enabled = false
 ```
 
+Only versions >= 3.0 of delayed_job are supported.
+
 
 ## Asynchronous reporting
 
