@@ -442,7 +442,7 @@ module Rollbar
       traces = [trace_data(exception)]
       visited = [exception]
 
-      while exception.respond_to?(:cause) && (cause = exception.cause) && !visited.include?(cause)
+      while exception.respond_to?(:cause) && (cause = exception.cause) && cause.is_a?(Exception) && !visited.include?(cause)
         traces << trace_data(cause)
         visited << cause
         exception = cause
