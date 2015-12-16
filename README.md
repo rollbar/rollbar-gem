@@ -15,12 +15,6 @@ Add this line to your application's Gemfile:
 gem 'rollbar', '~> 2.7.0'
 ```
 
-If you are not using JRuby we suggest using [Oj](https://github.com/ohler55/oj) for JSON serialization. In order to install Oj you can add this line to your Gemfile:
-
-```ruby
-gem 'oj', '~> 2.12.14'
-```
-
 And then execute:
 
 ```bash
@@ -28,6 +22,14 @@ $ bundle install
 # Or if you don't use bundler:
 $ gem install rollbar
 ```
+
+Unless you are using JRuby, we suggest also installing [Oj](https://github.com/ohler55/oj) for JSON serialization. Add this line to your Gemfile:
+
+```ruby
+gem 'oj', '~> 2.12.14'
+```
+
+and then `bundle install` again.
 
 ### If using Rails
 
