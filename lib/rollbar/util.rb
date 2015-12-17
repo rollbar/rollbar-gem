@@ -65,11 +65,11 @@ module Rollbar
       end
     end
 
-    def self.deep_merge(hash1, hash2)
+    def self.deep_merge(hash1 = {}, hash2 = {})
       hash2.each_key do |k|
-        if hash1[k].is_a? ::Hash and hash2[k].is_a? ::Hash
+        if hash1[k].is_a?(::Hash) && hash2[k].is_a?(::Hash)
           hash1[k] = deep_merge(hash1[k], hash2[k])
-        elsif hash1[k].is_a? Array and hash2[k].is_a? Array
+        elsif hash1[k].is_a?(Array) && hash2[k].is_a?(Array)
           hash1[k] += deep_copy(hash2[k])
         elsif hash2[k]
           hash1[k] = deep_copy(hash2[k])
