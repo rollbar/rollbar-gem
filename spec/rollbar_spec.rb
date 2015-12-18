@@ -646,6 +646,13 @@ describe Rollbar do
             chain[1][:exception][:message].should match(/the cause/)
           end
 
+          it 'ignores the cause when it is not an Exception' do
+            exception_with_custom_cause = Exception.new('custom cause')
+            allow(exception_with_custom_cause).to receive(:cause) { "Foo" }
+            body = notifier.send(:build_payload_body_exception, message, exception_with_custom_cause, extra)
+            body[:trace].should_not be_nil
+          end
+
           context 'with cyclic nested exceptions' do
             let(:exception1) { Exception.new('exception1') }
             let(:exception2) { Exception.new('exception2') }
