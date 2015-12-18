@@ -2,7 +2,6 @@
 
 require 'logger'
 require 'socket'
-require 'spec_helper'
 require 'girl_friday'
 require 'redis'
 require 'active_support/core_ext/object'
@@ -13,6 +12,8 @@ begin
   require 'sucker_punch/testing/inline'
 rescue LoadError
 end
+
+require 'spec_helper'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
