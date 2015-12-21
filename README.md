@@ -406,7 +406,7 @@ exception = MyException.new('this is a message')
 Rollbar.error(exception)
 ```
 
-You will notice a backtrace doesn't appear in your Rollbar dashboard. This is because `exception.backtrace` is `nil` in these cases. We can send the current backtrace for you even your exception doesn't have it. In order to enable this feature you should configure Rollbar in this way:
+You will notice a backtrace doesn't appear in your Rollbar dashboard. This is because `exception.backtrace` is `nil` in these cases. We can send the current backtrace for you even if your exception doesn't have it. In order to enable this feature you should configure Rollbar in this way:
 
 ```ruby
 Rollbar.configure do |config|
