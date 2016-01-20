@@ -379,7 +379,7 @@ By default, all uncaught exceptions are reported at the "error" level, except fo
 - ```AbstractController::ActionNotFound```
 - ```ActionController::RoutingError```
 
-If you'd like to customize this list, modify the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all. For example, to ignore 404s, and treat `NoMethodError`s as critical bugs you can use the following code:
+If you'd like to customize this list, modify the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all. For example, to ignore 404s and treat `NoMethodError`s as critical bugs, you can use the following code:
 
 ```ruby
 config.exception_level_filters.merge!({
