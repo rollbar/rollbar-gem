@@ -120,8 +120,9 @@ begin
   run_script ARGV
 
   Rollbar.info "Script ran successfully"
-rescue Exception => e
+rescue Exception => e # Never rescue Exception *unless* you re-raise in rescue body
   Rollbar.log e
+  raise e
 end
 ```
 
