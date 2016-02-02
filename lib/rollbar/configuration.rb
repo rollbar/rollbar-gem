@@ -41,6 +41,7 @@ module Rollbar
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
     attr_accessor :sidekiq_threshold
+    attr_accessor :transform
     attr_accessor :verify_ssl_peer
     attr_accessor :use_async
     attr_accessor :use_eventmachine
@@ -94,6 +95,7 @@ module Rollbar
       @scrub_headers = ['Authorization']
       @sidekiq_threshold = 0
       @safely = false
+      @transform = []
       @use_async = false
       @use_eventmachine = false
       @verify_ssl_peer = true
@@ -168,6 +170,10 @@ module Rollbar
 
     def before_process=(*handler)
       @before_process = Array(handler)
+    end
+
+    def transform=(*handler)
+      @transform = Array(handler)
     end
 
     # allow params to be read like a hash

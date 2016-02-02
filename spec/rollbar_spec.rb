@@ -213,6 +213,88 @@ describe Rollbar do
       end
     end
 
+    context 'with transform handlers in configuration' do
+      let!(:notifier) { Rollbar::Notifier.new }
+      let(:payload_options) { { :bar => :foo } }
+      let(:configuration) do
+        config = Rollbar::Configuration.new
+        config.enabled = true
+        config.payload_options = payload_options
+        config
+      end
+      let(:message) { 'message' }
+      let(:exception) { Exception.new }
+      let(:extra) { {:foo => :bar } }
+      let(:level) { 'error' }
+
+      before do
+        notifier.configuration = configuration
+      end
+
+      context 'without mutation in payload' do
+        let(:handler) do
+          proc do |options|
+
+          end
+        end
+
+        before do
+          configuration.transform = handler
+        end
+
+        it 'calls the handler with the correct options' do
+          options = {
+            :level => level,
+            :scope => payload_options,
+            :exception => exception,
+            :message => message,
+            :extra => extra,
+            :payload => kind_of(Hash)
+          }
+          expect(handler).to receive(:call).with(options).and_call_original
+          expect(notifier).to receive(:schedule_payload).with(kind_of(Hash))
+
+          notifier.log(level, message, exception, extra)
+        end
+      end
+
+      context 'with mutation in payload' do
+        let(:new_payload) do
+          {
+            'access_token' => notifier.configuration.access_token,
+            'data' => {
+            }
+          }
+        end
+        let(:handler) do
+          proc do |options|
+            payload = options[:payload]
+
+            payload.replace(new_payload)
+          end
+        end
+
+        before do
+          configuration.transform = handler
+        end
+
+        it 'calls the handler with the correct options' do
+          options = {
+            :level => level,
+            :scope => payload_options,
+            :exception => exception,
+            :message => message,
+            :extra => extra,
+            :payload => kind_of(Hash)
+          }
+          expect(handler).to receive(:call).with(options).and_call_original
+          expect(notifier).to receive(:schedule_payload).with(new_payload)
+
+          notifier.log(level, message, exception, extra)
+        end
+      end
+    end
+
     context 'debug/info/warning/error/critical' do
       let(:exception) do
         begin

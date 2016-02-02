@@ -124,7 +124,10 @@ module Rollbar
       return 'ignored' if ignored?(exception, use_exception_level_filters)
 
       begin
-        call_before_process(level, exception, message, extra)
+        call_before_process(:level => level,
+                            :exception => exception,
+                            :message => message,
+                            :extra => extra)
       rescue Rollbar::Ignore
         return 'ignored'
       end
@@ -234,13 +237,13 @@ module Rollbar
 
     private
 
-    def call_before_process(level, exception, message, extra)
+    def call_before_process(options)
       options = {
-        :level => level,
+        :level => options[:level],
         :scope => configuration.payload_options,
-        :exception => exception,
-        :message => message,
-        :extra => extra
+        :exception => options[:exception],
+        :message => options[:message],
+        :extra => options[:extra]
       }
       handlers = configuration.before_process
 
@@ -385,7 +388,27 @@ module Rollbar
 
       enforce_valid_utf8(payload)
 
+      call_transform(:level => level,
+                     :exception => exception,
+                     :message => message,
+                     :extra => extra,
+                     :payload => payload)
+
       payload
+    end
+
+    def call_transform(options)
+      options = {
+        :level => options[:level],
+        :scope => configuration.payload_options,
+        :exception => options[:exception],
+        :message => options[:message],
+        :extra => options[:extra],
+        :payload => options[:payload]
+      }
+      handlers = configuration.transform
+
+      handlers.each { |handler| handler.call(options) }
     end
 
     def build_payload_body(message, exception, extra)
