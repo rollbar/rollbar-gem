@@ -20,3 +20,6 @@ test/version_tmp
 tmp
 *.swp
 .idea/
+.ruby-version
+.byebug_history
+gemfiles/vendor
