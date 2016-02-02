@@ -99,7 +99,8 @@ end
 
 ### If using Plain Ruby
 
-Rollbar isn't dependent on Rack or Rails for most of its functionality. To report errors in a regular ruby script requires three things:
+Rollbar isn't dependent on Rack or Rails for most of its functionality. In a regular script, assuming you've
+installed the rollbar gem:
 
  1. Require rollbar
  2. Configure rollbar
@@ -107,13 +108,17 @@ Rollbar isn't dependent on Rack or Rails for most of its functionality. To repor
 
 ```ruby
 require 'rollbar'
+
 Rollbar.configure do |config|
   config.access_token = "SERVER_POST_ACCESS_TOKEN"
   # Other Configuration Settings
 end
+
 begin
   Rollbar.debug "Running Script"
+
   run_script ARGV
+
   Rollbar.info "Script ran successfully"
 rescue Exception => e
   Rollbar.log e
