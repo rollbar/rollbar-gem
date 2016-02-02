@@ -39,7 +39,7 @@ describe Rollbar do
   end
 
   context 'Notifier' do
-    context 'log' do
+    describe '#log' do
       let(:exception) do
         begin
           foo = bar
@@ -101,6 +101,115 @@ describe Rollbar do
 
         expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data)
         notifier.log('error', exception, extra_data, 'exception description')
+      end
+    end
+
+    context 'with before_process handlers in configuration' do
+      let!(:notifier) { Rollbar::Notifier.new }
+      let(:payload_options) { { :bar => :foo } }
+      let(:configuration) do
+        config = Rollbar::Configuration.new
+        config.enabled = true
+        config.payload_options = payload_options
+        config
+      end
+      let(:message) { 'message' }
+      let(:exception) { Exception.new }
+      let(:extra) { {:foo => :bar } }
+      let(:level) { 'error' }
+
+      before do
+        notifier.configuration = configuration
+      end
+
+      context 'without raise Rollbar::Ignore' do
+        let(:handler) do
+          proc do |options|
+
+          end
+        end
+
+        before do
+          configuration.before_process = handler
+        end
+
+        it 'calls the handler with the correct options' do
+          options = {
+            :level => level,
+            :scope => payload_options,
+            :exception => exception,
+            :message => message,
+            :extra => extra
+          }
+          expect(handler).to receive(:call).with(options)
+          expect(notifier).to receive(:report).with(level, message, exception, extra)
+
+          notifier.log(level, message, exception, extra)
+        end
+      end
+
+      context 'raising Rollbar::Ignore in the handler' do
+        let(:handler) do
+          proc do |options|
+            raise Rollbar::Ignore
+          end
+        end
+
+        before do
+          configuration.before_process = handler
+        end
+
+        it "calls the handler with correct options and doesn't call #report" do
+          options = {
+            :level => level,
+            :scope => payload_options,
+            :exception => exception,
+            :message => message,
+            :extra => extra
+          }
+          expect(handler).to receive(:call).with(options).and_call_original
+          expect(notifier).not_to receive(:report)
+
+          result = notifier.log(level, message, exception, extra)
+
+          expect(result).to be_eql('ignored')
+        end
+      end
+
+      context 'with 2 handlers, raising Rollbar::Ignore in the first one' do
+        let(:handler1) do
+          proc do |options|
+            raise Rollbar::Ignore
+          end
+        end
+
+        let(:handler2) do
+          proc do |options|
+
+          end
+        end
+
+        before do
+          configuration.before_process << handler1
+          configuration.before_process << handler2
+        end
+
+        it "calls only the first handler and doesn't calls #report" do
+          options = {
+            :level => level,
+            :scope => payload_options,
+            :exception => exception,
+            :message => message,
+            :extra => extra
+          }
+          expect(handler1).to receive(:call).with(options).and_call_original
+          expect(handler2).not_to receive(:call)
+          expect(notifier).not_to receive(:report)
+
+          result = notifier.log(level, message, exception, extra)
+
+          expect(result).to be_eql('ignored')
+        end
       end
     end
 

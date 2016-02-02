@@ -20,6 +20,7 @@ require 'rollbar/railtie' if defined?(Rails::VERSION)
 require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
+require 'rollbar/exceptions'
 
 module Rollbar
   ATTACHMENT_CLASSES = %w[
@@ -117,33 +118,25 @@ module Rollbar
     def log(level, *args)
       return 'disabled' unless configuration.enabled
 
-      message = nil
-      exception = nil
-      extra = nil
-
-      args.each do |arg|
-        if arg.is_a?(String)
-          message = arg
-        elsif arg.is_a?(Exception)
-          exception = arg
-        elsif arg.is_a?(Hash)
-          extra = arg
-        end
-      end
-
+      message, exception, extra = extract_arguments(args)
       use_exception_level_filters = extra && extra.delete(:use_exception_level_filters) == true
 
       return 'ignored' if ignored?(exception, use_exception_level_filters)
 
-      if use_exception_level_filters
-        exception_level = filtered_level(exception)
-        level = exception_level if exception_level
+      begin
+        call_before_process(level, exception, message, extra)
+      rescue Rollbar::Ignore
+        return 'ignored'
       end
+
+      level = lookup_exception_level(level, exception,
+                                     use_exception_level_filters)
 
       begin
         report(level, message, exception, extra)
       rescue Exception => e
         report_internal_error(e)
+
         'error'
       end
     end
@@ -240,6 +233,46 @@ module Rollbar
     end
 
     private
+
+    def call_before_process(level, exception, message, extra)
+      options = {
+        :level => level,
+        :scope => configuration.payload_options,
+        :exception => exception,
+        :message => message,
+        :extra => extra
+      }
+      handlers = configuration.before_process
+
+      handlers.each { |handler| handler.call(options) }
+    end
+
+    def extract_arguments(args)
+      message = nil
+      exception = nil
+      extra = nil
+
+      args.each do |arg|
+        if arg.is_a?(String)
+          message = arg
+        elsif arg.is_a?(Exception)
+          exception = arg
+        elsif arg.is_a?(Hash)
+          extra = arg
+        end
+      end
+
+      [message, exception, extra]
+    end
+
+    def lookup_exception_level(orig_level, exception, use_exception_level_filters)
+      return orig_level unless use_exception_level_filters
+
+      exception_level = filtered_level(exception)
+      return exception_level if exception_level
+
+      orig_level
+    end
 
     def ignored?(exception, use_exception_level_filters = false)
       return false unless exception

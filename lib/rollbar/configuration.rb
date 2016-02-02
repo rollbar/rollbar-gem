@@ -6,6 +6,7 @@ module Rollbar
     attr_accessor :access_token
     attr_accessor :async_handler
     attr_accessor :branch
+    attr_accessor :before_process
     attr_accessor :code_version
     attr_accessor :custom_data_method
     attr_accessor :delayed_job_enabled
@@ -55,6 +56,7 @@ module Rollbar
 
     def initialize
       @async_handler = nil
+      @before_process = []
       @code_version = nil
       @custom_data_method = nil
       @default_logger = lambda { Logger.new(STDERR) }
@@ -162,6 +164,10 @@ module Rollbar
         end
         found
       end.flatten.uniq.map(&:gem_dir)
+    end
+
+    def before_process=(*handler)
+      @before_process = Array(handler)
     end
 
     # allow params to be read like a hash
