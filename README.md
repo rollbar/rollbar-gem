@@ -97,6 +97,29 @@ class MyApp < Sinatra::Base
 end
 ```
 
+### If using Plain Ruby
+
+Rollbar isn't dependent on Rack or Rails for most of its functionality. To report errors in a regular ruby script requires three things:
+
+ 1. Require rollbar
+ 2. Configure rollbar
+ 3. Send Rollbar data
+
+```ruby
+require 'rollbar'
+Rollbar.configure do |config|
+  config.access_token = "SERVER_POST_ACCESS_TOKEN"
+  # Other Configuration Settings
+end
+begin
+  Rollbar.debug "Running Script"
+  run_script ARGV
+  Rollbar.info "Script ran successfully"
+rescue Exception => e
+  Rollbar.log e
+end
+```
+
 ## Test your installation
 
 To confirm that it worked, run:
