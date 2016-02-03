@@ -210,6 +210,20 @@ describe Rollbar do
 
           expect(result).to be_eql('ignored')
         end
+
+        context 'if the first handler fails' do
+          let(:exception) { StandardError.new('foo') }
+          let(:handler1) do
+            proc { |options|  raise exception }
+          end
+
+          it 'doesnt call the second handler and logs the error' do
+            expect(handler2).not_to receive(:call)
+            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
+
+            notifier.log(level, message, exception, extra)
+          end
+        end
       end
     end
 
@@ -291,6 +305,30 @@ describe Rollbar do
           expect(notifier).to receive(:schedule_payload).with(new_payload)
 
           notifier.log(level, message, exception, extra)
+        end
+      end
+
+      context 'with two handlers' do
+        let(:handler1) { proc { |options|} }
+        let(:handler2) { proc { |options|} }
+
+        before do
+          configuration.transform << handler1
+          configuration.transform << handler2
+        end
+
+        context 'and the first one fails' do
+          let(:exception) { StandardError.new('foo') }
+          let(:handler1) do
+            proc { |options|  raise exception }
+          end
+
+          it 'doesnt call the second handler and logs the error' do
+            expect(handler2).not_to receive(:call)
+            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
+
+            notifier.log(level, message, exception, extra)
+          end
         end
       end
     end

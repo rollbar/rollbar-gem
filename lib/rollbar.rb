@@ -251,7 +251,17 @@ module Rollbar
       }
       handlers = configuration.before_process
 
-      handlers.each { |handler| handler.call(options) }
+      handlers.each do |handler|
+        begin
+          handler.call(options)
+        rescue Rollbar::Ignore
+          raise
+        rescue => e
+          log_error("[Rollbar] Error calling the `before_process` hook: #{e}")
+
+          break
+        end
+      end
     end
 
     def extract_arguments(args)
@@ -409,7 +419,15 @@ module Rollbar
       }
       handlers = configuration.transform
 
-      handlers.each { |handler| handler.call(options) }
+      handlers.each do |handler|
+        begin
+          handler.call(options)
+        rescue => e
+          log_error("[Rollbar] Error calling the `before_process` hook: #{e}")
+
+          break
+        end
+      end
     end
 
     def build_payload_body(message, exception, extra)
