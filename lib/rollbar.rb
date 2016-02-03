@@ -21,6 +21,7 @@ require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
 require 'rollbar/exceptions'
+require 'rollbar/scope'
 
 module Rollbar
   ATTACHMENT_CLASSES = %w[
@@ -34,18 +35,20 @@ module Rollbar
   class Notifier
     attr_accessor :configuration
     attr_accessor :last_report
+    attr_reader :scope_object
 
     @file_semaphore = Mutex.new
 
-    def initialize(parent_notifier = nil, payload_options = nil)
+    def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
         @configuration = parent_notifier.configuration.clone
+        @scope_object = parent_notifier.scope_object.clone
 
-        if payload_options
-          Rollbar::Util.deep_merge(@configuration.payload_options, payload_options)
-        end
+        Rollbar::Util.deep_merge(@configuration.payload_options, payload_options) if payload_options
+        Rollbar::Util.deep_merge(@scope_object, scope) if scope
       else
         @configuration = ::Rollbar::Configuration.new
+        @scope_object = ::Rollbar::Scope.new(scope)
       end
     end
 
@@ -63,11 +66,12 @@ module Rollbar
     end
 
     def scope(options = {})
-      self.class.new(self, options)
+      self.class.new(self, nil, options)
     end
 
     def scope!(options = {})
-      Rollbar::Util.deep_merge(@configuration.payload_options, options)
+      Rollbar::Util.deep_merge(scope_object, options)
+
       self
     end
 
@@ -372,10 +376,7 @@ module Rollbar
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
       Rollbar::Util.deep_merge(data, configuration.payload_options)
-
-      data[:person] = data[:person].call if data[:person].respond_to?(:call)
-      data[:request] = data[:request].call if data[:request].respond_to?(:call)
-      data[:context] = data[:context].call if data[:context].respond_to?(:call)
+      Rollbar::Util.deep_merge(data, scope_object.data)
 
       # Our API doesn't allow null context values, so just delete
       # the key if value is nil.
@@ -828,6 +829,10 @@ module Rollbar
 
     def configuration
       @configuration ||= Configuration.new
+    end
+
+    def scope_object
+      @scope_obejct ||= ::Rollbar::Scope.new({})
     end
 
     def safely?

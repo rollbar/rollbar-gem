@@ -434,7 +434,7 @@ describe Rollbar do
         notifier3.configuration.code_version.should == '456'
         notifier3.configuration.payload_options.should == {
           :a => 'a',
-          :b => {:c => 3, :d => 'd'},
+          :b => {:c => 'c'},
           :c => 'c'
         }
 
@@ -1856,17 +1856,17 @@ describe Rollbar do
       { :foo => 'bar' }
     end
 
-    it 'changes payload options inside the block' do
+    it 'changes data in scope_object inside the block' do
       Rollbar.reset_notifier!
       configure
 
       current_notifier_id = Rollbar.notifier.object_id
 
       Rollbar.scoped(scope_options) do
-        configuration = Rollbar.notifier.configuration
+        scope_object = Rollbar.notifier.scope_object
 
         expect(Rollbar.notifier.object_id).not_to be_eql(current_notifier_id)
-        expect(configuration.payload_options).to be_eql(scope_options)
+        expect(scope_object.raw).to be_eql(scope_options)
       end
 
       expect(Rollbar.notifier.object_id).to be_eql(current_notifier_id)
@@ -1887,7 +1887,7 @@ describe Rollbar do
       let(:block) do
         proc do
           Thread.new do
-            scope = Rollbar.notifier.configuration.payload_options
+            scope = Rollbar.notifier.scope_object
             Thread.main[:inner_scope] = scope
           end.join
         end
@@ -1900,7 +1900,7 @@ describe Rollbar do
       it 'maintains the parent thread notifier scope' do
         Rollbar.scoped(scope, &block)
 
-        expect(Thread.main[:inner_scope]).to be_eql(scope)
+        expect(Thread.main[:inner_scope].raw).to be_eql(scope)
       end
     end
   end
@@ -1913,10 +1913,10 @@ describe Rollbar do
     before { reconfigure_notifier }
 
     it 'adds the new scope to the payload options' do
-      configuration = Rollbar.notifier.configuration
+      scope_object = Rollbar.notifier.scope_object
       Rollbar.scope!(new_scope)
 
-      expect(configuration.payload_options).to be_eql(new_scope)
+      expect(scope_object.raw).to be_eql(new_scope)
     end
   end
 
