@@ -16,8 +16,8 @@ and respect the rate limits set on that access token.
 ## async_handler
 
 If `config.use_async = true` explicitly sets the function used to send
-asynchronous payloads to Rollbar. Not needed if using one of the built in async
-reporters:
+asynchronous payloads to Rollbar. Should be an object that responds to `call`
+Not needed if using one of the built in async reporters:
 
  * girl_friday
  * sucker_punch
