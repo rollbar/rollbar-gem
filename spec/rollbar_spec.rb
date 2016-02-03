@@ -427,14 +427,23 @@ describe Rollbar do
           notifier.configure do |config|
             config.custom_data_method = custom_method
           end
-
-          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
         end
 
         it 'doesnt crash the report' do
+          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
           payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
 
           expect(payload['data'][:body][:message][:extra]).to be_eql(expected_extra)
+        end
+
+        context 'and for some reason the safely.error returns a String' do
+          it 'returns an empty Hash' do
+            allow_any_instance_of(Rollbar::Notifier).to receive(:error).and_return('ignored')
+
+            payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
+
+            expect(payload['data'][:body][:message][:extra]).to be_eql(extra)
+          end
         end
       end
 
