@@ -43,7 +43,21 @@ Rollbar understands these formats:
 
 ## custom_data_method
 
-TODO: What does it do? Demo?
+The method to call to gather custom data to send with each rollbar request.
+
+```ruby
+def custom_data
+  return {
+    :custom => {
+      :key1 => get_key_one,
+      :key2 => get_key_two
+    },
+    :server => {
+      :root => '/home/username/www/'
+    }
+  }
+end
+```
 
 ## delayed_job_enabled
 
