@@ -387,6 +387,84 @@ This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error
 Rollbar.error(exception, :use_exception_level_filters => true)
 ```
 
+## [Before process hook](#before-process-hook)
+
+Before we process the reports, build the payload and send it the gem will call the hadlers defined in `configuration.before_process`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
+
+- `level`: the level used for the report.
+- `exception`: the exception that caused the report, if any.
+- `message`: the message to use for the report, if any.
+- `extra`: extra data passed to the report methods.
+- `scope`: depending on the scenario, this can contain different data. See [Scope](#the-scope)
+
+If the exception `Rollbar::Ignore` is raised inside any of the handlers defined for `configuration.before_process`, we'll ignore the report and not send it to the API. Example of use:
+
+```ruby
+handler = proc do |options|
+  raise Rollbar::Ignore if any_smart_method(options)
+end
+
+Rollbar.configure do |config|
+  config.before_process << handler
+end
+```
+
+## [Transform hook](#transform-hook]
+
+Before we send the payload to our API the gem will call the hadlers defined in `configuration.transform`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
+
+- `level`: the level used for the report.
+- `exception`: the exception that caused the report, if any.
+- `message`: the message to use for the report, if any.
+- `extra`: extra data passed to the report methods.
+- `scope`: depending on the scenario, this can contain different data. See [Scope](#the-scope)
+- `payload`: the built payload that will be send to the API
+
+In your handlers you have a chance to mutate the payload, remove data, truncate data, etc...Example:
+
+```ruby
+handler = proc do |options|
+  payload = options[:payload]
+
+  payload['data']['environment'] = 'foo'
+end
+
+Rollbar.configure do |config|
+  config.before_process << handler
+end
+```
+
+## [The Scope](#the-scope)
+
+The scope an object, instance of `Rollbar::Scope` that stores the "environment" for a certain moment or situation. For ex, the Rails middleware defines the scope in a way similar to this:
+
+```ruby
+scope = {request: request_data,
+         person: person_data,
+         context: context_data
+}
+Rollbar.scoped(scope) do
+  begin
+    @app.call(env)
+  rescue Exception => exception
+    # ...
+  end
+end
+
+```
+
+You can access the scope on the [before_process](#before-process-hook) and [transform](#transform-hook) hooks like this:
+
+```ruby
+your_handler = proc do |options|
+  scope = options[:scope]
+
+  request_data = scope.request
+  person_data = scope.person
+  context_data = scope.context
+end
+```
+
 ## Silencing exceptions at runtime
 
 If you just want to disable exception reporting for a single block, use ```Rollbar.silenced```:
