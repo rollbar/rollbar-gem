@@ -63,7 +63,6 @@ end
 
 **Default** `true`
 
-TODO: Verify
 
 Set to false if you have `Delayed`  but do not wish to wrap Delayed jobs with a
 Rollbar notifier.
@@ -79,8 +78,8 @@ operation.
 
 **Default** `false`
 
-Disables monkey patching `Rack::Builder`. If you do this you'll need to manually
-`use` an appropriate Rollbar middleware.
+Disables monkey patching all non-core monkey patches. If you do this you'll
+need to manually `use` an appropriate Rollbar middleware.
 
 Especially useful if you're not using Rails or Sinatra.
 
@@ -88,10 +87,8 @@ Especially useful if you're not using Rails or Sinatra.
 
 **Default** `false`
 
-TODO: VERIFY
-
-Disables monkey patching certain core features without which Rollbar may not
-work at all.
+Disables our monkey patches in the ruby core. One mandatory monkey patch is left.
+Be careful using this option as it may caused unexpected behavior in some situations.
 
 ## dj_threshold
 
@@ -164,8 +161,7 @@ where you wish to send log messages elsewhere.
 
 ## payload_options
 
-Extra data to send with the payload. Use `scope` with `payload_options` to set
-specific payload options before sending.
+Extra data to send with the payload.
 
 ## person_method
 
@@ -225,8 +221,8 @@ Set the server root, all stack frames outside that root are considered
 
 **Default** `false`
 
-When `true` evaluates `custom_data_method` in a `begin`/`rescue` block, returning
-`{}` if an error occurs. Otherwise reports the error to Rollbar.
+When `true` evaluates `custom_data_method` returns `{}` if an error,
+otherwise reports the error to Rollbar.
 
 ## scrub_fields
 
@@ -238,17 +234,11 @@ payload.
 
 **Default** `true`
 
-TODO: CORRECT THIS
-
-When true filters the user out of the URL.
+Set to false to skip scrubbing user out of the URL.
 
 ## scrub_password
 
-TODO: CORRECT THIS
-
-**Default** `true`
-
-When true filters the password out of the URL.
+Set to false to skip scrubbing password out of the URL.
 
 ## user_ip_obfuscator_secret
 
