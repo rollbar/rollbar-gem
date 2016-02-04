@@ -744,6 +744,8 @@ module Rollbar
     # to configure it without initializing any of the third party hooks
     def preconfigure
       yield(configuration)
+
+      reset_notifier!
     end
 
     def configure

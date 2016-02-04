@@ -1799,6 +1799,28 @@ describe Rollbar do
     end
   end
 
+  describe '.preconfigure'do
+    before do
+      Rollbar.unconfigure
+      Rollbar.reset_notifier!
+    end
+
+    it 'resets the notifier' do
+      Rollbar.configure do |config|
+        config.access_token = 'foo'
+      end
+
+      Thread.new {}
+
+      Rollbar.preconfigure do |config|
+        config.root = 'bar'
+      end
+
+      notifier_config = Rollbar.notifier.configuration
+      expect(notifier_config.root).to be_eql('bar')
+    end
+  end
+
   # configure with some basic params
   def configure
     reconfigure_notifier
