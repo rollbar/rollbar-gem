@@ -21,6 +21,56 @@ require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
 
+a = "foo bar"
+
+a.upcase
+
+valid_lambda = lambda { 'foo' }
+
+valid_lambda.call
+
+def long_method
+  environment = configuration.environment
+      environment = 'unspecified' if environment.nil? || environment.empty?
+
+      data = {
+        :timestamp => Time.now.to_i,
+        :environment => environment,
+        :level => level,
+        :language => 'ruby',
+        :framework => configuration.framework,
+        :server => server_data,
+        :notifier => {
+          :name => 'rollbar-gem',
+          :version => VERSION
+        }
+      }
+
+      data[:body] = build_payload_body(message, exception, extra)
+      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
+      data[:code_version] = configuration.code_version if configuration.code_version
+      data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
+
+      Rollbar::Util.deep_merge(data, configuration.payload_options)
+
+      data[:person] = data[:person].call if data[:person].respond_to?(:call)
+      data[:request] = data[:request].call if data[:request].respond_to?(:call)
+      data[:context] = data[:context].call if data[:context].respond_to?(:call)
+
+      # Our API doesn't allow null context values, so just delete
+      # the key if value is nil.
+      data.delete(:context) unless data[:context]
+
+      payload = {
+        "access_token" => configuration.access_token,
+        'data' => data
+      }
+
+      enforce_valid_utf8(payload)
+
+      payload
+end
+
 module Rollbar
   ATTACHMENT_CLASSES = %w[
     ActionDispatch::Http::UploadedFile
