@@ -372,7 +372,7 @@ module Rollbar
     def report_custom_data_error(e)
       data = safely.error(e)
 
-      return {} unless data[:uuid]
+      return {} unless data.is_a?(Hash) && data[:uuid]
 
       uuid_url = uuid_rollbar_url(data)
 
