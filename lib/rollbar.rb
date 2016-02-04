@@ -788,7 +788,7 @@ module Rollbar
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/active_job' if defined?(ActiveJob)
       require 'rollbar/goalie' if defined?(Goalie)
-      require 'rollbar/rack' if defined?(Rack)
+      require 'rollbar/rack' if defined?(Rack) unless configuration.disable_rack_monkey_patch
       require 'rollbar/rake' if defined?(Rake)
     end
 

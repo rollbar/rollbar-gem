@@ -11,6 +11,7 @@ module Rollbar
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
     attr_accessor :disable_monkey_patch
+    attr_accessor :disable_rack_monkey_patch
     attr_accessor :disable_core_monkey_patch
     attr_accessor :dj_threshold
     attr_accessor :enabled
@@ -61,6 +62,7 @@ module Rollbar
       @delayed_job_enabled = true
       @disable_monkey_patch = false
       @disable_core_monkey_patch = false
+      @disable_rack_monkey_patch = false
       @dj_threshold = 0
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
