@@ -21,7 +21,7 @@ require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
 require 'rollbar/exceptions'
-require 'rollbar/scope'
+require 'rollbar/lazy_store'
 
 module Rollbar
   ATTACHMENT_CLASSES = %w[
@@ -48,7 +48,7 @@ module Rollbar
         Rollbar::Util.deep_merge(@scope_object, scope) if scope
       else
         @configuration = ::Rollbar::Configuration.new
-        @scope_object = ::Rollbar::Scope.new(scope)
+        @scope_object = ::Rollbar::LazyStore.new(scope)
       end
     end
 
@@ -850,7 +850,7 @@ module Rollbar
     end
 
     def scope_object
-      @scope_obejct ||= ::Rollbar::Scope.new({})
+      @scope_obejct ||= ::Rollbar::LazyStore.new({})
     end
 
     def safely?

@@ -1,13 +1,12 @@
 module Rollbar
-  class Scope
+  class LazyStore
     attr_reader :loaded_data
     private :loaded_data
 
     attr_reader :raw
 
-    def initialize(initial_data = nil)
-      initial_data ||= {}
-
+    def initialize(initial_data)
+      initial_data ||= {  }
       @raw = initial_data
       @loaded_data = {}
     end

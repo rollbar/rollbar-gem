@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-require 'rollbar/scope'
+require 'rollbar/lazy_store'
 
 
-describe Rollbar::Scope do
-  let(:scope) { Rollbar::Scope.new(data) }
+describe Rollbar::LazyStore do
+  let(:scope) { Rollbar::LazyStore.new(data) }
   let(:lazy_value) do
     proc { :bar }
   end
