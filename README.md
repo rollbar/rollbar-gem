@@ -119,7 +119,7 @@ Rollbar.debug "Running Script"
 begin
   run_script ARGV
 rescue Exception => e # Never rescue Exception *unless* you re-raise in rescue body
-  Rollbar.log e
+  Rollbar.error e
   raise e
 end
 
