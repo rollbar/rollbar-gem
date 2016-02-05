@@ -114,16 +114,16 @@ Rollbar.configure do |config|
   # Other Configuration Settings
 end
 
+Rollbar.debug "Running Script"
+
 begin
-  Rollbar.debug "Running Script"
-
   run_script ARGV
-
-  Rollbar.info "Script ran successfully"
 rescue Exception => e # Never rescue Exception *unless* you re-raise in rescue body
   Rollbar.log e
   raise e
 end
+
+Rollbar.info "Script ran successfully"
 ```
 
 ## Test your installation
