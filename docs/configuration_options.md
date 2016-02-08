@@ -27,8 +27,6 @@ Not needed if using one of the built in async reporters:
 
 ### branch
 
-**Default** "master"
-
 Name of the checked-out source control branch.
 
 ### code_version
@@ -70,10 +68,10 @@ operation.
 
 **Default** `false`
 
-Disables monkey patching all non-core monkey patches. If you do this you'll
-need to manually `use` an appropriate Rollbar middleware.
+Disables monkey patching all non-core monkey patches and automatic reporting.
 
-Especially useful if you're not using Rails or Sinatra.
+If you set this to true you will be responsible for rescuing and reporting all
+errors manually.
 
 ### disable_core_monkey_patch
 
@@ -89,16 +87,15 @@ Be careful using this option as it may caused unexpected behavior in some situat
 **Default** `true`
 
 
-Set to false if you have `Delayed`  but do not wish to wrap Delayed jobs with a
+Set to false if you have `delayed_job`  but do not wish to wrap jobs with a
 Rollbar notifier.
 
 ### report_dj_data
 
 **Default** `true`
 
-Set to `false` to skip automatic reporting of Delayed job data. This can be
-handy if you manually report to Rollbar, or you have another way of catching and
-reporting those errors.
+Set to `false` to skip automatic bundling of job metadata like queue, job class
+name, and job options.
 
 ### dj_threshold
 
@@ -108,8 +105,8 @@ The number of job failures before reporting the failure to Rollbar.
 
 ### failover_handlers
 
-An array of backup handlers if the async handlers fail. Each should respond to
-`call` and should receive a `payload`.
+An array of backup handlers if the async handlers fails. Each should respond to
+`#call` and should receive a `payload`.
 
 ### filepath
 
@@ -132,8 +129,8 @@ properly defined `person_method` or `person_id_method`.
 
 ### logger
 
-The logger to use *instead of* the default logger. Especially useful in `scope`s
-where you wish to send log messages elsewhere.
+The logger to use *instead of* the default logger. Especially useful when you
+wish to send log messages elsewhere.
 
 ### payload_options
 
@@ -143,36 +140,39 @@ Extra data to send with the payload.
 
 Rails only: A string or symbol giving the name of the method on the controller.
 Should return an object with an `id` method, and optionally `username` and
-`email` methods.
+`email` methods. The names of the `id`, `username` and `email` methods can be
+overridden. See `person_id_method`, `person_username_method`, and
+`person_email_method`.
 
 If not using Rails:
 
-Populate the Rack `person_data` key with a hash containing `:id`, and optionally
-`:username` and `:email`.
+Populate the `rollbar.person_data` key with a hash containing `:id`, and
+optionally `:username` and `:email`.
 
 ### person_id_method
 
-Rails only: a string or symbol giving the name of the method on the controller
-which returns the current user's id (a string). Ignored if `person_method`
-present.
+A string or symbol giving the name of the method on the user instance that
+returns the person's id. Gets called on the result of `person_method`. Ignored
+if `person_method` not present.
 
 ### person_username_method
 
-Rails only: a string or symbol giving the name of the method on the controller
-which returns the current user's username. Ignored if `person_id_method` not
-present. Ignored if `person_method` present.
+A string or symbol giving the name of the method on the user instance that
+returns the person's username. Gets called on the result of `person_method`.
+Ignored if `person_method` not present.
 
 ### person_email_method
 
-Rails only: a string or symbol giving the name of the method on the controller
-which returns the current user's email address. Ignored if `person_id_method`
-not present. Ignored if `person_method` present.
+A string or symbol giving the name of the method on the user instance that
+returns the person's email. Gets called on the result of `person_method`.
+Ignored if `person_method` not present.
 
 ### populate_empty_backtraces
 
-If you report a `new` exception, but do not `raise` it, the backtraces in Rollbar
-will be empty. Set `populate_empty_backtraces` to `true` to have Rollbar load
-the traces before sending them.
+Raising an exception in Ruby is what populates the backtraces. If you report a
+manually initialized exception instead of a raised and rescued exception, the
+backtraces will be empty. Set `populate_empty_backtraces` to `true` to have
+Rollbar load the traces before sending them.
 
 ### request_timeout
 
@@ -251,7 +251,7 @@ SSL connection problems.
 **Default** `false`
 
 When `true` indicates you wish to send data to Rollbar asynchronously. If
-installed, uses `girl_friday`, otherwise defaults to `Threading`.
+installed, uses `girl_friday`, otherwise defaults to `Thread`.
 
 ### use_eventmachine
 
