@@ -110,7 +110,7 @@ installed the rollbar gem:
 require 'rollbar'
 
 Rollbar.configure do |config|
-  config.access_token = "SERVER_POST_ACCESS_TOKEN"
+  config.access_token = "POST_SERVER_ITEM_ACCESS_TOKEN"
   # Other Configuration Settings
 end
 
