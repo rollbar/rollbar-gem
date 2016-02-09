@@ -372,7 +372,7 @@ module Rollbar
     def report_custom_data_error(e)
       data = safely.error(e)
 
-      return {} unless data[:uuid]
+      return {} unless data.is_a?(Hash) && data[:uuid]
 
       uuid_url = uuid_rollbar_url(data)
 
@@ -442,7 +442,7 @@ module Rollbar
       traces = [trace_data(exception)]
       visited = [exception]
 
-      while exception.respond_to?(:cause) && (cause = exception.cause) && !visited.include?(cause)
+      while exception.respond_to?(:cause) && (cause = exception.cause) && cause.is_a?(Exception) && !visited.include?(cause)
         traces << trace_data(cause)
         visited << cause
         exception = cause
@@ -628,6 +628,8 @@ module Rollbar
           nearest_frame = backtrace[0]
 
           exception_info = exception.class.name
+          # #to_s and #message defaults to class.to_s. Add message only if add valuable info.
+          exception_info += %Q{: "#{exception.message}"} if exception.message != exception.class.to_s
           exception_info += " in #{nearest_frame}" if nearest_frame
 
           body += "#{exception_info}: #{message}"
@@ -742,6 +744,8 @@ module Rollbar
     # to configure it without initializing any of the third party hooks
     def preconfigure
       yield(configuration)
+
+      reset_notifier!
     end
 
     def configure
@@ -784,7 +788,7 @@ module Rollbar
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/active_job' if defined?(ActiveJob)
       require 'rollbar/goalie' if defined?(Goalie)
-      require 'rollbar/rack' if defined?(Rack)
+      require 'rollbar/rack' if defined?(Rack) unless configuration.disable_rack_monkey_patch
       require 'rollbar/rake' if defined?(Rake)
     end
 

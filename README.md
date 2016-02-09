@@ -1,4 +1,4 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.6.3)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.7.1)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -12,13 +12,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rollbar', '~> 2.6.3'
-```
-
-If you are not using JRuby we suggest using [Oj](https://github.com/ohler55/oj) for JSON serialization. In order to install Oj you can add this line to your Gemfile:
-
-```ruby
-gem 'oj', '~> 2.12.14'
+gem 'rollbar', '~> 2.7.1'
 ```
 
 And then execute:
@@ -28,6 +22,14 @@ $ bundle install
 # Or if you don't use bundler:
 $ gem install rollbar
 ```
+
+Unless you are using JRuby, we suggest also installing [Oj](https://github.com/ohler55/oj) for JSON serialization. Add this line to your Gemfile:
+
+```ruby
+gem 'oj', '~> 2.12.14'
+```
+
+and then `bundle install` again.
 
 ### If using Rails
 
@@ -95,6 +97,35 @@ class MyApp < Sinatra::Base
   # other middleware/etc
   # ...
 end
+```
+
+### If using Plain Ruby
+
+Rollbar isn't dependent on Rack or Rails for most of its functionality. In a regular script, assuming you've
+installed the rollbar gem:
+
+ 1. Require rollbar
+ 2. Configure rollbar
+ 3. Send Rollbar data
+
+```ruby
+require 'rollbar'
+
+Rollbar.configure do |config|
+  config.access_token = "POST_SERVER_ITEM_ACCESS_TOKEN"
+  # Other Configuration Settings
+end
+
+Rollbar.debug "Running Script"
+
+begin
+  run_script ARGV
+rescue Exception => e # Never rescue Exception *unless* you re-raise in rescue body
+  Rollbar.error e
+  raise e
+end
+
+Rollbar.info "Script ran successfully"
 ```
 
 ## Test your installation
@@ -377,7 +408,14 @@ By default, all uncaught exceptions are reported at the "error" level, except fo
 - ```AbstractController::ActionNotFound```
 - ```ActionController::RoutingError```
 
-If you'd like to customize this list, see the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all.
+If you'd like to customize this list, modify the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all. For example, to ignore 404s and treat `NoMethodError`s as critical bugs, you can use the following code:
+
+```ruby
+config.exception_level_filters.merge!({
+  'ActiveRecord::RecordNotFound': 'ignore'
+  'NoMethodError': 'critical'
+})
+```
 
 This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error()`, `Rollbar.warning()`, etc. If you are making a direct call to one of the log methods and want exception level filters to apply, pass an extra keyword argument:
 
@@ -404,7 +442,7 @@ exception = MyException.new('this is a message')
 Rollbar.error(exception)
 ```
 
-You will notice a backtrace doesn't appear in your Rollbar dashboard. This is because `exception.backtrace` is `nil` in these cases. We can send the current backtrace for you even your exception doesn't have it. In order to enable this feature you should configure Rollbar in this way:
+You will notice a backtrace doesn't appear in your Rollbar dashboard. This is because `exception.backtrace` is `nil` in these cases. We can send the current backtrace for you even if your exception doesn't have it. In order to enable this feature you should configure Rollbar in this way:
 
 ```ruby
 Rollbar.configure do |config|
@@ -445,6 +483,8 @@ If you use [custom jobs](https://github.com/collectiveidea/delayed_job#custom-jo
 ```ruby
 config.delayed_job_enabled = false
 ```
+
+Only versions >= 3.0 of delayed_job are supported.
 
 
 ## Asynchronous reporting

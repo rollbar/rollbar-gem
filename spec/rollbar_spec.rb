@@ -2,7 +2,6 @@
 
 require 'logger'
 require 'socket'
-require 'spec_helper'
 require 'girl_friday'
 require 'redis'
 require 'active_support/core_ext/object'
@@ -13,6 +12,8 @@ begin
   require 'sucker_punch/testing/inline'
 rescue LoadError
 end
+
+require 'spec_helper'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
@@ -426,14 +427,23 @@ describe Rollbar do
           notifier.configure do |config|
             config.custom_data_method = custom_method
           end
-
-          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
         end
 
         it 'doesnt crash the report' do
+          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
           payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
 
           expect(payload['data'][:body][:message][:extra]).to be_eql(expected_extra)
+        end
+
+        context 'and for some reason the safely.error returns a String' do
+          it 'returns an empty Hash' do
+            allow_any_instance_of(Rollbar::Notifier).to receive(:error).and_return('ignored')
+
+            payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
+
+            expect(payload['data'][:body][:message][:extra]).to be_eql(extra)
+          end
         end
       end
 
@@ -644,6 +654,13 @@ describe Rollbar do
 
             chain[1][:exception][:class].should match(/CauseException/)
             chain[1][:exception][:message].should match(/the cause/)
+          end
+
+          it 'ignores the cause when it is not an Exception' do
+            exception_with_custom_cause = Exception.new('custom cause')
+            allow(exception_with_custom_cause).to receive(:cause) { "Foo" }
+            body = notifier.send(:build_payload_body_exception, message, exception_with_custom_cause, extra)
+            body[:trace].should_not be_nil
           end
 
           context 'with cyclic nested exceptions' do
@@ -1575,6 +1592,17 @@ describe Rollbar do
       notifier.send(:send_failsafe, nil, nil)
     end
 
+    context 'with a non default exception message' do
+      let(:exception) { StandardError.new 'Something is wrong' }
+
+      it 'adds it to exception info' do
+        sent_payload = notifier.send(:send_failsafe, "test failsafe", exception)
+
+        expected_message = 'Failsafe from rollbar-gem. StandardError: "Something is wrong": test failsafe'
+        expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_message)
+      end
+    end
+
     context 'without exception object' do
       it 'just sends the given message' do
         sent_payload = notifier.send(:send_failsafe, "test failsafe", nil)
@@ -1777,6 +1805,28 @@ describe Rollbar do
       it 'returns the uuid in :_error_in_custom_data_method' do
         expect(notifier.custom_data).to be_eql({})
       end
+    end
+  end
+
+  describe '.preconfigure'do
+    before do
+      Rollbar.unconfigure
+      Rollbar.reset_notifier!
+    end
+
+    it 'resets the notifier' do
+      Rollbar.configure do |config|
+        config.access_token = 'foo'
+      end
+
+      Thread.new {}
+
+      Rollbar.preconfigure do |config|
+        config.root = 'bar'
+      end
+
+      notifier_config = Rollbar.notifier.configuration
+      expect(notifier_config.root).to be_eql('bar')
     end
   end
 

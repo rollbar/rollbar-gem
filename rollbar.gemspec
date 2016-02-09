@@ -23,7 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rspec-rails', '>= 2.14.0'
   gem.add_development_dependency 'database_cleaner', '~> 1.0.0'
   gem.add_development_dependency 'girl_friday', '>= 0.11.1'
-  gem.add_development_dependency 'sucker_punch', '>= 1.0.0' if RUBY_VERSION != '1.8.7'
+  gem.add_development_dependency 'sucker_punch', '~> 1.0.0' if RUBY_VERSION != '1.8.7'
   gem.add_development_dependency 'sidekiq', '>= 2.13.0' if RUBY_VERSION != '1.8.7'
   gem.add_development_dependency 'genspec', '>= 0.2.8'
   gem.add_development_dependency 'sinatra'

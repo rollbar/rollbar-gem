@@ -1,5 +1,19 @@
 # Change Log
 
+## 2.7.1
+
+- Suggest using ROLLBAR_ENV for staging apps. See [#353](https://github.com/rollbar/rollbar-gem/pull/353).
+- Fix Rollbar::Util.deep_merge so it has default values for arguments. See [#362](https://github.com/rollbar/rollbar-gem/pull/362).
+- Ignore exception cause when it's not another exception. See [#357](https://github.com/rollbar/rollbar-gem/pull/357).
+
+
+## 2.7.0
+
+- Delayed job integration fix. See [#355](https://github.com/rollbar/rollbar-gem/pull/355).
+ - Delayed job support limited to versions >= 3.0
+- Better diagnostic when failsafe is on. See [#354](https://github.com/rollbar/rollbar-gem/pull/354).
+- Document Language/Framework Support. See [#352](https://github.com/rollbar/rollbar-gem/pull/352).
+
 ## 2.6.3
 
 Change:
