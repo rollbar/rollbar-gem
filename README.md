@@ -99,6 +99,27 @@ class MyApp < Sinatra::Base
 end
 ```
 
+## Integration with Rollbar.js
+
+In case you want to report your JavaScript errors using [Rollbar.js](https://github.com/rollbar/rollbar.js), you can configure the gem to enable Rollbar.js on your site. Example:
+
+```ruby
+Rollbar.configure do |config|
+  # common gem configuration
+  # ...
+  config.js_enabled = true
+  config.js_options = {
+    accessToken: "POST_CLIENT_ITEM_ACCESS_TOKEN",
+    captureUncaught: true,
+    payload: {
+      environment: "production"
+    }
+  }
+end
+```
+
+The `Hash` passed to `#js_options=` should have the same availalbe options that you can find in [Rollbar.js](https://github.com/rollbar/rollbar.js), using symbols or strings for the keys.
+
 ## Test your installation
 
 To confirm that it worked, run:
