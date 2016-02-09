@@ -689,6 +689,12 @@ end
 
 Some users have reported problems with Zeus when ```rake``` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding ```gem 'rake'``` to your ```Gemfile```. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information.
 
+
+## Configuration options
+
+For a listing of all configuration options available see
+[configuration options](https://www.rollbar.com/docs/notifier/rollbar-gem/configuration).
+
 ## Backwards Compatibility
 
 You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
