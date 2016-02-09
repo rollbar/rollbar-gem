@@ -99,6 +99,36 @@ class MyApp < Sinatra::Base
 end
 ```
 
+### If using Plain Ruby
+
+Rollbar isn't dependent on Rack or Rails for most of its functionality. In a regular script, assuming you've
+installed the rollbar gem:
+
+ 1. Require rollbar
+ 2. Configure rollbar
+ 3. Send Rollbar data
+
+```ruby
+require 'rollbar'
+
+Rollbar.configure do |config|
+  config.access_token = "POST_SERVER_ITEM_ACCESS_TOKEN"
+  # Other Configuration Settings
+end
+
+Rollbar.debug("Running Script")
+
+begin
+  run_script ARGV
+rescue Exception => e # Never rescue Exception *unless* you re-raise in rescue body
+  Rollbar.error(e)
+  raise e
+end
+
+Rollbar.info("Script ran successfully")
+```
+
+
 ## Integration with Rollbar.js
 
 In case you want to report your JavaScript errors using [Rollbar.js](https://github.com/rollbar/rollbar.js), you can configure the gem to enable Rollbar.js on your site. Example:
