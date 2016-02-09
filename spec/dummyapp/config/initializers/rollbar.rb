@@ -20,4 +20,4 @@ Rollbar.configure do |config|
   # Valid levels: 'critical', 'error', 'warning', 'info', 'debug', 'ignore'
   # 'ignore' will cause the exception to not be reported at all.
   # config.exception_level_filters.merge!('MyCriticalException' => 'critical')
-end unless ENV['SKIP_DUMMY_ROLLBAR'] == "true"
+end
