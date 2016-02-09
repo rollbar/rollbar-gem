@@ -11,6 +11,7 @@ end
 
 require 'rollbar/version'
 require 'rollbar/json'
+require 'rollbar/js'
 require 'rollbar/configuration'
 require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
@@ -781,6 +782,8 @@ module Rollbar
     end
 
     def require_hooks
+      ::Rollbar::Js.prepare if configuration.js_enabled
+
       return if configuration.disable_monkey_patch
       wrap_delayed_worker
 

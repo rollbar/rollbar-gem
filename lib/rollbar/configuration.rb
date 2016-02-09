@@ -32,6 +32,8 @@ module Rollbar
     attr_accessor :report_dj_data
     attr_accessor :request_timeout
     attr_accessor :root
+    attr_accessor :js_options
+    attr_accessor :js_enabled
     attr_accessor :safely
     attr_accessor :scrub_fields
     attr_accessor :scrub_user
@@ -84,6 +86,8 @@ module Rollbar
       @populate_empty_backtraces = false
       @report_dj_data = true
       @request_timeout = 3
+      @js_enabled = true
+      @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
                        :api_key, :access_token ]
