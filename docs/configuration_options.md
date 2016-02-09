@@ -80,7 +80,13 @@ errors manually.
 Disables our monkey patches in the ruby core. One mandatory monkey patch is left.
 Be careful using this option as it may caused unexpected behavior in some situations.
 
-## Delayed Job Monitoring
+
+### disable_rack_monkey_patch
+
+**Default** `false`
+
+Disables monkey patches on Rack classes, `Rack::Builder` for now, maybe more
+at some point.
 
 ### delayed_job_enabled
 
@@ -89,13 +95,6 @@ Be careful using this option as it may caused unexpected behavior in some situat
 
 Set to false if you have `delayed_job`  but do not wish to wrap jobs with a
 Rollbar notifier.
-
-### report_dj_data
-
-**Default** `true`
-
-Set to `false` to skip automatic bundling of job metadata like queue, job class
-name, and job options.
 
 ### dj_threshold
 
@@ -173,6 +172,13 @@ Raising an exception in Ruby is what populates the backtraces. If you report a
 manually initialized exception instead of a raised and rescued exception, the
 backtraces will be empty. Set `populate_empty_backtraces` to `true` to have
 Rollbar load the traces before sending them.
+
+### report_dj_data
+
+**Default** `true`
+
+Set to `false` to skip automatic bundling of job metadata like queue, job class
+name, and job options.
 
 ### request_timeout
 
