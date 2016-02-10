@@ -108,6 +108,18 @@ END
           }
         end
       end
+
+      context 'with an exception raised while adding the js', :add_js => false do
+        let(:body) { [html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+
+        before do
+          allow(subject).to receive(:add_js).and_raise(StandardError.new)
+        end
+      end
     end
 
     context 'having the config disabled', :add_js => false do

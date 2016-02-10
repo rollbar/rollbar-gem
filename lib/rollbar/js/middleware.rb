@@ -19,13 +19,15 @@ module Rollbar
       def call(env)
         result = app.call(env)
 
-        status = result[0]
-        headers = result[1]
-        response = result[2]
+        _call(env, result)
+      end
 
-        return result unless should_add_js?(env, status, headers)
+      private
 
-        if response_string = add_js(response)
+      def _call(env, result)
+        return result unless should_add_js?(env, result[0], result[1])
+
+        if response_string = add_js(result[2])
           env[JS_IS_INJECTED_KEY] = true
           response = ::Rack::Response.new(response_string, result[0], result[1])
 
@@ -33,9 +35,10 @@ module Rollbar
         else
           result
         end
+      rescue => e
+        Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
+        result
       end
-
-      private
 
       def enabled?
         !!config[:enabled]
