@@ -29,7 +29,7 @@ RSpec.configure do |config|
   config.formatter = 'documentation'
 
   config.use_transactional_fixtures = true
-  config.order = "random"
+  config.order = 'random'
 
   config.before(:suite) do
     DatabaseCleaner.strategy = :truncation
@@ -44,12 +44,6 @@ RSpec.configure do |config|
   config.after(:each) do
     DatabaseCleaner.clean
   end
+
   config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
-
-  if ENV['SKIP_DUMMY_ROLLBAR'] == 'true'
-    config.filter_run(:skip_dummy_rollbar => true)
-  else
-    config.filter_run_excluding(:skip_dummy_rollbar => true)
-  end
 end
-

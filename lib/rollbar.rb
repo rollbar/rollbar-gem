@@ -11,6 +11,7 @@ end
 
 require 'rollbar/version'
 require 'rollbar/json'
+require 'rollbar/js'
 require 'rollbar/configuration'
 require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
@@ -754,9 +755,7 @@ module Rollbar
 
       yield(configuration)
 
-      require_hooks
-      require_core_extensions
-
+      prepare
       reset_notifier!
     end
 
@@ -778,6 +777,16 @@ module Rollbar
 
     def safely?
       configuration.safely?
+    end
+
+    def prepare
+      prepare_js
+      require_hooks
+      require_core_extensions
+    end
+
+    def prepare_js
+      ::Rollbar::Js.prepare if configuration.js_enabled
     end
 
     def require_hooks

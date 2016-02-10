@@ -50,7 +50,7 @@ describe Rollbar do
 
       let(:configuration) { Rollbar.configuration }
 
-      context 'executing a Thread before Rollbar is configured', :skip_dummy_rollbar => true do
+      context 'executing a Thread before Rollbar is configured' do
         before do
           Rollbar.reset_notifier!
           Rollbar.unconfigure
