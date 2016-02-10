@@ -86,7 +86,7 @@ module Rollbar
       @populate_empty_backtraces = false
       @report_dj_data = true
       @request_timeout = 3
-      @js_enabled = true
+      @js_enabled = false
       @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
