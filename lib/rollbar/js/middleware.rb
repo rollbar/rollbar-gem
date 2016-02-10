@@ -70,14 +70,14 @@ module Rollbar
 
         return nil unless body
 
-        head_close = find_end_of_head_open(body)
-        return nil unless head_close
+        head_open_end = find_end_of_head_open(body)
+        return nil unless head_open_end
 
-        if head_close
-          body = body[0..head_close] <<
+        if head_open_end
+          body = body[0..head_open_end] <<
                  config_js_tag <<
                  snippet_js_tag <<
-                 body[head_close..-1]
+                 body[head_open_end..-1]
         end
 
         body
@@ -101,14 +101,6 @@ module Rollbar
         response.close if response.respond_to?(:close)
       end
 
-      def calculate_content_length(source)
-        if source.respond_to?(:bytesize)
-          source.bytesize
-        else
-          source.length
-        end
-      end
-
       def config_js_tag
         script_tag("var _rollbarConfig = #{config[:options].to_json};")
       end
@@ -118,7 +110,7 @@ module Rollbar
       end
 
       def js_snippet
-        @js_snippet ||= SNIPPET
+        SNIPPET
       end
 
       def script_tag(content)
