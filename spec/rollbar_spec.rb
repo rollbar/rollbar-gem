@@ -106,11 +106,10 @@ describe Rollbar do
 
     context 'with before_process handlers in configuration' do
       let!(:notifier) { Rollbar::Notifier.new }
-      let(:payload_options) { { :bar => :foo } }
+      let(:scope) { { :bar => :foo } }
       let(:configuration) do
         config = Rollbar::Configuration.new
         config.enabled = true
-        config.payload_options = payload_options
         config
       end
       let(:message) { 'message' }
@@ -120,6 +119,7 @@ describe Rollbar do
 
       before do
         notifier.configuration = configuration
+        notifier.scope!(scope)
       end
 
       context 'without raise Rollbar::Ignore' do
@@ -136,11 +136,12 @@ describe Rollbar do
         it 'calls the handler with the correct options' do
           options = {
             :level => level,
-            :scope => payload_options,
+            :scope => Rollbar::LazyStore.new(scope),
             :exception => exception,
             :message => message,
             :extra => extra
           }
+
           expect(handler).to receive(:call).with(options)
           expect(notifier).to receive(:report).with(level, message, exception, extra)
 
@@ -162,7 +163,7 @@ describe Rollbar do
         it "calls the handler with correct options and doesn't call #report" do
           options = {
             :level => level,
-            :scope => payload_options,
+            :scope => Rollbar::LazyStore.new(scope),
             :exception => exception,
             :message => message,
             :extra => extra
@@ -197,7 +198,7 @@ describe Rollbar do
         it "calls only the first handler and doesn't calls #report" do
           options = {
             :level => level,
-            :scope => payload_options,
+            :scope => Rollbar::LazyStore.new(scope),
             :exception => exception,
             :message => message,
             :extra => extra
@@ -229,11 +230,10 @@ describe Rollbar do
 
     context 'with transform handlers in configuration' do
       let!(:notifier) { Rollbar::Notifier.new }
-      let(:payload_options) { { :bar => :foo } }
+      let(:scope) { { :bar => :foo } }
       let(:configuration) do
         config = Rollbar::Configuration.new
         config.enabled = true
-        config.payload_options = payload_options
         config
       end
       let(:message) { 'message' }
@@ -243,6 +243,7 @@ describe Rollbar do
 
       before do
         notifier.configuration = configuration
+        notifier.scope!(scope)
       end
 
       context 'without mutation in payload' do
@@ -259,7 +260,7 @@ describe Rollbar do
         it 'calls the handler with the correct options' do
           options = {
             :level => level,
-            :scope => payload_options,
+            :scope => Rollbar::LazyStore.new(scope),
             :exception => exception,
             :message => message,
             :extra => extra,
@@ -295,7 +296,7 @@ describe Rollbar do
         it 'calls the handler with the correct options' do
           options = {
             :level => level,
-            :scope => payload_options,
+            :scope => Rollbar::LazyStore.new(scope),
             :exception => exception,
             :message => message,
             :extra => extra,
@@ -1904,7 +1905,7 @@ describe Rollbar do
         scope_object = Rollbar.notifier.scope_object
 
         expect(Rollbar.notifier.object_id).not_to be_eql(current_notifier_id)
-        expect(scope_object.raw).to be_eql(scope_options)
+        expect(scope_object).to be_eql(scope_options)
       end
 
       expect(Rollbar.notifier.object_id).to be_eql(current_notifier_id)
@@ -1938,7 +1939,7 @@ describe Rollbar do
       it 'maintains the parent thread notifier scope' do
         Rollbar.scoped(scope, &block)
 
-        expect(Thread.main[:inner_scope].raw).to be_eql(scope)
+        expect(Thread.main[:inner_scope]).to be_eql(scope)
       end
     end
   end
@@ -1954,7 +1955,7 @@ describe Rollbar do
       scope_object = Rollbar.notifier.scope_object
       Rollbar.scope!(new_scope)
 
-      expect(scope_object.raw).to be_eql(new_scope)
+      expect(scope_object).to be_eql(new_scope)
     end
   end
 

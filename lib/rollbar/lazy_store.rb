@@ -6,16 +6,25 @@ module Rollbar
     attr_reader :raw
 
     def initialize(initial_data)
-      initial_data ||= {  }
+      initial_data ||= {}
+
       @raw = initial_data
       @loaded_data = {}
     end
 
-    def data
-      raw.reduce({}) do |acc, (k, _)|
-        acc[k] = send(k)
+    def eql?(other)
+      if other.is_a?(self.class)
+        raw.eql?(other.raw)
+      else
+        raw.eql?(other)
+      end
+    end
 
-        acc
+    def ==(other)
+      if other.is_a?(self.class)
+        raw == other.raw
+      else
+        raw == other
       end
     end
 
@@ -24,46 +33,51 @@ module Rollbar
       self.class.new(raw.clone)
     end
 
-    private
+    def [](key)
+      load_value(key)
+    end
 
-    def load_value(key)
-      return loaded_data[key.to_s] if loaded_data.key?(key.to_s)
+    def []=(key, value)
+      raw[key] = value
 
-      value_in_data = find_value(key)
-
-      if value_in_data.respond_to?(:call)
-        value = value_in_data.call
-      else
-        value = value_in_data
-      end
-
-      loaded_data[key.to_s] = value
+      loaded_data.delete(key)
 
       value
     end
 
-    def key_in_data?(key)
-      return false unless raw
+    def data
+      raw.reduce({}) do |acc, (k, _)|
+        acc[k] = self[k]
 
-      raw.key?(key.to_sym) || raw.key(key.to_s)
-    end
-
-    def find_value(key)
-      raw[key.to_sym] || raw[key.to_s]
-    end
-
-    def method_missing(method_sym, *args, &block)
-      if key_in_data?(method_sym)
-        load_value(method_sym)
-      elsif raw.respond_to?(method_sym)
-        raw.send(method_sym, *args, &block)
-      else
-        nil
+        acc
       end
     end
 
-    def respond_to?(_)
-      true
+    private
+
+    def load_value(key)
+      return loaded_data[key] if loaded_data.key?(key)
+      return unless raw.key?(key)
+
+      value = find_value(key)
+      loaded_data[key] = value
+
+      value
+    end
+
+    def find_value(key)
+      value = raw[key]
+      value.respond_to?(:call) ? value.call : value
+    end
+
+    def method_missing(method_sym, *args, &block)
+      return raw.send(method_sym, *args, &block) if raw.respond_to?(method_sym)
+
+      super
+    end
+
+    def respond_to?(method_sym)
+      super || raw.respond_to?(method_sym)
     end
   end
 end

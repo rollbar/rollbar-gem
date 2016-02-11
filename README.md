@@ -436,7 +436,7 @@ end
 
 ## [The Scope](#the-scope)
 
-The scope an object, an instance of `Rollbar::Scope` that stores the current context data for a certain moment or situation. For example, the Rails middleware defines the scope in a way similar to this:
+The scope an object, an instance of `Rollbar::LazyStore` that stores the current context data for a certain moment or situation. For example, the Rails middleware defines the scope in a way similar to this:
 
 ```ruby
 scope = {request: request_data,
@@ -459,9 +459,9 @@ You can access the scope on the [before_process](#before-process-hook) and [tran
 your_handler = proc do |options|
   scope = options[:scope]
 
-  request_data = scope.request
-  person_data = scope.person
-  context_data = scope.context
+  request_data = scope[:request]
+  person_data = scope[:person]
+  context_data = scope[:context]
 end
 ```
 

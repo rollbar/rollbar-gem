@@ -244,7 +244,7 @@ module Rollbar
     def call_before_process(options)
       options = {
         :level => options[:level],
-        :scope => configuration.payload_options,
+        :scope => scope_object,
         :exception => options[:exception],
         :message => options[:message],
         :extra => options[:extra]
@@ -386,7 +386,7 @@ module Rollbar
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
       Rollbar::Util.deep_merge(data, configuration.payload_options)
-      Rollbar::Util.deep_merge(data, scope_object.data)
+      Rollbar::Util.deep_merge(data, scope_object)
 
       # Our API doesn't allow null context values, so just delete
       # the key if value is nil.
@@ -411,7 +411,7 @@ module Rollbar
     def call_transform(options)
       options = {
         :level => options[:level],
-        :scope => configuration.payload_options,
+        :scope => scope_object,
         :exception => options[:exception],
         :message => options[:message],
         :extra => options[:extra],
