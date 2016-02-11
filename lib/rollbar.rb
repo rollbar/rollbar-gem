@@ -424,7 +424,7 @@ module Rollbar
         begin
           handler.call(options)
         rescue => e
-          log_error("[Rollbar] Error calling the `before_process` hook: #{e}")
+          log_error("[Rollbar] Error calling the `transform` hook: #{e}")
 
           break
         end

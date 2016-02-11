@@ -326,7 +326,7 @@ describe Rollbar do
 
           it 'doesnt call the second handler and logs the error' do
             expect(handler2).not_to receive(:call)
-            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
+            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `transform` hook: #{exception}")
 
             notifier.log(level, message, exception, extra)
           end
