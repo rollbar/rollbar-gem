@@ -28,6 +28,10 @@ class HomeController < ApplicationController
     foo = bar
   end
 
+  def test_rollbar_js
+    render 'js/test', :layout => 'simple'
+  end
+
   def file_upload
     this = will_crash
   end

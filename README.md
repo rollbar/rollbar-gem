@@ -99,6 +99,57 @@ class MyApp < Sinatra::Base
 end
 ```
 
+### If using Plain Ruby
+
+Rollbar isn't dependent on Rack or Rails for most of its functionality. In a regular script, assuming you've
+installed the rollbar gem:
+
+ 1. Require rollbar
+ 2. Configure rollbar
+ 3. Send Rollbar data
+
+```ruby
+require 'rollbar'
+
+Rollbar.configure do |config|
+  config.access_token = "POST_SERVER_ITEM_ACCESS_TOKEN"
+  # Other Configuration Settings
+end
+
+Rollbar.debug("Running Script")
+
+begin
+  run_script ARGV
+rescue Exception => e # Never rescue Exception *unless* you re-raise in rescue body
+  Rollbar.error(e)
+  raise e
+end
+
+Rollbar.info("Script ran successfully")
+```
+
+
+## Integration with Rollbar.js
+
+In case you want to report your JavaScript errors using [Rollbar.js](https://github.com/rollbar/rollbar.js), you can configure the gem to enable Rollbar.js on your site. Example:
+
+```ruby
+Rollbar.configure do |config|
+  # common gem configuration
+  # ...
+  config.js_enabled = true
+  config.js_options = {
+    accessToken: "POST_CLIENT_ITEM_ACCESS_TOKEN",
+    captureUncaught: true,
+    payload: {
+      environment: "production"
+    }
+  }
+end
+```
+
+The `Hash` passed to `#js_options=` should have the same availalbe options that you can find in [Rollbar.js](https://github.com/rollbar/rollbar.js), using symbols or strings for the keys.
+
 ## Test your installation
 
 To confirm that it worked, run:
@@ -379,7 +430,14 @@ By default, all uncaught exceptions are reported at the "error" level, except fo
 - ```AbstractController::ActionNotFound```
 - ```ActionController::RoutingError```
 
-If you'd like to customize this list, see the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all.
+If you'd like to customize this list, modify the example code in ```config/initializers/rollbar.rb```. Supported levels: "critical", "error", "warning", "info", "debug", "ignore". Set to "ignore" to cause the exception not to be reported at all. For example, to ignore 404s and treat `NoMethodError`s as critical bugs, you can use the following code:
+
+```ruby
+config.exception_level_filters.merge!({
+  'ActiveRecord::RecordNotFound': 'ignore'
+  'NoMethodError': 'critical'
+})
+```
 
 This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error()`, `Rollbar.warning()`, etc. If you are making a direct call to one of the log methods and want exception level filters to apply, pass an extra keyword argument:
 
@@ -484,7 +542,7 @@ exception = MyException.new('this is a message')
 Rollbar.error(exception)
 ```
 
-You will notice a backtrace doesn't appear in your Rollbar dashboard. This is because `exception.backtrace` is `nil` in these cases. We can send the current backtrace for you even your exception doesn't have it. In order to enable this feature you should configure Rollbar in this way:
+You will notice a backtrace doesn't appear in your Rollbar dashboard. This is because `exception.backtrace` is `nil` in these cases. We can send the current backtrace for you even if your exception doesn't have it. In order to enable this feature you should configure Rollbar in this way:
 
 ```ruby
 Rollbar.configure do |config|
@@ -770,6 +828,12 @@ end
 ## Using with Zeus
 
 Some users have reported problems with Zeus when ```rake``` was not explicitly included in their Gemfile. If the zeus server fails to start after installing the rollbar gem, try explicitly adding ```gem 'rake'``` to your ```Gemfile```. See [this thread](https://github.com/rollbar/rollbar-gem/issues/30) for more information.
+
+
+## Configuration options
+
+For a listing of all configuration options available see
+[configuration options](https://www.rollbar.com/docs/notifier/rollbar-gem/configuration).
 
 ## Backwards Compatibility
 

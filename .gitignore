@@ -22,4 +22,5 @@ tmp
 .idea/
 .ruby-version
 .byebug_history
+
 gemfiles/vendor

@@ -13,4 +13,5 @@ Dummy::Application.routes.draw do
 
   get '/set_session_data' => 'home#set_session_data'
   get '/use_session_data' => 'home#use_session_data'
+  get '/test_rollbar_js' => 'home#test_rollbar_js'
 end

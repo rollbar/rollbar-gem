@@ -12,6 +12,7 @@ module Rollbar
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
     attr_accessor :disable_monkey_patch
+    attr_accessor :disable_rack_monkey_patch
     attr_accessor :disable_core_monkey_patch
     attr_accessor :dj_threshold
     attr_accessor :enabled
@@ -32,6 +33,8 @@ module Rollbar
     attr_accessor :report_dj_data
     attr_accessor :request_timeout
     attr_accessor :root
+    attr_accessor :js_options
+    attr_accessor :js_enabled
     attr_accessor :safely
     attr_accessor :scrub_fields
     attr_accessor :scrub_user
@@ -64,6 +67,7 @@ module Rollbar
       @delayed_job_enabled = true
       @disable_monkey_patch = false
       @disable_core_monkey_patch = false
+      @disable_rack_monkey_patch = false
       @dj_threshold = 0
       @enabled = nil  # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
@@ -85,6 +89,8 @@ module Rollbar
       @populate_empty_backtraces = false
       @report_dj_data = true
       @request_timeout = 3
+      @js_enabled = false
+      @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
                        :api_key, :access_token ]

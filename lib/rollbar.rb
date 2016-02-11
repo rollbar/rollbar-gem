@@ -11,6 +11,7 @@ end
 
 require 'rollbar/version'
 require 'rollbar/json'
+require 'rollbar/js'
 require 'rollbar/configuration'
 require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
@@ -447,7 +448,7 @@ module Rollbar
     def report_custom_data_error(e)
       data = safely.error(e)
 
-      return {} unless data[:uuid]
+      return {} unless data.is_a?(Hash) && data[:uuid]
 
       uuid_url = uuid_rollbar_url(data)
 
@@ -819,6 +820,8 @@ module Rollbar
     # to configure it without initializing any of the third party hooks
     def preconfigure
       yield(configuration)
+
+      reset_notifier!
     end
 
     def configure
@@ -827,9 +830,7 @@ module Rollbar
 
       yield(configuration)
 
-      require_hooks
-      require_core_extensions
-
+      prepare
       reset_notifier!
     end
 
@@ -857,6 +858,16 @@ module Rollbar
       configuration.safely?
     end
 
+    def prepare
+      prepare_js
+      require_hooks
+      require_core_extensions
+    end
+
+    def prepare_js
+      ::Rollbar::Js.prepare if configuration.js_enabled
+    end
+
     def require_hooks
       return if configuration.disable_monkey_patch
       wrap_delayed_worker
@@ -865,7 +876,7 @@ module Rollbar
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/active_job' if defined?(ActiveJob)
       require 'rollbar/goalie' if defined?(Goalie)
-      require 'rollbar/rack' if defined?(Rack)
+      require 'rollbar/rack' if defined?(Rack) unless configuration.disable_rack_monkey_patch
       require 'rollbar/rake' if defined?(Rake)
     end
 

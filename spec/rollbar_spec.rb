@@ -50,7 +50,7 @@ describe Rollbar do
 
       let(:configuration) { Rollbar.configuration }
 
-      context 'executing a Thread before Rollbar is configured', :skip_dummy_rollbar => true do
+      context 'executing a Thread before Rollbar is configured' do
         before do
           Rollbar.reset_notifier!
           Rollbar.unconfigure
@@ -657,14 +657,23 @@ describe Rollbar do
           notifier.configure do |config|
             config.custom_data_method = custom_method
           end
-
-          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
         end
 
         it 'doesnt crash the report' do
+          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
           payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
 
           expect(payload['data'][:body][:message][:extra]).to be_eql(expected_extra)
+        end
+
+        context 'and for some reason the safely.error returns a String' do
+          it 'returns an empty Hash' do
+            allow_any_instance_of(Rollbar::Notifier).to receive(:error).and_return('ignored')
+
+            payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
+
+            expect(payload['data'][:body][:message][:extra]).to be_eql(extra)
+          end
         end
       end
 
@@ -2026,6 +2035,28 @@ describe Rollbar do
       it 'returns the uuid in :_error_in_custom_data_method' do
         expect(notifier.custom_data).to be_eql({})
       end
+    end
+  end
+
+  describe '.preconfigure'do
+    before do
+      Rollbar.unconfigure
+      Rollbar.reset_notifier!
+    end
+
+    it 'resets the notifier' do
+      Rollbar.configure do |config|
+        config.access_token = 'foo'
+      end
+
+      Thread.new {}
+
+      Rollbar.preconfigure do |config|
+        config.root = 'bar'
+      end
+
+      notifier_config = Rollbar.notifier.configuration
+      expect(notifier_config.root).to be_eql('bar')
     end
   end
 
