@@ -1,5 +1,30 @@
 # Change Log
 
+## 2.8.0
+
+New features:
+
+- Add before_process and transform hooks. See [#375](https://github.com/rollbar/rollbar-gem/pull/375)
+- Rollbar.js instrumentation. See [#382](https://github.com/rollbar/rollbar-gem/pull/382)
+- Add `disable_rack_monkey_patch` configuration option. See [#377](https://github.com/rollbar/rollbar-gem/pull/377)
+- Add Rubocop config. See [#379](https://github.com/rollbar/rollbar-gem/pull/379)
+
+Bug fixes:
+
+- Notify deploy only on primary `:rollbar_role` server. See [#368](https://github.com/rollbar/rollbar-gem/pull/368)
+- Fix `Rollbar::Notifier#report_custom_data_error`. See [#376](https://github.com/rollbar/rollbar-gem/pull/376)
+- Reset the notifier when we use `Rollbar.preconfigure`. See [#378](https://github.com/rollbar/rollbar-gem/pull/378)
+- Fix sucker_punch tests. See [#372](https://github.com/rollbar/rollbar-gem/pull/372)
+
+Docs:
+
+- Add link from README to configuration. See [#383](https://github.com/rollbar/rollbar-gem/pull/383)
+- Add rough draft of configuration options documentation. See [#373](https://github.com/rollbar/rollbar-gem/pull/373)
+- Add plain ruby docs. See [#374](https://github.com/rollbar/rollbar-gem/pull/374)
+- Document exception level filters. See [#366](https://github.com/rollbar/rollbar-gem/pull/366)
+- Fix typo in README.md Sending backtrace without rescued exceptions. See [#364](https://github.com/rollbar/rollbar-gem/pull/364)
+
+
 ## 2.7.1
 
 - Suggest using ROLLBAR_ENV for staging apps. See [#353](https://github.com/rollbar/rollbar-gem/pull/353).
