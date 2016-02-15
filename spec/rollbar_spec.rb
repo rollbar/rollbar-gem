@@ -39,7 +39,7 @@ describe Rollbar do
   end
 
   context 'Notifier' do
-    context 'log' do
+    describe '#log' do
       let(:exception) do
         begin
           foo = bar
@@ -101,6 +101,236 @@ describe Rollbar do
 
         expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data)
         notifier.log('error', exception, extra_data, 'exception description')
+      end
+    end
+
+    context 'with before_process handlers in configuration' do
+      let!(:notifier) { Rollbar::Notifier.new }
+      let(:scope) { { :bar => :foo } }
+      let(:configuration) do
+        config = Rollbar::Configuration.new
+        config.enabled = true
+        config
+      end
+      let(:message) { 'message' }
+      let(:exception) { Exception.new }
+      let(:extra) { {:foo => :bar } }
+      let(:level) { 'error' }
+
+      before do
+        notifier.configuration = configuration
+        notifier.scope!(scope)
+      end
+
+      context 'without raise Rollbar::Ignore' do
+        let(:handler) do
+          proc do |options|
+
+          end
+        end
+
+        before do
+          configuration.before_process = handler
+        end
+
+        it 'calls the handler with the correct options' do
+          options = {
+            :level => level,
+            :scope => Rollbar::LazyStore.new(scope),
+            :exception => exception,
+            :message => message,
+            :extra => extra
+          }
+
+          expect(handler).to receive(:call).with(options)
+          expect(notifier).to receive(:report).with(level, message, exception, extra)
+
+          notifier.log(level, message, exception, extra)
+        end
+      end
+
+      context 'raising Rollbar::Ignore in the handler' do
+        let(:handler) do
+          proc do |options|
+            raise Rollbar::Ignore
+          end
+        end
+
+        before do
+          configuration.before_process = handler
+        end
+
+        it "calls the handler with correct options and doesn't call #report" do
+          options = {
+            :level => level,
+            :scope => Rollbar::LazyStore.new(scope),
+            :exception => exception,
+            :message => message,
+            :extra => extra
+          }
+          expect(handler).to receive(:call).with(options).and_call_original
+          expect(notifier).not_to receive(:report)
+
+          result = notifier.log(level, message, exception, extra)
+
+          expect(result).to be_eql('ignored')
+        end
+      end
+
+      context 'with 2 handlers, raising Rollbar::Ignore in the first one' do
+        let(:handler1) do
+          proc do |options|
+            raise Rollbar::Ignore
+          end
+        end
+
+        let(:handler2) do
+          proc do |options|
+
+          end
+        end
+
+        before do
+          configuration.before_process << handler1
+          configuration.before_process << handler2
+        end
+
+        it "calls only the first handler and doesn't calls #report" do
+          options = {
+            :level => level,
+            :scope => Rollbar::LazyStore.new(scope),
+            :exception => exception,
+            :message => message,
+            :extra => extra
+          }
+          expect(handler1).to receive(:call).with(options).and_call_original
+          expect(handler2).not_to receive(:call)
+          expect(notifier).not_to receive(:report)
+
+          result = notifier.log(level, message, exception, extra)
+
+          expect(result).to be_eql('ignored')
+        end
+
+        context 'if the first handler fails' do
+          let(:exception) { StandardError.new('foo') }
+          let(:handler1) do
+            proc { |options|  raise exception }
+          end
+
+          it 'doesnt call the second handler and logs the error' do
+            expect(handler2).not_to receive(:call)
+            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
+
+            notifier.log(level, message, exception, extra)
+          end
+        end
+      end
+    end
+
+    context 'with transform handlers in configuration' do
+      let!(:notifier) { Rollbar::Notifier.new }
+      let(:scope) { { :bar => :foo } }
+      let(:configuration) do
+        config = Rollbar::Configuration.new
+        config.enabled = true
+        config
+      end
+      let(:message) { 'message' }
+      let(:exception) { Exception.new }
+      let(:extra) { {:foo => :bar } }
+      let(:level) { 'error' }
+
+      before do
+        notifier.configuration = configuration
+        notifier.scope!(scope)
+      end
+
+      context 'without mutation in payload' do
+        let(:handler) do
+          proc do |options|
+
+          end
+        end
+
+        before do
+          configuration.transform = handler
+        end
+
+        it 'calls the handler with the correct options' do
+          options = {
+            :level => level,
+            :scope => Rollbar::LazyStore.new(scope),
+            :exception => exception,
+            :message => message,
+            :extra => extra,
+            :payload => kind_of(Hash)
+          }
+          expect(handler).to receive(:call).with(options).and_call_original
+          expect(notifier).to receive(:schedule_payload).with(kind_of(Hash))
+
+          notifier.log(level, message, exception, extra)
+        end
+      end
+
+      context 'with mutation in payload' do
+        let(:new_payload) do
+          {
+            'access_token' => notifier.configuration.access_token,
+            'data' => {
+            }
+          }
+        end
+        let(:handler) do
+          proc do |options|
+            payload = options[:payload]
+
+            payload.replace(new_payload)
+          end
+        end
+
+        before do
+          configuration.transform = handler
+        end
+
+        it 'calls the handler with the correct options' do
+          options = {
+            :level => level,
+            :scope => Rollbar::LazyStore.new(scope),
+            :exception => exception,
+            :message => message,
+            :extra => extra,
+            :payload => kind_of(Hash)
+          }
+          expect(handler).to receive(:call).with(options).and_call_original
+          expect(notifier).to receive(:schedule_payload).with(new_payload)
+
+          notifier.log(level, message, exception, extra)
+        end
+      end
+
+      context 'with two handlers' do
+        let(:handler1) { proc { |options|} }
+        let(:handler2) { proc { |options|} }
+
+        before do
+          configuration.transform << handler1
+          configuration.transform << handler2
+        end
+
+        context 'and the first one fails' do
+          let(:exception) { StandardError.new('foo') }
+          let(:handler1) do
+            proc { |options|  raise exception }
+          end
+
+          it 'doesnt call the second handler and logs the error' do
+            expect(handler2).not_to receive(:call)
+            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `transform` hook: #{exception}")
+
+            notifier.log(level, message, exception, extra)
+          end
+        end
       end
     end
 
@@ -243,7 +473,7 @@ describe Rollbar do
         notifier3.configuration.code_version.should == '456'
         notifier3.configuration.payload_options.should == {
           :a => 'a',
-          :b => {:c => 3, :d => 'd'},
+          :b => {:c => 'c'},
           :c => 'c'
         }
 
@@ -1674,17 +1904,17 @@ describe Rollbar do
       { :foo => 'bar' }
     end
 
-    it 'changes payload options inside the block' do
+    it 'changes data in scope_object inside the block' do
       Rollbar.reset_notifier!
       configure
 
       current_notifier_id = Rollbar.notifier.object_id
 
       Rollbar.scoped(scope_options) do
-        configuration = Rollbar.notifier.configuration
+        scope_object = Rollbar.notifier.scope_object
 
         expect(Rollbar.notifier.object_id).not_to be_eql(current_notifier_id)
-        expect(configuration.payload_options).to be_eql(scope_options)
+        expect(scope_object).to be_eql(scope_options)
       end
 
       expect(Rollbar.notifier.object_id).to be_eql(current_notifier_id)
@@ -1705,7 +1935,7 @@ describe Rollbar do
       let(:block) do
         proc do
           Thread.new do
-            scope = Rollbar.notifier.configuration.payload_options
+            scope = Rollbar.notifier.scope_object
             Thread.main[:inner_scope] = scope
           end.join
         end
@@ -1731,10 +1961,10 @@ describe Rollbar do
     before { reconfigure_notifier }
 
     it 'adds the new scope to the payload options' do
-      configuration = Rollbar.notifier.configuration
+      scope_object = Rollbar.notifier.scope_object
       Rollbar.scope!(new_scope)
 
-      expect(configuration.payload_options).to be_eql(new_scope)
+      expect(scope_object).to be_eql(new_scope)
     end
   end
 

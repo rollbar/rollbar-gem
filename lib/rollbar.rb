@@ -21,6 +21,8 @@ require 'rollbar/railtie' if defined?(Rails::VERSION)
 require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
+require 'rollbar/exceptions'
+require 'rollbar/lazy_store'
 
 module Rollbar
   ATTACHMENT_CLASSES = %w[
@@ -34,18 +36,20 @@ module Rollbar
   class Notifier
     attr_accessor :configuration
     attr_accessor :last_report
+    attr_reader :scope_object
 
     @file_semaphore = Mutex.new
 
-    def initialize(parent_notifier = nil, payload_options = nil)
+    def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
         @configuration = parent_notifier.configuration.clone
+        @scope_object = parent_notifier.scope_object.clone
 
-        if payload_options
-          Rollbar::Util.deep_merge(@configuration.payload_options, payload_options)
-        end
+        Rollbar::Util.deep_merge(@configuration.payload_options, payload_options) if payload_options
+        Rollbar::Util.deep_merge(@scope_object, scope) if scope
       else
         @configuration = ::Rollbar::Configuration.new
+        @scope_object = ::Rollbar::LazyStore.new(scope)
       end
     end
 
@@ -63,11 +67,12 @@ module Rollbar
     end
 
     def scope(options = {})
-      self.class.new(self, options)
+      self.class.new(self, nil, options)
     end
 
     def scope!(options = {})
-      Rollbar::Util.deep_merge(@configuration.payload_options, options)
+      Rollbar::Util.deep_merge(scope_object, options)
+
       self
     end
 
@@ -118,33 +123,28 @@ module Rollbar
     def log(level, *args)
       return 'disabled' unless configuration.enabled
 
-      message = nil
-      exception = nil
-      extra = nil
-
-      args.each do |arg|
-        if arg.is_a?(String)
-          message = arg
-        elsif arg.is_a?(Exception)
-          exception = arg
-        elsif arg.is_a?(Hash)
-          extra = arg
-        end
-      end
-
+      message, exception, extra = extract_arguments(args)
       use_exception_level_filters = extra && extra.delete(:use_exception_level_filters) == true
 
       return 'ignored' if ignored?(exception, use_exception_level_filters)
 
-      if use_exception_level_filters
-        exception_level = filtered_level(exception)
-        level = exception_level if exception_level
+      begin
+        call_before_process(:level => level,
+                            :exception => exception,
+                            :message => message,
+                            :extra => extra)
+      rescue Rollbar::Ignore
+        return 'ignored'
       end
+
+      level = lookup_exception_level(level, exception,
+                                     use_exception_level_filters)
 
       begin
         report(level, message, exception, extra)
       rescue Exception => e
         report_internal_error(e)
+
         'error'
       end
     end
@@ -242,6 +242,56 @@ module Rollbar
 
     private
 
+    def call_before_process(options)
+      options = {
+        :level => options[:level],
+        :scope => scope_object,
+        :exception => options[:exception],
+        :message => options[:message],
+        :extra => options[:extra]
+      }
+      handlers = configuration.before_process
+
+      handlers.each do |handler|
+        begin
+          handler.call(options)
+        rescue Rollbar::Ignore
+          raise
+        rescue => e
+          log_error("[Rollbar] Error calling the `before_process` hook: #{e}")
+
+          break
+        end
+      end
+    end
+
+    def extract_arguments(args)
+      message = nil
+      exception = nil
+      extra = nil
+
+      args.each do |arg|
+        if arg.is_a?(String)
+          message = arg
+        elsif arg.is_a?(Exception)
+          exception = arg
+        elsif arg.is_a?(Hash)
+          extra = arg
+        end
+      end
+
+      [message, exception, extra]
+    end
+
+    def lookup_exception_level(orig_level, exception, use_exception_level_filters)
+      return orig_level unless use_exception_level_filters
+
+      exception_level = filtered_level(exception)
+      return exception_level if exception_level
+
+      orig_level
+    end
+
     def ignored?(exception, use_exception_level_filters = false)
       return false unless exception
       return true if use_exception_level_filters && filtered_level(exception) == 'ignore'
@@ -337,10 +387,7 @@ module Rollbar
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
       Rollbar::Util.deep_merge(data, configuration.payload_options)
-
-      data[:person] = data[:person].call if data[:person].respond_to?(:call)
-      data[:request] = data[:request].call if data[:request].respond_to?(:call)
-      data[:context] = data[:context].call if data[:context].respond_to?(:call)
+      Rollbar::Util.deep_merge(data, scope_object)
 
       # Our API doesn't allow null context values, so just delete
       # the key if value is nil.
@@ -353,7 +400,35 @@ module Rollbar
 
       enforce_valid_utf8(payload)
 
+      call_transform(:level => level,
+                     :exception => exception,
+                     :message => message,
+                     :extra => extra,
+                     :payload => payload)
+
       payload
+    end
+
+    def call_transform(options)
+      options = {
+        :level => options[:level],
+        :scope => scope_object,
+        :exception => options[:exception],
+        :message => options[:message],
+        :extra => options[:extra],
+        :payload => options[:payload]
+      }
+      handlers = configuration.transform
+
+      handlers.each do |handler|
+        begin
+          handler.call(options)
+        rescue => e
+          log_error("[Rollbar] Error calling the `transform` hook: #{e}")
+
+          break
+        end
+      end
     end
 
     def build_payload_body(message, exception, extra)
@@ -773,6 +848,10 @@ module Rollbar
 
     def configuration
       @configuration ||= Configuration.new
+    end
+
+    def scope_object
+      @scope_obejct ||= ::Rollbar::LazyStore.new({})
     end
 
     def safely?
