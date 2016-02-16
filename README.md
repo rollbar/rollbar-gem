@@ -832,8 +832,8 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 
 ## Configuration options
 
-For a listing of all configuration options available see
-[configuration options](https://www.rollbar.com/docs/notifier/rollbar-gem/configuration).
+For a listing of all configuration options available, see
+[configuration](https://rollbar.com/docs/notifier/rollbar-gem/configuration).
 
 ## Backwards Compatibility
 
