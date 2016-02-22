@@ -434,8 +434,8 @@ If you'd like to customize this list, modify the example code in ```config/initi
 
 ```ruby
 config.exception_level_filters.merge!({
-  'ActiveRecord::RecordNotFound': 'ignore'
-  'NoMethodError': 'critical'
+  'ActiveRecord::RecordNotFound' => 'ignore',
+  'NoMethodError' => 'critical'
 })
 ```
 
