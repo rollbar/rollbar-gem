@@ -467,7 +467,7 @@ Rollbar.configure do |config|
 end
 ```
 
-## [Transform hook](#transform-hook]
+## [Transform hook](#transform-hook)
 
 After the payload is built but before it it sent to our API, the gem will call the handlers defined in `configuration.transform`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
 
