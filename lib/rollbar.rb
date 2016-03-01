@@ -17,7 +17,7 @@ require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
 require 'rollbar/util'
-require 'rollbar/railtie' if defined?(Rails::VERSION)
+require 'rollbar/railtie' if defined?(Rails::VERSION) && Rails::VERSION::MAJOR >= 3
 require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
@@ -872,7 +872,11 @@ module Rollbar
       return if configuration.disable_monkey_patch
       wrap_delayed_worker
 
-      require 'rollbar/active_record_extension' if defined?(ActiveRecord)
+      if defined?(ActiveRecord)
+        require 'active_record/version'
+        require 'rollbar/active_record_extension' if ActiveRecord::VERSION::MAJOR >= 3
+      end
+
       require 'rollbar/sidekiq' if defined?(Sidekiq)
       require 'rollbar/active_job' if defined?(ActiveJob)
       require 'rollbar/goalie' if defined?(Goalie)
