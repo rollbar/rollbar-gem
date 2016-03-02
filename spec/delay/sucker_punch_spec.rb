@@ -13,13 +13,13 @@ rescue LoadError
 end
 
 describe Rollbar::Delay::SuckerPunch, :if => RUBY_VERSION != '1.8.7' do
-  describe ".call" do
-    let(:payload) { "anything" }
+  describe '.call' do
+    let(:payload) { 'anything' }
 
-    it "performs the task asynchronously" do
+    it 'performs the task asynchronously' do
       Rollbar.should_receive(:process_from_async_handler)
 
-      Rollbar::Delay::SuckerPunch.call payload
+      Rollbar::Delay::SuckerPunch.call(payload)
     end
   end
 end
