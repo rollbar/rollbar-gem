@@ -1,4 +1,5 @@
 require 'sucker_punch'
+require 'sucker_punch/version'
 
 module Rollbar
   module Delay
@@ -6,8 +7,29 @@ module Rollbar
 
       include ::SuckerPunch::Job
 
+      class << self
+        attr_accessor :perform_proc
+        attr_accessor :ready
+      end
+
+      self.ready = false
+
+      def self.setup
+        major_version = ::SuckerPunch::VERSION.split.first.to_i
+
+        if major_version > 1
+          self.perform_proc = proc { |payload| perform_async(payload) }
+        else
+          self.perform_proc = proc { |payload| new.async.perform(payload) }
+        end
+
+        self.ready = true
+      end
+
       def self.call(payload)
-        new.async.perform payload
+        setup unless ready
+
+        perform_proc.call(payload)
       end
 
       def perform(*args)
