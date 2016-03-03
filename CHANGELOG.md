@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.8.1
+
+New features:
+
+- Fix support for SuckerPunch v2. See [#393](https://github.com/rollbar/rollbar-gem/pull/393)
+
 ## 2.8.0
 
 New features:
