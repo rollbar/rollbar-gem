@@ -194,7 +194,7 @@ module Rollbar
       return {} unless params
 
       params.to_hash.inject({}) do |result, (key, value)|
-        if sensitive_params_regexp =~ key.to_s
+        if sensitive_params_regexp =~ Rollbar::Encoding.encode(key).to_s
           result[key] = rollbar_scrubbed(value)
         elsif value.is_a?(Hash)
           result[key] = rollbar_filtered_params(sensitive_params, value)

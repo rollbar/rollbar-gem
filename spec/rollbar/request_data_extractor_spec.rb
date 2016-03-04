@@ -31,6 +31,27 @@ describe Rollbar::RequestDataExtractor do
 
       expect(result).to be_kind_of(Hash)
     end
+
+    context 'with invalid utf8 sequence in key', :if => RUBY_VERSION != '1.8.7'  do
+      let(:data) do
+        File.read(File.expand_path('../../support/encodings/iso_8859_9', __FILE__)).force_encoding(Encoding::ISO_8859_9)
+      end
+      let(:env) do
+        env = Rack::MockRequest.env_for('/',
+                                         'HTTP_HOST' => 'localhost:81',
+                                         'HTTP_X_FORWARDED_HOST' => 'example.org:9292',
+                                         'CONTENT_TYPE' => 'application/json')
+
+        env['rack.session'] = { data => 'foo' }
+        env
+      end
+
+      it 'doesnt crash' do
+        result = subject.extract_request_data_from_rack(env)
+
+        expect(result).to be_kind_of(Hash)
+      end
+    end
   end
 
   describe '#rollbar_scrubbed_value' do
