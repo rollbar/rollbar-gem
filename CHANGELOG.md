@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.8.2
+
+Bug fixes:
+
+- Rollbar JavaScript: Make <head> lookup stricter to avoid matching <header>. See [#394](https://github.com/rollbar/rollbar-gem/pull/394)
+- Fix encoding problem when scrubing parameters. See [#395](https://github.com/rollbar/rollbar-gem/pull/395)
+
 ## 2.8.1
 
 New features:
