@@ -90,7 +90,7 @@ module Rollbar
       end
 
       def find_end_of_head_open(body)
-        head_open = body.index('<head')
+        head_open = body.index(/<head\W/)
         body.index('>', head_open) + 1 if head_open
       end
 
