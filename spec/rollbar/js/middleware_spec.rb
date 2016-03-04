@@ -79,6 +79,14 @@ END
         end
       end
 
+      context 'having a html 200 response without head but with an header tag', :add_js => false do
+        let(:body) { ['<header>foobar</header>'] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+      end
+
       context 'having a html 302 response', :add_js => false do
         let(:body) { ['foobar'] }
         let(:status) { 302 }
