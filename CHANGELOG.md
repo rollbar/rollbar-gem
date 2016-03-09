@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.8.3
+
+Bug fixes:
+
+- Fix rake_version method. See [#397](https://github.com/rollbar/rollbar-gem/pull/397).
+- Fix rake development version to < 11. See [#400](https://github.com/rollbar/rollbar-gem/pull/400).
+
 ## 2.8.2
 
 Bug fixes:
