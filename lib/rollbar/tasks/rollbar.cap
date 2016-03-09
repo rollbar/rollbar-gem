@@ -15,7 +15,7 @@ namespace :rollbar do
         :access_token   => fetch(:rollbar_token),
         :environment    => fetch(:rollbar_env),
         :revision       => fetch(:rollbar_revision),
-	:comment        => fetch(:rollbar_comment) }
+        :comment        => fetch(:rollbar_comment) }
 
       debug "Building Rollbar POST to #{uri} with #{params.inspect}"
 
