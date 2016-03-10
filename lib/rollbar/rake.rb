@@ -28,8 +28,8 @@ module Rollbar
     def self.rake_version
       if Object.const_defined?('RAKEVERSION')
         return RAKEVERSION
-      elsif Rake.const_defined?('VERSION')
-        return Rake::VERSION
+      elsif ::Rake.const_defined?('VERSION')
+        return ::Rake::VERSION
       end
     end
   end
