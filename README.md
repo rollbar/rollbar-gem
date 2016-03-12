@@ -377,7 +377,6 @@ By default, the notifier will "scrub" the following fields from payloads before 
 - ```:password_confirmation```
 - ```:secret```
 - ```:confirm_password```
-- ```:password_confirmation```
 - ```:secret_token```
 
 And the following http header
@@ -434,7 +433,7 @@ If you'd like to customize this list, modify the example code in ```config/initi
 
 ```ruby
 config.exception_level_filters.merge!({
-  'ActiveRecord::RecordNotFound' => 'ignore',
+  'ActionController::RoutingError' => 'ignore',
   'NoMethodError' => 'critical'
 })
 ```
