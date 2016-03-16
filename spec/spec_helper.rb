@@ -4,7 +4,6 @@ ENV['RAILS_ENV'] = ENV['RACK_ENV'] = 'test'
 require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
-require 'genspec'
 
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
@@ -45,5 +44,6 @@ RSpec.configure do |config|
     DatabaseCleaner.clean
   end
 
+  config.infer_spec_type_from_file_location! if config.respond_to?(:infer_spec_type_from_file_location!)
   config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
 end

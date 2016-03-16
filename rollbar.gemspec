@@ -19,24 +19,18 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Rollbar::VERSION
 
-  gem.add_development_dependency 'rails', '>= 3.0.0'
-  gem.add_development_dependency 'rspec-rails', '>= 2.14.0'
-  gem.add_development_dependency 'database_cleaner', '~> 1.0.0'
-  gem.add_development_dependency 'girl_friday', '>= 0.11.1'
+  gem.add_development_dependency 'oj', '~> 2.12.14' unless is_jruby
 
+  gem.add_development_dependency 'sidekiq', '>= 2.13.0' if RUBY_VERSION != '1.8.7'
   if RUBY_VERSION.start_with?('1.9')
     gem.add_development_dependency 'sucker_punch', '~> 1.0'
   elsif RUBY_VERSION.start_with?('2')
     gem.add_development_dependency 'sucker_punch', '~> 2.0'
   end
 
-  gem.add_development_dependency 'sidekiq', '>= 2.13.0' if RUBY_VERSION != '1.8.7'
-  gem.add_development_dependency 'genspec', '>= 0.2.8'
   gem.add_development_dependency 'sinatra'
   gem.add_development_dependency 'resque'
   gem.add_development_dependency 'delayed_job'
-  gem.add_development_dependency 'rake', '< 11'
   gem.add_development_dependency 'redis'
-  gem.add_runtime_dependency     'multi_json'
-  gem.add_development_dependency 'oj', '~> 2.12.14' unless is_jruby
+  gem.add_runtime_dependency 'multi_json'
 end

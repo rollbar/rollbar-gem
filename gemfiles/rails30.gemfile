@@ -16,5 +16,10 @@ gem 'hitimes', '< 1.2.2'
 
 gem 'celluloid', '< 0.17.0' if RUBY_VERSION == '1.9.2'
 
+gem 'rspec-rails', '>= 2.14.0'
+gem 'database_cleaner', '~> 1.0.0'
+gem 'genspec', '>= 0.2.8'
+gem 'rake', '< 11'
+gem 'girl_friday', '>= 0.11.1'
 
 gemspec :path => '../'

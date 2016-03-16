@@ -12,4 +12,10 @@ gem "minitest", :platform => :rbx
 gem "rubinius-developer_tools", :platform => :rbx
 gem "rails", "4.2.3"
 
+gem 'rspec-rails', '~> 3.4'
+gem 'database_cleaner', '~> 1.0.0'
+gem 'rake'
+gem 'girl_friday', '>= 0.11.1'
+gem 'generator_spec'
+
 gemspec :path => "../"

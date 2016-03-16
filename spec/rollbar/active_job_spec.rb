@@ -18,6 +18,8 @@ describe Rollbar::ActiveJob do
     end
   end
 
+  before { reconfigure_notifier }
+
   let(:exception) { StandardError.new('oh no') }
   let(:job_id) { "123" }
 

@@ -394,7 +394,7 @@ describe HomeController do
         sent_params = Rollbar.last_report[:request][:params]['upload']
 
         expect(sent_params).to be_kind_of(Array)
-        expect(sent_params).to have(2).items
+        expect(sent_params.size).to be(2)
       end
     end
   end

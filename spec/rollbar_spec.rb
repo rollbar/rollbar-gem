@@ -679,7 +679,7 @@ describe Rollbar do
 
       it 'should include project_gem_paths' do
         notifier.configure do |config|
-          config.project_gems = ['rails', 'rspec']
+          config.project_gems = ['rails', 'rspec', 'rspec-core']
         end
 
         payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
