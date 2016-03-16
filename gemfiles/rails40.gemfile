@@ -17,7 +17,7 @@ gem "rails", "4.0.13"
 gem 'rspec-rails', '>= 2.14.0'
 gem 'database_cleaner', '~> 1.0.0'
 gem 'genspec', '>= 0.2.8'
-gem 'rake', '< 11'
+gem 'rake', '~> 10.0'
 gem 'girl_friday', '>= 0.11.1'
 
 gemspec :path => "../"
