@@ -20,7 +20,7 @@ describe Rollbar::Delay::Thread do
       it 'doesnt raise any exception' do
         expect do
           described_class.call(payload).join
-        end.not_to raise_exception(exception)
+        end.not_to raise_error(exception)
       end
     end
   end
