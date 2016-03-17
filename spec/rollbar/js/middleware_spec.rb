@@ -28,6 +28,7 @@ END
   let(:content_type) { 'text/html' }
 
   before do
+    reconfigure_notifier
     allow(subject).to receive(:js_snippet).and_return(snippet)
   end
 

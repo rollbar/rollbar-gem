@@ -678,13 +678,17 @@ describe Rollbar do
       end
 
       it 'should include project_gem_paths' do
+        gems = Gem::Specification.map(&:name)
+        project_gems = ['rails']
+        project_gems << 'rspec' if gems.include?('rspec')
+        project_gems << 'rspec-core' if gems.include?('rspec-core')
+
         notifier.configure do |config|
-          config.project_gems = ['rails', 'rspec']
+          config.project_gems = project_gems
         end
 
         payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-        expect(payload['data'][:project_package_paths].count).to eq 2
+        expect(payload['data'][:project_package_paths].count).to eq(project_gems.size)
       end
 
       it 'should include a code_version' do
