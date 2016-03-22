@@ -9,6 +9,7 @@ module Rollbar
     attr_accessor :before_process
     attr_accessor :code_version
     attr_accessor :custom_data_method
+    attr_accessor :custom_values
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
     attr_accessor :disable_monkey_patch
@@ -63,6 +64,7 @@ module Rollbar
       @before_process = []
       @code_version = nil
       @custom_data_method = nil
+      @custom_values = {}
       @default_logger = lambda { Logger.new(STDERR) }
       @delayed_job_enabled = true
       @disable_monkey_patch = false

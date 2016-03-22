@@ -47,7 +47,7 @@ module Rollbar
         :cookies => cookies,
         :session => session,
         :method => rollbar_request_method(env),
-        :route => route_params,
+        :route => route_params
       }
 
       if env["action_dispatch.request_id"]
@@ -55,6 +55,26 @@ module Rollbar
       end
 
       data
+    end
+
+    def extract_custom_data_from_rack(env)
+      controller = env["action_controller.instance"]
+      if !controller
+        Rollbar.configuration.custom_data_method.call
+        return
+      end
+
+      # Only extract custom data if we've defined a custom_data_method, or specific values on the controller
+      controller_values = Rollbar.configuration.custom_values[controller.class.name.parameterize] || []
+      custom_data_block = Rollbar.configuration.custom_data_method
+      return {} if controller_values.empty? && !custom_data_block
+
+      custom_data = custom_data_block ? controller.instance_exec(&custom_data_block) : {}
+      custom_data.tap do |h|
+        controller_values.each do |var|
+          h[var] = controller.instance_eval(var)
+        end
+      end
     end
 
     def rollbar_scrubbed(value)

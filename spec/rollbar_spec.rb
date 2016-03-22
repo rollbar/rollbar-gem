@@ -612,6 +612,7 @@ describe Rollbar do
       it 'should have custom message data when custom_data_method is configured' do
         Rollbar.configure do |config|
           config.custom_data_method = lambda { {:a => 1, :b => [2, 3, 4]} }
+          config.payload_options = { :extra => config.custom_data_method }
         end
 
         payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
@@ -631,6 +632,7 @@ describe Rollbar do
 
         Rollbar.configure do |config|
           config.custom_data_method = custom_method
+          config.payload_options = { :extra => custom_method }
         end
 
         payload = notifier.send(:build_payload, 'info', 'message', nil, {:c => {:e => 'g'}, :f => 'f'})
@@ -656,6 +658,7 @@ describe Rollbar do
         before do
           notifier.configure do |config|
             config.custom_data_method = custom_method
+            config.payload_options = { :extra => custom_method }
           end
         end
 
@@ -2017,6 +2020,7 @@ describe Rollbar do
     before do
       Rollbar.configure do |config|
         config.custom_data_method = proc { raise 'this-will-raise' }
+        config.payload_options = { :extra => config.custom_data_method }
       end
 
       expect_any_instance_of(Rollbar::Notifier).to receive(:error).and_return(report_data)
