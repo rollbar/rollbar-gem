@@ -1,15 +1,24 @@
+begin
+  require 'simplecov'
+  require 'codeclimate-test-reporter'
+
+  SimpleCov.start do
+    add_filter '/spec/'
+
+    formatter SimpleCov::Formatter::MultiFormatter.new([
+      SimpleCov::Formatter::HTMLFormatter,
+      CodeClimate::TestReporter::Formatter
+    ])
+  end
+rescue LoadError
+end
+
 require 'rubygems'
 
 ENV['RAILS_ENV'] = ENV['RACK_ENV'] = 'test'
 require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
-
-begin
-  require 'codeclimate-test-reporter'
-  CodeClimate::TestReporter.start
-rescue LoadError
-end
 
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
