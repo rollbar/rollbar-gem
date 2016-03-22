@@ -32,5 +32,6 @@ gem 'redis'
 gem 'database_cleaner', '~> 1.0.0'
 gem 'girl_friday', '>= 0.11.1'
 gem 'generator_spec'
+gem 'codeclimate-test-reporter', :group => :test, :require => nil
 
 gemspec :path => "../"
