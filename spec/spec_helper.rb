@@ -5,6 +5,12 @@ require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
 
+begin
+  require 'codeclimate-test-reporter'
+  CodeClimate::TestReporter.start
+rescue LoadError
+end
+
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
 end
