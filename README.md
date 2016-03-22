@@ -488,7 +488,7 @@ handler = proc do |options|
 end
 
 Rollbar.configure do |config|
-  config.before_process << handler
+  config.transform << handler
 end
 ```
 
