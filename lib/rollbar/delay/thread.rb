@@ -15,7 +15,10 @@ module Rollbar
 
         def call(payload)
           spawn_threads_reaper
-          threads << new.call(payload)
+
+          thread = new.call(payload)
+          threads << thread
+          thread
         end
 
         private
@@ -37,11 +40,9 @@ module Rollbar
             loop do
               thread = threads.pop
 
-              if thread == EXIT_SIGNAL
-                break
-              else
-                thread.join
-              end
+              break if thread == EXIT_SIGNAL
+
+              thread.join
             end
           end
         end
