@@ -20,6 +20,7 @@ module Rollbar
     end
 
     def self.patch?
+	  return false if rake_version.nil?
       major, minor, *_ = rake_version.split('.').map(&:to_i)
 
       major > 0 || major == 0 && minor > 8
