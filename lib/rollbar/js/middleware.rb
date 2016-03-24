@@ -27,7 +27,7 @@ module Rollbar
       def _call(env, result)
         return result unless should_add_js?(env, result[0], result[1])
 
-        if response_string = add_js(result[2])
+        if response_string = add_js(env, result[2])
           env[JS_IS_INJECTED_KEY] = true
           response = ::Rack::Response.new(response_string, result[0], result[1])
 
@@ -67,7 +67,7 @@ module Rollbar
         env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
       end
 
-      def add_js(response)
+      def add_js(env, response)
         body = join_body(response)
         close_old_response(response)
 
@@ -104,20 +104,27 @@ module Rollbar
         response.close if response.respond_to?(:close)
       end
 
-      def config_js_tag
-        script_tag("var _rollbarConfig = #{config[:options].to_json};")
+      def config_js_tag(env)
+        script_tag("var _rollbarConfig = #{config[:options].to_json};", env)
       end
 
-      def snippet_js_tag
-        script_tag(js_snippet)
+      def snippet_js_tag(env)
+        script_tag(js_snippet, env)
       end
 
       def js_snippet
         SNIPPET
       end
 
-      def script_tag(content)
-        html_safe_if_needed("\n<script type=\"text/javascript\">#{content}</script>")
+      def script_tag(content, env)
+        if defined?(::SecureHeaders)
+          nonce = ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
+          script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
+        else
+          script_tag_content = "\n<script type=\"text/javascript\">#{content}</script>"
+        end
+
+        html_safe_if_needed(script_tag_content)
       end
 
       def html_safe_if_needed(string)
