@@ -533,7 +533,7 @@ Rollbar.silenced {
 }
 ```
 
-# Sending backtrace without rescued exceptions
+## Sending backtrace without rescued exceptions
 
 If you use the gem in this way:
 
@@ -697,6 +697,25 @@ config.failover_handlers = [Rollbar::Delay::GirlFriday, Rollbar::Delay::Thread]
 ```
 
 With the configuration above Resque will be your primary asynchronous handler but if it fails queueing the job Rollbar will use GirlFriday at first, and just a thread in case that GirlFriday fails too.
+
+## Logger interface
+
+The gem provides a class `Rollbar::Logger` that inherits from `Logger` so you can use Rollbar to log your application messages. The basic usage is:
+
+```ruby
+require 'rollbar/logger'
+
+logger = Rollbar::Logger.new
+logger.info('Purchase failed!')
+```
+
+If you are using Rails you can extend your `Rails.logger` so the log messages are sent to both outputs. You can use this snippet in one initializer:
+
+```ruby
+require 'rollbar/logger'
+
+Rails.logger.extend(ActiveSupport::Logger.broadcast(Rollbar::Logger.new))
+```
 
 ## Using with rollbar-agent
 
