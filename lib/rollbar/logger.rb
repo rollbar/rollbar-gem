@@ -1,7 +1,19 @@
-require "logger"
+require 'logger'
 require 'rollbar'
 
 module Rollbar
+  # This class provides logger interface that can be used to replace
+  # the application logger and send all the log messages to Rollbar
+  #
+  # Usage:
+  # require 'rollbar/logger'
+  # logger = Rollbar::Logger.new
+  # logger.error('Error processing purchase')
+  #
+  # If using Rails, you can extend the Rails logger so messages are logged
+  # normally and also to Rollbar:
+  #
+  # Rails.logger.extend(ActiveSupport::Logger.broadcast(Rollbar::Logger.new))
   class Logger < Logger
     class Error < RuntimeError; end
     class DatetimeFormatNotSupported < Error; end
@@ -11,7 +23,7 @@ module Rollbar
       @level = ERROR
     end
 
-    def add(severity, message = nil, progname = nil, &block)
+    def add(severity, message = nil, progname = nil)
       return true if severity < @level
 
       message ||= block_given? ? yield : progname
@@ -26,19 +38,19 @@ module Rollbar
     end
 
     def formatter=(_)
-      fail(FormatterNotSupported)
+      raise(FormatterNotSupported)
     end
 
     def formatter
-      fail(FormatterNotSupported)
+      raise(FormatterNotSupported)
     end
 
     def datetime_format=(_)
-      fail(DatetimeFormatNotSupported)
+      raise(DatetimeFormatNotSupported)
     end
 
     def datetime_format
-      fail(DatetimeFormatNotSupported)
+      raise(DatetimeFormatNotSupported)
     end
 
     # Returns a Rollbar::Notifier instance with the current global scope and
