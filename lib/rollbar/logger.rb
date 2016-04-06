@@ -14,7 +14,7 @@ module Rollbar
   # normally and also to Rollbar:
   #
   # Rails.logger.extend(ActiveSupport::Logger.broadcast(Rollbar::Logger.new))
-  class Logger < Logger
+  class Logger < ::Logger
     class Error < RuntimeError; end
     class DatetimeFormatNotSupported < Error; end
     class FormatterNotSupported < Error; end
