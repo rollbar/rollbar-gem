@@ -63,7 +63,7 @@ module Rollbar
       @before_process = []
       @code_version = nil
       @custom_data_method = nil
-      @default_logger = lambda { Logger.new(STDERR) }
+      @default_logger = lambda { ::Logger.new(STDERR) }
       @delayed_job_enabled = true
       @disable_monkey_patch = false
       @disable_core_monkey_patch = false
