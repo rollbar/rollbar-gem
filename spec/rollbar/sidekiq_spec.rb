@@ -59,7 +59,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         described_class.handle_exception(msg_or_context, exception)
       end
-      
+
       it 'does not blow up and sends the error to rollbar if retry is true but there is no retry count' do
         allow(Rollbar).to receive(:scope).and_return(rollbar)
         expect(rollbar).to receive(:error)
@@ -70,7 +70,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
           described_class.handle_exception(msg_or_context, exception)
         }.to_not raise_error
       end
-      
+
     end
   end
 
@@ -82,6 +82,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
     subject { Rollbar::Sidekiq.new }
 
     it 'sends the error to Rollbar::Sidekiq.handle_exception' do
+      expect(Rollbar).to receive(:reset_notifier!)
       expect(Rollbar::Sidekiq).to receive(:handle_exception).with(msg, exception)
 
       expect { subject.call(nil, msg, nil, &middleware_block) }.to raise_error(exception)
