@@ -1,5 +1,24 @@
 # Change Log
 
+## 2.9.0
+
+Bug fixes:
+
+- Clean scope before every Sidekiq job execution. See [#421](https://github.com/rollbar/rollbar-gem/pull/421).
+- Threads reaper. See [#418](https://github.com/rollbar/rollbar-gem/pull/418).
+
+New features:
+- Rollbar logger. See [#417](https://github.com/rollbar/rollbar-gem/pull/417).
+
+Others:
+- Fix dependencies. See [#402](https://github.com/rollbar/rollbar-gem/pull/402).
+- Use mime-types < 3.0 for RUBY < 2.0. See [#420](https://github.com/rollbar/rollbar-gem/pull/420).
+- Add .codeclimate.yml. See [#409](https://github.com/rollbar/rollbar-gem/pull/409).
+- Use SimpleCov with CodeClimate formatter. See [#408](https://github.com/rollbar/rollbar-gem/pull/408).
+- Setup CodeClimate coverage. See [#407](https://github.com/rollbar/rollbar-gem/pull/407).
+- Typo in the transform hook documentation. See [#406](https://github.com/rollbar/rollbar-gem/pull/406).
+
+
 ## 2.8.3
 
 Bug fixes:
