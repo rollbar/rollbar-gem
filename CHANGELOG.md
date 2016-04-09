@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.9.1
+
+Bug fixes:
+
+- Fix Sidekiq support for version > 3.x. Thanks @phlipper. See [#423](https://github.com/rollbar/rollbar-gem/pull/423).
+
 ## 2.9.0
 
 Bug fixes:
