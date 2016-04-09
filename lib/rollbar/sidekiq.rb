@@ -43,7 +43,10 @@ Sidekiq.configure_server do |config|
       chain.add Rollbar::Sidekiq
     end
   else
-    chain.add Rollbar::Sidekiq::ClearScope
+    config.server_middleware do |chain|
+      chain.add Rollbar::Sidekiq::ClearScope
+    end
+
     config.error_handlers << proc do |e, context|
       Rollbar::Sidekiq.handle_exception(context, e)
     end
