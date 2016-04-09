@@ -77,7 +77,7 @@ module Rollbar
         return nil unless head_open_end
 
         if head_open_end
-          body = body[0..head_open_end] <<
+          body = body[0..(head_open_end - 1)] <<
                  config_js_tag <<
                  snippet_js_tag <<
                  body[head_open_end..-1]
