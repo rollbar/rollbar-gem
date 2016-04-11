@@ -22,7 +22,19 @@ describe Rollbar::LoggerProxy do
     end
   end
 
-  describe '#call' do
+  describe '#log' do
+    context 'if Rollbar is disabled' do
+      before do
+        expect(Rollbar.configuration).to receive(:enabled).and_return(false)
+      end
+
+      it 'doesnt call the logger' do
+        expect(logger).to_not receive(:error)
+
+        subject.log('error', 'foo')
+      end
+    end
+
     context 'if the logger fails' do
       it 'doesnt raise' do
         allow(logger).to receive(:info).and_raise(StandardError.new)

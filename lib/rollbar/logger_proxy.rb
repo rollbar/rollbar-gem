@@ -23,6 +23,8 @@ module Rollbar
     end
 
     def log(level, message)
+      return unless Rollbar.configuration.enabled
+
       @object.send(level, message)
     rescue
       puts "[Rollbar] Error logging #{level}:"
