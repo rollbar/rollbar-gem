@@ -118,6 +118,12 @@ module Rollbar
       end
     end
 
+    def use_delayed_job
+      require 'rollbar/delay/delayed_job'
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::DelayedJob
+    end
+
     def use_sidekiq(options = {})
       require 'rollbar/delay/sidekiq' if defined?(Sidekiq)
       @use_async      = true
