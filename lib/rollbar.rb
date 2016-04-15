@@ -25,10 +25,6 @@ require 'rollbar/exceptions'
 require 'rollbar/lazy_store'
 
 module Rollbar
-  ATTACHMENT_CLASSES = %w[
-    ActionDispatch::Http::UploadedFile
-    Rack::Multipart::UploadedFile
-  ].freeze
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
                                process_payload process_from_async_handler scope send_failsafe log_info log_debug
                                log_warning log_error silenced)

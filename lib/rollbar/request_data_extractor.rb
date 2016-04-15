@@ -1,15 +1,15 @@
 require 'rack'
 require 'tempfile'
 
+require 'rollbar/scrubbers'
 require 'rollbar/scrubbers/url'
+require 'rollbar/scrubbers/params'
 require 'rollbar/util/ip_obfuscator'
 
 module Rollbar
   module RequestDataExtractor
-    SKIPPED_CLASSES = [Tempfile]
-
     def extract_person_data_from_controller(env)
-      if env.has_key? 'rollbar.person_data'
+      if env.has_key?('rollbar.person_data')
         person_data = env['rollbar.person_data'] || {}
       else
         controller = env['action_controller.instance']
@@ -47,22 +47,14 @@ module Rollbar
         :cookies => cookies,
         :session => session,
         :method => rollbar_request_method(env),
-        :route => route_params,
+        :route => route_params
       }
 
-      if env["action_dispatch.request_id"]
-        data[:request_id] = env["action_dispatch.request_id"]
+      if env['action_dispatch.request_id']
+        data[:request_id] = env['action_dispatch.request_id']
       end
 
       data
-    end
-
-    def rollbar_scrubbed(value)
-      if Rollbar.configuration.randomize_scrub_length
-        random_filtered_value
-      else
-        '*' * (value.length rescue 8)
-      end
     end
 
     private
@@ -89,7 +81,7 @@ module Rollbar
         if name == 'Cookie'
           {}
         elsif sensitive_headers_list.include?(name)
-          { name => rollbar_scrubbed(env[header]) }
+          { name => Rollbar::Scrubbers.scrub_value(env[header]) }
         else
           { name => env[header] }
         end
@@ -108,8 +100,8 @@ module Rollbar
 
       port = env['HTTP_X_FORWARDED_PORT']
       if port && !(scheme.downcase == 'http' && port.to_i == 80) && \
-                 !(scheme.downcase == 'https' && port.to_i == 443) && \
-                 !(host.include? ':')
+         !(scheme.downcase == 'https' && port.to_i == 443) && \
+         !(host.include? ':')
         host = host + ':' + port
       end
 
@@ -151,7 +143,7 @@ module Rollbar
 
     def json_request?(rack_req)
       !!(rack_req.env['CONTENT_TYPE'] =~ %r{application/json} ||
-         rack_req.env['ACCEPT']       =~ /\bjson\b/)
+         rack_req.env['ACCEPT'] =~ /\bjson\b/)
     end
 
     def rollbar_request_params(env)
@@ -189,59 +181,15 @@ module Rollbar
     end
 
     def rollbar_filtered_params(sensitive_params, params)
-      sensitive_params_regexp = Regexp.new(sensitive_params.map{ |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
-
-      return {} unless params
-
-      params.to_hash.inject({}) do |result, (key, value)|
-        if sensitive_params_regexp =~ Rollbar::Encoding.encode(key).to_s
-          result[key] = rollbar_scrubbed(value)
-        elsif value.is_a?(Hash)
-          result[key] = rollbar_filtered_params(sensitive_params, value)
-        elsif value.is_a?(Array)
-          result[key] = value.map do |v|
-            v.is_a?(Hash) ? rollbar_filtered_params(sensitive_params, v) : rollbar_filtered_param_value(v)
-          end
-        elsif skip_value?(value)
-          result[key] = "Skipped value of class '#{value.class.name}'"
-        else
-          result[key] = rollbar_filtered_param_value(value)
-        end
-
-        result
-      end
-    end
-
-    def rollbar_filtered_param_value(value)
-      if ATTACHMENT_CLASSES.include?(value.class.name)
-        begin
-          {
-            :content_type => value.content_type,
-            :original_filename => value.original_filename,
-            :size => value.tempfile.size
-          }
-        rescue
-          'Uploaded file'
-        end
-      else
-        value
-      end
+      Rollbar::Scrubbers::Params.call(params, sensitive_params)
     end
 
     def sensitive_params_list(env)
-      Array(Rollbar.configuration.scrub_fields) | Array(env['action_dispatch.parameter_filter'])
+      Array(env['action_dispatch.parameter_filter'])
     end
 
     def sensitive_headers_list
       Rollbar.configuration.scrub_headers || []
-    end
-
-    def random_filtered_value
-      '*' * (rand(5) + 3)
-    end
-
-    def skip_value?(value)
-      SKIPPED_CLASSES.any? { |klass| value.is_a?(klass) }
     end
   end
 end
