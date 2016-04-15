@@ -1,5 +1,7 @@
 module Rollbar
   module Delay
+    # This class provides the DelayedJob async handler. Users can
+    # use DelayedJob in order to send the reports to the Rollbar API
     class DelayedJob
       class << self
         def call(payload)
