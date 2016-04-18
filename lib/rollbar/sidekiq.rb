@@ -16,7 +16,11 @@ module Rollbar
       return if skip_report?(msg_or_context, e)
 
       params = msg_or_context.reject{ |k| PARAM_BLACKLIST.include?(k) }
-      scope = { :request => { :params => params } }
+      scope = {
+        :request => { :params => params },
+        :framework => "Sidekiq: #{::Sidekiq::VERSION}"
+      }
+      scope[:context] = "sidekiq##{params['queue']}" if params.is_a?(Hash)
 
       Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
     end
