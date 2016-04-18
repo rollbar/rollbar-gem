@@ -1,8 +1,11 @@
 require 'rollbar/scrubbers'
 
-
 module Rollbar
   module Scrubbers
+    # This class contains the logic to scrub the receive parameters. It will
+    # scrub the parameters matching Rollbar.configuration.scrub_fields Array.
+    # Also, if that configuration option is se to :scrub_all, it will scrub all
+    # received parameters
     class Params
       SKIPPED_CLASSES = [Tempfile]
       ATTACHMENT_CLASSES = %w(ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile).freeze
@@ -45,15 +48,13 @@ module Rollbar
         scrub_all = options[:scrub_all]
 
         params.to_hash.inject({}) do |result, (key, value)|
-          if fields_regex && fields_regex =~ Rollbar::Encoding.encode(key).to_s
-            result[key] = Rollbar::Scrubbers.scrub_value(value)
-          elsif value.is_a?(Hash)
+          if value.is_a?(Hash)
             result[key] = scrub(value, options)
           elsif value.is_a?(Array)
             result[key] = scrub_array(value, options)
           elsif skip_value?(value)
             result[key] = "Skipped value of class '#{value.class.name}'"
-          elsif scrub_all
+          elsif fields_regex && fields_regex =~ Rollbar::Encoding.encode(key).to_s || scrub_all
             result[key] = Rollbar::Scrubbers.scrub_value(value)
           else
             result[key] = rollbar_filtered_param_value(value)
