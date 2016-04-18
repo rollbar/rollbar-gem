@@ -589,7 +589,7 @@ Only versions >= 3.0 of delayed_job are supported.
 
 ## Asynchronous reporting
 
-By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday), [sucker_punch](https://github.com/brandonhilkert/sucker_punch), [Sidekiq](https://github.com/mperham/sidekiq), [Resque](https://github.com/resque/resque) or using threading.
+By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday), [sucker_punch](https://github.com/brandonhilkert/sucker_punch), [Sidekiq](https://github.com/mperham/sidekiq), [Resque](https://github.com/resque/resque), [DelayedJob](https://github.com/collectiveidea/delayed_job) or using threading.
 
 ### Using girl_friday
 
@@ -660,6 +660,14 @@ Now you can just start a new Resque worker processing jobs in that queue:
 
 ```bash
 $ QUEUE=my_queue bundle exec resque:work
+```
+
+### Using DelayedJob
+
+Add the following in ```config/initializers/rollbar.rb```:
+
+```ruby
+config.use_delayed_job
 ```
 
 ### Using threading
