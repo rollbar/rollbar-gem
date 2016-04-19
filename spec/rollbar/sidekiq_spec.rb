@@ -21,7 +21,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
     it 'constructs scope from filtered params' do
       allow(rollbar).to receive(:error)
-      expect(Rollbar).to receive(:scope).with(expected_args) {rollbar}
+      expect(Rollbar).to receive(:scope).with(expected_args) { rollbar }
 
       described_class.handle_exception(msg_or_context, exception)
     end
@@ -43,7 +43,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
         }
 
         allow(rollbar).to receive(:error)
-        expect(Rollbar).to receive(:scope).with(expected_args) {rollbar}
+        allow(Rollbar).to receive(:scope).with(expected_args).and_return(rollbar)
         described_class.handle_exception(msg_or_context, exception)
       end
     end
