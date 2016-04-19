@@ -80,7 +80,7 @@ module Rollbar
           body = body[0..head_open_end] <<
                  config_js_tag <<
                  snippet_js_tag <<
-                 body[head_open_end..-1]
+                 body[head_open_end + 1..-1]
         end
 
         body
@@ -91,7 +91,7 @@ module Rollbar
 
       def find_end_of_head_open(body)
         head_open = body.index(/<head\W/)
-        body.index('>', head_open) + 1 if head_open
+        body.index('>', head_open) if head_open
       end
 
       def join_body(response)
