@@ -78,8 +78,8 @@ module Rollbar
 
         if head_open_end
           body = body[0..head_open_end] <<
-                 config_js_tag <<
-                 snippet_js_tag <<
+                 config_js_tag(env) <<
+                 snippet_js_tag(env) <<
                  body[head_open_end + 1..-1]
         end
 
