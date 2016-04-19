@@ -234,6 +234,7 @@ describe Rollbar do
       let(:configuration) do
         config = Rollbar::Configuration.new
         config.enabled = true
+        config.access_token = test_access_token
         config
       end
       let(:message) { 'message' }
@@ -1756,9 +1757,10 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      gems.each {|gem|
-        gem_paths.push(Gem::Specification.find_by_name(gem).gem_dir)
-      }
+      gem_paths = gems.map do |gem|
+        gem_spec = Gem::Specification.find_all_by_name(gem)[0]
+        gem_spec.gem_dir if gem_spec
+      end.compact
 
       data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true

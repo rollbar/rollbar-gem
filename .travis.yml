@@ -74,6 +74,13 @@ matrix:
       jdk: oraclejdk7
     - rvm: 2.1.0
       jdk: oraclejdk8
+    - rvm: 2.2.2
+      jdk: openjdk6
+    - rvm: 2.2.2
+      jdk: oraclejdk7
+    - rvm: 2.2.2
+      jdk: oraclejdk8
+
     - rvm: ruby-head
       jdk: openjdk6
     - rvm: ruby-head
