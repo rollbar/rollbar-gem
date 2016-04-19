@@ -44,6 +44,13 @@ RSpec.configure do |config|
 
   config.use_transactional_fixtures = true
   config.order = 'random'
+  config.expect_with(:rspec) do |c|
+    c.syntax = [:should, :expect]
+  end
+
+  config.mock_with :rspec do |mocks|
+    mocks.syntax = [:should, :expect]
+  end
 
   config.before(:suite) do
     DatabaseCleaner.strategy = :truncation

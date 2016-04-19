@@ -35,7 +35,7 @@ gem 'sinatra', :git => 'https://github.com/sinatra/sinatra'
 gem 'resque'
 gem 'delayed_job', :require => false
 gem 'redis'
-gem 'database_cleaner', '~> 1.0.0'
+gem 'database_cleaner', '~> 1.x'
 gem 'girl_friday', '>= 0.11.1'
 gem 'generator_spec'
 gem 'codeclimate-test-reporter', :group => :test, :require => nil
