@@ -29,6 +29,8 @@ gemfile:
   - gemfiles/rails32.gemfile
   - gemfiles/rails40.gemfile
   - gemfiles/rails41.gemfile
+  - gemfiles/rails42.gemfile
+  - gemfiles/rails50.gemfile
 matrix:
   allow_failures:
     - rvm: ruby-head
@@ -72,6 +74,13 @@ matrix:
       jdk: oraclejdk7
     - rvm: 2.1.0
       jdk: oraclejdk8
+    - rvm: 2.2.2
+      jdk: openjdk6
+    - rvm: 2.2.2
+      jdk: oraclejdk7
+    - rvm: 2.2.2
+      jdk: oraclejdk8
+
     - rvm: ruby-head
       jdk: openjdk6
     - rvm: ruby-head
@@ -96,6 +105,8 @@ matrix:
       gemfile: gemfiles/rails41.gemfile
     - rvm: 1.8.7
       gemfile: gemfiles/rails42.gemfile
+    - rvm: 1.8.7
+      gemfile: gemfiles/rails50.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails31.gemfile
     - rvm: 1.9.2
@@ -106,6 +117,14 @@ matrix:
       gemfile: gemfiles/rails41.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails42.gemfile
+    - rvm: 1.9.2
+      gemfile: gemfiles/rails50.gemfile
+    - rvm: 1.9.3
+      gemfile: gemfiles/rails50.gemfile
+    - rvm: 2.0.0
+      gemfile: gemfiles/rails50.gemfile
+    - rvm: 2.1.0
+      gemfile: gemfiles/rails50.gemfile
     - rvm: 2.2.2
       gemfile: gemfiles/rails30.gemfile
     - rvm: 2.2.2
@@ -134,6 +153,8 @@ matrix:
       gemfile: gemfiles/rails41.gemfile
     - rvm: jruby-19mode
       gemfile: gemfiles/rails42.gemfile
+    - rvm: jruby-19mode
+      gemfile: gemfiles/rails50.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails30.gemfile
     - rvm: rbx
@@ -146,10 +167,5 @@ matrix:
       gemfile: gemfiles/rails41.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails42.gemfile
-gemfile:
-  - gemfiles/rails30.gemfile
-  - gemfiles/rails31.gemfile
-  - gemfiles/rails32.gemfile
-  - gemfiles/rails40.gemfile
-  - gemfiles/rails41.gemfile
-  - gemfiles/rails42.gemfile
+    - rvm: rbx
+      gemfile: gemfiles/rails50.gemfile
