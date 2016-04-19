@@ -21,7 +21,7 @@ module Rollbar
         def insert_middleware_after_secure_headers
           instance = self
 
-          Rollbar::Railtie.initializer 'rollbar.middleware.js.frameworks.rails', :after => 'secure_headers.middleware' do |_app|
+          Rollbar::Railtie.initializer 'rollbar.js.frameworks.rails', :after => 'secure_headers.middleware' do |_app|
             instance.insert_middleware
           end
         end
