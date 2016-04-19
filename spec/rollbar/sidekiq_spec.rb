@@ -10,13 +10,18 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
     let(:msg_or_context) { ['hello', 'error_backtrace', 'backtrace', 'goodbye'] }
     let(:exception) { StandardError.new('oh noes') }
     let(:rollbar) { double }
-    let(:expected_args) { { :request => { :params => ['hello', 'goodbye'] } } }
+    let(:expected_args) do
+      {
+        :request => { :params => ['hello', 'goodbye'] },
+        :framework => "Sidekiq: #{Sidekiq::VERSION}"
+      }
+    end
 
     subject { described_class }
 
     it 'constructs scope from filtered params' do
       allow(rollbar).to receive(:error)
-      expect(Rollbar).to receive(:scope).with(expected_args) {rollbar}
+      expect(Rollbar).to receive(:scope).with(expected_args) { rollbar }
 
       described_class.handle_exception(msg_or_context, exception)
     end
@@ -26,6 +31,21 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
 
       described_class.handle_exception(msg_or_context, exception)
+    end
+
+    context 'when a sidekiq queue is set' do
+      it 'adds the sidekiq#queue-name to the error report context' do
+        msg_or_context = {"retry" => true, "retry_count" => 1, "queue" => "default"}
+        expected_args = {
+          :request => { :params => msg_or_context },
+          :framework => "Sidekiq: #{Sidekiq::VERSION}",
+          :context => 'sidekiq#default'
+        }
+
+        allow(rollbar).to receive(:error)
+        allow(Rollbar).to receive(:scope).with(expected_args).and_return(rollbar)
+        described_class.handle_exception(msg_or_context, exception)
+      end
     end
 
     context 'when set a sidekiq_threshold' do
