@@ -16,18 +16,26 @@ module Rollbar
     end
 
     def plugin_files
-      File.expand_path('../plugins/**/*.rb', __FILE__)
+      File.expand_path('../plugins/*.rb', __FILE__)
     end
 
     def define(name, &block)
-      plugin = Rollbar::Plugin.new(name)
-      plugin.instance_eval(&block)
+      return if loaded?(name)
 
+      plugin = Rollbar::Plugin.new(name)
       collection << plugin
+
+      plugin.instance_eval(&block)
     end
 
     def load!
       collection.each(&:load!)
+    end
+
+    private
+
+    def loaded?(name)
+      collection.any? { |plugin| plugin.name == name }
     end
   end
 end

@@ -1,10 +1,9 @@
 require 'rack'
 require 'rack/response'
 
-
 module Rollbar
-  module Js
-    class Middleware
+  module Middleware
+    class Js
       attr_reader :app
       attr_reader :config
 

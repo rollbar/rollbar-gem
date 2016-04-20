@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 require 'active_support/rescuable'
-require 'rollbar/active_job'
 
 describe Rollbar::ActiveJob do
   class TestJob

@@ -41,6 +41,17 @@ describe Rollbar::Plugins do
         subject.define(:name, &plugin1_proc)
       end.to change(subject.collection, :size).by(1)
     end
+
+    context 'with a plugin already defined' do
+      it 'doesnt load the plugin twice' do
+        subject.define(:name, &plugin1_proc)
+
+        expect_any_instance_of(Rollbar::Plugin).not_to receive(:instance_eval)
+        expect do
+          subject.define(:name, &plugin1_proc)
+        end.to change(subject.collection, :size).by(0)
+      end
+    end
   end
 
   describe '#load!' do

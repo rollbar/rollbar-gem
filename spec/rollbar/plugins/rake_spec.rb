@@ -1,5 +1,6 @@
 require 'spec_helper'
-require 'rollbar/rake'
+
+Rollbar.plugins.load!
 
 describe Rollbar::Rake do
   let(:application) { Rake::Application.new }

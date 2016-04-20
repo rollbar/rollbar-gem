@@ -1,7 +1,9 @@
 require 'spec_helper'
+require 'rollbar'
 require 'delayed_job'
-require 'rollbar/delayed_job'
 require 'delayed/backend/test'
+
+Rollbar.plugins.load!
 
 describe Rollbar::Delayed, :reconfigure_notifier => true do
   class FailingJob
@@ -10,11 +12,6 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     def do_job_please!(a, b)
       this = will_crash_again!
     end
-  end
-
-  before(:all) do
-    # technically, this is called once when rollbar hooks are required
-    Rollbar::Delayed.wrap_worker!
   end
 
   before do

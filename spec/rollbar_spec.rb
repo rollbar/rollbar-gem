@@ -8,6 +8,11 @@ require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
 begin
+  require 'rollbar/delay/sidekiq'
+rescue LoadError
+end
+
+begin
   require 'sucker_punch'
   require 'sucker_punch/testing/inline'
 rescue LoadError

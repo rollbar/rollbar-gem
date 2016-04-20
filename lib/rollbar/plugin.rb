@@ -18,6 +18,10 @@ module Rollbar
       @loaded = false
     end
 
+    def configuration
+      Rollbar.configuration
+    end
+
     def load!
       return unless load?
 
@@ -38,6 +42,10 @@ module Rollbar
 
     def execute(&block)
       callables << block
+    end
+
+    def execute!(&block)
+      block.call if load?
     end
 
     def load?

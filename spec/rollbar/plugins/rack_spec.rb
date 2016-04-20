@@ -2,8 +2,9 @@ require 'spec_helper'
 require 'rack'
 require 'rack/builder'
 require 'rack/mock'
-require 'rollbar/middleware/rack/builder'
+require 'rollbar'
 
+Rollbar.plugins.load!
 
 describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
   class RackMockError < Exception; end

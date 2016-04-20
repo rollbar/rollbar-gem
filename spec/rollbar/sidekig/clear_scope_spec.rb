@@ -2,8 +2,9 @@ require 'spec_helper'
 
 unless RUBY_VERSION == '1.8.7'
   require 'sidekiq'
-  require 'rollbar/sidekiq'
 end
+
+Rollbar.plugins.load!
 
 describe Rollbar::Sidekiq::ClearScope, :reconfigure_notifier => false do
   describe '#call' do
