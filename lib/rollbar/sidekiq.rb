@@ -20,7 +20,10 @@ module Rollbar
         :request => { :params => params },
         :framework => "Sidekiq: #{::Sidekiq::VERSION}"
       }
-      scope[:context] = "sidekiq##{params['queue']}" if params.is_a?(Hash)
+      if params.is_a?(Hash)
+        scope[:context] = params['class']
+        scope[:queue] = params['queue']
+      end
 
       Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
     end
