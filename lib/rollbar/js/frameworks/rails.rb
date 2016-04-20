@@ -9,6 +9,24 @@ module Rollbar
         def prepare
           return if prepared?
 
+          if secure_headers?
+            insert_middleware_after_secure_headers
+          else
+            insert_middleware
+          end
+
+          self.prepared = true
+        end
+
+        def insert_middleware_after_secure_headers
+          instance = self
+
+          Rollbar::Railtie.initializer 'rollbar.js.frameworks.rails', :after => 'secure_headers.middleware' do |_app|
+            instance.insert_middleware
+          end
+        end
+
+        def insert_middleware
           require 'rollbar/js/middleware'
 
           config = {
@@ -16,8 +34,10 @@ module Rollbar
             :enabled => Rollbar.configuration.js_enabled
           }
           rails_config.middleware.use(::Rollbar::Js::Middleware, config)
+        end
 
-          self.prepared = true
+        def secure_headers?
+          defined?(::SecureHeaders)
         end
 
         def rails_config
