@@ -10,6 +10,7 @@ rescue LoadError
 end
 
 require 'rollbar/version'
+require 'rollbar/plugins'
 require 'rollbar/json'
 require 'rollbar/js'
 require 'rollbar/configuration'
@@ -812,6 +813,8 @@ module Rollbar
 
     def_delegators :notifier, *PUBLIC_NOTIFIER_METHODS
 
+    attr_writer :plugins
+
     # Similar to configure below, but used only internally within the gem
     # to configure it without initializing any of the third party hooks
     def preconfigure
@@ -854,7 +857,14 @@ module Rollbar
       configuration.safely?
     end
 
+    def plugins
+      @plugins ||= Rollbar::Plugins.new
+    end
+
     def prepare
+      plugins.require_all
+      plugins.load!
+
       prepare_js
       require_hooks
       require_core_extensions
