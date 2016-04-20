@@ -33,13 +33,14 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       described_class.handle_exception(msg_or_context, exception)
     end
 
-    context 'when a sidekiq queue is set' do
+    context 'when a sidekiq worker class is set' do
       it 'adds the sidekiq#queue-name to the error report context' do
-        msg_or_context = {"retry" => true, "retry_count" => 1, "queue" => "default"}
+        msg_or_context = {"retry" => true, "retry_count" => 1, 'queue' => 'default', 'class' => 'MyWorkerClass'}
         expected_args = {
           :request => { :params => msg_or_context },
           :framework => "Sidekiq: #{Sidekiq::VERSION}",
-          :context => 'sidekiq#default'
+          :context => 'MyWorkerClass',
+          :queue => 'default'
         }
 
         allow(rollbar).to receive(:error)
