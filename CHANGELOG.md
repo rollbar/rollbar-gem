@@ -1,5 +1,21 @@
 # Change Log
 
+## 2.10.0
+
+New features:
+
+- Set the Sidekiq error context to the worker class name. See [#440](https://github.com/rollbar/rollbar-gem/pull/440).
+- Secure headers support for rollbar.js integration. See [#437](https://github.com/rollbar/rollbar-gem/pull/437).
+- Rails 5 support. See [#433](https://github.com/rollbar/rollbar-gem/pull/433).
+- Add scrub all parameters option. See [#431](https://github.com/rollbar/rollbar-gem/pull/431).
+- Add delayed_job async handler. See [#430](https://github.com/rollbar/rollbar-gem/pull/430).
+- Disable logging if Rollbar is disabled. See [#425](https://github.com/rollbar/rollbar-gem/pull/425).
+
+Bug fixes:
+
+- Add nil check for rake.patch! for future robustness. See [#434](https://github.com/rollbar/rollbar-gem/pull/434).
+- Fix two doc bugs. See [#401](https://github.com/rollbar/rollbar-gem/pull/401).
+
 ## 2.9.1
 
 Bug fixes:
