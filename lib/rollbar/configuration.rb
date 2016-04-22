@@ -31,6 +31,7 @@ module Rollbar
     attr_accessor :person_email_method
     attr_accessor :populate_empty_backtraces
     attr_accessor :report_dj_data
+    attr_accessor :open_timeout
     attr_accessor :request_timeout
     attr_accessor :root
     attr_accessor :js_options
@@ -88,6 +89,7 @@ module Rollbar
       @project_gems = []
       @populate_empty_backtraces = false
       @report_dj_data = true
+      @open_timeout = 3
       @request_timeout = 3
       @js_enabled = false
       @js_options = {}

@@ -180,6 +180,10 @@ Rollbar load the traces before sending them.
 Set to `false` to skip automatic bundling of job metadata like queue, job class
 name, and job options.
 
+### open_timeout
+
+**Default** `3`
+
 ### request_timeout
 
 **Default** `3`

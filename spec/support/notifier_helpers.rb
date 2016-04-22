@@ -6,6 +6,7 @@ module NotifierHelpers
       config.logger = ::Rails.logger
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
+      config.open_timeout = 60
       config.request_timeout = 60
     end
   end
