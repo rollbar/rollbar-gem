@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 module Rollbar
   class Sidekiq
     PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
@@ -40,22 +38,6 @@ module Rollbar
     rescue Exception => e
       Rollbar::Sidekiq.handle_exception(msg, e)
       raise
-    end
-  end
-end
-
-Sidekiq.configure_server do |config|
-  if Sidekiq::VERSION.split('.')[0].to_i < 3
-    config.server_middleware do |chain|
-      chain.add Rollbar::Sidekiq
-    end
-  else
-    config.server_middleware do |chain|
-      chain.add Rollbar::Sidekiq::ClearScope
-    end
-
-    config.error_handlers << proc do |e, context|
-      Rollbar::Sidekiq.handle_exception(context, e)
     end
   end
 end

@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'rollbar/js/middleware'
+require 'rollbar/middleware/js'
 
-describe Rollbar::Js::Middleware do
+describe Rollbar::Middleware::Js do
   subject { described_class.new(app, config) }
 
   let(:env) { {} }

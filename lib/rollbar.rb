@@ -10,6 +10,7 @@ rescue LoadError
 end
 
 require 'rollbar/version'
+require 'rollbar/plugins'
 require 'rollbar/json'
 require 'rollbar/js'
 require 'rollbar/configuration'
@@ -17,7 +18,6 @@ require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
 require 'rollbar/util'
-require 'rollbar/railtie' if defined?(Rails::VERSION) && Rails::VERSION::MAJOR >= 3
 require 'rollbar/delay/girl_friday' if defined?(GirlFriday)
 require 'rollbar/delay/thread'
 require 'rollbar/truncation'
@@ -812,6 +812,8 @@ module Rollbar
 
     def_delegators :notifier, *PUBLIC_NOTIFIER_METHODS
 
+    attr_writer :plugins
+
     # Similar to configure below, but used only internally within the gem
     # to configure it without initializing any of the third party hooks
     def preconfigure
@@ -826,7 +828,7 @@ module Rollbar
 
       yield(configuration)
 
-      prepare
+      plugins.load!
       reset_notifier!
     end
 
@@ -854,52 +856,8 @@ module Rollbar
       configuration.safely?
     end
 
-    def prepare
-      prepare_js
-      require_hooks
-      require_core_extensions
-    end
-
-    def prepare_js
-      ::Rollbar::Js.prepare if configuration.js_enabled
-    end
-
-    def require_hooks
-      return if configuration.disable_monkey_patch
-      wrap_delayed_worker
-
-      if defined?(ActiveRecord)
-        require 'active_record/version'
-        require 'rollbar/active_record_extension' if ActiveRecord::VERSION::MAJOR >= 3
-      end
-
-      require 'rollbar/sidekiq' if defined?(Sidekiq)
-      require 'rollbar/active_job' if defined?(ActiveJob)
-      require 'rollbar/goalie' if defined?(Goalie)
-      require 'rollbar/rack' if defined?(Rack) unless configuration.disable_rack_monkey_patch
-      require 'rollbar/rake' if defined?(Rake)
-    end
-
-    def require_core_extensions
-      # This monkey patch is always needed in order
-      # to use Rollbar.scoped
-      require 'rollbar/core_ext/thread'
-
-      return if configuration.disable_core_monkey_patch
-
-      # Needed to avoid active_support (< 4.1.0) bug serializing JSONs
-      require 'rollbar/core_ext/basic_socket' if monkey_patch_socket?
-    end
-
-    def monkey_patch_socket?
-      defined?(ActiveSupport::VERSION::STRING)
-    end
-
-    def wrap_delayed_worker
-      return unless defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
-
-      require 'rollbar/delayed_job'
-      Rollbar::Delayed.wrap_worker
+    def plugins
+      @plugins ||= Rollbar::Plugins.new
     end
 
     def notifier
@@ -984,3 +942,5 @@ module Rollbar
     end
   end
 end
+
+Rollbar.plugins.require_all
