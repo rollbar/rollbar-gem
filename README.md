@@ -1,11 +1,68 @@
-# Rollbar notifier for Ruby [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.10.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.10.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
 
 This is the Ruby library for Rollbar. It will instrument many kinds of Ruby applications automatically at the framework level. You can also make direct calls to send exceptions and messages to Rollbar.
 
-<!-- Sub:[TOC] -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
+
+- [Getting Started](#getting-started)
+  - [Rails](#rails)
+  - [Rack](#rack)
+  - [Plain Ruby](#plain-ruby)
+- [Integration with Rollbar.js](#integration-with-rollbarjs)
+- [Test your installation](#test-your-installation)
+- [Usage](#usage)
+  - [Uncaught exceptions](#uncaught-exceptions)
+  - [Caught exceptions and messages](#caught-exceptions-and-messages)
+  - [Reporting form validation errors](#reporting-form-validation-errors)
+  - [Advanced usage](#advanced-usage)
+- [Person tracking](#person-tracking)
+  - [Person tracking with Rack applications](#person-tracking-with-rack-applications)
+- [Special note about reporting within a request](#special-note-about-reporting-within-a-request)
+- [Data sanitization (scrubbing)](#data-sanitization-scrubbing)
+- [Including additional runtime data](#including-additional-runtime-data)
+- [Exception level filters](#exception-level-filters)
+- [Before process hook](#before-process-hook)
+- [Transform hook](#transform-hook)
+- [The Scope](#the-scope)
+- [Silencing exceptions at runtime](#silencing-exceptions-at-runtime)
+- [Sending backtrace without rescued exceptions](#sending-backtrace-without-rescued-exceptions)
+- [ActiveJob integration](#activejob-integration)
+- [Delayed::Job](#delayedjob)
+- [Asynchronous reporting](#asynchronous-reporting)
+  - [girl_friday](#girl_friday)
+  - [sucker_punch](#sucker_punch)
+  - [Sidekiq](#sidekiq)
+  - [Resque](#resque)
+  - [DelayedJob](#delayedjob)
+  - [Threading](#threading)
+  - [Other handlers](#other-handlers)
+  - [Failover handlers](#failover-handlers)
+- [Logger interface](#logger-interface)
+- [Using with rollbar-agent](#using-with-rollbar-agent)
+- [Rails booting process](#rails-booting-process)
+- [Rails runner command](#rails-runner-command)
+- [Deploy Tracking with Capistrano](#deploy-tracking-with-capistrano)
+  - [Capistrano 3](#capistrano-3)
+  - [Capistrano 2](#capistrano-2)
+- [Counting specific gems as in-project code](#counting-specific-gems-as-in-project-code)
+- [Goalie](#goalie)
+- [Resque](#resque-1)
+- [SSL](#ssl)
+- [Using with Zeus](#using-with-zeus)
+- [Configuration options](#configuration-options)
+- [Backwards Compatibility](#backwards-compatibility)
+- [Known Issues](#known-issues)
+- [Supported Language/Framework Versions](#supported-languageframework-versions)
+- [Help / Support](#help--support)
+- [Contributing](#contributing)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 
 ## Getting Started
 
@@ -31,7 +88,7 @@ gem 'oj', '~> 2.12.14'
 
 and then `bundle install` again.
 
-### If using Rails
+### Rails
 
 Run the following command from your Rails root:
 
@@ -62,7 +119,7 @@ $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 That's all you need to use Rollbar with Rails.
 
 
-### If using Rack
+### Rack
 
 Initialize Rollbar with your access token somewhere during startup:
 
@@ -99,7 +156,7 @@ class MyApp < Sinatra::Base
 end
 ```
 
-### If using Plain Ruby
+### Plain Ruby
 
 Rollbar isn't dependent on Rack or Rails for most of its functionality. In a regular script, assuming you've
 installed the rollbar gem:
@@ -561,7 +618,7 @@ end
 
 If you need to customize the reporting write your own `rescue_from` handler instead of using the `Rollbar::ActiveJob` module.
 
-## Delayed::Job integration
+## Delayed::Job
 
 If `delayed_job` is defined, Rollbar will automatically install a plugin that reports any uncaught exceptions that occur in jobs.
 
@@ -590,7 +647,7 @@ Only versions >= 3.0 of delayed_job are supported.
 
 By default, all messages are reported synchronously. You can enable asynchronous reporting with [girl_friday](https://github.com/mperham/girl_friday), [sucker_punch](https://github.com/brandonhilkert/sucker_punch), [Sidekiq](https://github.com/mperham/sidekiq), [Resque](https://github.com/resque/resque), [DelayedJob](https://github.com/collectiveidea/delayed_job) or using threading.
 
-### Using girl_friday
+### girl_friday
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -600,7 +657,7 @@ config.use_async = true
 
 Asynchronous reporting falls back to Threading if girl_friday is not installed.
 
-### Using sucker_punch
+### sucker_punch
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -608,7 +665,7 @@ Add the following in ```config/initializers/rollbar.rb```:
 config.use_sucker_punch
 ```
 
-### Using Sidekiq
+### Sidekiq
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -641,7 +698,7 @@ For every errored job a new report will be sent to Rollbar API, also for errored
 config.sidekiq_threshold = 3 # Start reporting from 3 retries jobs
 ```
 
-### Using Resque
+### Resque
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -661,7 +718,7 @@ Now you can just start a new Resque worker processing jobs in that queue:
 $ QUEUE=my_queue bundle exec resque:work
 ```
 
-### Using DelayedJob
+### DelayedJob
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -669,7 +726,7 @@ Add the following in ```config/initializers/rollbar.rb```:
 config.use_delayed_job
 ```
 
-### Using threading
+### Threading
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -677,7 +734,7 @@ Add the following in ```config/initializers/rollbar.rb```:
 config.use_thread
 ```
 
-### Using another handler
+### Other handlers
 
 You can supply your own handler using ```config.async_handler```. The object to set for `async_handler` should respond to `#call` and receive the payload. The handler should schedule the payload for later processing (i.e. with a delayed_job, in a resque queue, etc.) and should itself return immediately. For example:
 
@@ -690,7 +747,7 @@ config.async_handler = Proc.new { |payload|
 
 Make sure you pass ```payload``` to ```Rollbar.process_from_async_handler``` in your own implementation.
 
-## Failover handlers
+### Failover handlers
 
 If you are using `async_handler` to process asynchronous the error it's possible that the handler fails before it calls `Rollbar.process_payload`. For example, for the Resque handler, the Redis connection could fail so the job is finally not processed.
 
@@ -831,12 +888,12 @@ Rollbar.configure do |config |
 end
 ```
 
-## Using with Goalie
+## Goalie
 
 If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pages, you may need to explicitly add ```require 'goalie'``` to ```config/application.rb``` (in addition to ```require 'goalie/rails'```) so that the monkeypatch will work. (This will be obvious if it is needed because your app won't start up: you'll see a cryptic error message about ```Goalie::CustomErrorPages.render_exception``` not being defined.)
 
 
-## Using with Resque
+## Resque
 
 Check out [resque-rollbar](https://github.com/dimko/resque-rollbar) for using Rollbar as a failure backend for Resque.
 
