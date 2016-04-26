@@ -1,17 +1,20 @@
-Rollbar.plugins.define('active_record') do
+Rollbar.plugins.define('active_model') do
   dependency { !configuration.disable_monkey_patch }
-  dependency { defined?(ActiveRecord) }
+  dependency { defined?(ActiveModel::Validations) }
   dependency do
     require 'active_record/version'
 
-    ActiveRecord::VERSION::MAJOR >= 3
+    ActiveModel::VERSION::MAJOR >= 3
   end
 
   execute do
     module Rollbar
+      # Module that defines methods to be used by instances using
+      # ActiveModel::Validations
+      # The name is ActiveRecordExtension in order to not break backwards
+      # compatibility, although probably it should be named
+      # Rollbar::ValidationsExtension or similar
       module ActiveRecordExtension
-        extend ActiveSupport::Concern
-
         def report_validation_errors_to_rollbar
           errors.full_messages.each do |error|
             Rollbar.log_info "[Rollbar] Reporting form validation error: #{error} for #{self}"
@@ -23,7 +26,7 @@ Rollbar.plugins.define('active_record') do
   end
 
   execute do
-    ActiveRecord::Base.class_eval do
+    ActiveModel::Validations.module_eval do
       include Rollbar::ActiveRecordExtension
     end
   end
