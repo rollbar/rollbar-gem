@@ -25,7 +25,7 @@ Rollbar.plugins.define('rails-rollbar.js') do
         module Frameworks
           class Rails
             def load
-              if secure_headers?
+              if secure_headers_middleware?
                 insert_middleware_after_secure_headers
               else
                 insert_middleware
@@ -50,8 +50,8 @@ Rollbar.plugins.define('rails-rollbar.js') do
               rails_config.middleware.use(::Rollbar::Middleware::Js, config)
             end
 
-            def secure_headers?
-              defined?(::SecureHeaders)
+            def secure_headers_middleware?
+              defined?(::SecureHeaders::Middleware)
             end
 
             def rails_config

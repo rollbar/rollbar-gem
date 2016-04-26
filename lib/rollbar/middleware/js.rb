@@ -116,7 +116,7 @@ module Rollbar
       end
 
       def script_tag(content, env)
-        if defined?(::SecureHeaders)
+        if defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce)
           nonce = ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
           script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
         else

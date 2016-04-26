@@ -97,7 +97,7 @@ END
         end
       end
 
-      context 'having a html 200 response and SecureHeaders defined' do
+      context 'having a html 200 response and SecureHeaders >= 3.0.0 defined' do
         let(:body) { [html] }
         let(:status) { 200 }
         let(:headers) do
@@ -106,6 +106,7 @@ END
 
         before do
           Object.const_set('SecureHeaders', Module.new)
+          SecureHeaders.const_set('VERSION', '3.0.0')
           allow(SecureHeaders).to receive(:content_security_policy_script_nonce) { 'lorem-ipsum-nonce' }
         end
 
@@ -114,6 +115,30 @@ END
           new_body = response.body.join
 
           expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
+          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+          expect(new_body).to include(snippet)
+
+          Object.send(:remove_const, 'SecureHeaders')
+        end
+      end
+
+      context 'having a html 200 response and SecureHeaders < 3.0.0 defined' do
+        let(:body) { [html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+
+        before do
+          Object.const_set('SecureHeaders', Module.new)
+          SecureHeaders.const_set('VERSION', '2.4.0')
+        end
+
+        it 'renders the snippet and config in the response without nonce in script tag when too old SecureHeaders installed' do
+          res_status, res_headers, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include('<script type="text/javascript">')
           expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
           expect(new_body).to include(snippet)
 
