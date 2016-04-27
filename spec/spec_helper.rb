@@ -20,6 +20,12 @@ require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
 
+begin
+  require 'webmock/rspec'
+  WebMock.disable_net_connect!(:allow => 'codeclimate.com')
+rescue LoadError
+end
+
 namespace :dummy do
   load 'spec/dummyapp/Rakefile'
 end
@@ -60,6 +66,8 @@ RSpec.configure do |config|
     DatabaseCleaner.start
     DatabaseCleaner.clean
     Rollbar.reset_notifier!
+
+    stub_request(:any, /api.rollbar.com/).to_rack(RollbarAPI.new) if defined?(WebMock)
   end
 
   config.after(:each) do
