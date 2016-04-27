@@ -14,6 +14,7 @@ require 'rollbar/plugins'
 require 'rollbar/json'
 require 'rollbar/js'
 require 'rollbar/configuration'
+require 'rollbar/item'
 require 'rollbar/encoding'
 require 'rollbar/logger_proxy'
 require 'rollbar/exception_reporter'
@@ -137,7 +138,7 @@ module Rollbar
                                      use_exception_level_filters)
 
       begin
-        report(level, message, exception, extra)
+        a = report(level, message, exception, extra)
       rescue Exception => e
         report_internal_error(e)
 
@@ -225,15 +226,6 @@ module Rollbar
           raise
         end
       end
-    end
-
-    def custom_data
-      data = configuration.custom_data_method.call
-      Rollbar::Util.deep_copy(data)
-    rescue => e
-      return {} if configuration.safely?
-
-      report_custom_data_error(e)
     end
 
     private
@@ -361,204 +353,18 @@ module Rollbar
     ## Payload building functions
 
     def build_payload(level, message, exception, extra)
-      environment = configuration.environment
-      environment = 'unspecified' if environment.nil? || environment.empty?
-
-      data = {
-        :timestamp => Time.now.to_i,
-        :environment => environment,
-        :level => level,
-        :language => 'ruby',
-        :framework => configuration.framework,
-        :server => server_data,
-        :notifier => {
-          :name => 'rollbar-gem',
-          :version => VERSION
-        }
-      }
-
-      data[:body] = build_payload_body(message, exception, extra)
-      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
-      data[:code_version] = configuration.code_version if configuration.code_version
-      data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
-
-      Rollbar::Util.deep_merge(data, configuration.payload_options)
-      Rollbar::Util.deep_merge(data, scope_object)
-
-      # Our API doesn't allow null context values, so just delete
-      # the key if value is nil.
-      data.delete(:context) unless data[:context]
-
-      payload = {
-        'access_token' => configuration.access_token,
-        'data' => data
-      }
-
-      enforce_valid_utf8(payload)
-
-      call_transform(:level => level,
-                     :exception => exception,
-                     :message => message,
-                     :extra => extra,
-                     :payload => payload)
-
-      payload
-    end
-
-    def call_transform(options)
       options = {
-        :level => options[:level],
+        :level => level,
+        :message => message,
+        :exception => exception,
+        :extra => extra,
+        :configuration => configuration,
+        :logger => logger,
         :scope => scope_object,
-        :exception => options[:exception],
-        :message => options[:message],
-        :extra => options[:extra],
-        :payload => options[:payload]
+        :notifier => self
       }
-      handlers = configuration.transform
 
-      handlers.each do |handler|
-        begin
-          handler.call(options)
-        rescue => e
-          log_error("[Rollbar] Error calling the `transform` hook: #{e}")
-
-          break
-        end
-      end
-    end
-
-    def build_payload_body(message, exception, extra)
-      extra = Rollbar::Util.deep_merge(custom_data, extra || {}) if custom_data_method?
-
-      if exception
-        build_payload_body_exception(message, exception, extra)
-      else
-        build_payload_body_message(message, extra)
-      end
-    end
-
-    def custom_data_method?
-      !!configuration.custom_data_method
-    end
-
-    def report_custom_data_error(e)
-      data = safely.error(e)
-
-      return {} unless data.is_a?(Hash) && data[:uuid]
-
-      uuid_url = uuid_rollbar_url(data)
-
-      { :_error_in_custom_data_method => uuid_url }
-    end
-
-    def build_payload_body_exception(message, exception, extra)
-      traces = trace_chain(exception)
-
-      traces[0][:exception][:description] = message if message
-      traces[0][:extra] = extra if extra
-
-      if traces.size > 1
-        { :trace_chain => traces }
-      elsif traces.size == 1
-        { :trace => traces[0] }
-      end
-    end
-
-    def trace_data(exception)
-      frames = exception_backtrace(exception).map do |frame|
-        # parse the line
-        match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-
-        if match
-          { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
-        else
-          { :filename => "<unknown>", :lineno => 0, :method => frame }
-        end
-      end
-
-        # reverse so that the order is as rollbar expects
-      frames.reverse!
-
-      {
-        :frames => frames,
-        :exception => {
-          :class => exception.class.name,
-          :message => exception.message
-        }
-      }
-    end
-
-    # Returns the backtrace to be sent to our API. There are 3 options:
-    #
-    # 1. The exception received has a backtrace, then that backtrace is returned.
-    # 2. configuration.populate_empty_backtraces is disabled, we return [] here
-    # 3. The user has configuration.populate_empty_backtraces is enabled, then:
-    #
-    # We want to send the caller as backtrace, but the first lines of that array
-    # are those from the user's Rollbar.error line until this method. We want
-    # to remove those lines.
-    def exception_backtrace(exception)
-      return exception.backtrace if exception.backtrace.respond_to?( :map )
-      return [] unless configuration.populate_empty_backtraces
-
-      caller_backtrace = caller
-      caller_backtrace.shift while caller_backtrace[0].include?(rollbar_lib_gem_dir)
-      caller_backtrace
-    end
-
-    def rollbar_lib_gem_dir
-      Gem::Specification.find_by_name('rollbar').gem_dir + '/lib'
-    end
-
-    def trace_chain(exception)
-      traces = [trace_data(exception)]
-      visited = [exception]
-
-      while exception.respond_to?(:cause) && (cause = exception.cause) && cause.is_a?(Exception) && !visited.include?(cause)
-        traces << trace_data(cause)
-        visited << cause
-        exception = cause
-      end
-
-      traces
-    end
-
-    def build_payload_body_message(message, extra)
-      result = { :body => message || 'Empty message'}
-      result[:extra] = extra if extra
-
-      { :message => result }
-    end
-
-    def server_data
-      data = {
-        :host => Socket.gethostname
-      }
-      data[:root] = configuration.root.to_s if configuration.root
-      data[:branch] = configuration.branch if configuration.branch
-      data[:pid] = Process.pid
-
-      data
-    end
-
-    def enforce_valid_utf8(payload)
-      normalizer = lambda { |object| Encoding.encode(object) }
-
-      Rollbar::Util.iterate_and_update(payload, normalizer)
-    end
-
-    # Walks the entire payload and truncates string values that
-    # are longer than the byte_threshold
-    def truncate_payload(payload, byte_threshold)
-      truncator = proc do |value|
-        if value.is_a?(String) && value.bytesize > byte_threshold
-          Rollbar::Util.truncate(value, byte_threshold)
-        else
-          value
-        end
-      end
-
-      Rollbar::Util.iterate_and_update(payload, truncator)
+      Item.new(options).build
     end
 
     ## Delivery functions
@@ -652,6 +458,12 @@ module Rollbar
       rescue IOError => e
         log_error "[Rollbar] Error opening/writing to file: #{e}"
       end
+    end
+
+    def enforce_valid_utf8(payload)
+      normalizer = lambda { |object| Encoding.encode(object) }
+
+      Util.iterate_and_update(payload, normalizer)
     end
 
     def send_failsafe(message, exception)
@@ -793,13 +605,9 @@ module Rollbar
 
     def log_instance_link(data)
       if data[:uuid]
-        uuid_url = uuid_rollbar_url(data)
+        uuid_url = Util.uuid_rollbar_url(data, configuration)
         log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
       end
-    end
-
-    def uuid_rollbar_url(data)
-      "#{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
     end
 
     def logger
