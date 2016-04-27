@@ -34,18 +34,18 @@ module Rollbar
       end
     end
 
-    private
-
-    def dependency(&block)
-      dependencies << block
-    end
-
     def execute(&block)
       callables << block
     end
 
     def execute!(&block)
       block.call if load?
+    end
+
+    private
+
+    def dependency(&block)
+      dependencies << block
     end
 
     def load?
