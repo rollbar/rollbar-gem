@@ -7,8 +7,6 @@ before_install:
   - gem update --system 2.1.11
   - gem --version
 rvm:
-  - 1.8.7
-  - 1.9.2
   - 1.9.3
   - 2.0.0
   - 2.1.0
@@ -32,6 +30,13 @@ gemfile:
   - gemfiles/rails42.gemfile
   - gemfiles/rails50.gemfile
 matrix:
+  include:
+    - rvm: 1.8.7
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: openjdk6
+    - rvm: 1.9.2
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: openjdk6
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-18mode
