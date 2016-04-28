@@ -37,12 +37,12 @@ module Rollbar
 
     @file_semaphore = Mutex.new
 
-    def initialize(parent_notifier = nil, item_options = nil, scope = nil)
+    def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
         @configuration = parent_notifier.configuration.clone
         @scope_object = parent_notifier.scope_object.clone
 
-        Rollbar::Util.deep_merge(@configuration.item_options, item_options) if item_options
+        Rollbar::Util.deep_merge(@configuration.payload_options, payload_options) if payload_options
         Rollbar::Util.deep_merge(@scope_object, scope) if scope
       else
         @configuration = ::Rollbar::Configuration.new
