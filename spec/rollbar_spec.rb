@@ -234,23 +234,6 @@ describe Rollbar do
       end
     end
 
-    context "with Redis instance in payload and ActiveSupport is enabled" do
-      let(:redis) { ::Redis.new }
-      let(:payload) do
-        Rollbar::Item.build_with({
-          :key => {
-            :value => redis
-          }
-        })
-      end
-      it 'dumps to JSON correctly' do
-        redis.set('foo', 'bar')
-        json = notifier.send(:dump_item, payload)
-
-        expect(json).to be_kind_of(String)
-      end
-    end
-
     context 'debug/info/warning/error/critical' do
       let(:exception) do
         begin

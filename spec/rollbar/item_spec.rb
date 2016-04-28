@@ -611,4 +611,25 @@ describe Rollbar::Item do
     end
 
   end # end #build
+
+  describe '#dump' do
+    context 'with Redis instance in payload and ActiveSupport is enabled' do
+      let(:redis) { ::Redis.new }
+      let(:payload) do
+        {
+          :key => {
+            :value => redis
+          }
+        }
+      end
+      let(:item) { Rollbar::Item.build_with(payload) }
+
+      it 'dumps to JSON correctly' do
+        redis.set('foo', 'bar')
+        json = item.dump
+
+        expect(json).to be_kind_of(String)
+      end
+    end
+  end
 end

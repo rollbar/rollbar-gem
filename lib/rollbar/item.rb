@@ -102,6 +102,21 @@ module Rollbar
       payload
     end
 
+    def dump
+      # Ensure all keys are strings since we can receive the payload inline or
+      # from an async handler job, which can be serialized.
+      stringified_payload = Util::Hash.deep_stringify_keys(payload)
+      result = Truncation.truncate(stringified_payload)
+      return result unless Truncation.truncate?(result)
+
+      original_size = Rollbar::JSON.dump(payload).bytesize
+      final_size = result.bytesize
+      notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
+      logger.error("[Rollbar] Payload too large to be sent: #{Rollbar::JSON.dump(payload)}")
+
+      nil
+    end
+
     private
 
     def build_body

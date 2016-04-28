@@ -232,6 +232,43 @@ module Rollbar
       end
     end
 
+    def send_failsafe(message, exception)
+      exception_reason = failsafe_reason(message, exception)
+
+      log_error "[Rollbar] Sending failsafe response due to #{exception_reason}"
+
+      body = failsafe_body(exception_reason)
+
+      failsafe_data = {
+        :level => 'error',
+        :environment => configuration.environment.to_s,
+        :body => {
+          :message => {
+            :body => body
+          }
+        },
+        :notifier => {
+          :name => 'rollbar-gem',
+          :version => VERSION
+        },
+        :internal => true,
+        :failsafe => true
+      }
+
+      failsafe_payload = {
+        'access_token' => configuration.access_token,
+        'data' => failsafe_data
+      }
+
+      begin
+        schedule_item(Item.build_with(failsafe_payload))
+      rescue => e
+        log_error "[Rollbar] Error sending failsafe : #{e}"
+      end
+
+      failsafe_payload
+    end
+
     private
 
     def call_before_process(options)
@@ -374,7 +411,9 @@ module Rollbar
     ## Delivery functions
 
     def send_item_using_eventmachine(item)
-      body = dump_item(item)
+      body = item.dump
+      return unless body
+
       headers = { 'X-Rollbar-Access-Token' => item['access_token'] }
       req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
 
@@ -401,7 +440,8 @@ module Rollbar
         return
       end
 
-      body = dump_item(item)
+      body = item.dump
+      return unless body
 
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -448,7 +488,8 @@ module Rollbar
     def do_write_item(item)
       log_info '[Rollbar] Writing item to file'
 
-      body = dump_item(item)
+      body = item.dump
+      return unless body
 
       begin
         unless @file
@@ -461,43 +502,6 @@ module Rollbar
       rescue IOError => e
         log_error "[Rollbar] Error opening/writing to file: #{e}"
       end
-    end
-
-    def send_failsafe(message, exception)
-      exception_reason = failsafe_reason(message, exception)
-
-      log_error "[Rollbar] Sending failsafe response due to #{exception_reason}"
-
-      body = failsafe_body(exception_reason)
-
-      failsafe_data = {
-        :level => 'error',
-        :environment => configuration.environment.to_s,
-        :body => {
-          :message => {
-            :body => body
-          }
-        },
-        :notifier => {
-          :name => 'rollbar-gem',
-          :version => VERSION
-        },
-        :internal => true,
-        :failsafe => true
-      }
-
-      failsafe_payload = {
-        'access_token' => configuration.access_token,
-        'data' => failsafe_data
-      }
-
-      begin
-        schedule_item(Item.build_with(failsafe_payload))
-      rescue => e
-        log_error "[Rollbar] Error sending failsafe : #{e}"
-      end
-
-      failsafe_payload
     end
 
     def failsafe_reason(message, exception)
@@ -574,22 +578,6 @@ module Rollbar
           log_error "[Rollbar] All failover handlers failed while processing item: #{Rollbar::JSON.dump(item.payload)}"
         end
       end
-    end
-
-    def dump_item(item)
-      payload = item.payload
-      # Ensure all keys are strings since we can receive the payload inline or
-      # from an async handler job, which can be serialized.
-      stringified_payload = Rollbar::Util::Hash.deep_stringify_keys(payload)
-      result = Truncation.truncate(stringified_payload)
-      return result unless Truncation.truncate?(result)
-
-      original_size = Rollbar::JSON.dump(payload).bytesize
-      final_size = result.bytesize
-      send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-      log_error "[Rollbar] Payload too large to be sent: #{Rollbar::JSON.dump(payload)}"
-
-      nil
     end
 
     ## Logging
