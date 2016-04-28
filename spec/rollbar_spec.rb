@@ -7,6 +7,7 @@ require 'redis'
 require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
+require 'rollbar/item'
 begin
   require 'rollbar/delay/sidekiq'
 rescue LoadError
@@ -236,15 +237,15 @@ describe Rollbar do
     context "with Redis instance in payload and ActiveSupport is enabled" do
       let(:redis) { ::Redis.new }
       let(:payload) do
-        {
+        Rollbar::Item.build_with({
           :key => {
             :value => redis
           }
-        }
+        })
       end
       it 'dumps to JSON correctly' do
         redis.set('foo', 'bar')
-        json = notifier.send(:dump_payload, payload)
+        json = notifier.send(:dump_item, payload)
 
         expect(json).to be_kind_of(String)
       end
@@ -651,7 +652,7 @@ describe Rollbar do
     it 'should report exception objects with no backtrace' do
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -691,7 +692,7 @@ describe Rollbar do
     it 'should report exception objects with nonstandard backtraces' do
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -711,7 +712,7 @@ describe Rollbar do
     it 'should report exceptions with a custom level' do
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -751,7 +752,7 @@ describe Rollbar do
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
     it 'should report simple messages' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.error('Test message')
     end
@@ -807,7 +808,7 @@ describe Rollbar do
     end
 
     it 'should report messages with request, person data and extra data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       request_data = {
@@ -864,14 +865,14 @@ describe Rollbar do
 
     it 'should send the payload over the network by default' do
       logger_mock.should_not_receive(:info).with('[Rollbar] Writing payload to file')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
       Rollbar.error(exception)
     end
 
     it 'should save the payload to a file if set' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Sending payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Writing payload to file').once
+      logger_mock.should_not_receive(:info).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:info).with('[Rollbar] Writing item to file').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
       filepath = ''
@@ -917,8 +918,8 @@ describe Rollbar do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should send the payload using the default asynchronous handler girl_friday' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
@@ -936,14 +937,14 @@ describe Rollbar do
 
     it 'should send the payload using a user-supplied asynchronous handler' do
       logger_mock.should_receive(:info).with('Custom async handler called')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
         config.use_async = true
         config.async_handler = Proc.new { |payload|
           logger_mock.info 'Custom async handler called'
-          Rollbar.process_payload(payload)
+          Rollbar.process_from_async_handler(payload)
         }
       end
 
@@ -959,7 +960,7 @@ describe Rollbar do
           # simulate previous gem version
           string_payload = Rollbar::JSON.dump(payload)
 
-          Rollbar.process_payload(string_payload)
+          Rollbar.process_from_async_handler(string_payload)
         end
       end
 
@@ -1055,8 +1056,8 @@ describe Rollbar do
 
     describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
-        logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
-        logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+        logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+        logger_mock.should_receive(:info).with('[Rollbar] Sending item')
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
         Rollbar.configure do |config|
@@ -1229,7 +1230,7 @@ describe Rollbar do
         gem_spec.gem_dir if gem_spec
       end.compact
 
-      data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
 
@@ -1252,7 +1253,7 @@ describe Rollbar do
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
       gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 
-      data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
       (data[:project_package_paths] - gem_paths).length.should == 0
@@ -1265,7 +1266,7 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == 1
     end
@@ -1348,7 +1349,7 @@ describe Rollbar do
         config.logger = logger_mock
       end
 
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
       scoped_notifier.send(:report_internal_error, exception)
     end
@@ -1450,16 +1451,16 @@ describe Rollbar do
     end
   end
 
-  describe '.process_payload' do
+  describe '.process_item' do
     context 'if there is an exception sending the payload' do
       let(:exception) { StandardError.new('error message') }
-      let(:payload) { { :foo => :bar } }
+      let(:payload) { Rollbar::Item.build_with({ :foo => :bar }) }
 
       it 'logs the error and the payload' do
-        allow(Rollbar.notifier).to receive(:send_payload).and_raise(exception)
+        allow(Rollbar.notifier).to receive(:send_item).and_raise(exception)
         expect(Rollbar.notifier).to receive(:log_error)
 
-        expect { Rollbar.notifier.process_payload(payload) }.to raise_error(exception)
+        expect { Rollbar.notifier.process_item(payload) }.to raise_error(exception)
       end
     end
   end
@@ -1469,7 +1470,7 @@ describe Rollbar do
       let(:exception) { StandardError.new('the error') }
 
       it 'raises anything and sends internal error' do
-        allow(Rollbar.notifier).to receive(:process_payload).and_raise(exception)
+        allow(Rollbar.notifier).to receive(:process_item).and_raise(exception)
         expect(Rollbar.notifier).to receive(:report_internal_error).with(exception)
 
         expect do

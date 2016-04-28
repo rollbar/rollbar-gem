@@ -27,7 +27,7 @@ require 'rollbar/lazy_store'
 
 module Rollbar
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
-                               process_payload process_from_async_handler scope send_failsafe log_info log_debug
+                               process_item process_from_async_handler scope send_failsafe log_info log_debug
                                log_warning log_error silenced)
 
   class Notifier
@@ -37,12 +37,12 @@ module Rollbar
 
     @file_semaphore = Mutex.new
 
-    def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
+    def initialize(parent_notifier = nil, item_options = nil, scope = nil)
       if parent_notifier
         @configuration = parent_notifier.configuration.clone
         @scope_object = parent_notifier.scope_object.clone
 
-        Rollbar::Util.deep_merge(@configuration.payload_options, payload_options) if payload_options
+        Rollbar::Util.deep_merge(@configuration.item_options, item_options) if item_options
         Rollbar::Util.deep_merge(@scope_object, scope) if scope
       else
         @configuration = ::Rollbar::Configuration.new
@@ -138,7 +138,7 @@ module Rollbar
                                      use_exception_level_filters)
 
       begin
-        a = report(level, message, exception, extra)
+        report(level, message, exception, extra)
       rescue Exception => e
         report_internal_error(e)
 
@@ -176,20 +176,20 @@ module Rollbar
       log('critical', *args)
     end
 
-    def process_payload(payload)
+    def process_item(item)
       if configuration.write_to_file
         if configuration.use_async
           @file_semaphore.synchronize {
-            write_payload(payload)
+            write_item(item)
           }
         else
-          write_payload(payload)
+          write_item(item)
         end
       else
-        send_payload(payload)
+        send_item(item)
       end
     rescue => e
-      log_error("[Rollbar] Error processing the payload: #{e.class}, #{e.message}. Payload: #{payload.inspect}")
+      log_error("[Rollbar] Error processing the item: #{e.class}, #{e.message}. Item: #{item.payload.inspect}")
       raise e
     end
 
@@ -217,9 +217,13 @@ module Rollbar
     # Using Rollbar.silenced we avoid the above behavior but Sidekiq
     # will have a chance to retry the original job.
     def process_from_async_handler(payload)
+      payload = Rollbar::JSON.load(payload) if payload.is_a?(String)
+
+      item = Item.build_with(payload)
+
       Rollbar.silenced do
         begin
-          process_payload(payload)
+          process_item(item)
         rescue => e
           report_internal_error(e)
 
@@ -301,19 +305,20 @@ module Rollbar
 
     def report(level, message, exception, extra)
       unless message || exception || extra
-        log_error "[Rollbar] Tried to send a report with no message, exception or extra data."
+        log_error '[Rollbar] Tried to send a report with no message, exception or extra data.'
+
         return 'error'
       end
 
-      payload = build_payload(level, message, exception, extra)
-      data = payload['data']
+      item = build_item(level, message, exception, extra)
+      data = item['data']
 
       if data[:person]
         person_id = data[:person][configuration.person_id_method.to_sym]
         return 'ignored' if configuration.ignored_person_ids.include?(person_id)
       end
 
-      schedule_payload(payload)
+      schedule_item(item)
 
       log_instance_link(data)
 
@@ -329,21 +334,21 @@ module Rollbar
       log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar."
 
       begin
-        payload = build_payload('error', nil, exception, {:internal => true})
+        item = build_item('error', nil, exception, {:internal => true})
       rescue => e
-        send_failsafe("build_payload in exception_data", e)
+        send_failsafe("build_item in exception_data", e)
         return
       end
 
       begin
-        process_payload(payload)
+        process_item(item)
       rescue => e
-        send_failsafe("error in process_payload", e)
+        send_failsafe("error in process_item", e)
         return
       end
 
       begin
-        log_instance_link(payload['data'])
+        log_instance_link(item['data'])
       rescue => e
         send_failsafe("error logging instance link", e)
         return
@@ -352,7 +357,7 @@ module Rollbar
 
     ## Payload building functions
 
-    def build_payload(level, message, exception, extra)
+    def build_item(level, message, exception, extra)
       options = {
         :level => level,
         :message => message,
@@ -364,14 +369,14 @@ module Rollbar
         :notifier => self
       }
 
-      Item.new(options).build
+      Item.new(options)
     end
 
     ## Delivery functions
 
-    def send_payload_using_eventmachine(payload)
-      body = dump_payload(payload)
-      headers = { 'X-Rollbar-Access-Token' => payload['access_token'] }
+    def send_item_using_eventmachine(item)
+      body = dump_item(item)
+      headers = { 'X-Rollbar-Access-Token' => item['access_token'] }
       req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
 
       req.callback do
@@ -389,16 +394,15 @@ module Rollbar
       end
     end
 
-    def send_payload(payload)
-      log_info '[Rollbar] Sending payload'
-      payload = Rollbar::JSON.load(payload) if payload.is_a?(String)
+    def send_item(item)
+      log_info '[Rollbar] Sending item'
 
       if configuration.use_eventmachine
-        send_payload_using_eventmachine(payload)
+        send_item_using_eventmachine(item)
         return
       end
 
-      body = dump_payload(payload)
+      body = dump_item(item)
 
       uri = URI.parse(configuration.endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -413,7 +417,7 @@ module Rollbar
 
       request = Net::HTTP::Post.new(uri.request_uri)
       request.body = body
-      request.add_field('X-Rollbar-Access-Token', payload['access_token'])
+      request.add_field('X-Rollbar-Access-Token', item['access_token'])
       response = http.request(request)
 
       if response.code == '200'
@@ -432,20 +436,20 @@ module Rollbar
       end
     end
 
-    def write_payload(payload)
+    def write_item(item)
       if configuration.use_async
         @file_semaphore.synchronize {
-          do_write_payload(payload)
+          do_write_item(item)
         }
       else
-        do_write_payload(payload)
+        do_write_item(item)
       end
     end
 
-    def do_write_payload(payload)
-      log_info '[Rollbar] Writing payload to file'
+    def do_write_item(item)
+      log_info '[Rollbar] Writing item to file'
 
-      body = dump_payload(payload)
+      body = dump_item(item)
 
       begin
         unless @file
@@ -495,7 +499,7 @@ module Rollbar
       }
 
       begin
-        schedule_payload(failsafe_payload)
+        schedule_item(Item.build_with(failsafe_payload))
       rescue => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
@@ -533,15 +537,15 @@ module Rollbar
       "Failsafe from rollbar-gem. #{reason}"
     end
 
-    def schedule_payload(payload)
-      return if payload.nil?
+    def schedule_item(item)
+      return if item.nil?
 
-      log_info '[Rollbar] Scheduling payload'
+      log_info '[Rollbar] Scheduling item'
 
       if configuration.use_async
-        process_async_payload(payload)
+        process_async_item(item)
       else
-        process_payload(payload)
+        process_item(item)
       end
     end
 
@@ -551,35 +555,36 @@ module Rollbar
       Rollbar::Delay::Thread
     end
 
-    def process_async_payload(payload)
+    def process_async_item(item)
       configuration.async_handler ||= default_async_handler
-      configuration.async_handler.call(payload)
+      configuration.async_handler.call(item.payload)
     rescue => e
       if configuration.failover_handlers.empty?
         log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
         return
       end
 
-      async_failover(payload)
+      async_failover(item)
     end
 
-    def async_failover(payload)
+    def async_failover(item)
       log_warning '[Rollbar] Primary async handler failed. Trying failovers...'
 
       failover_handlers = configuration.failover_handlers
 
       failover_handlers.each do |handler|
         begin
-          handler.call(payload)
+          handler.call(item.payload)
         rescue
           next unless handler == failover_handlers.last
 
-          log_error "[Rollbar] All failover handlers failed while processing payload: #{Rollbar::JSON.dump(payload)}"
+          log_error "[Rollbar] All failover handlers failed while processing item: #{Rollbar::JSON.dump(item.payload)}"
         end
       end
     end
 
-    def dump_payload(payload)
+    def dump_item(item)
+      payload = item.payload
       # Ensure all keys are strings since we can receive the payload inline or
       # from an async handler job, which can be serialized.
       stringified_payload = Rollbar::Util::Hash.deep_stringify_keys(payload)

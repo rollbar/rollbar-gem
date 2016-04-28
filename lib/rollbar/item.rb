@@ -1,4 +1,6 @@
 require 'socket'
+require 'forwardable'
+
 begin
   require 'securerandom'
 rescue LoadError
@@ -9,7 +11,9 @@ require 'rollbar/encoding'
 
 module Rollbar
   class Item
-    attr_accessor :payload
+    extend Forwardable
+
+    attr_writer :payload
 
     attr_reader :level
     attr_reader :message
@@ -21,6 +25,16 @@ module Rollbar
     attr_reader :logger
     attr_reader :notifier
 
+    def_delegators :payload, :[]
+
+    class << self
+      def build_with(payload, options = {})
+        new(options).tap do |item|
+          item.payload = payload
+        end
+      end
+    end
+
     def initialize(options)
       @level = options[:level]
       @message = options[:message]
@@ -29,8 +43,16 @@ module Rollbar
       @configuration = options[:configuration]
       @logger = options[:logger]
       @scope = options[:scope]
-      @payload = {}
+      @payload = nil
       @notifier = options[:notifier]
+    end
+
+    def [](key)
+      payload[key]
+    end
+
+    def payload
+      @payload ||= build
     end
 
     def build
