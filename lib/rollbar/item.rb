@@ -19,19 +19,14 @@ module Rollbar
     attr_reader :level
     attr_reader :message
     attr_reader :exception
-    attr_accessor :extra
+    attr_reader :extra
 
     attr_reader :configuration
     attr_reader :scope
     attr_reader :logger
     attr_reader :notifier
-    attr_accessor :ignored
-
-    private :ignored=
 
     def_delegators :payload, :[]
-
-    alias_method :ignored?, :ignored
 
     class << self
       def build_with(payload, options = {})
@@ -51,7 +46,6 @@ module Rollbar
       @scope = options[:scope]
       @payload = nil
       @notifier = options[:notifier]
-      @ignored = false
     end
 
     def payload
@@ -59,11 +53,7 @@ module Rollbar
     end
 
     def build
-      self.extra = Util.deep_merge(custom_data, extra || {}) if custom_data_method?
       data = build_data
-
-      check_ignored_person_ids!(data)
-
       self.payload = {
         'access_token' => configuration.access_token,
         'data' => data
@@ -117,6 +107,15 @@ module Rollbar
       nil
     end
 
+    def ignored?
+      data = payload['data']
+
+      return unless data[:person]
+
+      person_id = data[:person][configuration.person_id_method.to_sym]
+      configuration.ignored_person_ids.include?(person_id)
+    end
+
     private
 
     def build_environment
@@ -126,13 +125,6 @@ module Rollbar
       env
     end
 
-    def check_ignored_person_ids!(data)
-      return unless data[:person]
-
-      person_id = data[:person][configuration.person_id_method.to_sym]
-      self.ignored = configuration.ignored_person_ids.include?(person_id)
-    end
-
     def build_body
       exception ? build_backtrace_body : build_message_body
     end
@@ -140,11 +132,19 @@ module Rollbar
     def build_backtrace_body
       backtrace = Backtrace.new(exception,
                                 :message => message,
-                                :extra => extra,
+                                :extra => build_extra,
                                 :configuration => configuration
                                )
 
       backtrace.build
+    end
+
+    def build_extra
+      if custom_data_method?
+        Util.deep_merge(custom_data, extra || {})
+      else
+        extra
+      end
     end
 
     def custom_data_method?
@@ -171,6 +171,7 @@ module Rollbar
     end
 
     def build_message_body
+      extra = build_extra
       result = { :body => message || 'Empty message'}
       result[:extra] = extra if extra
 
