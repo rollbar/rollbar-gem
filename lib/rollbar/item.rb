@@ -198,7 +198,21 @@ module Rollbar
     end
 
     def transform
-      options = {
+      handlers = configuration.transform
+
+      handlers.each do |handler|
+        begin
+          handler.call(transform_options)
+        rescue => e
+          logger.error("[Rollbar] Error calling the `transform` hook: #{e}")
+
+          break
+        end
+      end
+    end
+
+    def transform_options
+      {
         :level => level,
         :scope => scope,
         :exception => exception,
@@ -206,17 +220,6 @@ module Rollbar
         :extra => extra,
         :payload => payload
       }
-      handlers = configuration.transform
-
-      handlers.each do |handler|
-        begin
-          handler.call(options)
-        rescue => e
-          logger.error("[Rollbar] Error calling the `transform` hook: #{e}")
-
-          break
-        end
-      end
     end
   end
 end
