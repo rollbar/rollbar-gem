@@ -587,5 +587,28 @@ describe Rollbar::Item do
       end
     end
 
+    context 'with ignored person ids' do
+      let(:ignored_ids) { [1,2,4] }
+      let(:person_data) do
+        { :person => {
+            :id => 2,
+            :username => 'foo'
+          }
+        }
+      end
+      let(:scope) { Rollbar::LazyStore.new(person_data) }
+
+      before do
+        configuration.person_id_method = :id
+        configuration.ignored_person_ids = ignored_ids
+      end
+
+      it 'sets ignored property to true' do
+        subject.build
+
+        expect(subject).to be_ignored
+      end
+    end
+
   end # end #build
 end

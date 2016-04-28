@@ -573,7 +573,7 @@ describe Rollbar do
       }
 
       Rollbar.configure do |config|
-        config.payload_options = {:person => person_data}
+        config.payload_options = { :person => person_data }
         config.ignored_person_ids += [1]
       end
 

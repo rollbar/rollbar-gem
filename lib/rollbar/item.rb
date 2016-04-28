@@ -24,8 +24,13 @@ module Rollbar
     attr_reader :scope
     attr_reader :logger
     attr_reader :notifier
+    attr_accessor :ignored
+
+    private :ignored=
 
     def_delegators :payload, :[]
+
+    alias_method :ignored?, :ignored
 
     class << self
       def build_with(payload, options = {})
@@ -45,6 +50,7 @@ module Rollbar
       @scope = options[:scope]
       @payload = nil
       @notifier = options[:notifier]
+      @ignored = false
     end
 
     def [](key)
@@ -84,13 +90,17 @@ module Rollbar
       # the key if value is nil.
       data.delete(:context) unless data[:context]
 
+      if data[:person]
+        person_id = data[:person][configuration.person_id_method.to_sym]
+        self.ignored = configuration.ignored_person_ids.include?(person_id)
+      end
+
       self.payload = {
         'access_token' => configuration.access_token,
         'data' => data
       }
 
       enforce_valid_utf8
-
       transform
 
       payload

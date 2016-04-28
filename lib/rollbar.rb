@@ -311,17 +311,13 @@ module Rollbar
       end
 
       item = build_item(level, message, exception, extra)
-      data = item['data']
 
-      if data[:person]
-        person_id = data[:person][configuration.person_id_method.to_sym]
-        return 'ignored' if configuration.ignored_person_ids.include?(person_id)
-      end
+      return 'ignored' if item.ignored?
 
       schedule_item(item)
 
+      data = item['data']
       log_instance_link(data)
-
       Rollbar.last_report = data
 
       data
@@ -369,7 +365,10 @@ module Rollbar
         :notifier => self
       }
 
-      Item.new(options)
+      item = Item.new(options)
+      item.build
+
+      item
     end
 
     ## Delivery functions
