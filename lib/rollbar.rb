@@ -464,12 +464,6 @@ module Rollbar
       end
     end
 
-    def enforce_valid_utf8(payload)
-      normalizer = lambda { |object| Encoding.encode(object) }
-
-      Util.iterate_and_update(payload, normalizer)
-    end
-
     def send_failsafe(message, exception)
       exception_reason = failsafe_reason(message, exception)
 

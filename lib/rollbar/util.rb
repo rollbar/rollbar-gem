@@ -95,5 +95,11 @@ module Rollbar
     def self.uuid_rollbar_url(data, configuration)
       "#{configuration.web_base}/instance/uuid?uuid=#{data[:uuid]}"
     end
+
+    def self.enforce_valid_utf8(payload)
+      normalizer = lambda { |object| Encoding.encode(object) }
+
+      Util.iterate_and_update(payload, normalizer)
+    end
   end
 end

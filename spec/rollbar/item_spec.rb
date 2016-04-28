@@ -42,6 +42,12 @@ describe Rollbar::Item do
     context 'a basic payload' do
       let(:extra) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
 
+      it 'calls Rollbar::Util.enforce_valid_utf8' do
+        expect(Rollbar::Util).to receive(:enforce_valid_utf8).with(kind_of(Hash))
+
+        subject.build
+      end
+
       it 'should have the correct root-level keys' do
         payload.keys.should match_array(['access_token', 'data'])
       end

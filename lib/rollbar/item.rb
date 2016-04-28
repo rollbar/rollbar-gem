@@ -225,9 +225,7 @@ module Rollbar
     end
 
     def enforce_valid_utf8
-      normalizer = lambda { |object| Encoding.encode(object) }
-
-      Util.iterate_and_update(payload, normalizer)
+      Util.enforce_valid_utf8(payload)
     end
 
     def transform
