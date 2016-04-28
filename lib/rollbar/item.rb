@@ -53,10 +53,6 @@ module Rollbar
       @ignored = false
     end
 
-    def [](key)
-      payload[key]
-    end
-
     def payload
       @payload ||= build
     end
