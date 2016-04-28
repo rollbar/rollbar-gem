@@ -1,3 +1,4 @@
+require 'net/protocol'
 require 'net/https'
 require 'socket'
 require 'thread'
@@ -23,6 +24,7 @@ require 'rollbar/delay/thread'
 require 'rollbar/truncation'
 require 'rollbar/exceptions'
 require 'rollbar/lazy_store'
+require 'rollbar/language_support'
 
 module Rollbar
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
@@ -589,12 +591,17 @@ module Rollbar
 
       if configuration.use_eventmachine
         send_payload_using_eventmachine(payload)
+
         return
       end
 
       body = dump_payload(payload)
-
       uri = URI.parse(configuration.endpoint)
+
+      handle_response(do_post(uri, body, payload['access_token']))
+    end
+
+    def do_post(uri, body, access_token)
       http = Net::HTTP.new(uri.host, uri.port)
       http.open_timeout = configuration.open_timeout
       http.read_timeout = configuration.request_timeout
@@ -607,10 +614,34 @@ module Rollbar
       end
 
       request = Net::HTTP::Post.new(uri.request_uri)
-      request.body = body
-      request.add_field('X-Rollbar-Access-Token', payload['access_token'])
-      response = http.request(request)
 
+      request.body = body
+      request.add_field('X-Rollbar-Access-Token', access_token)
+
+      handle_net_retries { http.request(request) }
+    end
+
+    def handle_net_retries
+      return yield if skip_retries?
+
+      retries = configuration.net_retries - 1
+
+      begin
+        yield
+      rescue *LanguageSupport.timeout_exceptions
+        raise if retries <= 0
+
+        retries -= 1
+
+        retry
+      end
+    end
+
+    def skip_retries?
+      Rollbar::LanguageSupport.ruby_18? || Rollbar::LanguageSupport.ruby_19?
+    end
+
+    def handle_response(response)
       if response.code == '200'
         log_info '[Rollbar] Success'
       else

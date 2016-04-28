@@ -190,6 +190,12 @@ name, and job options.
 
 Set the request timeout for sending POST data to Rollbar.
 
+### net_retries
+
+**Default** `3`
+
+Sets the number of retries cause timeouts on the POST request.
+
 ### root
 
 Set the server root, all stack frames outside that root are considered

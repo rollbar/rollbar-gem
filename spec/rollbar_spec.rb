@@ -2071,6 +2071,30 @@ describe Rollbar do
     end
   end
 
+  context 'having timeout issues (for ruby > 1.9.3)' do
+    before do
+      skip if Rollbar::LanguageSupport.ruby_18? || Rollbar::LanguageSupport.ruby_19?
+    end
+
+    let(:exception_class) do
+      Rollbar::LanguageSupport.timeout_exceptions.first
+    end
+    let(:net_exception) do
+      exception_class.new
+    end
+
+    before do
+      allow_any_instance_of(Net::HTTP).to receive(:request).and_raise(net_exception)
+    end
+
+    it 'retries the request' do
+      expect_any_instance_of(Net::HTTP).to receive(:request).exactly(3)
+      expect(Rollbar.notifier).to receive(:report_internal_error).with(net_exception)
+
+      Rollbar.info('foo')
+    end
+  end
+
   # configure with some basic params
   def configure
     reconfigure_notifier
