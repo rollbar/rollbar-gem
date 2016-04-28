@@ -4,6 +4,7 @@ require 'forwardable'
 begin
   require 'securerandom'
 rescue LoadError
+  nil
 end
 
 require 'rollbar/item/backtrace'
@@ -11,6 +12,9 @@ require 'rollbar/util'
 require 'rollbar/encoding'
 
 module Rollbar
+  # This class represents the payload to be sent to the API.
+  # It contains the logic to build the payload, trucante it
+  # and dump the JSON.
   class Item
     extend Forwardable
 
@@ -172,7 +176,7 @@ module Rollbar
 
     def build_message_body
       extra = build_extra
-      result = { :body => message || 'Empty message'}
+      result = { :body => message || 'Empty message' }
       result[:extra] = extra if extra
 
       { :message => result }

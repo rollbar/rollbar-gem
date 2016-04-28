@@ -45,17 +45,7 @@ module Rollbar
       end
 
       def trace_data(current_exception)
-        frames = exception_backtrace(current_exception).map do |frame|
-          # parse the line
-          match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-
-          if match
-            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
-          else
-            { :filename => "<unknown>", :lineno => 0, :method => frame }
-          end
-        end
-
+        frames = reduce_frames(current_exception)
         # reverse so that the order is as rollbar expects
         frames.reverse!
 
@@ -68,6 +58,19 @@ module Rollbar
         }
       end
 
+      def reduce_frames(current_exception)
+        exception_backtrace(current_exception).map do |frame|
+          # parse the line
+          match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
+
+          if match
+            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
+          else
+            { :filename => '<unknown>', :lineno => 0, :method => frame }
+          end
+        end
+      end
+
       # Returns the backtrace to be sent to our API. There are 3 options:
       #
       # 1. The exception received has a backtrace, then that backtrace is returned.
@@ -78,7 +81,7 @@ module Rollbar
       # are those from the user's Rollbar.error line until this method. We want
       # to remove those lines.
       def exception_backtrace(current_exception)
-        return current_exception.backtrace if current_exception.backtrace.respond_to?( :map )
+        return current_exception.backtrace if current_exception.backtrace.respond_to?(:map)
         return [] unless configuration.populate_empty_backtraces
 
         caller_backtrace = caller
