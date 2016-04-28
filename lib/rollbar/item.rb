@@ -6,7 +6,7 @@ begin
 rescue LoadError
 end
 
-require 'rollbar/backtrace'
+require 'rollbar/item/backtrace'
 require 'rollbar/util'
 require 'rollbar/encoding'
 
@@ -138,11 +138,11 @@ module Rollbar
     end
 
     def build_backtrace_body
-      backtrace = Rollbar::Backtrace.new(exception,
-                                         :message => message,
-                                         :extra => extra,
-                                         :configuration => configuration
-                                        )
+      backtrace = Backtrace.new(exception,
+                                :message => message,
+                                :extra => extra,
+                                :configuration => configuration
+                               )
 
       backtrace.build
     end
