@@ -115,6 +115,7 @@ describe Rollbar do
       let(:scope) { { :bar => :foo } }
       let(:configuration) do
         config = Rollbar::Configuration.new
+        config.access_token = test_access_token
         config.enabled = true
         config
       end
@@ -209,6 +210,7 @@ describe Rollbar do
             :message => message,
             :extra => extra
           }
+
           expect(handler1).to receive(:call).with(options).and_call_original
           expect(handler2).not_to receive(:call)
           expect(notifier).not_to receive(:report)

@@ -535,7 +535,7 @@ module Rollbar
     end
 
     def schedule_item(item)
-      return if item.nil?
+      return unless item
 
       log_info '[Rollbar] Scheduling item'
 

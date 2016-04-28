@@ -6,6 +6,7 @@ begin
 rescue LoadError
 end
 
+require 'rollbar/backtrace'
 require 'rollbar/util'
 require 'rollbar/encoding'
 
@@ -58,12 +59,25 @@ module Rollbar
     end
 
     def build
-      environment = configuration.environment
-      environment = 'unspecified' if environment.nil? || environment.empty?
+      self.extra = Util.deep_merge(custom_data, extra || {}) if custom_data_method?
+      data = build_data
 
+      check_ignored_person_ids!(data)
+
+      self.payload = {
+        'access_token' => configuration.access_token,
+        'data' => data
+      }
+
+      enforce_valid_utf8
+      transform
+      payload
+    end
+
+    def build_data
       data = {
         :timestamp => Time.now.to_i,
-        :environment => environment,
+        :environment => build_environment,
         :level => level,
         :language => 'ruby',
         :framework => configuration.framework,
@@ -74,7 +88,6 @@ module Rollbar
         },
         :body => build_body
       }
-
       data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
       data[:code_version] = configuration.code_version if configuration.code_version
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
@@ -86,20 +99,7 @@ module Rollbar
       # the key if value is nil.
       data.delete(:context) unless data[:context]
 
-      if data[:person]
-        person_id = data[:person][configuration.person_id_method.to_sym]
-        self.ignored = configuration.ignored_person_ids.include?(person_id)
-      end
-
-      self.payload = {
-        'access_token' => configuration.access_token,
-        'data' => data
-      }
-
-      enforce_valid_utf8
-      transform
-
-      payload
+      data
     end
 
     def dump
@@ -119,14 +119,32 @@ module Rollbar
 
     private
 
-    def build_body
-      self.extra = Util.deep_merge(custom_data, extra || {}) if custom_data_method?
+    def build_environment
+      env = configuration.environment
+      env = 'unspecified' if env.nil? || env.empty?
 
-      if exception
-        build_body_exception
-      else
-        build_body_message
-      end
+      env
+    end
+
+    def check_ignored_person_ids!(data)
+      return unless data[:person]
+
+      person_id = data[:person][configuration.person_id_method.to_sym]
+      self.ignored = configuration.ignored_person_ids.include?(person_id)
+    end
+
+    def build_body
+      exception ? build_backtrace_body : build_message_body
+    end
+
+    def build_backtrace_body
+      backtrace = Rollbar::Backtrace.new(exception,
+                                         :message => message,
+                                         :extra => extra,
+                                         :configuration => configuration
+                                        )
+
+      backtrace.build
     end
 
     def custom_data_method?
@@ -152,82 +170,7 @@ module Rollbar
       { :_error_in_custom_data_method => uuid_url }
     end
 
-    def build_body_exception
-      traces = trace_chain
-
-      traces[0][:exception][:description] = message if message
-      traces[0][:extra] = extra if extra
-
-      if traces.size > 1
-        { :trace_chain => traces }
-      elsif traces.size == 1
-        { :trace => traces[0] }
-      end
-    end
-
-    def trace_data(current_exception)
-      frames = exception_backtrace(current_exception).map do |frame|
-        # parse the line
-        match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-
-        if match
-          { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
-        else
-          { :filename => "<unknown>", :lineno => 0, :method => frame }
-        end
-      end
-
-      # reverse so that the order is as rollbar expects
-      frames.reverse!
-
-      {
-        :frames => frames,
-        :exception => {
-          :class => current_exception.class.name,
-          :message => current_exception.message
-        }
-      }
-    end
-
-    # Returns the backtrace to be sent to our API. There are 3 options:
-    #
-    # 1. The exception received has a backtrace, then that backtrace is returned.
-    # 2. configuration.populate_empty_backtraces is disabled, we return [] here
-    # 3. The user has configuration.populate_empty_backtraces is enabled, then:
-    #
-    # We want to send the caller as backtrace, but the first lines of that array
-    # are those from the user's Rollbar.error line until this method. We want
-    # to remove those lines.
-    def exception_backtrace(current_exception)
-      return current_exception.backtrace if current_exception.backtrace.respond_to?( :map )
-      return [] unless configuration.populate_empty_backtraces
-
-      caller_backtrace = caller
-      caller_backtrace.shift while caller_backtrace[0].include?(rollbar_lib_gem_dir)
-      caller_backtrace
-    end
-
-    def rollbar_lib_gem_dir
-      Gem::Specification.find_by_name('rollbar').gem_dir + '/lib'
-    end
-
-    def trace_chain
-      exception
-      traces = [trace_data(exception)]
-      visited = [exception]
-
-      current_exception = exception
-
-      while current_exception.respond_to?(:cause) && (cause = current_exception.cause) && cause.is_a?(Exception) && !visited.include?(cause)
-        traces << trace_data(cause)
-        visited << cause
-        current_exception = cause
-      end
-
-      traces
-    end
-
-    def build_body_message
+    def build_message_body
       result = { :body => message || 'Empty message'}
       result[:extra] = extra if extra
 
