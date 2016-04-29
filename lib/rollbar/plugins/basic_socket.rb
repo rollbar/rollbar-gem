@@ -8,7 +8,7 @@ Rollbar.plugins.define('basic_socket') do
     require 'socket'
 
     class BasicSocket
-      def as_json
+      def as_json(*)
         to_s
       end
     end
