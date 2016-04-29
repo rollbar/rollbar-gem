@@ -23,20 +23,15 @@ module Rollbar
       rack_req = ::Rack::Request.new(env)
 
       sensitive_params = sensitive_params_list(env)
-      request_params = rollbar_filtered_params(sensitive_params, rollbar_request_params(env))
-      get_params = rollbar_filtered_params(sensitive_params, rollbar_get_params(rack_req))
-      post_params = rollbar_filtered_params(sensitive_params, rollbar_post_params(rack_req))
-      raw_body_params = rollbar_filtered_params(sensitive_params, mergeable_raw_body_params(rack_req))
-      cookies = rollbar_filtered_params(sensitive_params, rollbar_request_cookies(rack_req))
-      session = rollbar_filtered_params(sensitive_params, rollbar_request_session(rack_req))
-      route_params = rollbar_filtered_params(sensitive_params, rollbar_route_params(env))
+      request_params = scrub_params(rollbar_request_params(env), sensitive_params)
+      get_params = scrub_params(rollbar_get_params(rack_req), sensitive_params)
+      post_params = scrub_params(rollbar_post_params(rack_req), sensitive_params)
+      raw_body_params = scrub_params(mergeable_raw_body_params(rack_req), sensitive_params)
+      cookies = scrub_params(rollbar_request_cookies(rack_req), sensitive_params)
+      session = scrub_params(rollbar_request_session(rack_req), sensitive_params)
+      route_params = scrub_params(rollbar_route_params(env), sensitive_params)
 
-      url_scrubber = Rollbar::Scrubbers::URL.new(:scrub_fields => sensitive_params,
-                                                 :scrub_user => Rollbar.configuration.scrub_user,
-                                                 :scrub_password => Rollbar.configuration.scrub_password,
-                                                 :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length)
-      url = url_scrubber.call(rollbar_url(env))
-
+      url = scrub_url(rollbar_url(env), sensitive_params)
       params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
 
       data = {
@@ -55,6 +50,27 @@ module Rollbar
       end
 
       data
+    end
+
+    def scrub_url(url, sensitive_params)
+      options = {
+        :url => url,
+        :scrub_fields => Array(Rollbar.configuration.scrub_fields) + sensitive_params,
+        :scrub_user => Rollbar.configuration.scrub_user,
+        :scrub_password => Rollbar.configuration.scrub_password,
+        :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length
+      }
+
+      Rollbar::Scrubbers::URL.call(options)
+    end
+
+    def scrub_params(params, sensitive_params)
+      options = {
+        :params => params,
+        :config => Rollbar.configuration.scrub_fields,
+        :extra_fields => sensitive_params
+      }
+      Rollbar::Scrubbers::Params.call(options)
     end
 
     private
@@ -178,10 +194,6 @@ module Rollbar
       rack_req.cookies
     rescue
       {}
-    end
-
-    def rollbar_filtered_params(sensitive_params, params)
-      Rollbar::Scrubbers::Params.call(params, sensitive_params)
     end
 
     def sensitive_params_list(env)

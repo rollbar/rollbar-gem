@@ -15,8 +15,11 @@ describe Rollbar::Scrubbers::Params do
   end
 
   describe '#call' do
-    before do
-      allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_config)
+    let(:options) do
+      {
+        :params => params,
+        :config => scrub_config
+      }
     end
 
     context 'with scrub fields configured' do
@@ -43,7 +46,7 @@ describe Rollbar::Scrubbers::Params do
         end
 
         it 'scrubs the required parameters' do
-          expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
 
@@ -70,7 +73,7 @@ describe Rollbar::Scrubbers::Params do
         end
 
         it 'scrubs the required parameters' do
-          expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
 
@@ -97,7 +100,7 @@ describe Rollbar::Scrubbers::Params do
         end
 
         it 'scrubs the required parameters' do
-          expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
 
@@ -129,7 +132,7 @@ describe Rollbar::Scrubbers::Params do
         after { tempfile.close }
 
         it 'scrubs the required parameters' do
-          expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
 
@@ -169,7 +172,7 @@ describe Rollbar::Scrubbers::Params do
         end
 
         it 'scrubs the required parameters' do
-          expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
 
         context 'if getting the attachment values fails' do
@@ -204,7 +207,7 @@ describe Rollbar::Scrubbers::Params do
           end
 
           it 'scrubs the required parameters' do
-            expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+            expect(subject.call(options)).to be_eql_hash_with_regexes(result)
           end
         end
       end
@@ -218,7 +221,7 @@ describe Rollbar::Scrubbers::Params do
         end
 
         it 'scrubs the required parameters' do
-          expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
     end
@@ -249,7 +252,7 @@ describe Rollbar::Scrubbers::Params do
       end
 
       it 'scrubs the required parameters' do
-        expect(subject.call(params)).to be_eql_hash_with_regexes(result)
+        expect(subject.call(options)).to be_eql_hash_with_regexes(result)
       end
     end
   end
