@@ -7,6 +7,7 @@ require 'redis'
 require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
+require 'rollbar/item'
 begin
   require 'rollbar/delay/sidekiq'
 rescue LoadError
@@ -114,6 +115,7 @@ describe Rollbar do
       let(:scope) { { :bar => :foo } }
       let(:configuration) do
         config = Rollbar::Configuration.new
+        config.access_token = test_access_token
         config.enabled = true
         config
       end
@@ -208,6 +210,7 @@ describe Rollbar do
             :message => message,
             :extra => extra
           }
+
           expect(handler1).to receive(:call).with(options).and_call_original
           expect(handler2).not_to receive(:call)
           expect(notifier).not_to receive(:report)
@@ -226,113 +229,6 @@ describe Rollbar do
           it 'doesnt call the second handler and logs the error' do
             expect(handler2).not_to receive(:call)
             expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
-
-            notifier.log(level, message, exception, extra)
-          end
-        end
-      end
-    end
-
-    context 'with transform handlers in configuration' do
-      let!(:notifier) { Rollbar::Notifier.new }
-      let(:scope) { { :bar => :foo } }
-      let(:configuration) do
-        config = Rollbar::Configuration.new
-        config.enabled = true
-        config.access_token = test_access_token
-        config
-      end
-      let(:message) { 'message' }
-      let(:exception) { Exception.new }
-      let(:extra) { {:foo => :bar } }
-      let(:level) { 'error' }
-
-      before do
-        notifier.configuration = configuration
-        notifier.scope!(scope)
-      end
-
-      context 'without mutation in payload' do
-        let(:handler) do
-          proc do |options|
-
-          end
-        end
-
-        before do
-          configuration.transform = handler
-        end
-
-        it 'calls the handler with the correct options' do
-          options = {
-            :level => level,
-            :scope => Rollbar::LazyStore.new(scope),
-            :exception => exception,
-            :message => message,
-            :extra => extra,
-            :payload => kind_of(Hash)
-          }
-          expect(handler).to receive(:call).with(options).and_call_original
-          expect(notifier).to receive(:schedule_payload).with(kind_of(Hash))
-
-          notifier.log(level, message, exception, extra)
-        end
-      end
-
-      context 'with mutation in payload' do
-        let(:new_payload) do
-          {
-            'access_token' => notifier.configuration.access_token,
-            'data' => {
-            }
-          }
-        end
-        let(:handler) do
-          proc do |options|
-            payload = options[:payload]
-
-            payload.replace(new_payload)
-          end
-        end
-
-        before do
-          configuration.transform = handler
-        end
-
-        it 'calls the handler with the correct options' do
-          options = {
-            :level => level,
-            :scope => Rollbar::LazyStore.new(scope),
-            :exception => exception,
-            :message => message,
-            :extra => extra,
-            :payload => kind_of(Hash)
-          }
-          expect(handler).to receive(:call).with(options).and_call_original
-          expect(notifier).to receive(:schedule_payload).with(new_payload)
-
-          notifier.log(level, message, exception, extra)
-        end
-      end
-
-      context 'with two handlers' do
-        let(:handler1) { proc { |options|} }
-        let(:handler2) { proc { |options|} }
-
-        before do
-          configuration.transform << handler1
-          configuration.transform << handler2
-        end
-
-        context 'and the first one fails' do
-          let(:exception) { StandardError.new('foo') }
-          let(:handler1) do
-            proc { |options|  raise exception }
-          end
-
-          it 'doesnt call the second handler and logs the error' do
-            expect(handler2).not_to receive(:call)
-            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `transform` hook: #{exception}")
 
             notifier.log(level, message, exception, extra)
           end
@@ -529,438 +425,6 @@ describe Rollbar do
         result.should == 'ignored'
       end
     end
-
-    context 'build_payload' do
-      context 'a basic payload' do
-        let(:extra_data) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
-        let(:payload) { notifier.send(:build_payload, 'info', 'message', nil, extra_data) }
-
-        it 'should have the correct root-level keys' do
-          payload.keys.should match_array(['access_token', 'data'])
-        end
-
-        it 'should have the correct data keys' do
-          payload['data'].keys.should include(:timestamp, :environment, :level, :language, :framework, :server,
-            :notifier, :body)
-        end
-
-        it 'should have the correct notifier name and version' do
-          payload['data'][:notifier][:name].should == 'rollbar-gem'
-          payload['data'][:notifier][:version].should == Rollbar::VERSION
-        end
-
-        it 'should have the correct language and framework' do
-          payload['data'][:language].should == 'ruby'
-          payload['data'][:framework].should == Rollbar.configuration.framework
-          payload['data'][:framework].should match(/^Rails/)
-        end
-
-        it 'should have the correct server keys' do
-          payload['data'][:server].keys.should match_array([:host, :root, :pid])
-        end
-
-        it 'should have the correct level and message body' do
-          payload['data'][:level].should == 'info'
-          payload['data'][:body][:message][:body].should == 'message'
-        end
-      end
-
-      it 'should merge in a new key from payload_options' do
-        notifier.configure do |config|
-          config.payload_options = { :some_new_key => 'some new value' }
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-        payload['data'][:some_new_key].should == 'some new value'
-      end
-
-      it 'should overwrite existing keys from payload_options' do
-        reconfigure_notifier
-
-        payload_options = {
-          :notifier => 'bad notifier',
-          :server => { :host => 'new host', :new_server_key => 'value' }
-        }
-
-        notifier.configure do |config|
-          config.payload_options = payload_options
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-        payload['data'][:notifier].should == 'bad notifier'
-        payload['data'][:server][:host].should == 'new host'
-        payload['data'][:server][:root].should_not be_nil
-        payload['data'][:server][:new_server_key].should == 'value'
-      end
-
-      it 'should have default environment "unspecified"' do
-        Rollbar.unconfigure
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-        payload['data'][:environment].should == 'unspecified'
-      end
-
-      it 'should have an overridden environment' do
-        Rollbar.configure do |config|
-          config.environment = 'overridden'
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-        payload['data'][:environment].should == 'overridden'
-      end
-
-      it 'should not have custom data under default configuration' do
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-        payload['data'][:body][:message][:extra].should be_nil
-      end
-
-      it 'should have custom message data when custom_data_method is configured' do
-        Rollbar.configure do |config|
-          config.custom_data_method = lambda { {:a => 1, :b => [2, 3, 4]} }
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-        payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:a].should == 1
-        payload['data'][:body][:message][:extra][:b][2].should == 4
-      end
-
-      it 'should merge extra data into custom message data' do
-        custom_method = lambda do
-          { :a => 1,
-            :b => [2, 3, 4],
-            :c => { :d => 'd', :e => 'e' },
-            :f => ['1', '2']
-          }
-        end
-
-        Rollbar.configure do |config|
-          config.custom_data_method = custom_method
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, {:c => {:e => 'g'}, :f => 'f'})
-        payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:a].should == 1
-        payload['data'][:body][:message][:extra][:b][2].should == 4
-        payload['data'][:body][:message][:extra][:c][:d].should == 'd'
-        payload['data'][:body][:message][:extra][:c][:e].should == 'g'
-        payload['data'][:body][:message][:extra][:f].should == 'f'
-      end
-
-      context 'with custom_data_method crashing' do
-        next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-
-        let(:crashing_exception) { StandardError.new }
-        let(:custom_method) { proc { raise crashing_exception } }
-        let(:extra) { { :foo => :bar } }
-        let(:custom_data_report) do
-          { :_error_in_custom_data_method => SecureRandom.uuid }
-        end
-        let(:expected_extra) { extra.merge(custom_data_report) }
-
-        before do
-          notifier.configure do |config|
-            config.custom_data_method = custom_method
-          end
-        end
-
-        it 'doesnt crash the report' do
-          expect(notifier).to receive(:report_custom_data_error).once.and_return(custom_data_report)
-          payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
-
-          expect(payload['data'][:body][:message][:extra]).to be_eql(expected_extra)
-        end
-
-        context 'and for some reason the safely.error returns a String' do
-          it 'returns an empty Hash' do
-            allow_any_instance_of(Rollbar::Notifier).to receive(:error).and_return('ignored')
-
-            payload = notifier.send(:build_payload, 'info', 'message', nil, extra)
-
-            expect(payload['data'][:body][:message][:extra]).to be_eql(extra)
-          end
-        end
-      end
-
-      it 'should include project_gem_paths' do
-        gems = Gem::Specification.map(&:name)
-        project_gems = ['rails']
-        project_gems << 'rspec' if gems.include?('rspec')
-        project_gems << 'rspec-core' if gems.include?('rspec-core')
-
-        notifier.configure do |config|
-          config.project_gems = project_gems
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-        expect(payload['data'][:project_package_paths].count).to eq(project_gems.size)
-      end
-
-      it 'should include a code_version' do
-        notifier.configure do |config|
-          config.code_version = 'abcdef'
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-        payload['data'][:code_version].should == 'abcdef'
-      end
-
-      it 'should have the right hostname' do
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-        payload['data'][:server][:host].should == Socket.gethostname
-      end
-
-      it 'should have root and branch set when configured' do
-        configure
-        Rollbar.configure do |config|
-          config.root = '/path/to/root'
-          config.branch = 'master'
-        end
-
-        payload = notifier.send(:build_payload, 'info', 'message', nil, nil)
-
-        payload['data'][:server][:root].should == '/path/to/root'
-        payload['data'][:server][:branch].should == 'master'
-      end
-
-      context "with Redis instance in payload and ActiveSupport is enabled" do
-        let(:redis) { ::Redis.new }
-        let(:payload) do
-          {
-            :key => {
-              :value => redis
-            }
-          }
-        end
-        it 'dumps to JSON correctly' do
-          redis.set('foo', 'bar')
-          json = notifier.send(:dump_payload, payload)
-
-          expect(json).to be_kind_of(String)
-        end
-      end
-    end
-
-    context 'build_payload_body' do
-      let(:exception) do
-        begin
-          foo = bar
-        rescue => e
-          e
-        end
-      end
-
-      it 'should build a message body when no exception is passed in' do
-        body = notifier.send(:build_payload_body, 'message', nil, nil)
-        body[:message][:body].should == 'message'
-        body[:message][:extra].should be_nil
-        body[:trace].should be_nil
-      end
-
-      it 'should build a message body when no exception and extra data is passed in' do
-        body = notifier.send(:build_payload_body, 'message', nil, {:a => 'b'})
-        body[:message][:body].should == 'message'
-        body[:message][:extra].should == {:a => 'b'}
-        body[:trace].should be_nil
-      end
-
-      it 'should build an exception body when one is passed in' do
-        body = notifier.send(:build_payload_body, 'message', exception, nil)
-        body[:message].should be_nil
-
-        trace = body[:trace]
-        trace.should_not be_nil
-        trace[:extra].should be_nil
-
-        trace[:exception][:class].should_not be_nil
-        trace[:exception][:message].should_not be_nil
-      end
-
-      it 'should build an exception body when one is passed in along with extra data' do
-        body = notifier.send(:build_payload_body, 'message', exception, {:a => 'b'})
-        body[:message].should be_nil
-
-        trace = body[:trace]
-        trace.should_not be_nil
-
-        trace[:exception][:class].should_not be_nil
-        trace[:exception][:message].should_not be_nil
-        trace[:extra].should == {:a => 'b'}
-      end
-    end
-
-    context 'build_payload_body_exception' do
-      let(:exception) do
-        begin
-          foo = bar
-        rescue => e
-          e
-        end
-      end
-
-      after(:each) do
-        Rollbar.unconfigure
-        configure
-      end
-
-      it 'should build valid exception data' do
-        body = notifier.send(:build_payload_body_exception, nil, exception, nil)
-        body[:message].should be_nil
-
-        trace = body[:trace]
-
-        frames = trace[:frames]
-        frames.should be_a_kind_of(Array)
-        frames.each do |frame|
-          frame[:filename].should be_a_kind_of(String)
-          frame[:lineno].should be_a_kind_of(Fixnum)
-          if frame[:method]
-            frame[:method].should be_a_kind_of(String)
-          end
-        end
-
-        # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
-        # http://yehudakatz.com/2010/01/02/the-craziest-fing-bug-ive-ever-seen/
-        trace[:exception][:class].should match(/^(NameError|NoMethodError)$/)
-        trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
-      end
-
-      it 'should build exception data with a description' do
-        body = notifier.send(:build_payload_body_exception, 'exception description', exception, nil)
-
-        trace = body[:trace]
-
-        trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
-        trace[:exception][:description].should == 'exception description'
-      end
-
-      it 'should build exception data with a description and extra data' do
-        extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
-        body = notifier.send(:build_payload_body_exception, 'exception description', exception, extra_data)
-
-        trace = body[:trace]
-
-        trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
-        trace[:exception][:description].should == 'exception description'
-        trace[:extra][:key].should == 'value'
-        trace[:extra][:hash].should == {:inner_key => 'inner_value'}
-      end
-
-      it 'should build exception data with a extra data' do
-        extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
-        body = notifier.send(:build_payload_body_exception, nil, exception, extra_data)
-
-        trace = body[:trace]
-
-        trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
-        trace[:extra][:key].should == 'value'
-        trace[:extra][:hash].should == {:inner_key => 'inner_value'}
-      end
-
-      context 'with nested exceptions' do
-        let(:crashing_code) do
-          proc do
-            begin
-              begin
-                fail CauseException.new('the cause')
-              rescue
-                fail StandardError.new('the error')
-              end
-            rescue => e
-              e
-            end
-          end
-        end
-
-        let(:rescued_exception) { crashing_code.call }
-        let(:message) { 'message' }
-        let(:extra) { {} }
-
-        context 'using ruby >= 2.1' do
-          next unless Exception.instance_methods.include?(:cause)
-
-          it 'sends the two exceptions in the trace_chain attribute' do
-            body = notifier.send(:build_payload_body_exception, message, rescued_exception, extra)
-
-            body[:trace].should be_nil
-            body[:trace_chain].should be_kind_of(Array)
-
-            chain = body[:trace_chain]
-            chain[0][:exception][:class].should match(/StandardError/)
-            chain[0][:exception][:message].should match(/the error/)
-
-            chain[1][:exception][:class].should match(/CauseException/)
-            chain[1][:exception][:message].should match(/the cause/)
-          end
-
-          it 'ignores the cause when it is not an Exception' do
-            exception_with_custom_cause = Exception.new('custom cause')
-            allow(exception_with_custom_cause).to receive(:cause) { "Foo" }
-            body = notifier.send(:build_payload_body_exception, message, exception_with_custom_cause, extra)
-            body[:trace].should_not be_nil
-          end
-
-          context 'with cyclic nested exceptions' do
-            let(:exception1) { Exception.new('exception1') }
-            let(:exception2) { Exception.new('exception2') }
-
-            before do
-              allow(exception1).to receive(:cause).and_return(exception2)
-              allow(exception2).to receive(:cause).and_return(exception1)
-            end
-
-            it 'doesnt loop for ever' do
-              body = notifier.send(:build_payload_body_exception, message, exception1, extra)
-              chain = body[:trace_chain]
-
-              expect(chain[0][:exception][:message]).to be_eql('exception1')
-              expect(chain[1][:exception][:message]).to be_eql('exception2')
-            end
-          end
-        end
-
-        context 'using ruby <= 2.1' do
-          next if Exception.instance_methods.include?(:cause)
-
-          it 'sends only the last exception in the trace attribute' do
-            body = notifier.send(:build_payload_body_exception, message, rescued_exception, extra)
-
-            body[:trace].should be_kind_of(Hash)
-            body[:trace_chain].should be_nil
-
-            body[:trace][:exception][:class].should match(/StandardError/)
-            body[:trace][:exception][:message].should match(/the error/)
-          end
-        end
-      end
-    end
-
-    context 'build_payload_body_message' do
-      it 'should build a message' do
-        body = notifier.send(:build_payload_body_message, 'message', nil)
-        body[:message][:body].should == 'message'
-        body[:trace].should be_nil
-      end
-
-      it 'should build a message with extra data' do
-        extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
-        body = notifier.send(:build_payload_body_message, 'message', extra_data)
-        body[:message][:body].should == 'message'
-        body[:message][:extra][:key].should == 'value'
-        body[:message][:extra][:hash].should == {:inner_key => 'inner_value'}
-      end
-
-      it 'should build an empty message with extra data' do
-        extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
-        body = notifier.send(:build_payload_body_message, nil, extra_data)
-        body[:message][:body].should == 'Empty message'
-        body[:message][:extra][:key].should == 'value'
-        body[:message][:extra][:hash].should == {:inner_key => 'inner_value'}
-      end
-    end
   end
 
   context 'reporting' do
@@ -1094,7 +558,7 @@ describe Rollbar do
       }
 
       Rollbar.configure do |config|
-        config.payload_options = {:person => person_data}
+        config.payload_options = { :person => person_data }
         config.ignored_person_ids += [1]
       end
 
@@ -1173,7 +637,7 @@ describe Rollbar do
     it 'should report exception objects with no backtrace' do
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -1213,7 +677,7 @@ describe Rollbar do
     it 'should report exception objects with nonstandard backtraces' do
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -1233,7 +697,7 @@ describe Rollbar do
     it 'should report exceptions with a custom level' do
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -1273,7 +737,7 @@ describe Rollbar do
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
     it 'should report simple messages' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.error('Test message')
     end
@@ -1329,7 +793,7 @@ describe Rollbar do
     end
 
     it 'should report messages with request, person data and extra data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       request_data = {
@@ -1386,14 +850,14 @@ describe Rollbar do
 
     it 'should send the payload over the network by default' do
       logger_mock.should_not_receive(:info).with('[Rollbar] Writing payload to file')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
       Rollbar.error(exception)
     end
 
     it 'should save the payload to a file if set' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Sending payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Writing payload to file').once
+      logger_mock.should_not_receive(:info).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:info).with('[Rollbar] Writing item to file').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
       filepath = ''
@@ -1439,8 +903,8 @@ describe Rollbar do
     let(:logger_mock) { double("Rails.logger").as_null_object }
 
     it 'should send the payload using the default asynchronous handler girl_friday' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
@@ -1458,14 +922,14 @@ describe Rollbar do
 
     it 'should send the payload using a user-supplied asynchronous handler' do
       logger_mock.should_receive(:info).with('Custom async handler called')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
         config.use_async = true
         config.async_handler = Proc.new { |payload|
           logger_mock.info 'Custom async handler called'
-          Rollbar.process_payload(payload)
+          Rollbar.process_from_async_handler(payload)
         }
       end
 
@@ -1481,7 +945,7 @@ describe Rollbar do
           # simulate previous gem version
           string_payload = Rollbar::JSON.dump(payload)
 
-          Rollbar.process_payload(string_payload)
+          Rollbar.process_from_async_handler(string_payload)
         end
       end
 
@@ -1577,8 +1041,8 @@ describe Rollbar do
 
     describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
-        logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
-        logger_mock.should_receive(:info).with('[Rollbar] Sending payload')
+        logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+        logger_mock.should_receive(:info).with('[Rollbar] Sending item')
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
         Rollbar.configure do |config|
@@ -1640,119 +1104,6 @@ describe Rollbar do
     end
   end
 
-  context 'enforce_valid_utf8' do
-    # TODO(jon): all these tests should be removed since they are in
-    # in spec/rollbar/encoding/encoder.rb.
-    #
-    # This should just check that in payload with simple values and
-    # nested values are each one passed through Rollbar::Encoding.encode
-    context 'with utf8 string and ruby > 1.8' do
-      next unless String.instance_methods.include?(:force_encoding)
-
-      let(:payload) { { :foo => 'Изменение' } }
-
-      it 'just returns the same string' do
-        payload_copy = payload.clone
-        notifier.send(:enforce_valid_utf8, payload_copy)
-
-        expect(payload_copy[:foo]).to be_eql('Изменение')
-      end
-    end
-
-    it 'should replace invalid utf8 values' do
-      bad_key = force_to_ascii("inner \x92bad key")
-
-      payload = {
-        :bad_value => force_to_ascii("bad value 1\255"),
-        :bad_value_2 => force_to_ascii("bad\255 value 2"),
-        force_to_ascii("bad\255 key") => "good value",
-        :hash => {
-          :inner_bad_value => force_to_ascii("\255\255bad value 3"),
-          bad_key.to_sym => 'inner good value',
-          force_to_ascii("bad array key\255") => [
-            'good array value 1',
-            force_to_ascii("bad\255 array value 1\255"),
-            {
-              :inner_inner_bad => force_to_ascii("bad inner \255inner value")
-            }
-          ]
-        }
-      }
-
-
-      payload_copy = payload.clone
-      notifier.send(:enforce_valid_utf8, payload_copy)
-
-      payload_copy[:bad_value].should == "bad value 1"
-      payload_copy[:bad_value_2].should == "bad value 2"
-      payload_copy["bad key"].should == "good value"
-      payload_copy.keys.should_not include("bad\456 key")
-      payload_copy[:hash][:inner_bad_value].should == "bad value 3"
-      payload_copy[:hash][:"inner bad key"].should == 'inner good value'
-      payload_copy[:hash]["bad array key"].should == [
-        'good array value 1',
-        'bad array value 1',
-        {
-          :inner_inner_bad => 'bad inner inner value'
-        }
-      ]
-    end
-  end
-
-  context 'truncate_payload' do
-    it 'should truncate all nested strings in the payload' do
-      payload = {
-        :truncated => '1234567',
-        :not_truncated => '123456',
-        :hash => {
-          :inner_truncated => '123456789',
-          :inner_not_truncated => '567',
-          :array => ['12345678', '12', {:inner_inner => '123456789'}]
-        }
-      }
-
-      payload_copy = payload.clone
-      notifier.send(:truncate_payload, payload_copy, 6)
-
-      payload_copy[:truncated].should == '123...'
-      payload_copy[:not_truncated].should == '123456'
-      payload_copy[:hash][:inner_truncated].should == '123...'
-      payload_copy[:hash][:inner_not_truncated].should == '567'
-      payload_copy[:hash][:array].should == ['123...', '12', {:inner_inner => '123...'}]
-    end
-
-    it 'should truncate utf8 strings properly' do
-      payload = {
-        :truncated => 'Ŝǻмρļẻ śţяịņģ',
-        :not_truncated => '123456',
-      }
-
-      payload_copy = payload.clone
-      notifier.send(:truncate_payload, payload_copy, 6)
-
-      payload_copy[:truncated].should == "Ŝǻм..."
-      payload_copy[:not_truncated].should == '123456'
-    end
-  end
-
-  context 'server_data' do
-    it 'should have the right hostname' do
-      notifier.send(:server_data)[:host] == Socket.gethostname
-    end
-
-    it 'should have root and branch set when configured' do
-      configure
-      Rollbar.configure do |config|
-        config.root = '/path/to/root'
-        config.branch = 'master'
-      end
-
-      data = notifier.send(:server_data)
-      data[:root].should == '/path/to/root'
-      data[:branch].should == 'master'
-    end
-  end
-
   context "project_gems" do
     it "should include gem paths for specified project gems in the payload" do
       gems = ['rack', 'rspec-rails']
@@ -1767,7 +1118,7 @@ describe Rollbar do
         gem_spec.gem_dir if gem_spec
       end.compact
 
-      data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
 
@@ -1790,7 +1141,7 @@ describe Rollbar do
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
       gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 
-      data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
       (data[:project_package_paths] - gem_paths).length.should == 0
@@ -1803,7 +1154,7 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      data = notifier.send(:build_payload, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == 1
     end
@@ -1886,7 +1237,7 @@ describe Rollbar do
         config.logger = logger_mock
       end
 
-      logger_mock.should_receive(:info).with('[Rollbar] Sending payload').once
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
       scoped_notifier.send(:report_internal_error, exception)
     end
@@ -1988,16 +1339,16 @@ describe Rollbar do
     end
   end
 
-  describe '.process_payload' do
+  describe '.process_item' do
     context 'if there is an exception sending the payload' do
       let(:exception) { StandardError.new('error message') }
-      let(:payload) { { :foo => :bar } }
+      let(:payload) { Rollbar::Item.build_with({ :foo => :bar }) }
 
       it 'logs the error and the payload' do
-        allow(Rollbar.notifier).to receive(:send_payload).and_raise(exception)
+        allow(Rollbar.notifier).to receive(:send_item).and_raise(exception)
         expect(Rollbar.notifier).to receive(:log_error)
 
-        expect { Rollbar.notifier.process_payload(payload) }.to raise_error(exception)
+        expect { Rollbar.notifier.process_item(payload) }.to raise_error(exception)
       end
     end
   end
@@ -2007,7 +1358,7 @@ describe Rollbar do
       let(:exception) { StandardError.new('the error') }
 
       it 'raises anything and sends internal error' do
-        allow(Rollbar.notifier).to receive(:process_payload).and_raise(exception)
+        allow(Rollbar.notifier).to receive(:process_item).and_raise(exception)
         expect(Rollbar.notifier).to receive(:report_internal_error).with(exception)
 
         expect do
@@ -2016,35 +1367,6 @@ describe Rollbar do
 
         rollbar_do_not_report = exception.instance_variable_get(:@_rollbar_do_not_report)
         expect(rollbar_do_not_report).to be_eql(true)
-      end
-    end
-  end
-
-  describe '#custom_data' do
-    before do
-      Rollbar.configure do |config|
-        config.custom_data_method = proc { raise 'this-will-raise' }
-      end
-
-      expect_any_instance_of(Rollbar::Notifier).to receive(:error).and_return(report_data)
-    end
-
-    context 'with uuid in reported data' do
-      next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-
-      let(:report_data) { { :uuid => SecureRandom.uuid } }
-      let(:expected_url) { "https://rollbar.com/instance/uuid?uuid=#{report_data[:uuid]}" }
-
-      it 'returns the uuid in :_error_in_custom_data_method' do
-        expect(notifier.custom_data).to be_eql(:_error_in_custom_data_method => expected_url)
-      end
-    end
-
-    context 'without uuid in reported data' do
-      let(:report_data) { { :some => 'other-data' } }
-
-      it 'returns the uuid in :_error_in_custom_data_method' do
-        expect(notifier.custom_data).to be_eql({})
       end
     end
   end

@@ -6,6 +6,10 @@ describe Rollbar::LoggerProxy do
 
   subject { described_class.new(logger) }
 
+  before do
+    allow(Rollbar.configuration).to receive(:enabled).and_return(true)
+  end
+
   shared_examples 'delegate to logger' do
     it 'logs with correct level' do
       expect(logger).to receive(level).with(message)
