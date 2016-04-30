@@ -45,14 +45,15 @@ Rollbar.plugins.define('rails-rollbar.js') do
             def plugin_execute_proc(plugin)
               proc do
                 plugin.execute do
-                  return unless Rollbar.configuration.js_enabled
-                  require 'rollbar/middleware/js'
+                  if Rollbar.configuration.js_enabled
+                    require 'rollbar/middleware/js'
 
-                  config = {
-                    :options => Rollbar.configuration.js_options,
-                    :enabled => Rollbar.configuration.js_enabled
-                  }
-                  ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js, config)
+                    config = {
+                      :options => Rollbar.configuration.js_options,
+                      :enabled => Rollbar.configuration.js_enabled
+                    }
+                    ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js, config)
+                  end
                 end
               end
             end
