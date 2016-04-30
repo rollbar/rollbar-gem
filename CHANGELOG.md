@@ -1,5 +1,25 @@
 # Change Log
 
+## 2.11.0
+
+New features:
+
+- Rollbar.js support wit SecureHeaders 2.0. See [#448](https://github.com/rollbar/rollbar-gem/pull/448).
+- Inject extensions in ActiveModel::Validations instead of ActiveRecord::Base. See [#445](https://github.com/rollbar/rollbar-gem/pull/445).
+
+Bug fixes:
+
+- Fix URL scrubbing and change to a functional object. See [#454](https://github.com/rollbar/rollbar-gem/pull/454).
+- Allow any argument for BasicSocket#as_json. See [#455](https://github.com/rollbar/rollbar-gem/pull/455).
+- Retry request on network timeouts. See [#453](https://github.com/rollbar/rollbar-gem/pull/453).
+
+Refactors and others:
+
+- Refactor Item payload building. See [#452](https://github.com/rollbar/rollbar-gem/pull/454).
+- Mock the requests to Rollbar API. See [#450](https://github.com/rollbar/rollbar-gem/pull/450).
+- Add plugins architecture. See [#438](https://github.com/rollbar/rollbar-gem/pull/438).
+- Add TOC for README.md. See [#444](https://github.com/rollbar/rollbar-gem/pull/444).
+
 ## 2.10.0
 
 New features:
