@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.11.1
+
+Bug fixes:
+
+- Don't return inside a Proc object in rollbar.js plugin. See [#458](https://github.com/rollbar/rollbar-gem/pull/458).
+
 ## 2.11.0
 
 New features:
