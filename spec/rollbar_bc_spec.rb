@@ -23,7 +23,7 @@ describe Rollbar do
     end
 
     it 'should report simple messages' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.report_message('Test message')
@@ -87,7 +87,7 @@ describe Rollbar do
 
     it 'should report simple messages' do
       allow(Rollbar).to receive(:notifier).and_return(notifier)
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.report_message_with_request('Test message')
 
@@ -98,7 +98,7 @@ describe Rollbar do
     it 'should report messages with request, person data and extra data' do
       Rollbar.last_report = nil
 
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling payload')
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       request_data = {
@@ -206,7 +206,7 @@ describe Rollbar do
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (not RUBY_VERSION =~ /^1\.9/)
       it 'should work with an IO object as rack.errors' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
- 
+
         request_data = {
           :params => { :foo => 'bar' },
           :url => 'http://localhost/',
@@ -217,15 +217,15 @@ describe Rollbar do
           :method => 'GET',
           :env => { :'rack.errors' => IO.new(2, File::WRONLY) },
         }
- 
+
         person_data = {
           :id => 1,
           :username => 'test',
           :email => 'test@example.com'
         }
- 
+
         Rollbar.report_exception(@exception, request_data, person_data)
-      end  
+      end
     end
 
     it 'should ignore ignored exception classes' do
@@ -313,7 +313,7 @@ describe Rollbar do
 
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -338,7 +338,7 @@ describe Rollbar do
 
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 
@@ -359,7 +359,7 @@ describe Rollbar do
       allow(Rollbar).to receive(:notifier).and_return(notifier)
       payload = nil
 
-      notifier.stub(:schedule_payload) do |*args|
+      notifier.stub(:schedule_item) do |*args|
         payload = args[0]
       end
 

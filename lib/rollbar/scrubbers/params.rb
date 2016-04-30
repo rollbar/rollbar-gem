@@ -15,10 +15,12 @@ module Rollbar
         new.call(*args)
       end
 
-      def call(params, extra_fields = [])
+      def call(options = {})
+        params = options[:params]
         return {} unless params
 
-        config = Rollbar.configuration.scrub_fields
+        config = options[:config]
+        extra_fields = options[:extra_fields]
 
         scrub(params, build_scrub_options(config, extra_fields))
       end
