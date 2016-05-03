@@ -844,6 +844,15 @@ set :rollbar_env, Proc.new { fetch :stage }
 set :rollbar_role, Proc.new { :app }
 ```
 
+Optionally, you can add a comment to your deploy with `rollbar_comment`. E.g.:
+
+```ruby
+set :rollbar_comment, Proc.new {
+  ask :comment, "Describing this deploy"
+  fetch(:comment)
+}
+```
+
 NOTE: We've seen problems with Capistrano version `3.0.x` where the revision reported is incorrect. Version `3.1.0` and higher works correctly.
 
 ### Capistrano 2
