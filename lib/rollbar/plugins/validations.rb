@@ -2,7 +2,7 @@ Rollbar.plugins.define('active_model') do
   dependency { !configuration.disable_monkey_patch }
   dependency { defined?(ActiveModel::Validations) }
   dependency do
-    require 'active_record/version'
+    require 'active_model/version'
 
     ActiveModel::VERSION::MAJOR >= 3
   end
