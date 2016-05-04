@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.11.2
+
+Fix:
+
+- Fix active_model require in validations plugin. See [#461](https://github.com/rollbar/rollbar-gem/pull/461).
+
 ## 2.11.1
 
 Bug fixes:
