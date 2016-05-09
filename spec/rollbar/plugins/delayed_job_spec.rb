@@ -69,7 +69,20 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
 
     context 'with attempts > configuration.dj_threshold' do
-      let(:job) { double(:attempts => 6) }
+      let(:object) do
+        double(:to_s => 'foo')
+      end
+      let(:payload_object) do
+        double(:method_name => 'foo',
+               :args => [1, 2],
+               :object => object)
+      end
+      let(:job) do
+        double(
+          :attempts => 6,
+          :job => { :payload_object => payload_object }
+        )
+      end
 
       it 'returns true' do
         expect(described_class.skip_report?(job)).to be(false)
