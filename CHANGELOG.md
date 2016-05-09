@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.11.3
+
+Fix:
+
+- Don't rely on #as_json for delayed_job payload_object. See [#463](https://github.com/rollbar/rollbar-gem/pull/463).
+
 ## 2.11.2
 
 Fix:
