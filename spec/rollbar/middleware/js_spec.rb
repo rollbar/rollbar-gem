@@ -107,6 +107,7 @@ END
         before do
           Object.const_set('SecureHeaders', Module.new)
           SecureHeaders.const_set('VERSION', '3.0.0')
+          SecureHeaders.const_set('Configuration', Module.new)
           allow(SecureHeaders).to receive(:content_security_policy_script_nonce) { 'lorem-ipsum-nonce' }
         end
 
@@ -115,12 +116,29 @@ END
         end
 
         it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
+          allow(SecureHeaders::Configuration).to receive_message_chain(:get, :current_csp) do
+            {}
+          end
           res_status, res_headers, response = subject.call(env)
           new_body = response.body.join
 
           expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
           expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
           expect(new_body).to include(snippet)
+        end
+
+        it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
+          allow(SecureHeaders::Configuration).to receive_message_chain(:get, :current_csp) do
+            { script_src: %w('unsafe-inline') }
+          end
+          res_status, res_headers, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include('<script type="text/javascript">')
+          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+          expect(new_body).to include(snippet)
+
+          SecureHeaders.send(:remove_const, 'Configuration')
         end
       end
 
