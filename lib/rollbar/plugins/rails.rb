@@ -31,29 +31,27 @@ Rollbar.plugins.define('rails-rollbar.js') do
           # customer is using SecureHeaders > 3.0
           class Rails
             def load(plugin)
-              plugin_execute = plugin_execute_proc(plugin)
+              plugin_execute = plugin_execute_proc_body
 
               return after_secure_headers(&plugin_execute) if secure_headers_middleware?
 
-              plugin_execute.call
+              plugin.execute(&plugin_execute)
             end
 
             def after_secure_headers(&block)
               Rollbar::Railtie.initializer('rollbar.js.frameworks.rails', :after => 'secure_headers.middleware', &block)
             end
 
-            def plugin_execute_proc(plugin)
+            def plugin_execute_proc_body
               proc do
-                plugin.execute do
-                  if Rollbar.configuration.js_enabled
-                    require 'rollbar/middleware/js'
+                if Rollbar.configuration.js_enabled
+                  require 'rollbar/middleware/js'
 
-                    config = {
-                      :options => Rollbar.configuration.js_options,
-                      :enabled => Rollbar.configuration.js_enabled
-                    }
-                    ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js, config)
-                  end
+                  config = {
+                    :options => Rollbar.configuration.js_options,
+                    :enabled => Rollbar.configuration.js_enabled
+                  }
+                  ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js, config)
                 end
               end
             end
