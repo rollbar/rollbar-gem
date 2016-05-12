@@ -1,4 +1,5 @@
 Rollbar.plugins.define('rack') do
+  require_dependency('rack')
   dependency { !configuration.disable_monkey_patch }
   dependency { !configuration.disable_rack_monkey_patch }
 

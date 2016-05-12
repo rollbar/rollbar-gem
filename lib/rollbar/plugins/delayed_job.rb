@@ -1,4 +1,5 @@
 Rollbar.plugins.define('delayed_job') do
+  require_dependency('delayed_job')
   dependency { !configuration.disable_monkey_patch }
   dependency do
     defined?(Delayed) && defined?(Delayed::Worker) && configuration.delayed_job_enabled
