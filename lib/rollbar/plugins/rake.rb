@@ -1,3 +1,5 @@
+require 'rake'
+
 Rollbar.plugins.define('rake') do
   dependency { !configuration.disable_monkey_patch }
   dependency { defined?(Rake) }
