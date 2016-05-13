@@ -48,12 +48,27 @@ module Rollbar
       dependencies << block
     end
 
+    def require_dependency(file)
+      dependency do
+        begin
+          require file
+          true
+        rescue LoadError
+          false
+        end
+      end
+    end
+
     def load?
-      !loaded && dependencies.all?(&:call)
+      !loaded && dependencies_satisfy?
     rescue => e
       log_loading_error(e)
 
       false
+    end
+
+    def dependencies_satisfy?
+      dependencies.all?(&:call)
     end
 
     def log_loading_error(e)
