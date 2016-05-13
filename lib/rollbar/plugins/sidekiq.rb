@@ -1,5 +1,4 @@
 Rollbar.plugins.define('sidekiq >= 3') do
-  require_dependency('sidekiq')
   dependency { !configuration.disable_monkey_patch }
   dependency { defined?(Sidekiq) }
   dependency { Sidekiq::VERSION.split('.')[0].to_i >= 3 }
@@ -20,7 +19,6 @@ Rollbar.plugins.define('sidekiq >= 3') do
 end
 
 Rollbar.plugins.define('sidekiq < 3') do
-  require_dependency('sidekiq')
   dependency { !configuration.disable_monkey_patch }
   dependency { defined?(Sidekiq) }
   dependency { Sidekiq::VERSION.split('.')[0].to_i < 3 }
