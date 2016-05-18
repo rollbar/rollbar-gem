@@ -11,6 +11,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
     let(:msg_or_context) { ['hello', 'error_backtrace', 'backtrace', 'goodbye'] }
     let(:exception) { StandardError.new('oh noes') }
     let(:rollbar) { double }
+    let(:worker){ double }
     let(:expected_args) do
       {
         :request => { :params => ['hello', 'goodbye'] },
@@ -24,14 +25,14 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       allow(rollbar).to receive(:error)
       expect(Rollbar).to receive(:scope).with(expected_args) { rollbar }
 
-      described_class.handle_exception(msg_or_context, exception)
+      described_class.handle_exception(msg_or_context, exception, worker)
     end
 
     it 'sends the passed-in error to rollbar' do
       allow(Rollbar).to receive(:scope).and_return(rollbar)
       expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
 
-      described_class.handle_exception(msg_or_context, exception)
+      described_class.handle_exception(msg_or_context, exception, worker)
     end
 
     context 'when a sidekiq worker class is set' do
@@ -46,7 +47,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         allow(rollbar).to receive(:error)
         allow(Rollbar).to receive(:scope).with(expected_args).and_return(rollbar)
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(msg_or_context, exception, worker)
       end
     end
 
@@ -61,7 +62,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         msg_or_context = {"retry" => true, "retry_count" => 1}
 
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(msg_or_context, exception, worker)
       end
 
       it 'sends the error to rollbar above the threshold' do
@@ -70,7 +71,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         msg_or_context = {"retry" => true, "retry_count" => 2}
 
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(msg_or_context, exception, worker)
       end
 
       it 'sends the error to rollbar if not retry' do
@@ -79,7 +80,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         msg_or_context = {"retry" => false}
 
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(msg_or_context, exception, worker)
       end
 
       it 'does not blow up and sends the error to rollbar if retry is true but there is no retry count' do
@@ -89,7 +90,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
         msg_or_context = {"retry" => true}
 
         expect {
-          described_class.handle_exception(msg_or_context, exception)
+          described_class.handle_exception(msg_or_context, exception, worker)
         }.to_not raise_error
       end
 
@@ -105,9 +106,9 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
     it 'sends the error to Rollbar::Sidekiq.handle_exception' do
       expect(Rollbar).to receive(:reset_notifier!)
-      expect(Rollbar::Sidekiq).to receive(:handle_exception).with(msg, exception)
-
-      expect { subject.call(nil, msg, nil, &middleware_block) }.to raise_error(exception)
+      worker = nil
+      expect(Rollbar::Sidekiq).to receive(:handle_exception).with(msg, exception, worker)
+      expect { subject.call(worker, msg, nil, &middleware_block) }.to raise_error(exception)
     end
   end
 end unless RUBY_VERSION == '1.8.7'
