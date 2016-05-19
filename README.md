@@ -680,6 +680,14 @@ The default Sidekiq queue will be `rollbar` but you can also supply custom Sidek
 config.use_sidekiq 'queue' => 'default'
 ```
 
+You also need to add the name of the queue to your `sidekiq.yml`
+
+```
+:queues:
+- default
+- rollbar
+```
+
 Start the redis server:
 
 ```bash
