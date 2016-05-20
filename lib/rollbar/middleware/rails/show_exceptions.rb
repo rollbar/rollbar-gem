@@ -39,8 +39,11 @@ module Rollbar
         end
 
         def self.included(base)
-          base.send(:alias_method_chain, :call, :rollbar)
-          base.send(:alias_method_chain, :render_exception, :rollbar)
+          base.send(:alias_method, :call_without_rollbar, :call)
+          base.send(:alias_method, :call, :call_with_rollbar)
+
+          base.send(:alias_method, :render_exception_without_rollbar, :render_exception)
+          base.send(:alias_method, :render_exception, :render_exception_with_rollbar)
         end
       end
     end
