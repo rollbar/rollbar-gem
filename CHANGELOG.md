@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.11.4
+
+Change:
+
+- Update rollbar.js snippet
+
 ## 2.11.3
 
 Fix:

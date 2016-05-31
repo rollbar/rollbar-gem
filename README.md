@@ -1,4 +1,4 @@
-# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.11.3)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.11.4)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
