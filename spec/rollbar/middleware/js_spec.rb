@@ -129,7 +129,7 @@ END
 
         it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
           allow(SecureHeaders::Configuration).to receive_message_chain(:get, :current_csp) do
-            { script_src: %w('unsafe-inline') }
+            { :script_src => %w('unsafe-inline') }
           end
           res_status, res_headers, response = subject.call(env)
           new_body = response.body.join
