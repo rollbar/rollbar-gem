@@ -107,7 +107,10 @@ END
         before do
           Object.const_set('SecureHeaders', Module.new)
           SecureHeaders.const_set('VERSION', '3.0.0')
-          SecureHeaders.const_set('Configuration', Module.new)
+          SecureHeaders.const_set('Configuration', Module.new {
+            def self.get
+            end
+          })
           allow(SecureHeaders).to receive(:content_security_policy_script_nonce) { 'lorem-ipsum-nonce' }
         end
 
@@ -119,6 +122,7 @@ END
           secure_headers_config = double(:configuration, :current_csp => {})
           allow(SecureHeaders::Configuration).to receive(:get).and_return(secure_headers_config)
           res_status, res_headers, response = subject.call(env)
+
           new_body = response.body.join
 
           expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
