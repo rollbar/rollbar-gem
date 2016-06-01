@@ -116,9 +116,8 @@ END
         end
 
         it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
-          allow(SecureHeaders::Configuration).to receive_message_chain(:get, :current_csp) do
-            {}
-          end
+          secure_headers_config = double(:configuration, :current_csp => {})
+          allow(SecureHeaders::Configuration).to receive(:get).and_return(secure_headers_config)
           res_status, res_headers, response = subject.call(env)
           new_body = response.body.join
 
@@ -128,9 +127,11 @@ END
         end
 
         it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
-          allow(SecureHeaders::Configuration).to receive_message_chain(:get, :current_csp) do
-            { :script_src => %w('unsafe-inline') }
-          end
+          secure_headers_config = double(:configuration, :current_csp => {
+                                           :script_src => %w('unsafe-inline')
+                                         })
+          allow(SecureHeaders::Configuration).to receive(:get).and_return(secure_headers_config)
+
           res_status, res_headers, response = subject.call(env)
           new_body = response.body.join
 
