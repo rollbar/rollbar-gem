@@ -26,6 +26,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [Data sanitization (scrubbing)](#data-sanitization-scrubbing)
 - [Including additional runtime data](#including-additional-runtime-data)
 - [Exception level filters](#exception-level-filters)
+  - [Dyanmic levels](#dynamic-levels)
 - [Before process hook](#before-process-hook)
 - [Transform hook](#transform-hook)
 - [The Scope](#the-scope)
@@ -501,7 +502,7 @@ This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error
 Rollbar.error(exception, :use_exception_level_filters => true)
 ```
 
-### Advanced Usage
+### Dynamic levels
 
 You can also specify a callable object (any object that responds to `call`) which will be called with the exception instance. For example, you can have a single error reported at different levels using the following code:
 
