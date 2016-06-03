@@ -512,7 +512,7 @@ config.exception_level_filters.merge!({
 })
 ```
 
-## [Before process hook](#before-process-hook)
+## Before process hook
 
 Before we process data sent to Rollbar.log (or Rollbar.error/info/etc.) to build and send the payload, the gem will call the handlers defined in `configuration.before_process`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
 
@@ -534,7 +534,7 @@ Rollbar.configure do |config|
 end
 ```
 
-## [Transform hook](#transform-hook)
+## Transform hook
 
 After the payload is built but before it it sent to our API, the gem will call the handlers defined in `configuration.transform`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
 
@@ -559,7 +559,7 @@ Rollbar.configure do |config|
 end
 ```
 
-## [The Scope](#the-scope)
+## The Scope
 
 The scope an object, an instance of `Rollbar::LazyStore` that stores the current context data for a certain moment or situation. For example, the Rails middleware defines the scope in a way similar to this:
 
