@@ -501,6 +501,16 @@ This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error
 Rollbar.error(exception, :use_exception_level_filters => true)
 ```
 
+### Advanced Usage
+
+You can also specify a callable object (any object that responds to `call`) which will be called with the exception instance. For example, you can have a single error reported at different levels using the following code:
+
+```ruby
+config.exception_level_filters.merge!({
+  'SomeError' => lambda { |error| error.to_s.include?('not serious enough') ? 'info' : 'error' }
+})
+```
+
 ## [Before process hook](#before-process-hook)
 
 Before we process data sent to Rollbar.log (or Rollbar.error/info/etc.) to build and send the payload, the gem will call the handlers defined in `configuration.before_process`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
