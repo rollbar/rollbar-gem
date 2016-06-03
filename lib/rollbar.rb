@@ -221,7 +221,10 @@ module Rollbar
     def process_from_async_handler(payload)
       payload = Rollbar::JSON.load(payload) if payload.is_a?(String)
 
-      item = Item.build_with(payload)
+      item = Item.build_with(payload,
+                             :notifier => self,
+                             :configuration => configuration,
+                             :logger => logger)
 
       Rollbar.silenced do
         begin
@@ -263,7 +266,11 @@ module Rollbar
       }
 
       begin
-        schedule_item(Item.build_with(failsafe_payload))
+        item = Item.build_with(failsafe_payload,
+                               :notifier => self,
+                               :configuration => configuration,
+                               :logger => logger)
+        schedule_item(item)
       rescue => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
