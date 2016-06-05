@@ -661,6 +661,7 @@ module Rollbar
 
       yield(configuration)
 
+      JSON.setup_backend
       plugins.load!
       reset_notifier!
     end

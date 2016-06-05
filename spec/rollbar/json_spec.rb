@@ -1,110 +1,24 @@
 require 'spec_helper'
 
-require 'multi_json'
 require 'rollbar/json'
 require 'rollbar/configuration'
 
-class Rollbar::JSON::MockAdapter
-  def self.options
-    { 'mock' => 'adapter' }
-  end
-end
-
-module MultiJson
-  module Adapters
-    module MockAdapter
-    end
-  end
-end
-
-module MultiJson
-  module Adapters
-    module MissingCustomOptions
-    end
-  end
-end
-
-module MissingCustomOptions
-  # Consider the fact that there's MultiJson::Adapters::Yajl but not
-  # Rollbar::JSON::Yajl, it should not look for ::Yajl but only
-  # Rollbar::JSON::Yajl.
-end
-
 describe Rollbar::JSON do
-  let(:payload) do
-    { :foo => :bar }
-  end
-  let(:adapter_options) { { 'option' => 'value' } }
+  let(:serializer) { Module.new { extend Rollbar::JSON } }
+  let(:input) { double(:input) }
+  let(:result) { double(:result) }
 
   describe '.dump' do
-    before do
-      allow(described_class).to receive(:adapter_options).and_return(adapter_options)
-    end
-
-    it 'calls MultiJson.dump' do
-      expect(::MultiJson).to receive(:dump).once.with(payload, adapter_options)
-
-      described_class.dump(payload)
+    it 'calls JSON.dump' do
+      expect(::JSON).to receive(:dump).once.with(input) { result }
+      expect(serializer.dump(input)).to eq result
     end
   end
 
   describe '.load' do
-    before do
-      allow(described_class).to receive(:adapter_options).and_return(adapter_options)
-    end
-
-    it 'calls MultiJson.load' do
-      expect(::MultiJson).to receive(:load).once.with(payload, adapter_options)
-
-      described_class.load(payload)
-    end
-  end
-
-  describe '.with_adapter' do
-    let(:object) { double(:foo => 'bar') }
-    let(:callback) do
-      proc { object.foo }
-    end
-    let(:adapter) { described_class.detect_multi_json_adapter }
-
-    it 'calls mock.something with an adapter' do
-      expect(MultiJson).to receive(:with_adapter).with(adapter).and_call_original
-      expect(object).to receive(:foo).once
-
-      described_class.with_adapter(&callback)
-    end
-  end
-
-  describe '.adapter_options' do
-    it 'calls .options in adapter module' do
-      expect(described_class.options_module).to receive(:options)
-
-      described_class.adapter_options
-    end
-  end
-
-  describe '.options_module' do
-    before do
-      described_class.options_module = nil
-      allow(MultiJson).to receive(:current_adapter).and_return(multi_json_module)
-    end
-
-    context 'with a defined rollbar adapter' do
-      let(:multi_json_module) { MultiJson::Adapters::MockAdapter }
-      let(:expected_adapter) { Rollbar::JSON::MockAdapter }
-
-      it 'returns the correct options' do
-        expect(described_class.options_module).to be(expected_adapter)
-      end
-    end
-
-    context 'without a defined rollbar adapter' do
-      let(:multi_json_module) { MultiJson::Adapters::MissingCustomOptions }
-      let(:expected_adapter) { Rollbar::JSON::Default }
-
-      it 'returns the correct options' do
-        expect(described_class.options_module).to be(expected_adapter)
-      end
+    it 'calls JSON.load' do
+      expect(::JSON).to receive(:load).once.with(input) { result }
+      expect(serializer.load(input)).to eq result
     end
   end
 end

@@ -3,16 +3,27 @@ require 'spec_helper'
 require 'rollbar/json/oj'
 
 describe Rollbar::JSON::Oj do
-  let(:options) do
-    {
-      :mode => :compat,
-      :use_to_json => false,
-      :symbol_keys => false,
-      :circular => false
-    }
+  let(:serializer) do
+    Module.new do
+      extend Rollbar::JSON
+      oj!
+    end
   end
 
-  it 'returns correct options' do
-    expect(described_class.options).to be_eql(options)
+  let(:input) { double(:input) }
+  let(:result) { double(:result) }
+
+  describe '.dump' do
+    it 'calls Oj.dump' do
+      expect(::Oj).to receive(:dump).once.with(input, Rollbar::JSON::Oj::OPTIONS) { result }
+      expect(serializer.dump(input)).to eq result
+    end
+  end
+
+  describe '.load' do
+    it 'calls Oj.load' do
+      expect(::Oj).to receive(:load).once.with(input, Rollbar::JSON::Oj::OPTIONS) { result }
+      expect(serializer.load(input)).to eq result
+    end
   end
 end
