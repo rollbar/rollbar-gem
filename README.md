@@ -55,6 +55,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [SSL](#ssl)
 - [Using with Zeus](#using-with-zeus)
 - [Configuration options](#configuration-options)
+- [Plugins](#plugins)
 - [Backwards Compatibility](#backwards-compatibility)
 - [Known Issues](#known-issues)
 - [Supported Language/Framework Versions](#supported-languageframework-versions)
@@ -925,6 +926,10 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 
 For a listing of all configuration options available, see
 [configuration](https://rollbar.com/docs/notifier/rollbar-gem/configuration).
+
+## Plugins
+
+The support for the different frameworks and libraries is organized into different plugin definitions. The plugins architecture documentation can be found in [Plugins](https://rollbar.com/docs/notifier/rollbar-gem/plugins).
 
 ## Backwards Compatibility
 
