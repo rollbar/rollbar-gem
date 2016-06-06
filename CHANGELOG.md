@@ -1,5 +1,17 @@
 # Change Log
 
+Bugfixes:
+
+- Use require_dependency for rake and sidekiq plugins. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
+- Add immediate ActiveModel::Validations monkey patch. See [#484](https://github.com/rollbar/rollbar-gem/pull/484).
+- Pass correct options to Item.build_with. See [#480](https://github.com/rollbar/rollbar-gem/pull/480).
+
+Documentation:
+
+- Update exception filter heading and TOC. See [#481](https://github.com/rollbar/rollbar-gem/pull/481).
+- Add advanced usage of exception filters in readme. See [#477](https://github.com/rollbar/rollbar-gem/pull/477).
+
+
 ## 2.11.4
 
 Change:
