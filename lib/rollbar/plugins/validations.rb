@@ -7,7 +7,7 @@ Rollbar.plugins.define('active_model') do
     ActiveModel::VERSION::MAJOR >= 3
   end
 
-  execute do
+  execute! do
     module Rollbar
       # Module that defines methods to be used by instances using
       # ActiveModel::Validations
@@ -25,7 +25,7 @@ Rollbar.plugins.define('active_model') do
     end
   end
 
-  execute do
+  execute! do
     ActiveModel::Validations.module_eval do
       include Rollbar::ActiveRecordExtension
     end
