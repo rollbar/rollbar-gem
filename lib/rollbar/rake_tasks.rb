@@ -1,5 +1,6 @@
 require 'rollbar'
 require 'rack/mock'
+require 'logger'
 
 namespace :rollbar do
   desc 'Verify your gem installation by sending a test exception to Rollbar'

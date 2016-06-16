@@ -12,13 +12,14 @@ describe HomeController do
     Rollbar.configure do |config|
       config.access_token = test_access_token
       config.logger = logger_mock
+      config.open_timeout = 60
       config.request_timeout = 60
     end
   end
 
   context "rollbar base_data" do
     it 'should have the Rails environment' do
-      data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil)
       data['data'][:environment].should == ::Rails.env
     end
 
@@ -27,7 +28,7 @@ describe HomeController do
         config.environment = 'dev'
       end
 
-      data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil)
       data['data'][:environment].should == 'dev'
     end
 
@@ -35,7 +36,7 @@ describe HomeController do
       old_env, ::Rails.env = ::Rails.env, ''
       preconfigure_rails_notifier
 
-      data = Rollbar.notifier.send(:build_payload, 'error', 'message', nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil)
       data['data'][:environment].should == 'unspecified'
 
       ::Rails.env = old_env
@@ -258,7 +259,7 @@ describe HomeController do
     it "should raise a NameError and have PUT params in the reported exception" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      put '/report_exception', :putparam => "putval"
+      put '/report_exception', { :putparam => "putval" }
 
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:params]["putparam"].should == "putval"
@@ -268,7 +269,7 @@ describe HomeController do
       it 'reports the errors successfully' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-        put '/deprecated_report_exception', :putparam => "putval"
+        put '/deprecated_report_exception', { :putparam => "putval" }
 
         Rollbar.last_report.should_not be_nil
         Rollbar.last_report[:request][:params]["putparam"].should == "putval"
@@ -291,7 +292,7 @@ describe HomeController do
     it "should raise an uncaught exception and report a message" do
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
-      expect { get '/cause_exception' }.to raise_exception
+      expect { get '/cause_exception' }.to raise_exception(NameError)
     end
 
     context 'show_exceptions' do
@@ -338,7 +339,7 @@ describe HomeController do
         before { cookies[:session_id] = user.id }
 
         it 'sends the current user data' do
-          put '/report_exception', 'foo' => 'bar'
+          put '/report_exception', { 'foo' => 'bar' }
 
           person_data = Rollbar.last_report[:person]
 
@@ -352,7 +353,7 @@ describe HomeController do
 
   context 'with routing errors', :type => :request do
     it 'raises a RoutingError exception' do
-      expect { get '/foo/bar', :foo => :bar }.to raise_exception
+      expect { get '/foo/bar', { :foo => :bar } }.to raise_exception(ActionController::RoutingError)
 
       report = Rollbar.last_report
       expect(report[:request][:params]['foo']).to be_eql('bar')
@@ -365,7 +366,7 @@ describe HomeController do
 
       expect do
         expect(controller.send(:rollbar_request_data)[:user_ip]).to be_nil
-      end.not_to raise_exception(GetIpRaising::IpSpoofAttackError)
+      end.not_to raise_exception
     end
   end
 
@@ -375,7 +376,7 @@ describe HomeController do
 
     context 'with a single upload' do
       it "saves attachment data" do
-        expect { post '/file_upload', :upload => file1 }.to raise_exception
+        expect { post '/file_upload', { :upload => file1 } }.to raise_exception(NameError)
 
         upload_param = Rollbar.last_report[:request][:params]['upload']
 
@@ -390,7 +391,7 @@ describe HomeController do
 
     context 'with multiple uploads', :type => :request do
       it "saves attachment data for all uploads" do
-        expect { post '/file_upload', :upload => [file1, file2] }.to raise_exception
+        expect { post '/file_upload', { :upload => [file1, file2] } }.to raise_exception(NameError)
         sent_params = Rollbar.last_report[:request][:params]['upload']
 
         expect(sent_params).to be_kind_of(Array)
@@ -401,8 +402,9 @@ describe HomeController do
 
   context 'with session data', :type => :request do
     before { get '/set_session_data' }
+
     it 'reports the session data' do
-      expect { get '/use_session_data' }.to raise_exception
+      expect { get '/use_session_data' }.to raise_exception(NoMethodError)
 
       session_data = Rollbar.last_report[:request][:session]
 
@@ -416,7 +418,7 @@ describe HomeController do
     it 'parses the correct headers' do
       expect do
         post '/cause_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
-      end.to raise_exception
+      end.to raise_exception(NameError)
 
       expect(Rollbar.last_report[:request][:params]['foo']).to be_eql('bar')
     end
@@ -438,7 +440,7 @@ describe HomeController do
     end
 
     it 'scrubs sensible data from URL' do
-      expect { get '/cause_exception', { :password => 'my-secret-password' }, headers }.to raise_exception
+      expect { get '/cause_exception', { :password => 'my-secret-password' }, headers }.to raise_exception(NameError)
 
       request_data = Rollbar.last_report[:request]
 

@@ -4,14 +4,14 @@ require 'rollbar/scrubbers/url'
 
 describe Rollbar::Scrubbers::URL do
   let(:options) do
-    { :scrub_fields => [:password, :secret],
+    {
+      :url => url,
+      :scrub_fields => [:password, :secret],
       :scrub_user => false,
       :scrub_password => false,
       :randomize_scrub_length => true
     }
   end
-
-  subject { described_class.new(options) }
 
   describe '#call' do
     context 'cannot scrub URLs' do
@@ -20,7 +20,7 @@ describe Rollbar::Scrubbers::URL do
       let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
       it 'returns the URL without any change' do
-        expect(subject.call(url)).to be_eql(url)
+        expect(subject.call(options)).to be_eql(url)
       end
     end
 
@@ -31,14 +31,14 @@ describe Rollbar::Scrubbers::URL do
         let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
         it 'returns the URL without any change' do
-          expect(subject.call(url)).to be_eql(url)
+          expect(subject.call(options)).to be_eql(url)
         end
 
         context 'with arrays in params' do
           let(:url) { 'http://user:password@foo.com/some-interesting-path?foo[]=1&foo[]=2' }
 
           it 'returns the URL without any change' do
-            expect(subject.call(url)).to be_eql(url)
+            expect(subject.call(options)).to be_eql(url)
           end
         end
       end
@@ -46,6 +46,7 @@ describe Rollbar::Scrubbers::URL do
       context 'scrubbing user and password' do
         let(:options) do
           {
+            :url => url,
             :scrub_fields => [],
             :scrub_password => true,
             :scrub_user => true
@@ -57,7 +58,7 @@ describe Rollbar::Scrubbers::URL do
         it 'returns the URL without any change' do
           expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
 
-          expect(subject.call(url)).to match(expected_url)
+          expect(subject.call(options)).to match(expected_url)
         end
       end
 
@@ -67,7 +68,7 @@ describe Rollbar::Scrubbers::URL do
         it 'returns the URL with some params filtered' do
           expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{3,8}&secret=\*{3,8}#fragment/
 
-          expect(subject.call(url)).to match(expected_url)
+          expect(subject.call(options)).to match(expected_url)
         end
 
         context 'having array params' do
@@ -76,14 +77,16 @@ describe Rollbar::Scrubbers::URL do
           it 'returns the URL with some params filtered' do
             expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}#fragment/
 
-            expect(subject.call(url)).to match(expected_url)
+            expect(subject.call(options)).to match(expected_url)
           end
         end
       end
 
       context 'with no-random scrub length' do
         let(:options) do
-          { :scrub_fields => [:password, :secret],
+          {
+            :url => url,
+            :scrub_fields => [:password, :secret],
             :scrub_user => false,
             :scrub_password => false,
             :randomize_scrub_length => false
@@ -95,15 +98,17 @@ describe Rollbar::Scrubbers::URL do
         it 'scrubs with same length than the scrubbed param' do
           expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{#{password.length}}#fragment/
 
-          expect(subject.call(url)).to match(expected_url)
+          expect(subject.call(options)).to match(expected_url)
         end
       end
 
       context 'with malformed URL or not able to be parsed' do
         let(:url) { '\this\is\not\a\valid\url' }
+        before { reconfigure_notifier }
 
         it 'return the same url' do
-          expect(subject.call(url)).to be_eql(url)
+          expect(Rollbar.logger).to receive(:error).and_call_original
+          expect(subject.call(options)).to be_eql(url)
         end
       end
     end

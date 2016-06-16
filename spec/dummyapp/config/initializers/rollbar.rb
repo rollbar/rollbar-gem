@@ -1,5 +1,6 @@
 Rollbar.configure do |config|
   config.access_token = 'aaaabbbbccccddddeeeeffff00001111'
+  config.open_timeout = 60
   config.request_timeout = 60
   config.js_enabled = true
   config.js_options = {

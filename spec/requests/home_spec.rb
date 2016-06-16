@@ -37,7 +37,7 @@ describe HomeController do
     end
 
     it "should report uncaught exceptions" do
-      expect { get '/current_user' }.to raise_exception
+      expect { get '/current_user' }.to raise_exception(NoMethodError)
 
       body = Rollbar.last_report[:body]
       trace = body[:trace] && body[:trace] || body[:trace_chain][0]

@@ -14,18 +14,64 @@ describe Rollbar::RequestDataExtractor do
     Rack::MockRequest.env_for('/', 'HTTP_HOST' => 'localhost:81', 'HTTP_X_FORWARDED_HOST' => 'example.org:9292')
   end
 
-  describe '#extract_request_data_from_rack' do
-    let(:scrubber) { double }
+  describe '#scrub_url' do
+    let(:url) { 'http://this-is-the-url.com/foobar?param1=value1' }
+    let(:sensitive_params) { [:param1, :param2] }
+    let(:scrub_fields) { [:password, :secret] }
 
-    it 'returns a Hash object' do
-      scrubber_config = {
-        :scrub_fields => kind_of(Array),
-        :scrub_user => Rollbar.configuration.scrub_user,
-        :scrub_password => Rollbar.configuration.scrub_password,
-        :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length
+    before do
+      allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_fields)
+      allow(Rollbar.configuration).to receive(:scrub_user).and_return(true)
+      allow(Rollbar.configuration).to receive(:scrub_password).and_return(true)
+      allow(Rollbar.configuration).to receive(:randomize_secret_length).and_return(true)
+    end
+
+    it 'calls the scrubber with the correct options' do
+      expected_options = {
+        :url => url,
+        :scrub_fields => [:password, :secret, :param1, :param2],
+        :scrub_user => true,
+        :scrub_password => true,
+        :randomize_scrub_length => true
       }
-      expect(Rollbar::Scrubbers::URL).to receive(:new).with(scrubber_config).and_return(scrubber)
-      expect(scrubber).to receive(:call).with(kind_of(String))
+
+      expect(Rollbar::Scrubbers::URL).to receive(:call).with(expected_options)
+
+      subject.scrub_url(url, sensitive_params)
+    end
+  end
+
+  describe '#scrub_params' do
+    let(:params) do
+      {
+        :param1 => 'value1',
+        :param2 => 'value2'
+      }
+    end
+    let(:sensitive_params) { [:param1, :param2] }
+    let(:scrub_fields) { [:password, :secret] }
+
+    before do
+      allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_fields)
+    end
+
+    it 'calls the scrubber with the correct options' do
+      expected_options = {
+        :params => params,
+        :config => scrub_fields,
+        :extra_fields => sensitive_params
+      }
+
+      expect(Rollbar::Scrubbers::Params).to receive(:call).with(expected_options)
+
+      subject.scrub_params(params, sensitive_params)
+    end
+  end
+
+  describe '#extract_request_data_from_rack' do
+    it 'returns a Hash object' do
+      expect(Rollbar::Scrubbers::URL).to receive(:call).with(kind_of(Hash)).and_call_original
+      expect(Rollbar::Scrubbers::Params).to receive(:call).with(kind_of(Hash)).and_call_original.exactly(7)
 
       result = subject.extract_request_data_from_rack(env)
 
@@ -50,32 +96,6 @@ describe Rollbar::RequestDataExtractor do
         result = subject.extract_request_data_from_rack(env)
 
         expect(result).to be_kind_of(Hash)
-      end
-    end
-  end
-
-  describe '#rollbar_scrubbed_value' do
-    context 'with random scrub length' do
-      before do
-        allow(Rollbar.configuration).to receive(:randomize_scrub_length).and_return(true)
-      end
-
-      let(:value) { 'herecomesaverylongvalue' }
-
-      it 'randomizes the scrubbed string' do
-        expect(subject.rollbar_scrubbed(value)).to match(/\*{3,8}/)
-      end
-    end
-
-    context 'with no-random scrub length' do
-      before do
-        allow(Rollbar.configuration).to receive(:randomize_scrub_length).and_return(false)
-      end
-
-      let(:value) { 'herecomesaverylongvalue' }
-
-      it 'randomizes the scrubbed string' do
-        expect(subject.rollbar_scrubbed(value)).to match(/\*{#{value.length}}/)
       end
     end
   end

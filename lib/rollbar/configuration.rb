@@ -31,7 +31,9 @@ module Rollbar
     attr_accessor :person_email_method
     attr_accessor :populate_empty_backtraces
     attr_accessor :report_dj_data
+    attr_accessor :open_timeout
     attr_accessor :request_timeout
+    attr_accessor :net_retries
     attr_accessor :root
     attr_accessor :js_options
     attr_accessor :js_enabled
@@ -63,7 +65,7 @@ module Rollbar
       @before_process = []
       @code_version = nil
       @custom_data_method = nil
-      @default_logger = lambda { Logger.new(STDERR) }
+      @default_logger = lambda { ::Logger.new(STDERR) }
       @delayed_job_enabled = true
       @disable_monkey_patch = false
       @disable_core_monkey_patch = false
@@ -88,7 +90,9 @@ module Rollbar
       @project_gems = []
       @populate_empty_backtraces = false
       @report_dj_data = true
+      @open_timeout = 3
       @request_timeout = 3
+      @net_retries = 3
       @js_enabled = false
       @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
@@ -116,6 +120,12 @@ module Rollbar
         instance_var = instance_variable_get(var)
         instance_variable_set(var, Rollbar::Util::deep_copy(instance_var))
       end
+    end
+
+    def use_delayed_job
+      require 'rollbar/delay/delayed_job'
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::DelayedJob
     end
 
     def use_sidekiq(options = {})

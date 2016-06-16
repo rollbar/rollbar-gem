@@ -26,10 +26,20 @@ module Rollbar
       version?('1.8')
     end
 
+    def ruby_19?
+      version?('1.9')
+    end
+
     def version?(version)
       numbers = version.split('.')
 
       numbers == ::RUBY_VERSION.split('.')[0, numbers.size]
+    end
+
+    def timeout_exceptions
+      return [] if ruby_18? || ruby_19?
+
+      [Net::ReadTimeout, Net::OpenTimeout]
     end
   end
 end

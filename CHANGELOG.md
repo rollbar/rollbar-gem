@@ -1,5 +1,102 @@
 # Change Log
 
+Bugfixes:
+
+- Use require_dependency for rake and sidekiq plugins. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
+- Add immediate ActiveModel::Validations monkey patch. See [#484](https://github.com/rollbar/rollbar-gem/pull/484).
+- Pass correct options to Item.build_with. See [#480](https://github.com/rollbar/rollbar-gem/pull/480).
+
+Documentation:
+
+- Update exception filter heading and TOC. See [#481](https://github.com/rollbar/rollbar-gem/pull/481).
+- Add advanced usage of exception filters in readme. See [#477](https://github.com/rollbar/rollbar-gem/pull/477).
+
+
+## 2.11.4
+
+Change:
+
+- Update rollbar.js snippet
+
+## 2.11.3
+
+Fix:
+
+- Don't rely on #as_json for delayed_job payload_object. See [#463](https://github.com/rollbar/rollbar-gem/pull/463).
+
+## 2.11.2
+
+Fix:
+
+- Fix active_model require in validations plugin. See [#461](https://github.com/rollbar/rollbar-gem/pull/461).
+
+## 2.11.1
+
+Bug fixes:
+
+- Don't return inside a Proc object in rollbar.js plugin. See [#458](https://github.com/rollbar/rollbar-gem/pull/458).
+
+## 2.11.0
+
+New features:
+
+- Rollbar.js support wit SecureHeaders 2.0. See [#448](https://github.com/rollbar/rollbar-gem/pull/448).
+- Inject extensions in ActiveModel::Validations instead of ActiveRecord::Base. See [#445](https://github.com/rollbar/rollbar-gem/pull/445).
+
+Bug fixes:
+
+- Fix URL scrubbing and change to a functional object. See [#454](https://github.com/rollbar/rollbar-gem/pull/454).
+- Allow any argument for BasicSocket#as_json. See [#455](https://github.com/rollbar/rollbar-gem/pull/455).
+- Retry request on network timeouts. See [#453](https://github.com/rollbar/rollbar-gem/pull/453).
+
+Refactors and others:
+
+- Refactor Item payload building. See [#452](https://github.com/rollbar/rollbar-gem/pull/454).
+- Mock the requests to Rollbar API. See [#450](https://github.com/rollbar/rollbar-gem/pull/450).
+- Add plugins architecture. See [#438](https://github.com/rollbar/rollbar-gem/pull/438).
+- Add TOC for README.md. See [#444](https://github.com/rollbar/rollbar-gem/pull/444).
+
+## 2.10.0
+
+New features:
+
+- Set the Sidekiq error context to the worker class name. See [#440](https://github.com/rollbar/rollbar-gem/pull/440).
+- Secure headers support for rollbar.js integration. See [#437](https://github.com/rollbar/rollbar-gem/pull/437).
+- Rails 5 support. See [#433](https://github.com/rollbar/rollbar-gem/pull/433).
+- Add scrub all parameters option. See [#431](https://github.com/rollbar/rollbar-gem/pull/431).
+- Add delayed_job async handler. See [#430](https://github.com/rollbar/rollbar-gem/pull/430).
+- Disable logging if Rollbar is disabled. See [#425](https://github.com/rollbar/rollbar-gem/pull/425).
+
+Bug fixes:
+
+- Add nil check for rake.patch! for future robustness. See [#434](https://github.com/rollbar/rollbar-gem/pull/434).
+- Fix two doc bugs. See [#401](https://github.com/rollbar/rollbar-gem/pull/401).
+
+## 2.9.1
+
+Bug fixes:
+
+- Fix Sidekiq support for version > 3.x. Thanks @phlipper. See [#423](https://github.com/rollbar/rollbar-gem/pull/423).
+
+## 2.9.0
+
+Bug fixes:
+
+- Clean scope before every Sidekiq job execution. See [#421](https://github.com/rollbar/rollbar-gem/pull/421).
+- Threads reaper. See [#418](https://github.com/rollbar/rollbar-gem/pull/418).
+
+New features:
+- Rollbar logger. See [#417](https://github.com/rollbar/rollbar-gem/pull/417).
+
+Others:
+- Fix dependencies. See [#402](https://github.com/rollbar/rollbar-gem/pull/402).
+- Use mime-types < 3.0 for RUBY < 2.0. See [#420](https://github.com/rollbar/rollbar-gem/pull/420).
+- Add .codeclimate.yml. See [#409](https://github.com/rollbar/rollbar-gem/pull/409).
+- Use SimpleCov with CodeClimate formatter. See [#408](https://github.com/rollbar/rollbar-gem/pull/408).
+- Setup CodeClimate coverage. See [#407](https://github.com/rollbar/rollbar-gem/pull/407).
+- Typo in the transform hook documentation. See [#406](https://github.com/rollbar/rollbar-gem/pull/406).
+
+
 ## 2.8.3
 
 Bug fixes:
