@@ -219,6 +219,22 @@ $ rake rollbar:test
 
 This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Rollbar dashboard.
 
+If you're not using Rails, you may first need to add the following to your Rakefile:
+
+```ruby
+require 'rollbar/rake_tasks'
+```
+
+You may also need to add an `:environment` task to your Rakefile if you haven't already defined one. At a bare minimum, this task should call `Rollbar.configure()` and set your access token.
+
+```ruby
+task :environment do
+  Rollbar.configure do |config |
+    config.access_token = '...'
+  end
+end
+```
+
 ## Usage
 
 ### Uncaught exceptions
