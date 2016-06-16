@@ -29,6 +29,8 @@ namespace :rollbar do
     puts 'Testing manual report...'
     Rollbar.error('Test error from rollbar:test')
 
+    # Module to inject into the Rails controllers or
+    # rack apps
     module RollbarTest
       def test_rollbar
         puts 'Raising RollbarTestingException to simulate app failure.'
