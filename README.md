@@ -26,7 +26,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [Data sanitization (scrubbing)](#data-sanitization-scrubbing)
 - [Including additional runtime data](#including-additional-runtime-data)
 - [Exception level filters](#exception-level-filters)
-  - [Dyanmic levels](#dynamic-levels)
+  - [Dynamic levels](#dynamic-levels)
 - [Before process hook](#before-process-hook)
 - [Transform hook](#transform-hook)
 - [The Scope](#the-scope)
