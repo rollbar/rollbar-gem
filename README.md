@@ -954,6 +954,10 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 For a listing of all configuration options available, see
 [configuration](https://rollbar.com/docs/notifier/rollbar-gem/configuration).
 
+## Plugins
+
+The support for the different frameworks and libraries is organized into different plugin definitions. The plugins architecture documentation can be found in [Plugins](https://rollbar.com/docs/notifier/rollbar-gem/plugins).
+
 ## Backwards Compatibility
 
 You can find upgrading notes in [UPGRADING.md](UPGRADING.md).
