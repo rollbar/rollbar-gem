@@ -34,6 +34,33 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       described_class.handle_exception(msg_or_context, exception)
     end
 
+    context 'with fields in params to be scrubbed' do
+      let(:msg_or_context) do
+        {
+          :foo => 'bar',
+          :secret => 'foo',
+          :password => 'foo',
+          :password_confirmation => 'foo'
+        }
+      end
+      let(:expected_params) do
+        {
+          :foo => 'bar',
+          :secret => /\*+/,
+          :password => /\*+/,
+          :password_confirmation => /\*+/
+        }
+      end
+
+      before { reconfigure_notifier }
+
+      it 'sends a report with the scrubbed fields' do
+        described_class.handle_exception(msg_or_context, exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql_hash_with_regexes(expected_params)
+      end
+    end
+
     context 'when a sidekiq worker class is set' do
       it 'adds the sidekiq#queue-name to the error report context' do
         msg_or_context = {"retry" => true, "retry_count" => 1, 'queue' => 'default', 'class' => 'MyWorkerClass'}
@@ -92,7 +119,6 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
           described_class.handle_exception(msg_or_context, exception)
         }.to_not raise_error
       end
-
     end
   end
 
