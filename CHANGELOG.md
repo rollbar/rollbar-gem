@@ -1,5 +1,18 @@
 # Change Log
 
+## 2.12.0
+
+Features:
+
+- Scrub sidekiq params if needed
+- Prepare rake task for non Rails frameworks
+
+Others:
+- Typo on README.md
+- Add documentation for plugins architecture in docs/plugins.md
+
+## 2.11.5
+
 Bugfixes:
 
 - Use require_dependency for rake and sidekiq plugins. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
