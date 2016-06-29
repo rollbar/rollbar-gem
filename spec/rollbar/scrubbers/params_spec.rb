@@ -27,6 +27,33 @@ describe Rollbar::Scrubbers::Params do
         [:secret, :password]
       end
 
+      context 'with Array object' do
+        let(:params) do
+          [
+            {
+              :foo => 'bar',
+              :secret => 'the-secret',
+              :password => 'the-password',
+              :password_confirmation => 'the-password'
+            }
+          ]
+        end
+        let(:result) do
+          [
+            {
+              :foo => 'bar',
+              :secret => /\*+/,
+              :password => /\*+/,
+              :password_confirmation => /\*+/
+            }
+          ]
+        end
+
+        it 'scrubs the required parameters' do
+          expect(subject.call(options).first).to be_eql_hash_with_regexes(result.first)
+        end
+      end
+
       context 'with simple Hash' do
         let(:params) do
           {

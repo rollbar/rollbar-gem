@@ -1,3 +1,5 @@
+require 'rollbar/scrubbers/params'
+
 module Rollbar
   class Sidekiq
     PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
@@ -14,8 +16,9 @@ module Rollbar
       return if skip_report?(msg_or_context, e)
 
       params = msg_or_context.reject{ |k| PARAM_BLACKLIST.include?(k) }
+      scrubbed_params = scrub_params(params)
       scope = {
-        :request => { :params => params },
+        :request => { :params => scrubbed_params },
         :framework => "Sidekiq: #{::Sidekiq::VERSION}"
       }
       if params.is_a?(Hash)
@@ -24,6 +27,15 @@ module Rollbar
       end
 
       Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
+    end
+
+    def self.scrub_params(params)
+      options = {
+        :params => params,
+        :config => Rollbar.configuration.scrub_fields
+      }
+
+      Rollbar::Scrubbers::Params.call(options)
     end
 
     def self.skip_report?(msg_or_context, e)

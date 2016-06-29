@@ -49,6 +49,8 @@ module Rollbar
         fields_regex = options[:fields_regex]
         scrub_all = options[:scrub_all]
 
+        return scrub_array(params, options) if params.is_a?(Array)
+
         params.to_hash.inject({}) do |result, (key, value)|
           if value.is_a?(Hash)
             result[key] = scrub(value, options)
