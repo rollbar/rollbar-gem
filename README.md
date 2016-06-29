@@ -1,3 +1,9 @@
+---
+layout: page
+sidebar: rollbar_sidebar
+permalink: /notifiers/rollbar-gem/
+toc: false
+---
 # Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.11.5)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
