@@ -278,6 +278,13 @@ module Rollbar
       failsafe_payload
     end
 
+    ## Logging
+    %w(debug info warn error).each do |level|
+      define_method(:"log_#{level}") do |message|
+        logger.send(level, message)
+      end
+    end
+
     private
 
     def call_before_process(options)
@@ -616,13 +623,6 @@ module Rollbar
 
           log_error "[Rollbar] All failover handlers failed while processing item: #{Rollbar::JSON.dump(item.payload)}"
         end
-      end
-    end
-
-    ## Logging
-    %w(debug info warn error).each do |level|
-      define_method(:"log_#{level}") do |message|
-        logger.send(level, message)
       end
     end
 
