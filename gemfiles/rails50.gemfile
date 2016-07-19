@@ -12,7 +12,7 @@ gem 'rubysl', '~> 2.0', :platform => :rbx
 gem 'racc', :platform => :rbx
 gem 'minitest', :platform => :rbx
 gem 'rubinius-developer_tools', :platform => :rbx
-gem 'rails', '~> 5.0.0.beta1'
+gem 'rails', '~> 5.0.0'
 
 gem 'rspec-core', '~> 3.5.0.beta3'
 gem 'rspec-rails', '~> 3.5.0.beta3'
