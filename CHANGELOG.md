@@ -53,7 +53,7 @@ Bug fixes:
 
 New features:
 
-- Rollbar.js support wit SecureHeaders 2.0. See [#448](https://github.com/rollbar/rollbar-gem/pull/448).
+- Rollbar.js support with SecureHeaders 2.0. See [#448](https://github.com/rollbar/rollbar-gem/pull/448).
 - Inject extensions in ActiveModel::Validations instead of ActiveRecord::Base. See [#445](https://github.com/rollbar/rollbar-gem/pull/445).
 
 Bug fixes:
