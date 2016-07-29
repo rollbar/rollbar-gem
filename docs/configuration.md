@@ -106,7 +106,7 @@ The number of job failures before reporting the failure to Rollbar.
 
 **Default** `true`
 
-Set to false to turn off Rollbar off and stop reporting errors.
+Set to false to turn Rollbar off and stop reporting errors.
 
 ### environment
 
