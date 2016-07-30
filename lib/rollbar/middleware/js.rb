@@ -124,6 +124,7 @@ module Rollbar
       end
 
       def script_nonce(env)
+        return if !!config[:without_script_nonce]
         if defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce)
           ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
         end
