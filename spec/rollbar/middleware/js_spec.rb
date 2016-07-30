@@ -122,6 +122,22 @@ END
           expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
           expect(new_body).to include(snippet)
         end
+
+        context 'having script nonce disabled in configuration' do
+          let(:config) do
+            {
+              :enabled => true,
+              :without_script_nonce => true
+            }
+          end
+
+          it 'renders the script tag without the nonce' do
+            res_status, res_headers, response = subject.call(env)
+            new_body = response.body.join
+
+            expect(new_body).to include('<script type="text/javascript">')
+          end
+        end
       end
 
       context 'having a html 200 response and SecureHeaders < 3.0.0 defined' do
