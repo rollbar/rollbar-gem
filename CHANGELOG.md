@@ -64,7 +64,7 @@ Bug fixes:
 
 Refactors and others:
 
-- Refactor Item payload building. See [#452](https://github.com/rollbar/rollbar-gem/pull/454).
+- Refactor Item payload building. See [#452](https://github.com/rollbar/rollbar-gem/pull/452).
 - Mock the requests to Rollbar API. See [#450](https://github.com/rollbar/rollbar-gem/pull/450).
 - Add plugins architecture. See [#438](https://github.com/rollbar/rollbar-gem/pull/438).
 - Add TOC for README.md. See [#444](https://github.com/rollbar/rollbar-gem/pull/444).
@@ -199,8 +199,8 @@ Features
 
 Bug fixes:
 
-- Use ACCEPT header to check json requests. See [#328](https://github.com/rollbar/rollbar-gem/pull/333)
-- Fix URL scrubbing when using a malformed URL. See [#328](https://github.com/rollbar/rollbar-gem/pull/332)
+- Use ACCEPT header to check json requests. See [#333](https://github.com/rollbar/rollbar-gem/pull/333)
+- Fix URL scrubbing when using a malformed URL. See [#332](https://github.com/rollbar/rollbar-gem/pull/332)
 
 ## 2.5.1
 
@@ -237,7 +237,7 @@ Documentation:
 
 Bug fixes:
 
-- Remove better errors hook. This was causing to report twice the errors. See [#313](https://github.com/rollbar/rollbar-gem/pull/300)
+- Remove better errors hook. This was causing to report twice the errors. See [#313](https://github.com/rollbar/rollbar-gem/pull/313)
 
 
 ## 2.3.0
