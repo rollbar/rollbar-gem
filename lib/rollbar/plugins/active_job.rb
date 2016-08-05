@@ -3,7 +3,7 @@ module Rollbar
   module ActiveJob
     def self.included(base)
       base.send :rescue_from, Exception do |exception|
-        Rollbar.error(exception, :job => self.class.name, :job_id => job_id)
+        Rollbar.error(exception, :job => self.class.name, :job_id => job_id, :arguments => arguments)
         raise exception
       end
     end

@@ -9,6 +9,11 @@ describe Rollbar::ActiveJob do
     include Rollbar::ActiveJob
 
     attr_reader :job_id
+    attr_accessor :arguments
+
+    def initialize(*arguments)
+      @arguments = arguments
+    end
 
     def perform(exception, job_id)
       @job_id = job_id
@@ -21,14 +26,15 @@ describe Rollbar::ActiveJob do
 
   let(:exception) { StandardError.new('oh no') }
   let(:job_id) { "123" }
+  let(:argument) { 12 }
 
   it "reports the error to Rollbar" do
-    expected_params = { :job => "TestJob", :job_id => job_id }
+    expected_params = { :job => "TestJob", :job_id => job_id, :arguments => [argument] }
     expect(Rollbar).to receive(:error).with(exception, expected_params)
-    TestJob.new.perform(exception, job_id) rescue nil
+    TestJob.new(argument).perform(exception, job_id) rescue nil
   end
 
   it "reraises the error so the job backend can handle the failure and retry" do
-    expect { TestJob.new.perform(exception, job_id) }.to raise_error exception
+    expect { TestJob.new(argument).perform(exception, job_id) }.to raise_error exception
   end
 end
