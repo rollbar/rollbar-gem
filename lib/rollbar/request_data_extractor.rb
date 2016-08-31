@@ -8,6 +8,8 @@ require 'rollbar/util/ip_obfuscator'
 
 module Rollbar
   module RequestDataExtractor
+    ALLOWED_HEADERS_REGEX = /^HTTP_|^CONTENT_TYPE$|^CONTENT_LENGTH$/
+
     def extract_person_data_from_controller(env)
       if env.has_key?('rollbar.person_data')
         person_data = env['rollbar.person_data'] || {}
@@ -92,7 +94,7 @@ module Rollbar
     end
 
     def rollbar_headers(env)
-      env.keys.grep(/^HTTP_/).map do |header|
+      env.keys.grep(ALLOWED_HEADERS_REGEX).map do |header|
         name = header.gsub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
         if name == 'Cookie'
           {}
