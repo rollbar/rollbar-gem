@@ -6,7 +6,12 @@ class JobData
   end
 
   def to_hash
-    job_data = job.as_json
+    job_data = if job.respond_to?(:as_json)
+                 job.as_json
+               else
+                 Hash[job.to_hash.map { |k, v| [k.to_s, v] }]
+               end
+
     handler_parent = job_data['job'] ? job_data['job'] : job_data
     handler_parent['handler'] = handler_data
 
