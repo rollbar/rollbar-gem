@@ -7,6 +7,68 @@ describe Rollbar::Plugin do
 
     before { subject.instance_eval(&plugin_proc) }
 
+    context 'with requires not passing' do
+      let(:dummy_object) { '' }
+      let(:plugin_proc) do
+        dummy = dummy_object
+
+        proc do
+          require_dependency('rollbar')
+          dependency do
+            true
+          end
+
+          execute do
+            dummy.upcase
+          end
+
+          execute do
+            dummy.downcase
+          end
+        end
+      end
+
+      it 'doesnt finish loading the plugin' do
+        expect(dummy_object).to receive(:upcase)
+        expect(dummy_object).to receive(:downcase)
+
+        subject.load!
+
+        expect(subject.loaded).to be_eql(true)
+      end
+    end
+
+    context 'with requires not passing' do
+      let(:dummy_object) { '' }
+      let(:plugin_proc) do
+        dummy = dummy_object
+
+        proc do
+          require_dependency('sure-this-doesnt-exists')
+          dependency do
+            true
+          end
+
+          execute do
+            dummy.upcase
+          end
+
+          execute do
+            dummy.downcase
+          end
+        end
+      end
+
+      it 'doesnt finish loading the plugin' do
+        expect(dummy_object).not_to receive(:upcase)
+        expect(dummy_object).not_to receive(:downcase)
+
+        subject.load!
+
+        expect(subject.loaded).to be_eql(false)
+      end
+    end
+
     context 'with true dependencies' do
       let(:dummy_object) { '' }
       let(:plugin_proc) do

@@ -631,5 +631,26 @@ describe Rollbar::Item do
         expect(json).to be_kind_of(String)
       end
     end
+
+    context 'with too large payload', :fixture => :payload do
+      let(:payload_fixture) { 'payloads/sample.trace.json' }
+      let(:item) do
+        Rollbar::Item.build_with(payload,
+                                 :notifier => notifier,
+                                 :configuration => configuration,
+                                 :logger => logger)
+      end
+
+      before do
+        allow(Rollbar::Truncation).to receive(:truncate?).and_return(true)
+      end
+
+      it 'calls Notifier#send_failsafe and logs the error' do
+        expect(notifier).to receive(:send_failsafe)
+        expect(logger).to receive(:error)
+
+        item.dump
+      end
+    end
   end
 end

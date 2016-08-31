@@ -33,7 +33,7 @@ gem 'resque'
 gem 'delayed_job', :require => false
 gem 'redis'
 gem 'database_cleaner', '~> 1.0.0'
-gem 'genspec', '>= 0.2.8'
+gem 'genspec', '= 0.2.8'
 gem 'girl_friday', '>= 0.11.1'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')

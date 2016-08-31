@@ -102,6 +102,18 @@ Rollbar notifier.
 
 The number of job failures before reporting the failure to Rollbar.
 
+### enabled
+
+**Default** `true`
+
+Set to false to turn Rollbar off and stop reporting errors.
+
+### environment
+
+**Default** unspecified
+
+The environment that your code is running in.
+
 ### failover_handlers
 
 An array of backup handlers if the async handlers fails. Each should respond to

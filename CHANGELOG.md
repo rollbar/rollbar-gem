@@ -1,5 +1,36 @@
 # Change Log
 
+## 2.12.0
+
+Features:
+
+- Scrub sidekiq params if needed
+- Prepare rake task for non Rails frameworks
+
+Others:
+- Typo on README.md
+- Add documentation for plugins architecture in docs/plugins.md
+
+## 2.11.5
+
+Bugfixes:
+
+- Use require_dependency for rake and sidekiq plugins. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
+- Add immediate ActiveModel::Validations monkey patch. See [#484](https://github.com/rollbar/rollbar-gem/pull/484).
+- Pass correct options to Item.build_with. See [#480](https://github.com/rollbar/rollbar-gem/pull/480).
+
+Documentation:
+
+- Update exception filter heading and TOC. See [#481](https://github.com/rollbar/rollbar-gem/pull/481).
+- Add advanced usage of exception filters in readme. See [#477](https://github.com/rollbar/rollbar-gem/pull/477).
+
+
+## 2.11.4
+
+Change:
+
+- Update rollbar.js snippet
+
 ## 2.11.3
 
 Fix:
@@ -22,7 +53,7 @@ Bug fixes:
 
 New features:
 
-- Rollbar.js support wit SecureHeaders 2.0. See [#448](https://github.com/rollbar/rollbar-gem/pull/448).
+- Rollbar.js support with SecureHeaders 2.0. See [#448](https://github.com/rollbar/rollbar-gem/pull/448).
 - Inject extensions in ActiveModel::Validations instead of ActiveRecord::Base. See [#445](https://github.com/rollbar/rollbar-gem/pull/445).
 
 Bug fixes:
@@ -33,7 +64,7 @@ Bug fixes:
 
 Refactors and others:
 
-- Refactor Item payload building. See [#452](https://github.com/rollbar/rollbar-gem/pull/454).
+- Refactor Item payload building. See [#452](https://github.com/rollbar/rollbar-gem/pull/452).
 - Mock the requests to Rollbar API. See [#450](https://github.com/rollbar/rollbar-gem/pull/450).
 - Add plugins architecture. See [#438](https://github.com/rollbar/rollbar-gem/pull/438).
 - Add TOC for README.md. See [#444](https://github.com/rollbar/rollbar-gem/pull/444).
@@ -168,8 +199,8 @@ Features
 
 Bug fixes:
 
-- Use ACCEPT header to check json requests. See [#328](https://github.com/rollbar/rollbar-gem/pull/333)
-- Fix URL scrubbing when using a malformed URL. See [#328](https://github.com/rollbar/rollbar-gem/pull/332)
+- Use ACCEPT header to check json requests. See [#333](https://github.com/rollbar/rollbar-gem/pull/333)
+- Fix URL scrubbing when using a malformed URL. See [#332](https://github.com/rollbar/rollbar-gem/pull/332)
 
 ## 2.5.1
 
@@ -206,7 +237,7 @@ Documentation:
 
 Bug fixes:
 
-- Remove better errors hook. This was causing to report twice the errors. See [#313](https://github.com/rollbar/rollbar-gem/pull/300)
+- Remove better errors hook. This was causing to report twice the errors. See [#313](https://github.com/rollbar/rollbar-gem/pull/313)
 
 
 ## 2.3.0

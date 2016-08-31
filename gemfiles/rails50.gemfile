@@ -12,7 +12,7 @@ gem 'rubysl', '~> 2.0', :platform => :rbx
 gem 'racc', :platform => :rbx
 gem 'minitest', :platform => :rbx
 gem 'rubinius-developer_tools', :platform => :rbx
-gem 'rails', '~> 5.0.0.beta1'
+gem 'rails', '~> 5.0.0'
 
 gem 'rspec-core', '~> 3.5.0.beta3'
 gem 'rspec-rails', '~> 3.5.0.beta3'
@@ -32,6 +32,7 @@ end
 
 # We need last sinatra that uses rack 2.x
 gem 'sinatra', :git => 'https://github.com/sinatra/sinatra'
+gem 'rack-protection', :git => 'https://github.com/sinatra/rack-protection'
 gem 'resque'
 gem 'delayed_job', :require => false
 gem 'redis'

@@ -1,4 +1,10 @@
-# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.11.3)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+---
+layout: page
+sidebar: rollbar_sidebar
+permalink: /notifiers/rollbar-gem/
+toc: false
+---
+# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.12.0)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -26,6 +32,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [Data sanitization (scrubbing)](#data-sanitization-scrubbing)
 - [Including additional runtime data](#including-additional-runtime-data)
 - [Exception level filters](#exception-level-filters)
+  - [Dynamic levels](#dynamic-levels)
 - [Before process hook](#before-process-hook)
 - [Transform hook](#transform-hook)
 - [The Scope](#the-scope)
@@ -55,6 +62,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [SSL](#ssl)
 - [Using with Zeus](#using-with-zeus)
 - [Configuration options](#configuration-options)
+- [Plugins](#plugins)
 - [Backwards Compatibility](#backwards-compatibility)
 - [Known Issues](#known-issues)
 - [Supported Language/Framework Versions](#supported-languageframework-versions)
@@ -216,6 +224,22 @@ $ rake rollbar:test
 ```
 
 This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Rollbar dashboard.
+
+If you're not using Rails, you may first need to add the following to your Rakefile:
+
+```ruby
+require 'rollbar/rake_tasks'
+```
+
+You may also need to add an `:environment` task to your Rakefile if you haven't already defined one. At a bare minimum, this task should call `Rollbar.configure()` and set your access token.
+
+```ruby
+task :environment do
+  Rollbar.configure do |config |
+    config.access_token = '...'
+  end
+end
+```
 
 ## Usage
 
@@ -501,7 +525,17 @@ This behavior applies to uncaught exceptions, not direct calls to `Rollbar.error
 Rollbar.error(exception, :use_exception_level_filters => true)
 ```
 
-## [Before process hook](#before-process-hook)
+### Dynamic levels
+
+You can also specify a callable object (any object that responds to `call`) which will be called with the exception instance. For example, you can have a single error reported at different levels using the following code:
+
+```ruby
+config.exception_level_filters.merge!({
+  'SomeError' => lambda { |error| error.to_s.include?('not serious enough') ? 'info' : 'error' }
+})
+```
+
+## Before process hook
 
 Before we process data sent to Rollbar.log (or Rollbar.error/info/etc.) to build and send the payload, the gem will call the handlers defined in `configuration.before_process`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
 
@@ -523,7 +557,7 @@ Rollbar.configure do |config|
 end
 ```
 
-## [Transform hook](#transform-hook)
+## Transform hook
 
 After the payload is built but before it it sent to our API, the gem will call the handlers defined in `configuration.transform`. This handlers should be `Proc` objects or objects responding to `#call` method. The received argument is a `Hash` object with these keys:
 
@@ -548,7 +582,7 @@ Rollbar.configure do |config|
 end
 ```
 
-## [The Scope](#the-scope)
+## The Scope
 
 The scope an object, an instance of `Rollbar::LazyStore` that stores the current context data for a certain moment or situation. For example, the Rails middleware defines the scope in a way similar to this:
 
@@ -678,6 +712,14 @@ The default Sidekiq queue will be `rollbar` but you can also supply custom Sidek
 
 ```ruby
 config.use_sidekiq 'queue' => 'default'
+```
+
+You also need to add the name of the queue to your `sidekiq.yml`
+
+```
+:queues:
+- default
+- rollbar
 ```
 
 Start the redis server:
@@ -917,6 +959,10 @@ Some users have reported problems with Zeus when ```rake``` was not explicitly i
 
 For a listing of all configuration options available, see
 [configuration](https://rollbar.com/docs/notifier/rollbar-gem/configuration).
+
+## Plugins
+
+The support for the different frameworks and libraries is organized into different plugin definitions. The plugins architecture documentation can be found in [Plugins](https://rollbar.com/docs/notifier/rollbar-gem/plugins).
 
 ## Backwards Compatibility
 
