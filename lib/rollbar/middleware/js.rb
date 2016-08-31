@@ -116,7 +116,7 @@ module Rollbar
       end
 
       def script_tag(content, env)
-        if defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce)
+        if append_nonce?
           nonce = ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
           script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
         else
@@ -129,6 +129,12 @@ module Rollbar
       def html_safe_if_needed(string)
         string = string.html_safe if string.respond_to?(:html_safe)
         string
+      end
+
+      def append_nonce?
+        defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce) &&
+          defined?(::SecureHeaders::Configuration) &&
+          !::SecureHeaders::Configuration.get.current_csp[:script_src].to_a.include?("'unsafe-inline'")
       end
     end
   end
