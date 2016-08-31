@@ -29,5 +29,15 @@ Rollbar.plugins.define('active_model') do
     ActiveModel::Validations.module_eval do
       include Rollbar::ActiveRecordExtension
     end
+
+    # If ActiveRecord::Base has been already loaded,
+    # it's including a not updated version of ActiveModel::Validations
+    # We then want to include Rollbar::ActiveRecordExtension
+    # in ActiveRecord::Base
+    if defined?(ActiveRecord::Base)
+      ActiveRecord::Base.class_eval do
+        include Rollbar::ActiveRecordExtension
+      end
+    end
   end
 end
