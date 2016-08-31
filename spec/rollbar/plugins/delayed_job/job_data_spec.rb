@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require 'rollbar/delayed_job'
+require 'rollbar/plugins/delayed_job/job_data'
 require 'delayed/backend/test'
 
 describe Rollbar::Delayed::JobData do

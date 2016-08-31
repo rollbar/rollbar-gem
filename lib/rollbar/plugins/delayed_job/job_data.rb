@@ -1,34 +1,48 @@
-class JobData
-  attr_reader :job
+module Rollbar
+  module Delayed
+    class JobData
+      attr_reader :job
 
-  def initialize(job)
-    @job = job
-  end
+      def initialize(job)
+        @job = job
+      end
 
-  def to_hash
-    job_data = if job.respond_to?(:as_json)
-                 job.as_json
-               else
-                 Hash[job.to_hash.map { |k, v| [k.to_s, v] }]
-               end
+      def to_hash
+        job_data = extract_job_data
 
-    handler_parent = job_data['job'] ? job_data['job'] : job_data
-    handler_parent['handler'] = handler_data
+        handler_parent = job_data['job'] ? job_data['job'] : job_data
+        handler_parent['handler'] = handler_data
 
-    job_data
-  end
+        job_data
+      end
 
-  private
+      private
 
-  def handler_data
-    object = job.payload_object.object
+      def extract_job_data
+        if job.respond_to?(:as_json)
+          job.as_json
+        else
+          Hash[job.to_hash.map { |k, v| [k.to_s, v] }]
+        end
+      end
 
-    {
-      :method_name => job.payload_object.method_name,
-      :args => job.payload_object.args,
-      :object => object.is_a?(Class) ? object.name : object.to_s
-    }
-  rescue
-    {}
+      def handler_data
+        payload_object = job.payload_object
+
+        return payload_object unless payload_object.respond_to?(:object)
+
+        object_data(payload_object.object)
+      end
+
+      def object_data(object)
+        {
+          :method_name => job.payload_object.method_name,
+          :args => job.payload_object.args,
+          :object => object.is_a?(Class) ? object.name : object.to_s
+        }
+      rescue
+        {}
+      end
+    end
   end
 end

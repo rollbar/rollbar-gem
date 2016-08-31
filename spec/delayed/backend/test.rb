@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'delayed_job'
 require 'delayed/backend/base'
 
 # This code is taken from delayed_job/spec/delayed/backend/test.rb.
