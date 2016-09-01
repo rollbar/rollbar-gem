@@ -117,5 +117,38 @@ describe Rollbar::RequestDataExtractor do
         end
       end
     end
+
+    context 'with multiple addresses in X-Forwarded-For' do
+      let(:env) do
+        Rack::MockRequest.env_for('/',
+                                  'HTTP_HOST' => 'localhost:81',
+                                  'HTTP_X_FORWARDED_FOR' => header_value,
+                                  'REMOTE_ADDR' => '3.3.3.3',
+                                  'CONTENT_TYPE' => 'application/json',
+                                  'CONTENT_LENGTH' => 20)
+
+
+      end
+
+      context 'with public client IP' do
+        let(:header_value) { '2.2.2.2, 3.3.3.3' }
+
+        it 'extracts the correct user IP' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:user_ip]).to be_eql('2.2.2.2')
+        end
+      end
+
+      context 'with private first client IP' do
+        let(:header_value) { '192.168.1.1, 2.2.2.2, 3.3.3.3' }
+
+        it 'extracts the correct user IP' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:user_ip]).to be_eql('2.2.2.2')
+        end
+      end
+    end
   end
 end
