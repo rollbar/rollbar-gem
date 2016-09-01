@@ -97,6 +97,25 @@ describe Rollbar::RequestDataExtractor do
 
         expect(result).to be_kind_of(Hash)
       end
+
+      context 'with CONTENT_TYPE and CONTENT_LENGTH headers' do
+        let(:env) do
+          Rack::MockRequest.env_for('/',
+                                    'HTTP_HOST' => 'localhost:81',
+                                    'HTTP_X_FORWARDED_HOST' => 'example.org:9292',
+                                    'CONTENT_TYPE' => 'application/json',
+                                    'CONTENT_LENGTH' => 20)
+
+
+        end
+
+        it 'adds the content type header to the headers key' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:headers]['Content-Type']).to be_eql('application/json')
+          expect(result[:headers]['Content-Length']).to be_eql(20)
+        end
+      end
     end
   end
 end
