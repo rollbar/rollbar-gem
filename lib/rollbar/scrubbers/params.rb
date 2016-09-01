@@ -1,3 +1,4 @@
+require 'tempfile'
 require 'rollbar/scrubbers'
 
 module Rollbar
@@ -7,7 +8,7 @@ module Rollbar
     # Also, if that configuration option is se to :scrub_all, it will scrub all
     # received parameters
     class Params
-      SKIPPED_CLASSES = [Tempfile]
+      SKIPPED_CLASSES = [::Tempfile]
       ATTACHMENT_CLASSES = %w(ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile).freeze
       SCRUB_ALL = :scrub_all
 
