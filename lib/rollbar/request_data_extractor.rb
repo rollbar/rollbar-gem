@@ -127,11 +127,31 @@ module Rollbar
     end
 
     def rollbar_user_ip(env)
-      user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || env['HTTP_X_FORWARDED_FOR'] || env['REMOTE_ADDR']).to_s
+      user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || x_forwarded_for_client(env['HTTP_X_FORWARDED_FOR']) || env['REMOTE_ADDR']).to_s
 
       Rollbar::Util::IPObfuscator.obfuscate_ip(user_ip_string)
     rescue
       nil
+    end
+
+    def x_forwarded_for_client(header_value)
+      return nil unless header_value
+
+      ips = header_value.split(',').map(&:strip)
+
+      find_not_private_ip(ips)
+    end
+
+    def find_not_private_ip(ips)
+      ips.detect do |ip|
+        octets = ip.match(/^(\d{1,3}).(\d{1,3}).(\d{1,3}).(\d{1,3})$/)[1, 4].map(&:to_i)
+
+        is_private = (octets[0] == 10) ||
+                     ((octets[0] == 172) && (octets[1] >= 16) && (octets[1] <= 31)) ||
+                     ((octets[0] == 192) && (octets[1] == 168))
+
+        !is_private
+      end
     end
 
     def rollbar_get_params(rack_req)
