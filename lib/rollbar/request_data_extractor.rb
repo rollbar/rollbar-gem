@@ -5,6 +5,7 @@ require 'rollbar/scrubbers'
 require 'rollbar/scrubbers/url'
 require 'rollbar/scrubbers/params'
 require 'rollbar/util/ip_obfuscator'
+require 'rollbar/json'
 
 module Rollbar
   module RequestDataExtractor
@@ -23,8 +24,8 @@ module Rollbar
 
     def extract_request_data_from_rack(env)
       rack_req = ::Rack::Request.new(env)
-
       sensitive_params = sensitive_params_list(env)
+
       request_params = scrub_params(rollbar_request_params(env), sensitive_params)
       get_params = scrub_params(rollbar_get_params(rack_req), sensitive_params)
       post_params = scrub_params(rollbar_post_params(rack_req), sensitive_params)
@@ -34,11 +35,13 @@ module Rollbar
       route_params = scrub_params(rollbar_route_params(env), sensitive_params)
 
       url = scrub_url(rollbar_url(env), sensitive_params)
-      params = request_params.merge(get_params).merge(post_params).merge(raw_body_params)
 
       data = {
-        :params => params,
         :url => url,
+        :params => request_params,
+        :GET => get_params,
+        :POST => post_params,
+        :body => Rollbar::JSON.dump(raw_body_params),
         :user_ip => rollbar_user_ip(env),
         :headers => rollbar_headers(env),
         :cookies => cookies,

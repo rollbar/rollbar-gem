@@ -356,7 +356,7 @@ describe HomeController do
       expect { get '/foo/bar', { :foo => :bar } }.to raise_exception(ActionController::RoutingError)
 
       report = Rollbar.last_report
-      expect(report[:request][:params]['foo']).to be_eql('bar')
+      expect(report[:request][:GET]['foo']).to be_eql('bar')
     end
   end
 
@@ -378,7 +378,7 @@ describe HomeController do
       it "saves attachment data" do
         expect { post '/file_upload', { :upload => file1 } }.to raise_exception(NameError)
 
-        upload_param = Rollbar.last_report[:request][:params]['upload']
+        upload_param = Rollbar.last_report[:request][:POST]['upload']
 
         expect(upload_param).to have_key(:filename)
         expect(upload_param).to have_key(:type)
