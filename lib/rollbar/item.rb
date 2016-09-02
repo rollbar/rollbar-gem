@@ -101,14 +101,22 @@ module Rollbar
       # from an async handler job, which can be serialized.
       stringified_payload = Util::Hash.deep_stringify_keys(payload)
       result = Truncation.truncate(stringified_payload)
+
       return result unless Truncation.truncate?(result)
 
-      original_size = Rollbar::JSON.dump(payload).bytesize
-      final_size = result.bytesize
-      notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-      logger.error("[Rollbar] Payload too large to be sent: #{Rollbar::JSON.dump(payload)}")
+      handle_too_large_payload(stringified_payload, result)
 
       nil
+    end
+
+    def handle_too_large_payload(stringified_payload, final_payload)
+      original_size = Rollbar::JSON.dump(stringified_payload).bytesize
+      final_size = final_payload.bytesize
+      uuid = stringified_payload['data']['uuid']
+      host = stringified_payload['data']['server']['host']
+
+      notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil, uuid, host)
+      logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")
     end
 
     def ignored?

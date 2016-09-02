@@ -1,4 +1,5 @@
 require 'rollbar/truncation/mixin'
+require 'rollbar/util'
 
 module Rollbar
   module Truncation
@@ -10,7 +11,7 @@ module Rollbar
       end
 
       def call(payload)
-        new_payload = payload.clone
+        new_payload = Rollbar::Util.deep_copy(payload)
         body = new_payload['data']['body']
 
         if body['trace_chain']
