@@ -931,7 +931,18 @@ If you're using [Goalie](https://github.com/obvio171/goalie) for custom error pa
 
 ## Resque
 
-Check out [resque-rollbar](https://github.com/dimko/resque-rollbar) for using Rollbar as a failure backend for Resque.
+From a time ago, Resque errors reporting was supported by the gem [resque-rollbar](https://github.com/dimko/resque-rollbar). Now that functionality is built-in in the own gem. All you need to do is use `Resque::Failure::Rollbar` as the failure backend for Resque.
+
+In your resque configuration add next lines:
+
+```ruby
+require 'resque/failure/multiple'
+require 'resque/failure/redis'
+require 'rollbar'
+
+Resque::Failure::Multiple.classes = [ Resque::Failure::Redis, Resque::Failure::Rollbar ]
+Resque::Failure.backend = Resque::Failure::Multiple
+```
 
 ## SSL
 
