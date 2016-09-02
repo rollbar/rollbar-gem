@@ -3,7 +3,7 @@ require 'spec_helper'
 Rollbar.plugins.load!
 
 describe Rollbar::Rake do
-  let(:application) { Rake::Application.new }
+  let(:application) { Rake.application }
   let(:exception) { Exception.new }
 
   context 'with supported rake version' do
@@ -12,7 +12,6 @@ describe Rollbar::Rake do
     end
 
     it 'reports error to Rollbar' do
-      expect(Rollbar::Rake).not_to receive(:skip_patch)
       expect(Rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
       expect(application).to receive(:orig_display_error_message).with(exception)
 
