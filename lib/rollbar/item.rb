@@ -113,7 +113,7 @@ module Rollbar
       original_size = Rollbar::JSON.dump(stringified_payload).bytesize
       final_size = final_payload.bytesize
       uuid = stringified_payload['data']['uuid']
-      host = stringified_payload['data']['server']['host']
+      host = stringified_payload['data'].fetch('server', {})['host']
 
       notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil, uuid, host)
       logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")

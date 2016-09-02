@@ -659,6 +659,23 @@ describe Rollbar::Item do
 
         item.dump
       end
+
+      context 'with missing server data' do
+        it 'calls Notifier#send_failsafe and logs the error' do
+          payload['data'].delete('server')
+          original_size = Rollbar::JSON.dump(payload).bytesize
+          final_size = Rollbar::Truncation.truncate(payload.clone).bytesize
+          # final_size = original_size
+          rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}"
+          uuid = payload['data']['uuid']
+          log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
+
+          expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, uuid, nil)
+          expect(logger).to receive(:error).with(log_message)
+
+          item.dump
+        end
+      end
     end
   end
 end
