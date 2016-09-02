@@ -14,7 +14,7 @@ module Rollbar
 
       def call(payload)
         result = nil
-        new_payload = payload.clone
+        new_payload = Rollbar::Util.deep_copy(payload)
 
         STRING_THRESHOLDS.each do |threshold|
           truncate_proc = truncate_strings_proc(threshold)

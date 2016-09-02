@@ -237,7 +237,7 @@ module Rollbar
       end
     end
 
-    def send_failsafe(message, exception)
+    def send_failsafe(message, exception, uuid = nil, host = nil)
       exception_reason = failsafe_reason(message, exception)
 
       log_error "[Rollbar] Sending failsafe response due to #{exception_reason}"
@@ -255,6 +255,10 @@ module Rollbar
         :notifier => {
           :name => 'rollbar-gem',
           :version => VERSION
+        },
+        :custom => {
+          :orig_uuid => uuid,
+          :orig_host => host
         },
         :internal => true,
         :failsafe => true

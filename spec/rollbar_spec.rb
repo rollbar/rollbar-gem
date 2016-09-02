@@ -1222,6 +1222,18 @@ describe Rollbar do
         expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_body)
       end
     end
+
+    context 'with uuid and host' do
+      let(:host) { 'the-host' }
+      let(:uuid) { 'the-uuid' }
+      it 'sets the uuid and host in correct keys' do
+        sent_payload = notifier.send(:send_failsafe, 'testing uuid and host',
+                                     exception, uuid, host)
+
+        expect(sent_payload['data'][:custom][:orig_uuid]).to be_eql('the-uuid')
+        expect(sent_payload['data'][:custom][:orig_host]).to be_eql('the-host')
+      end
+    end
   end
 
   context 'when reporting internal error with nil context' do

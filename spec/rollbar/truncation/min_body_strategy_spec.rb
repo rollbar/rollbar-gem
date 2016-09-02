@@ -45,7 +45,7 @@ describe Rollbar::Truncation::MinBodyStrategy do
     end
 
     context 'with a message payload' do
-      let(:payload_fixture) { 'payloads/sample.trace_chain.json' }
+      let(:payload_fixture) { 'payloads/message.json' }
 
       it "doesn't truncate anything and returns same payload" do
         result = Rollbar::JSON.load(described_class.call(payload))
