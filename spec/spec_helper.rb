@@ -70,7 +70,7 @@ RSpec.configure do |config|
     stub_request(:any, /api.rollbar.com/).to_rack(RollbarAPI.new) if defined?(WebMock)
   end
 
-  config.after(:each) do
+  config.after do
     DatabaseCleaner.clean
   end
 

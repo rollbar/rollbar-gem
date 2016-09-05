@@ -14,21 +14,25 @@ module Rollbar
   class Notifier
     attr_accessor :configuration
     attr_accessor :last_report
-    attr_reader :scope_object
+    attr_accessor :scope_object
 
     @file_semaphore = Mutex.new
 
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
-        @configuration = parent_notifier.configuration.clone
-        @scope_object = parent_notifier.scope_object.clone
-
-        Rollbar::Util.deep_merge(@configuration.payload_options, payload_options) if payload_options
-        Rollbar::Util.deep_merge(@scope_object, scope) if scope
+        self.configuration = parent_notifier.configuration.clone
+        self.scope_object = parent_notifier.scope_object.clone
+        Rollbar::Util.deep_merge(scope_object, scope) if scope
       else
-        @configuration = ::Rollbar::Configuration.new
-        @scope_object = ::Rollbar::LazyStore.new(scope)
+        self.configuration = ::Rollbar::Configuration.new
+        self.scope_object = ::Rollbar::LazyStore.new(scope)
       end
+
+      Rollbar::Util.deep_merge(configuration.payload_options, payload_options) if payload_options
+    end
+
+    def reset!
+      self.scope_object = ::Rollbar::LazyStore.new({})
     end
 
     # Similar to configure below, but used only internally within the gem
@@ -42,6 +46,17 @@ module Rollbar
       configuration.enabled = true if configuration.enabled.nil?
 
       yield(configuration)
+    end
+
+    def reconfigure
+      self.configuration = Configuration.new
+      configuration.enabled = true
+
+      yield(configuration)
+    end
+
+    def unconfigure
+      self.configuration = nil
     end
 
     def scope(options = {})

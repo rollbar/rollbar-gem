@@ -18,10 +18,14 @@ require 'rollbar/exceptions'
 require 'rollbar/lazy_store'
 require 'rollbar/notifier'
 
+# The Rollbar module. It stores a Rollbar::Notifier per thread and
+# provides some module methods in order to use the current thread notifier.
 module Rollbar
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
-                               process_item process_from_async_handler scope send_failsafe log_info log_debug
-                               log_warning log_error silenced)
+                               process_item process_from_async_handler scope
+                               send_failsafe log_info log_debug
+                               log_warning log_error silenced preconfigure
+                               reconfigure unconfigure scope_object configuration)
 
   class << self
     extend Forwardable
@@ -30,42 +34,27 @@ module Rollbar
 
     attr_writer :plugins
 
-    # Similar to configure below, but used only internally within the gem
-    # to configure it without initializing any of the third party hooks
-    def preconfigure
-      yield(configuration)
-
-      reset_notifier!
+    def notifier
+      Thread.current[:_rollbar_notifier] ||= Notifier.new
     end
 
-    def configure
-      # if configuration.enabled has not been set yet (is still 'nil'), set to true.
-      configuration.enabled = true if configuration.enabled.nil?
+    def notifier=(notifier)
+      Thread.current[:_rollbar_notifier] = notifier
+    end
 
-      yield(configuration)
+    # Configures the current thread notifier and
+    # loads the plugins
+    def configure(&block)
+      notifier.configure(&block)
 
       plugins.load!
-      reset_notifier!
     end
 
-    def reconfigure
-      @configuration = Configuration.new
-      @configuration.enabled = true
-      yield(configuration)
-
-      reset_notifier!
-    end
-
-    def unconfigure
-      @configuration = nil
-    end
-
+    # Returns the configuration for the current notifier.
+    # The current notifier is Rollbar.notifier and exists
+    # one per thread.
     def configuration
-      @configuration ||= Configuration.new
-    end
-
-    def scope_object
-      @scope_obejct ||= ::Rollbar::LazyStore.new({})
+      notifier.configuration
     end
 
     def safely?
@@ -76,14 +65,6 @@ module Rollbar
       @plugins ||= Rollbar::Plugins.new
     end
 
-    def notifier
-      Thread.current[:_rollbar_notifier] ||= Notifier.new(self)
-    end
-
-    def notifier=(notifier)
-      Thread.current[:_rollbar_notifier] = notifier
-    end
-
     def last_report
       Thread.current[:_rollbar_last_report]
     end
@@ -92,7 +73,22 @@ module Rollbar
       Thread.current[:_rollbar_last_report] = report
     end
 
+    # Resets the scope for the current thread notifier. The notifier
+    # reference is kept so we reuse the notifier.
+    # This is a change from version 2.13.0. Before this version
+    # this method clears the notifier.
+    #
+    # It was used in order to reset the scope and reusing the global
+    # configuration Rollbar.configuration. Since now Rollbar.configuration
+    # points to the current notifier configuration, we can resue the
+    # notifier instance and just reset the scope.
     def reset_notifier!
+      notifier.reset!
+    end
+
+    # Clears the current thread notifier. In the practice
+    # this should be used only on the specs
+    def clear_notifier!
       self.notifier = nil
     end
 

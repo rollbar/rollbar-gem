@@ -32,7 +32,7 @@ describe HomeController do
       ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name, broken_cookie_method)
     end
 
-    after(:each) do
+    after do
       ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name, original_cookie_method)
     end
 

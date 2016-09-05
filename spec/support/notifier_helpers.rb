@@ -1,5 +1,7 @@
 module NotifierHelpers
   def reconfigure_notifier
+    Rollbar.clear_notifier!
+
     Rollbar.reconfigure do |config|
       # special test access token
       config.access_token = test_access_token

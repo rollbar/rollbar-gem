@@ -23,15 +23,15 @@ require 'spec_helper'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
+
   before do
-    Rollbar.unconfigure
+    Rollbar.clear_notifier!
     configure
   end
 
   context 'when notifier has been used before configure it' do
     before do
-      Rollbar.unconfigure
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
     end
 
     it 'is finally reset' do
@@ -58,8 +58,7 @@ describe Rollbar do
 
       context 'executing a Thread before Rollbar is configured' do
         before do
-          Rollbar.reset_notifier!
-          Rollbar.unconfigure
+          Rollbar.clear_notifier!
 
           Thread.new {}
 
@@ -333,10 +332,12 @@ describe Rollbar do
       end
 
       it 'should not modify any parent notifier configuration' do
+        Rollbar.clear_notifier!
         configure
         Rollbar.configuration.code_version.should be_nil
         Rollbar.configuration.payload_options.should be_empty
 
+        notifier = Rollbar.notifier.scope
         notifier.configure do |config|
           config.code_version = '123'
           config.payload_options = {
@@ -394,8 +395,7 @@ describe Rollbar do
         end
       end
 
-      after(:each) do
-        Rollbar.unconfigure
+      after do
         configure
       end
 
@@ -439,16 +439,13 @@ describe Rollbar do
     let(:logger_mock) { double("Rails.logger").as_null_object }
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
-    before(:each) do
+    before do
+      Rollbar.unconfigure
       configure
+
       Rollbar.configure do |config|
         config.logger = logger_mock
       end
-    end
-
-    after(:each) do
-      Rollbar.unconfigure
-      configure
     end
 
     it 'should report exceptions without person or request data' do
@@ -476,15 +473,13 @@ describe Rollbar do
     end
 
     it 'should not be enabled when not configured' do
-      Rollbar.unconfigure
+      Rollbar.clear_notifier!
 
       Rollbar.configuration.enabled.should be_nil
       Rollbar.error(exception).should == 'disabled'
     end
 
     it 'should stay disabled if configure is called again' do
-      Rollbar.unconfigure
-
       # configure once, setting enabled to false.
       Rollbar.configure do |config|
         config.enabled = false
@@ -833,8 +828,7 @@ describe Rollbar do
       end
     end
 
-    after(:each) do
-      Rollbar.unconfigure
+    after do
       configure
     end
 
@@ -887,8 +881,7 @@ describe Rollbar do
       end
     end
 
-    after(:each) do
-      Rollbar.unconfigure
+    after do
       configure
     end
 
@@ -1099,7 +1092,7 @@ describe Rollbar do
       Rollbar.send(:logger).should_not be_nil
     end
 
-    after(:each) do
+    after do
       reset_configuration
     end
   end
@@ -1279,7 +1272,7 @@ describe Rollbar do
     end
 
     it 'changes data in scope_object inside the block' do
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
       configure
 
       current_notifier_id = Rollbar.notifier.object_id
@@ -1342,11 +1335,11 @@ describe Rollbar do
     end
   end
 
-  describe '.reset_notifier' do
+  describe '.clear_notifier' do
     it 'resets the notifier' do
       notifier1_id = Rollbar.notifier.object_id
 
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
       expect(Rollbar.notifier.object_id).not_to be_eql(notifier1_id)
     end
   end
@@ -1385,8 +1378,7 @@ describe Rollbar do
 
   describe '.preconfigure'do
     before do
-      Rollbar.unconfigure
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
     end
 
     it 'resets the notifier' do

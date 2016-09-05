@@ -161,12 +161,12 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
       end
     end
 
-    it 'resets the notifier in every request' do
+    it 'resets the notifier scope in every request' do
       get '/bar'
-      id1 = Rollbar.notifier.object_id
+      id1 = Rollbar.scope_object.object_id
 
       get '/bar'
-      id2 = Rollbar.notifier.object_id
+      id2 = Rollbar.scope_object.object_id
 
       expect(id1).not_to be_eql(id2)
     end
