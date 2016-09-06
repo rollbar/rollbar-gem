@@ -25,7 +25,7 @@ module Rollbar
                                process_item process_from_async_handler scope
                                send_failsafe log_info log_debug
                                log_warning log_error silenced preconfigure
-                               reconfigure unconfigure scope_object configuration)
+                               reconfigure unconfigure scope_object configuration with_config)
 
   class << self
     extend Forwardable

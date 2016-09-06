@@ -59,6 +59,15 @@ module Rollbar
       self.configuration = nil
     end
 
+    def with_config(options = {})
+      old_config = configuration
+      self.configuration = old_config.merge(options)
+
+      yield
+    ensure
+      self.configuration = old_config
+    end
+
     def scope(options = {})
       self.class.new(self, nil, options)
     end
