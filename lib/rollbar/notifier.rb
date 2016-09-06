@@ -627,10 +627,10 @@ module Rollbar
     alias_method :log_warning, :log_warn
 
     def log_instance_link(data)
-      if data[:uuid]
-        uuid_url = Util.uuid_rollbar_url(data, configuration)
-        log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
-      end
+      return unless data[:uuid]
+
+      uuid_url = Util.uuid_rollbar_url(data, configuration)
+      log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
     end
 
     def logger

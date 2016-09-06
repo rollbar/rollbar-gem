@@ -10,6 +10,7 @@ require 'active_support/json/encoding'
 require 'rollbar/item'
 begin
   require 'rollbar/delay/sidekiq'
+  require 'rollbar/delay/sucker_punch'
 rescue LoadError
 end
 
@@ -486,7 +487,7 @@ describe Rollbar do
       end
 
       # now configure again (perhaps to change some other values)
-      Rollbar.configure do |config| end
+      Rollbar.configure { |_| }
 
       Rollbar.configuration.enabled.should == false
       Rollbar.error(exception).should == 'disabled'
@@ -874,7 +875,8 @@ describe Rollbar do
   end
 
   context 'asynchronous_handling' do
-    before(:each) do
+    before do
+      Rollbar.clear_notifier!
       configure
       Rollbar.configure do |config|
         config.logger = logger_mock
@@ -1035,13 +1037,9 @@ describe Rollbar do
     describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
         logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-        logger_mock.should_receive(:info).with('[Rollbar] Sending item')
-        logger_mock.should_receive(:info).with('[Rollbar] Success')
+        expect(Rollbar::Delay::SuckerPunch).to receive(:call)
 
-        Rollbar.configure do |config|
-          config.use_sucker_punch
-        end
-
+        Rollbar.configure(&:use_sucker_punch)
         Rollbar.error(exception)
       end
     end

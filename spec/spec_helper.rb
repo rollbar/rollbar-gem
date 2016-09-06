@@ -65,7 +65,7 @@ RSpec.configure do |config|
   config.before(:each) do
     DatabaseCleaner.start
     DatabaseCleaner.clean
-    Rollbar.reset_notifier!
+    Rollbar.clear_notifier!
 
     stub_request(:any, /api.rollbar.com/).to_rack(RollbarAPI.new) if defined?(WebMock)
   end
