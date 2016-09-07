@@ -1419,6 +1419,22 @@ describe Rollbar do
     end
   end
 
+  describe '.with_config' do
+    let(:new_config) do
+      { 'environment' => 'foo' }
+    end
+
+    it 'uses the new config and restores the old one' do
+      config1 = described_class.configuration
+
+      subject.with_config(:environment => 'bar') do
+        expect(described_class.configuration).not_to be(config1)
+      end
+
+      expect(described_class.configuration).to be(config1)
+    end
+  end
+
   # configure with some basic params
   def configure
     reconfigure_notifier

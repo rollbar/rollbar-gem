@@ -100,21 +100,29 @@ module Rollbar
     # @example
     #
     #   new_scope = { job_type: 'scheduled' }
-    #   Rollbar.scoped(new_scope) do
+    #   new_config = { use_async: false }
+    #
+    #   Rollbar.scoped(new_scope, new_config) do
     #     begin
     #       # do stuff
     #     rescue => e
-    #       Rollbar.log(e)
+    #       Rollbar.error(e)
     #     end
     #   end
-    def scoped(options = {})
+    def scoped(options = {}, config_overrides = {})
       old_notifier = notifier
-      self.notifier = old_notifier.scope(options)
+      self.notifier = old_notifier.scope(options, config_overrides)
 
       result = yield
       result
     ensure
       self.notifier = old_notifier
+    end
+
+    # Create a new Notifier instance with a new configuration
+    # using the current one but merging the passed options.
+    def with_config(overrides, &block)
+      scoped(nil, overrides, &block)
     end
 
     def scope!(options = {})

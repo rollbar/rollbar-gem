@@ -22,6 +22,7 @@ module Rollbar
       if parent_notifier
         self.configuration = parent_notifier.configuration.clone
         self.scope_object = parent_notifier.scope_object.clone
+
         Rollbar::Util.deep_merge(scope_object, scope) if scope
       else
         self.configuration = ::Rollbar::Configuration.new
@@ -59,21 +60,16 @@ module Rollbar
       self.configuration = nil
     end
 
-    def with_config(options = {})
-      old_config = configuration
-      self.configuration = old_config.merge(options)
+    def scope(scope_overrides = {}, config_overrides = {})
+      new_notifier = self.class.new(self, nil, scope_overrides)
+      new_notifier.configuration = configuration.merge(config_overrides)
 
-      yield
-    ensure
-      self.configuration = old_config
+      new_notifier
     end
 
-    def scope(options = {})
-      self.class.new(self, nil, options)
-    end
-
-    def scope!(options = {})
+    def scope!(options = {}, config_overrides = {})
       Rollbar::Util.deep_merge(scope_object, options)
+      configuration.merge!(config_overrides)
 
       self
     end
