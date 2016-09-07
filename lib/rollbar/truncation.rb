@@ -9,7 +9,7 @@ module Rollbar
   module Truncation
     extend ::Rollbar::Truncation::Mixin
 
-    MAX_PAYLOAD_SIZE = 128 * 1024 # 128kb
+    MAX_PAYLOAD_SIZE = 512 * 1024 # 512kb
     STRATEGIES = [RawStrategy,
                   FramesStrategy,
                   StringsStrategy,
