@@ -14,6 +14,7 @@ describe Rollbar::Notifier do
       new_notifier = subject.scope(new_scope, new_config)
 
       expect(new_notifier).not_to be(subject)
+      expect(subject.configuration.environment).to be_eql(nil)
       expect(new_notifier.configuration.environment).to be_eql('foo')
       expect(new_notifier.scope_object['foo']).to be_eql('bar')
       expect(new_notifier.configuration).not_to be(subject.configuration)
@@ -30,13 +31,13 @@ describe Rollbar::Notifier do
     end
 
     it 'mutates the notifier with a merged scope and configuration' do
-      new_notifier = subject.scope!(new_scope, new_config)
+      result = subject.scope!(new_scope, new_config)
 
-      expect(new_notifier).to be(subject)
-      expect(new_notifier.configuration.environment).to be_eql('foo')
-      expect(new_notifier.scope_object['foo']).to be_eql('bar')
-      expect(new_notifier.configuration).to be(subject.configuration)
-      expect(new_notifier.scope_object).to be(subject.scope_object)
+      expect(result).to be(subject)
+      expect(subject.configuration.environment).to be_eql('foo')
+      expect(subject.scope_object['foo']).to be_eql('bar')
+      expect(subject.configuration).to be(subject.configuration)
+      expect(subject.scope_object).to be(subject.scope_object)
     end
   end
 end
