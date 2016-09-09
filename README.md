@@ -30,6 +30,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [Before process hook](#before-process-hook)
 - [Transform hook](#transform-hook)
 - [The Scope](#the-scope)
+- [Code and context](#code-and-context)
 - [Silencing exceptions at runtime](#silencing-exceptions-at-runtime)
 - [Sending backtrace without rescued exceptions](#sending-backtrace-without-rescued-exceptions)
 - [ActiveJob integration](#activejob-integration)
@@ -604,6 +605,18 @@ your_handler = proc do |options|
   request_data = scope[:request]
   person_data = scope[:person]
   context_data = scope[:context]
+end
+```
+
+## Code and context
+
+By default we send the next values for each backtrace frame: `filename`, `lineno` and `method`. You can configure to send the `code` and `context` data, which is extra information for the frames. The `code` is the text for the line of code where the error happend. The `context` is the text for the 4 lines before the problematic line and the 4 lines after it.
+
+Since the backtrace can be really long sometimes and this extra information may be only useful for your own project files, you can configure to send this data for all the frames or only your project files related frames. There are three levels: `:none` (default), `:app` (only your project files) and `all`. Example:
+
+```ruby
+Rollbar.configure do |config|
+   config.send_extra_frame_data = :app
 end
 ```
 
