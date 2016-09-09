@@ -71,7 +71,7 @@ describe Rollbar::RequestDataExtractor do
   describe '#extract_request_data_from_rack' do
     it 'returns a Hash object' do
       expect(Rollbar::Scrubbers::URL).to receive(:call).with(kind_of(Hash)).and_call_original
-      expect(Rollbar::Scrubbers::Params).to receive(:call).with(kind_of(Hash)).and_call_original.exactly(7)
+      expect(Rollbar::Scrubbers::Params).to receive(:call).with(kind_of(Hash)).and_call_original.exactly(6)
 
       result = subject.extract_request_data_from_rack(env)
 
