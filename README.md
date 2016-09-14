@@ -610,9 +610,9 @@ end
 
 ## Code and context
 
-By default we send the next values for each backtrace frame: `filename`, `lineno` and `method`. You can configure to send the `code` and `context` data, which is extra information for the frames. The `code` is the text for the line of code where the error happend. The `context` is the text for the 4 lines before the problematic line and the 4 lines after it.
+By default we send the following values for each backtrace frame: `filename`, `lineno` and `method`. You can configure Rollbar to additionally send `code` (the actual line of code) and `context` (lines before and after) for each frame.
 
-Since the backtrace can be really long sometimes and this extra information may be only useful for your own project files, you can configure to send this data for all the frames or only your project files related frames. There are three levels: `:none` (default), `:app` (only your project files) and `all`. Example:
+Since the backtrace can be very long, you can configure to send this data for all the frames or only your in-project frames. There are three levels: `:none` (default), `:app` (only your project files) and `all`. Example:
 
 ```ruby
 Rollbar.configure do |config|
