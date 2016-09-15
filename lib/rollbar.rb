@@ -52,7 +52,7 @@ module Rollbar
     # on this notifier.
     # Before v2.13.0 these methods worked on the global
     # configuration, so in the practice the behavior is the same,
-    # since they work on the parent notifier's configuration
+    # since they work on the root notifier's configuration
     def root_notifier
       @root_notifier ||= notifier
     end
@@ -61,19 +61,19 @@ module Rollbar
       root_notifier.preconfigure(&block)
     end
 
-    # Configures the parent notifier and loads the plugins
+    # Configures the root notifier and loads the plugins
     def configure(&block)
       root_notifier.configure(&block)
 
       plugins.load!
     end
 
-    # Reconfigures the parent notifier
+    # Reconfigures the root notifier
     def reconfigure(&block)
       root_notifier.reconfigure(&block)
     end
 
-    # Unconfigures the parent notifier
+    # Unconfigures the root notifier
     def unconfigure
       root_notifier.unconfigure
     end
@@ -114,7 +114,7 @@ module Rollbar
       notifier.reset!
     end
 
-    # Clears the current thread notifier and the parent notifier.
+    # Clears the current thread notifier and the root notifier.
     # In the practice this should be used only on the specs
     def clear_notifier!
       self.notifier = nil
