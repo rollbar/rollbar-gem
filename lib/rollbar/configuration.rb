@@ -126,6 +126,24 @@ module Rollbar
       end
     end
 
+    def merge(options)
+      new_configuration = clone
+      new_configuration.merge!(options)
+
+      new_configuration
+    end
+
+    def merge!(options)
+      options.each do |name, value|
+        variable_name = "@#{name}"
+        next unless instance_variable_defined?(variable_name)
+
+        instance_variable_set(variable_name, value)
+      end
+
+      self
+    end
+
     def use_delayed_job
       require 'rollbar/delay/delayed_job'
       @use_async      = true

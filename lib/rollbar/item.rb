@@ -10,6 +10,8 @@ end
 require 'rollbar/item/backtrace'
 require 'rollbar/util'
 require 'rollbar/encoding'
+require 'rollbar/truncation'
+require 'rollbar/json'
 
 module Rollbar
   # This class represents the payload to be sent to the API.

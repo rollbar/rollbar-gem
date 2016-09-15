@@ -77,7 +77,7 @@ describe Rollbar do
       end
     end
 
-    after(:each) do
+    after do
       Rollbar.unconfigure
       configure
     end
@@ -136,7 +136,7 @@ describe Rollbar do
       end
     end
 
-    after(:each) do
+    after do
       Rollbar.unconfigure
       configure
     end
@@ -162,14 +162,14 @@ describe Rollbar do
     end
 
     it 'should not be enabled when not configured' do
-      Rollbar.unconfigure
+      Rollbar.clear_notifier!
 
       Rollbar.configuration.enabled.should be_nil
       Rollbar.report_exception(@exception).should == 'disabled'
     end
 
     it 'should stay disabled if configure is called again' do
-      Rollbar.unconfigure
+      Rollbar.clear_notifier!
 
       # configure once, setting enabled to false.
       Rollbar.configure do |config|

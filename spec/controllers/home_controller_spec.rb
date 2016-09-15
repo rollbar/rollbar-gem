@@ -6,6 +6,7 @@ describe HomeController do
   let(:notifier) { Rollbar.notifier }
 
   before do
+    Rollbar.clear_notifier!
     reset_configuration
     preconfigure_rails_notifier
 
@@ -294,7 +295,7 @@ describe HomeController do
         config['action_dispatch.show_exceptions'] = true
       end
 
-      after(:each) do
+      after do
         if Dummy::Application.respond_to? :env_config
           config = Dummy::Application.env_config
         else
@@ -436,7 +437,7 @@ describe HomeController do
     end
   end
 
-  after(:each) do
+  after do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger
     end

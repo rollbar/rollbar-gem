@@ -30,6 +30,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [Before process hook](#before-process-hook)
 - [Transform hook](#transform-hook)
 - [The Scope](#the-scope)
+- [Override configuration](#override-configuration)
 - [Code and context](#code-and-context)
 - [Silencing exceptions at runtime](#silencing-exceptions-at-runtime)
 - [Sending backtrace without rescued exceptions](#sending-backtrace-without-rescued-exceptions)
@@ -607,6 +608,37 @@ your_handler = proc do |options|
   context_data = scope[:context]
 end
 ```
+
+## Override configuration
+
+There are some cases where you would need to change the Rollbar configuration for a specific block of code so a new configuration is used on the reported errors in that block. You can use `Rollbar.with_config` to do this. It receives a `Hash` object with the configuration overrides you want to use for the given block. The configuration options to use can be read at [Configuration](https://rollbar.com/docs/notifier/rollbar-gem/configuration/). So the `Hash` passed to `with_config` can be like `{environment: 'specific-environment'}`. Example:
+
+```ruby
+Rollbar.with_config(use_async: false) do
+  begin
+    # do work that may crash
+  rescue => e
+    Rollbar.error(e)
+  end
+end
+```
+
+This method looks similar to `Rollbar.scoped` and internally `Rollbar.with_config` uses it. Now `Rollbar.scoped` can receive a second argument with the config overrides for the given block of code. So if you need to set a new payload scope and new config for a code block, you can:
+
+```ruby
+scope = {context: 'foo'}
+new_config = {framework: 'Sinatra'}
+
+Rollbar.scoped(scope, new_config) do
+  begin
+    # do work that may crash
+  rescue => e
+    Rollbar.error(e)
+  end
+end
+```
+
+In the example from above we are defining a new payload scope and overriding the `framework` configuration for the reported errors inside the given block.
 
 ## Code and context
 
