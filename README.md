@@ -644,7 +644,7 @@ In the example from above we are defining a new payload scope and overriding the
 
 By default we send the following values for each backtrace frame: `filename`, `lineno` and `method`. You can configure Rollbar to additionally send `code` (the actual line of code) and `context` (lines before and after) for each frame.
 
-Since the backtrace can be very long, you can configure to send this data for all the frames or only your in-project frames. There are three levels: `:none` (default), `:app` (only your project files) and `all`. Example:
+Since the backtrace can be very long, you can configure to send this data for all the frames or only your in-project frames. There are three levels: `:none` (default), `:app` (only your project files) and `:all`. Example:
 
 ```ruby
 Rollbar.configure do |config|
