@@ -1,5 +1,32 @@
 # Change Log
 
+## 2.13.0
+
+Features:
+- Allow to override config. See [#519](https://github.com/rollbar/rollbar-gem/pull/519).
+- Send code and context frame data. See [#523](https://github.com/rollbar/rollbar-gem/pull/523).
+- Send GET, POST and raw body in their correct place. See [#522](https://github.com/rollbar/rollbar-gem/pull/522).
+- Increase max payload from 128kb to 512kb. See [#521](https://github.com/rollbar/rollbar-gem/pull/521).
+- Add resque-rollbar functionality to the gem. See [#516](https://github.com/rollbar/rollbar-gem/pull/516).
+- Send custom.orig_host and custom.orig_uuid on too large payloads. See [#518](https://github.com/rollbar/rollbar-gem/pull/518).
+- Add Content-Length and Content-Type headers to the reports. See [#513](https://github.com/rollbar/rollbar-gem/pull/513).
+
+Bug fixes:
+- SecureHeaders fixes. See [#478](https://github.com/rollbar/rollbar-gem/pull/478).
+- Include validations plugin in activerecord base. See [#503](https://github.com/rollbar/rollbar-gem/pull/503).
+- Require tempfile and use ::Tempfile. See [#514](https://github.com/rollbar/rollbar-gem/pull/514).
+- Extract correct client IP from X-Forwarded-For header. See [#515](https://github.com/rollbar/rollbar-gem/pull/515).
+- Delayed job fix on job serialization. See [#512](https://github.com/rollbar/rollbar-gem/pull/512).
+
+Others:
+- Fix tests on rails40 and ruby 1.8.7. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
+- Move log methods to public section. See [#498](https://github.com/rollbar/rollbar-gem/pull/498).
+- Change rails50.gemfile to use Rails 5.0.0. See [#495](https://github.com/rollbar/rollbar-gem/pull/495).
+- Update CHANGELOG.md to fix incorrect links. See [#502](https://github.com/rollbar/rollbar-gem/pull/502).
+- Improve Rake support to avoid conflicts with other services. See [#517](https://github.com/rollbar/rollbar-gem/pull/517).
+- Make Codeclimate happier with Rollbar::Middlware::Js. See [#520](https://github.com/rollbar/rollbar-gem/pull/520).
+
+
 ## 2.12.0
 
 Features:
@@ -13,7 +40,7 @@ Others:
 
 ## 2.11.5
 
-Bugfixes:
+Bugf ixes:
 
 - Use require_dependency for rake and sidekiq plugins. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
 - Add immediate ActiveModel::Validations monkey patch. See [#484](https://github.com/rollbar/rollbar-gem/pull/484).
