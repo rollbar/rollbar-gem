@@ -31,6 +31,7 @@ This is the Ruby library for Rollbar. It will instrument many kinds of Ruby appl
 - [Transform hook](#transform-hook)
 - [The Scope](#the-scope)
 - [Override configuration](#override-configuration)
+- [Code and context](#code-and-context)
 - [Silencing exceptions at runtime](#silencing-exceptions-at-runtime)
 - [Sending backtrace without rescued exceptions](#sending-backtrace-without-rescued-exceptions)
 - [ActiveJob integration](#activejob-integration)
@@ -638,6 +639,18 @@ end
 ```
 
 In the example from above we are defining a new payload scope and overriding the `framework` configuration for the reported errors inside the given block.
+
+## Code and context
+
+By default we send the following values for each backtrace frame: `filename`, `lineno` and `method`. You can configure Rollbar to additionally send `code` (the actual line of code) and `context` (lines before and after) for each frame.
+
+Since the backtrace can be very long, you can configure to send this data for all the frames or only your in-project frames. There are three levels: `:none` (default), `:app` (only your project files) and `all`. Example:
+
+```ruby
+Rollbar.configure do |config|
+   config.send_extra_frame_data = :app
+end
+```
 
 ## Silencing exceptions at runtime
 

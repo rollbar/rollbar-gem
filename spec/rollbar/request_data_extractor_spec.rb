@@ -71,7 +71,7 @@ describe Rollbar::RequestDataExtractor do
   describe '#extract_request_data_from_rack' do
     it 'returns a Hash object' do
       expect(Rollbar::Scrubbers::URL).to receive(:call).with(kind_of(Hash)).and_call_original
-      expect(Rollbar::Scrubbers::Params).to receive(:call).with(kind_of(Hash)).and_call_original.exactly(7)
+      expect(Rollbar::Scrubbers::Params).to receive(:call).with(kind_of(Hash)).and_call_original.exactly(6)
 
       result = subject.extract_request_data_from_rack(env)
 
@@ -148,6 +148,56 @@ describe Rollbar::RequestDataExtractor do
 
           expect(result[:user_ip]).to be_eql('2.2.2.2')
         end
+      end
+    end
+
+    context 'with JSON POST body' do
+      let(:params) { { 'key' => 'value' } }
+      let(:body) { params.to_json }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  'CONTENT_TYPE' => 'application/json',
+                                  :input => body,
+                                  :method => 'POST')
+
+
+      end
+
+      it 'extracts the correct user IP' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql(body)
+      end
+    end
+
+    context 'with POST params' do
+      let(:params) { { 'key' => 'value' } }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  :params => params,
+                                  :method => 'POST')
+
+
+      end
+
+      it 'extracts the correct user IP' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:POST]).to be_eql(params)
+      end
+    end
+
+    context 'with GET params' do
+      let(:params) { { 'key' => 'value' } }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  :params => params,
+                                  :method => 'GET')
+
+
+      end
+
+      it 'extracts the correct user IP' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:GET]).to be_eql(params)
       end
     end
   end

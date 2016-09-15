@@ -2,6 +2,7 @@ require 'logger'
 
 module Rollbar
   class Configuration
+    SEND_EXTRA_FRAME_DATA_OPTIONS = [:none, :app, :all].freeze
 
     attr_accessor :access_token
     attr_accessor :async_handler
@@ -52,6 +53,7 @@ module Rollbar
     attr_accessor :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
+    attr_reader :send_extra_frame_data
 
     attr_reader :project_gem_paths
 
@@ -111,6 +113,8 @@ module Rollbar
       @verify_ssl_peer = true
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
+      @send_extra_frame_data = :none
+      @project_gem_paths = []
     end
 
     def initialize_copy(orig)
@@ -208,6 +212,16 @@ module Rollbar
 
     def transform=(*handler)
       @transform = Array(handler)
+    end
+
+    def send_extra_frame_data=(value)
+      unless SEND_EXTRA_FRAME_DATA_OPTIONS.include?(value)
+        logger.warning("Wrong 'send_extra_frame_data' value, :none, :app or :full is expected")
+
+        return
+      end
+
+      @send_extra_frame_data = value
     end
 
     # allow params to be read like a hash

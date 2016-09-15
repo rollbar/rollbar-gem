@@ -54,7 +54,6 @@ describe HomeController do
       data.should have_key(:headers)
       data.should have_key(:session)
       data.should have_key(:method)
-      data.should have_key(:route)
     end
 
     it "should build empty person data when no one is logged-in" do
@@ -170,21 +169,10 @@ describe HomeController do
     end
 
     context "rollbar_route_params", :type => 'request' do
-      it "should save route params in request[:route]" do
-        route = controller.send(:rollbar_request_data)[:route]
-
-        route.should have_key(:controller)
-        route.should have_key(:action)
-        route.should have_key(:format)
-
-        route[:controller].should == 'home'
-        route[:action].should == 'index'
-      end
-
       it "should save controller and action in the payload body" do
         post '/report_exception'
 
-        route = controller.send(:rollbar_request_data)[:route]
+        route = controller.send(:rollbar_request_data)[:params]
 
         route[:controller].should == 'home'
         route[:action].should == 'report_exception'
@@ -207,7 +195,7 @@ describe HomeController do
 
       post '/report_exception', params
 
-      filtered = Rollbar.last_report[:request][:params]
+      filtered = Rollbar.last_report[:request][:POST]
 
       expect(filtered["passwd"]).to match(/\**/)
       expect(filtered["password"]).to match(/\**/)
@@ -230,7 +218,7 @@ describe HomeController do
 
       post '/report_exception', params
 
-      filtered = Rollbar.last_report[:request][:params]
+      filtered = Rollbar.last_report[:request][:POST]
 
       filtered["passwd"].should == "visible"
       # config.filter_parameters is set to [:password] in
@@ -263,7 +251,7 @@ describe HomeController do
       put '/report_exception', { :putparam => "putval" }
 
       Rollbar.last_report.should_not be_nil
-      Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+      Rollbar.last_report[:request][:POST]["putparam"].should == "putval"
     end
 
     context 'using deprecated report_exception' do
@@ -273,7 +261,7 @@ describe HomeController do
         put '/deprecated_report_exception', { :putparam => "putval" }
 
         Rollbar.last_report.should_not be_nil
-        Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+        Rollbar.last_report[:request][:POST]["putparam"].should == "putval"
       end
     end
 
@@ -285,7 +273,7 @@ describe HomeController do
       post '/report_exception', params, { 'CONTENT_TYPE' => 'application/json' }
 
       Rollbar.last_report.should_not be_nil
-      Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'
+      expect(Rollbar.last_report[:request][:body]).to be_eql(params)
     end
   end
 
@@ -357,7 +345,7 @@ describe HomeController do
       expect { get '/foo/bar', { :foo => :bar } }.to raise_exception(ActionController::RoutingError)
 
       report = Rollbar.last_report
-      expect(report[:request][:params]['foo']).to be_eql('bar')
+      expect(report[:request][:GET]['foo']).to be_eql('bar')
     end
   end
 
@@ -379,7 +367,7 @@ describe HomeController do
       it "saves attachment data" do
         expect { post '/file_upload', { :upload => file1 } }.to raise_exception(NameError)
 
-        upload_param = Rollbar.last_report[:request][:params]['upload']
+        upload_param = Rollbar.last_report[:request][:POST]['upload']
 
         expect(upload_param).to have_key(:filename)
         expect(upload_param).to have_key(:type)
@@ -393,7 +381,7 @@ describe HomeController do
     context 'with multiple uploads', :type => :request do
       it "saves attachment data for all uploads" do
         expect { post '/file_upload', { :upload => [file1, file2] } }.to raise_exception(NameError)
-        sent_params = Rollbar.last_report[:request][:params]['upload']
+        sent_params = Rollbar.last_report[:request][:POST]['upload']
 
         expect(sent_params).to be_kind_of(Array)
         expect(sent_params.size).to be(2)
@@ -421,7 +409,7 @@ describe HomeController do
         post '/cause_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
       end.to raise_exception(NameError)
 
-      expect(Rollbar.last_report[:request][:params]['foo']).to be_eql('bar')
+      expect(Rollbar.last_report[:request][:POST]['foo']).to be_eql('bar')
     end
   end
 

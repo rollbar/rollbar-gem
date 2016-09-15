@@ -1,3 +1,5 @@
+require 'rollbar/item/frame'
+
 module Rollbar
   class Item
     class Backtrace
@@ -5,15 +7,19 @@ module Rollbar
       attr_reader :message
       attr_reader :extra
       attr_reader :configuration
+      attr_reader :files
+
+      private :files
 
       def initialize(exception, options = {})
         @exception = exception
         @message = options[:message]
         @extra = options[:extra]
         @configuration = options[:configuration]
+        @files = {}
       end
 
-      def build
+      def to_h
         traces = trace_chain
 
         traces[0][:exception][:description] = message if message
@@ -26,10 +32,23 @@ module Rollbar
         end
       end
 
+      alias_method :build, :to_h
+
+      def get_file_lines(filename)
+        files[filename] ||= read_file(filename)
+      end
+
       private
 
+      def read_file(filename)
+        return unless File.exist?(filename)
+
+        File.read(filename).split("\n")
+      rescue
+        nil
+      end
+
       def trace_chain
-        exception
         traces = [trace_data(exception)]
         visited = [exception]
 
@@ -45,12 +64,8 @@ module Rollbar
       end
 
       def trace_data(current_exception)
-        frames = reduce_frames(current_exception)
-        # reverse so that the order is as rollbar expects
-        frames.reverse!
-
         {
-          :frames => frames,
+          :frames => map_frames(current_exception),
           :exception => {
             :class => current_exception.class.name,
             :message => current_exception.message
@@ -58,16 +73,10 @@ module Rollbar
         }
       end
 
-      def reduce_frames(current_exception)
-        exception_backtrace(current_exception).map do |frame|
-          # parse the line
-          match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-
-          if match
-            { :filename => match[1], :lineno => match[2].to_i, :method => match[3] }
-          else
-            { :filename => '<unknown>', :lineno => 0, :method => frame }
-          end
+      def map_frames(current_exception)
+        exception_backtrace(current_exception).reverse.map do |frame|
+          Rollbar::Item::Frame.new(self, frame,
+                                   :configuration => configuration).to_h
         end
       end
 

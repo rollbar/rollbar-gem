@@ -3,6 +3,7 @@ require 'rack/response'
 
 module Rollbar
   module Middleware
+    # Middleware to inject the rollbar.js snippet into a 200 html response
     class Js
       attr_reader :app
       attr_reader :config
@@ -18,38 +19,24 @@ module Rollbar
       def call(env)
         result = app.call(env)
 
-        _call(env, result)
-      end
+        begin
+          return result unless add_js?(env, result[0], result[1])
 
-      private
-
-      def _call(env, result)
-        return result unless should_add_js?(env, result[0], result[1])
-
-        if response_string = add_js(env, result[2])
-          env[JS_IS_INJECTED_KEY] = true
-          response = ::Rack::Response.new(response_string, result[0], result[1])
-
-          response.finish
-        else
+          response_string = add_js(env, result[2])
+          build_response(env, result, response_string)
+        rescue => e
+          Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
           result
         end
-      rescue => e
-        Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
-        result
       end
 
       def enabled?
         !!config[:enabled]
       end
 
-      def should_add_js?(env, status, headers)
-        enabled? &&
-          status == 200 &&
-          !env[JS_IS_INJECTED_KEY] &&
-          html?(headers) &&
-          !attachment?(headers) &&
-          !streaming?(env)
+      def add_js?(env, status, headers)
+        enabled? && status == 200 && !env[JS_IS_INJECTED_KEY] &&
+          html?(headers) && !attachment?(headers) && !streaming?(env)
       end
 
       def html?(headers)
@@ -75,17 +62,27 @@ module Rollbar
         head_open_end = find_end_of_head_open(body)
         return nil unless head_open_end
 
-        if head_open_end
-          body = body[0..head_open_end] <<
-                 config_js_tag(env) <<
-                 snippet_js_tag(env) <<
-                 body[head_open_end + 1..-1]
-        end
-
-        body
+        build_body_with_js(env, body, head_open_end)
       rescue => e
         Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
         nil
+      end
+
+      def build_response(env, app_result, response_string)
+        return result unless response_string
+
+        env[JS_IS_INJECTED_KEY] = true
+        response = ::Rack::Response.new(response_string, app_result[0],
+                                        app_result[1])
+
+        response.finish
+      end
+
+      def build_body_with_js(env, body, head_open_end)
+        return body unless head_open_end
+
+        body[0..head_open_end] << config_js_tag(env) << snippet_js_tag(env) <<
+          body[head_open_end + 1..-1]
       end
 
       def find_end_of_head_open(body)
@@ -94,9 +91,10 @@ module Rollbar
       end
 
       def join_body(response)
-        source = nil
-        response.each { |fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
-        source
+        response.to_enum.reduce('') do |acc, fragment|
+          acc << fragment.to_s
+          acc
+        end
       end
 
       def close_old_response(response)
