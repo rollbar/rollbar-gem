@@ -45,6 +45,49 @@ describe Rollbar do
     end
   end
 
+  shared_examples 'stores the root notifier' do
+
+  end
+
+  describe '.configure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      Rollbar.configure { |c| }
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
+  describe '.preconfigure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      Rollbar.preconfigure { |c| }
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
+  describe '.reconfigure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      Rollbar.reconfigure { |c| }
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
+  describe '.unconfigure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      expect(Rollbar.root_notifier).to receive(:unconfigure)
+
+      Rollbar.unconfigure
+
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
   context 'Notifier' do
     describe '#log' do
       let(:exception) do
@@ -1334,11 +1377,12 @@ describe Rollbar do
   end
 
   describe '.clear_notifier' do
-    it 'resets the notifier' do
-      notifier1_id = Rollbar.notifier.object_id
+    before { Rollbar.notifier }
 
+    it 'resets the notifier' do
       Rollbar.clear_notifier!
-      expect(Rollbar.notifier.object_id).not_to be_eql(notifier1_id)
+      expect(Rollbar.instance_variable_get('@notifier')).to be_nil
+      expect(Rollbar.instance_variable_get('@root_notifier')).to be_nil
     end
   end
 
