@@ -482,6 +482,20 @@ If you want to obfuscate the user IP reported to the Rollbar API you can configu
 Rollbar.configuration.user_ip_obfuscator_secret = "a-private-secret-here"
 ```
 
+The fields in `scrub_fields` will be used to scrub the values for the matching keys in the GET, POST, raw body and route params and also in cookies and session. If you want to customize better exactly which part of the request data is scrubbed you can use the [Transform hook](#transform-hook).
+
+Example:
+
+```
+config.transform << proc do |options|
+  data = options[:payload]['data']
+  data[:request][:session][:key] = Rollbar::Scrubbers.scrub_value(data[:request][:session][:key])
+end
+```
+
+In the previous example we are scrubbing the `key` value inside the session data.
+
+
 ## Including additional runtime data
 
 You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
