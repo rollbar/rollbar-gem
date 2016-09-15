@@ -82,7 +82,7 @@ module Rollbar
         },
         :body => build_body
       }
-      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
+      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths.any?
       data[:code_version] = configuration.code_version if configuration.code_version
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
@@ -148,7 +148,7 @@ module Rollbar
                                 :configuration => configuration
                                )
 
-      backtrace.build
+      backtrace.to_h
     end
 
     def build_extra
