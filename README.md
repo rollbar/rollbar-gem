@@ -153,6 +153,8 @@ end
 Then mount the middleware in your app, like:
 
 ```ruby
+require 'rollbar/middleware/sinatra'
+
 class MyApp < Sinatra::Base
   use Rollbar::Middleware::Sinatra
   # other middleware/etc
