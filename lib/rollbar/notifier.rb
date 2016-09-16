@@ -11,6 +11,8 @@ require 'rollbar/logger_proxy'
 require 'rollbar/item'
 
 module Rollbar
+  # The notifier class. It has the core functionality
+  # for sending reports to the API.
   class Notifier
     attr_accessor :configuration
     attr_accessor :last_report
@@ -140,7 +142,7 @@ module Rollbar
 
       begin
         report(level, message, exception, extra)
-      rescue Exception => e
+      rescue StandardError, SystemStackError => e
         report_internal_error(e)
 
         'error'
@@ -180,9 +182,9 @@ module Rollbar
     def process_item(item)
       if configuration.write_to_file
         if configuration.use_async
-          @file_semaphore.synchronize {
+          @file_semaphore.synchronize do
             write_item(item)
-          }
+          end
         else
           write_item(item)
         end
@@ -383,26 +385,26 @@ module Rollbar
     # Rollbar project. We'll first attempt to provide a report including the exception traceback.
     # If that fails, we'll fall back to a more static failsafe response.
     def report_internal_error(exception)
-      log_error "[Rollbar] Reporting internal error encountered while sending data to Rollbar."
+      log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
 
       begin
-        item = build_item('error', nil, exception, {:internal => true})
+        item = build_item('error', nil, exception, :internal => true)
       rescue => e
-        send_failsafe("build_item in exception_data", e)
+        send_failsafe('build_item in exception_data', e)
         return
       end
 
       begin
         process_item(item)
       rescue => e
-        send_failsafe("error in process_item", e)
+        send_failsafe('error in process_item', e)
         return
       end
 
       begin
         log_instance_link(item['data'])
       rescue => e
-        send_failsafe("error logging instance link", e)
+        send_failsafe('error logging instance link', e)
         return
       end
     end
@@ -475,7 +477,7 @@ module Rollbar
       if uri.scheme == 'https'
         http.use_ssl = true
         # This is needed to have 1.8.7 passing tests
-        http.ca_file = ENV['ROLLBAR_SSL_CERT_FILE'] if ENV.has_key?('ROLLBAR_SSL_CERT_FILE')
+        http.ca_file = ENV['ROLLBAR_SSL_CERT_FILE'] if ENV.key?('ROLLBAR_SSL_CERT_FILE')
         http.verify_mode = ssl_verify_mode
       end
 
@@ -526,9 +528,9 @@ module Rollbar
 
     def write_item(item)
       if configuration.use_async
-        @file_semaphore.synchronize {
+        @file_semaphore.synchronize do
           do_write_item(item)
-        }
+        end
       else
         do_write_item(item)
       end
@@ -541,13 +543,12 @@ module Rollbar
       return unless body
 
       begin
-        unless @file
-          @file = File.open(configuration.filepath, "a")
-        end
+        @file ||= File.open(configuration.filepath, 'a')
 
         @file.puts(body)
         @file.flush
-        log_info "[Rollbar] Success"
+
+        log_info '[Rollbar] Success'
       rescue IOError => e
         log_error "[Rollbar] Error opening/writing to file: #{e}"
       end
@@ -563,16 +564,18 @@ module Rollbar
 
           exception_info = exception.class.name
           # #to_s and #message defaults to class.to_s. Add message only if add valuable info.
-          exception_info += %Q{: "#{exception.message}"} if exception.message != exception.class.to_s
+          exception_info += %(: "#{exception.message}") if exception.message != exception.class.to_s
           exception_info += " in #{nearest_frame}" if nearest_frame
 
           body += "#{exception_info}: #{message}"
         rescue
+          log_error('[Rollbar] Error building failsafe exception message')
         end
       else
         begin
           body += message.to_s
         rescue
+          log_error('[Rollbar] Error building failsafe message')
         end
       end
 
@@ -604,7 +607,7 @@ module Rollbar
     def process_async_item(item)
       configuration.async_handler ||= default_async_handler
       configuration.async_handler.call(item.payload)
-    rescue => e
+    rescue
       if configuration.failover_handlers.empty?
         log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
         return
