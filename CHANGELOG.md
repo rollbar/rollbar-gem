@@ -1,5 +1,14 @@
 # Change Log
 
+## 2.13.1
+
+Fixes:
+
+- Inherit test controller from ActionController::Base
+- Fix test rake task when Rack::MockRequest is not defined
+- Fix docs for Sinatra middleware
+- Fix few basic rubocop offenses
+
 ## 2.13.0
 
 Features:
