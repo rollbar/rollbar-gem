@@ -44,19 +44,9 @@ namespace :rollbar do
 
     if defined?(Rack::MockRequest)
       if defined?(Rails)
-        begin
-          require './app/controllers/application_controller'
-        rescue LoadError
-        end
-
-        unless defined?(ApplicationController)
-          puts 'No ApplicationController found, using ActionController::Base instead'
-          class ApplicationController < ActionController::Base; end
-        end
-
         puts 'Setting up the controller.'
 
-        class RollbarTestController < ApplicationController
+        class RollbarTestController < ActionController::Base
           include RollbarTest
 
           def verify
