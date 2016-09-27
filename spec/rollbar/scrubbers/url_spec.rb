@@ -111,6 +111,26 @@ describe Rollbar::Scrubbers::URL do
           expect(subject.call(options)).to be_eql(url)
         end
       end
+
+      context 'with URL with spaces and arrays' do
+        let(:url) do
+          'https://server.com/api/v1/assignments/4430038?user_id=1&assignable_id=2&starts_at=Wed%20Jul%2013%202016%2000%3A00%3A00%20GMT-0700%20(PDT)&ends_at=Fri%20Jul%2029%202016%2000%3A00%3A00%20GMT-0700%20(PDT)&allocation_mode=hours_per_day&percent=&fixed_hours=&hours_per_day=0&auth=REMOVED&___uidh=2228207862&password[]=mypassword'
+        end
+        let(:options) do
+          {
+            :url => url,
+            :scrub_fields => [:passwd, :password, :password_confirmation, :secret, :confirm_password, :secret_token, :api_key, :access_token, :auth, :SAMLResponse, :password, :auth],
+            :scrub_user => true,
+            :scrub_password => true,
+            :randomize_scrub_length => true
+          }
+        end
+
+        it 'doesnt logs error' do
+          expect(Rollbar.logger).not_to receive(:error).and_call_original
+          subject.call(options)
+        end
+      end
     end
   end
 end
