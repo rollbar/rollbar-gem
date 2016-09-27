@@ -4,6 +4,17 @@
 
 Fixes:
 
+- Fix URL scrubbing with spaces in the query. See [#532](https://github.com/rollbar/rollbar-gem/pull/532).
+- Use :use_exception_level_filters in ActiveJob plugin. See [#533](https://github.com/rollbar/rollbar-gem/pull/533).
+
+Other:
+
+- Add docs for custom scrubbing with transform hook. See [#526](https://github.com/rollbar/rollbar-gem/pull/526).
+
+## 2.13.1
+
+Fixes:
+
 - Inherit test controller from ActionController::Base
 - Fix test rake task when Rack::MockRequest is not defined
 - Fix docs for Sinatra middleware
