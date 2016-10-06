@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.13.3
+
+- Fix undefined variable name in rollbar.js middleware. See [#537](https://github.com/rollbar/rollbar-gem/pull/537).
+
 ## 2.13.2
 
 Fixes:
