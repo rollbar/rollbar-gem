@@ -55,6 +55,7 @@ Rollbar.configure do |config|
   # Enable delayed reporting (using Sidekiq)
   # config.use_sidekiq
   # You can supply custom Sidekiq options:
+  # Hashrocket syntax required
   # config.use_sidekiq 'queue' => 'default'
 
   # If you run your staging application instance in production environment then
