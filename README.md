@@ -707,6 +707,8 @@ end
 
 If you need to customize the reporting write your own `rescue_from` handler instead of using the `Rollbar::ActiveJob` module.
 
+Note: If you're using Sidekiq and integrate ActiveJob, you may get double reports of background job errors in Rollbar. The way to avoid this is to rely on the Sidekiq error handling, not ActiveJob in this case.
+
 ## Delayed::Job
 
 If `delayed_job` is defined, Rollbar will automatically install a plugin that reports any uncaught exceptions that occur in jobs.
