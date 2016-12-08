@@ -3,7 +3,7 @@ require 'rollbar/scrubbers/params'
 module Rollbar
   class Sidekiq
     PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
-    NEW_MESSAGE_STRUCTURE_VERSION = '4.2.3'
+    NEW_MESSAGE_STRUCTURE_VERSION = '4.2.3'.freeze
 
     class ClearScope
       def call(worker, msg, queue)
