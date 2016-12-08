@@ -7,6 +7,27 @@ end
 Rollbar.plugins.load!
 
 describe Rollbar::Sidekiq, :reconfigure_notifier => false do
+  describe "#fetch_message_by_version" do
+    context "sidekiq version with new message structure" do
+      let(:msg_or_context) { { context: "Some context", job: { some: "job" } } }
+
+      it "should return job" do
+        puts Sidekiq::VERSION
+        stub_const("Sidekiq::VERSION", "4.2.3")
+        expect(described_class.fetch_message_by_version(msg_or_context)).to eq({ some: "job" })
+      end
+    end
+
+    context "sidekiq version with old message structure" do
+      let(:msg_or_context) { { some: "job" } }
+
+      it "should return job" do
+        stub_const("Sidekiq::VERSION", "4.2.2")
+        expect(described_class.fetch_message_by_version(msg_or_context)).to eq({ some: "job" })
+      end
+    end
+  end
+
   describe '.handle_exception' do
     let(:msg_or_context) { ['hello', 'error_backtrace', 'backtrace', 'goodbye'] }
     let(:exception) { StandardError.new('oh noes') }
