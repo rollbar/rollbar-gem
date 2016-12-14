@@ -5,68 +5,7 @@
 
 This is the Ruby library for Rollbar. It will instrument many kinds of Ruby applications automatically at the framework level. You can also make direct calls to send exceptions and messages to Rollbar.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-## Table of Contents
-
-- [Getting Started](#getting-started)
-  - [Rails](#rails)
-  - [Rack](#rack)
-  - [Plain Ruby](#plain-ruby)
-- [Integration with Rollbar.js](#integration-with-rollbarjs)
-- [Test your installation](#test-your-installation)
-- [Usage](#usage)
-  - [Uncaught exceptions](#uncaught-exceptions)
-  - [Caught exceptions and messages](#caught-exceptions-and-messages)
-  - [Reporting form validation errors](#reporting-form-validation-errors)
-  - [Advanced usage](#advanced-usage)
-- [Person tracking](#person-tracking)
-  - [Person tracking with Rack applications](#person-tracking-with-rack-applications)
-- [Special note about reporting within a request](#special-note-about-reporting-within-a-request)
-- [Data sanitization (scrubbing)](#data-sanitization-scrubbing)
-- [Including additional runtime data](#including-additional-runtime-data)
-- [Exception level filters](#exception-level-filters)
-  - [Dynamic levels](#dynamic-levels)
-- [Before process hook](#before-process-hook)
-- [Transform hook](#transform-hook)
-- [The Scope](#the-scope)
-- [Override configuration](#override-configuration)
-- [Code and context](#code-and-context)
-- [Silencing exceptions at runtime](#silencing-exceptions-at-runtime)
-- [Sending backtrace without rescued exceptions](#sending-backtrace-without-rescued-exceptions)
-- [ActiveJob integration](#activejob-integration)
-- [Delayed::Job](#delayedjob)
-- [Asynchronous reporting](#asynchronous-reporting)
-  - [girl_friday](#girl_friday)
-  - [sucker_punch](#sucker_punch)
-  - [Sidekiq](#sidekiq)
-  - [Resque](#resque)
-  - [DelayedJob](#delayedjob)
-  - [Threading](#threading)
-  - [Other handlers](#other-handlers)
-  - [Failover handlers](#failover-handlers)
-- [Logger interface](#logger-interface)
-- [Using with rollbar-agent](#using-with-rollbar-agent)
-- [Rails booting process](#rails-booting-process)
-- [Rails runner command](#rails-runner-command)
-- [Deploy Tracking with Capistrano](#deploy-tracking-with-capistrano)
-  - [Capistrano 3](#capistrano-3)
-  - [Capistrano 2](#capistrano-2)
-- [Counting specific gems as in-project code](#counting-specific-gems-as-in-project-code)
-- [Goalie](#goalie)
-- [Resque](#resque-1)
-- [SSL](#ssl)
-- [Using with Zeus](#using-with-zeus)
-- [Configuration options](#configuration-options)
-- [Plugins](#plugins)
-- [Backwards Compatibility](#backwards-compatibility)
-- [Known Issues](#known-issues)
-- [Supported Language/Framework Versions](#supported-languageframework-versions)
-- [Help / Support](#help--support)
-- [Contributing](#contributing)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
+<!-- Sub:[TOC] -->
 
 ## Getting Started
 
