@@ -154,14 +154,6 @@ The `Hash` passed to `#js_options=` should have the same availalbe options that 
 
 ## Test your installation
 
-To confirm that it worked, run:
-
-```bash
-$ rake rollbar:test
-```
-
-This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Rollbar dashboard.
-
 If you're not using Rails, you may first need to add the following to your Rakefile:
 
 ```ruby
@@ -177,6 +169,14 @@ task :environment do
   end
 end
 ```
+
+To confirm that it worked, run:
+
+```bash
+$ rake rollbar:test
+```
+
+This will raise an exception within a test request; if it works, you'll see a stacktrace in the console, and the exception will appear in the Rollbar dashboard.
 
 ## Usage
 
@@ -811,14 +811,14 @@ logger = Rollbar::Logger.new
 logger.info('Purchase failed!')
 ```
 
-If you are using Rails you can extend your `Rails.logger` so the log messages are sent to both outputs. You can use this snippet in one initializer:
+If you are using Rails you can extend your `Rails.logger` so the log messages are sent to both outputs. You can use this snippet in one initializer (for example, `config/initializers/rollbar.rb`):
 
 ```ruby
 require 'rollbar/logger'
 
 Rails.logger.extend(ActiveSupport::Logger.broadcast(Rollbar::Logger.new))
 ```
-
+ 
 ## Using with rollbar-agent
 
 For even more asynchrony, you can configure the gem to write to a file instead of sending the payload to Rollbar servers directly. [rollbar-agent](https://github.com/rollbar/rollbar-agent) can then be hooked up to this file to actually send the payload across. To enable, add the following in ```config/initializers/rollbar.rb```:
