@@ -10,6 +10,7 @@ require 'rollbar/json'
 module Rollbar
   module RequestDataExtractor
     ALLOWED_HEADERS_REGEX = /^HTTP_|^CONTENT_TYPE$|^CONTENT_LENGTH$/
+    ALLOWED_BODY_PARSEABLE_METHODS = %w(POST PUT PATCH DELETE).freeze
 
     def extract_person_data_from_controller(env)
       if env.has_key?('rollbar.person_data')
@@ -168,7 +169,7 @@ module Rollbar
     end
 
     def rollbar_raw_body_params(rack_req)
-      correct_method = rack_req.post? || rack_req.put? || rack_req.patch?
+      correct_method = ALLOWED_BODY_PARSEABLE_METHODS.include?(rack_req.request_method)
 
       return {} unless correct_method
       return {} unless json_request?(rack_req)

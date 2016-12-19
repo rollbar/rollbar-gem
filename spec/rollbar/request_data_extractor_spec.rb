@@ -169,6 +169,42 @@ describe Rollbar::RequestDataExtractor do
       end
     end
 
+    context 'with JSON DELETE body' do
+      let(:params) { { 'key' => 'value' } }
+      let(:body) { params.to_json }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  'CONTENT_TYPE' => 'application/json',
+                                  :input => body,
+                                  :method => 'DELETE')
+
+
+      end
+
+      it 'extracts the correct user IP' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql(body)
+      end
+    end
+
+    context 'with JSON PUT body' do
+      let(:params) { { 'key' => 'value' } }
+      let(:body) { params.to_json }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  'CONTENT_TYPE' => 'application/json',
+                                  :input => body,
+                                  :method => 'PUT')
+
+
+      end
+
+      it 'extracts the correct user IP' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql(body)
+      end
+    end
+
     context 'with POST params' do
       let(:params) { { 'key' => 'value' } }
       let(:env) do
