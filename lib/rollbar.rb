@@ -24,7 +24,7 @@ module Rollbar
   PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
                                process_item process_from_async_handler scope
                                send_failsafe log_info log_debug log_warning
-                               log_error silenced scope_object with_config).freeze
+                               log_error silenced scope_object).freeze
 
   class << self
     extend Forwardable
