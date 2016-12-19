@@ -36,7 +36,9 @@ gem 'database_cleaner', '~> 1.0.0'
 gem 'genspec', '= 0.2.8'
 gem 'girl_friday', '>= 0.11.1'
 
-if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
+ruby_version = RUBY_VERSION.dup
+
+if Gem::Version.new(ruby_version) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'
 end
 

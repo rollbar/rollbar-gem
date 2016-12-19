@@ -41,9 +41,13 @@ gem 'codeclimate-test-reporter', :group => :test, :require => nil
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'
+  gem 'public_suffix', '< 1.5'
+  gem 'webmock', '< 2.3.0', :require => false
+else
+  gem 'webmock', :require => false
 end
 
-gem 'webmock', :require => false
+
 gem 'resque'
 
 gemspec :path => "../"
