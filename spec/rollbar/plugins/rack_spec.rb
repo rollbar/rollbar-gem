@@ -16,11 +16,11 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
   let(:app) do
     action_proc = action
 
-    Rack::Builder.new { run action_proc }
+    ::Rack::Builder.new { run action_proc }
   end
 
   let(:request) do
-    Rack::MockRequest.new(app)
+    ::Rack::MockRequest.new(app)
   end
 
   let(:exception) { kind_of(RackMockError) }

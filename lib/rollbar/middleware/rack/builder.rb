@@ -3,7 +3,7 @@ require 'rollbar/request_data_extractor'
 
 module Rollbar
   module Middleware
-    module Rack
+    class Rack
       module Builder
         include ExceptionReporter
         include RequestDataExtractor
