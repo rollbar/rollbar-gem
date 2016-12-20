@@ -62,28 +62,13 @@ $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 That's all you need to use Rollbar with Rails.
 
 
-### Rack
+### Sinatra
 
 Initialize Rollbar with your access token somewhere during startup:
 
 ```ruby
 Rollbar.configure do |config|
   config.access_token = 'POST_SERVER_ITEM_ACCESS_TOKEN'
-  # other configuration settings
-  # ...
-end
-```
-
-<!-- RemoveNextIfProject -->
-Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
-
-This monkey patches `Rack::Builder` to work with Rollbar automatically.
-
-For more control, disable the monkey patch:
-
-```ruby
-Rollbar.configure do |config|
-  config.disable_monkey_patch = true
   # other configuration settings
   # ...
 end
@@ -99,6 +84,40 @@ class MyApp < Sinatra::Base
   # other middleware/etc
   # ...
 end
+```
+
+
+### Rack
+
+Initialize Rollbar with your access token somewhere during startup:
+
+```ruby
+Rollbar.configure do |config|
+  config.access_token = 'POST_SERVER_ITEM_ACCESS_TOKEN'
+  # other configuration settings
+  # ...
+end
+```
+
+<!-- RemoveNextIfProject -->
+Be sure to replace ```POST_SERVER_ITEM_ACCESS_TOKEN``` with your project's ```post_server_item``` access token, which you can find in the Rollbar.com interface.
+
+The gem monkey patches `Rack::Builder` so Rollbar reports will be sent automatically without any other action. If you prefer to disable the monkey patch apply this change to your config:
+
+```ruby
+Rollbar.configure do |config|
+  config.disable_rack_monkey_patch = true
+  # other configuration settings
+  # ...
+end
+```
+
+If you disabled the `Rack::Builder` monkey patch or it doesn't work for the Rack framework you are using, then add our Rack middleware to your app:
+
+```ruby
+require 'rollbar/middleware/rack
+
+use Rollbar::Middleware::Rack
 ```
 
 ### Plain Ruby
@@ -370,6 +389,8 @@ class RollbarPersonData
 end
 
 # You can add the middleware to your application, for example:
+
+require 'rollbar/middleware/sinatra'
 
 class App < Sinatra::Base
   use Rollbar::Middleware::Sinatra
