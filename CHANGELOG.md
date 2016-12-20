@@ -1,5 +1,25 @@
 # Change Log
 
+## 2.14.0
+
+Features:
+
+- Add Rollbar::Middleware::Rack. See [#558](https://github.com/rollbar/rollbar-gem/pull/537).
+- Send request body on DELETE request. See [#555](https://github.com/rollbar/rollbar-gem/pull/537).
+
+Fixes:
+
+- Fix validations plugin on Rails 5.0 with belong_to.See [#556](https://github.com/rollbar/rollbar-gem/pull/537).
+- Remove few warnings when using minitest with rollbar installed. See [#557](https://github.com/rollbar/rollbar-gem/pull/537).
+- Fix tests 1.9. See [#554](https://github.com/rollbar/rollbar-gem/pull/537).
+
+Others:
+
+- Updating readme. See [#552](https://github.com/rollbar/rollbar-gem/pull/537).
+- Removed doctoc tag. See [#550](https://github.com/rollbar/rollbar-gem/pull/537).
+- Adding info about Sidekiq and ActiveJob. See [#548](https://github.com/rollbar/rollbar-gem/pull/537).
+- Fix wrong version number in Readme. See [#535](https://github.com/rollbar/rollbar-gem/pull/537).
+
 ## 2.13.3
 
 - Fix undefined variable name in rollbar.js middleware. See [#537](https://github.com/rollbar/rollbar-gem/pull/537).
