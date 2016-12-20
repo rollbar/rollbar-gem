@@ -7,7 +7,7 @@ module Rollbar
     attr_accessor :access_token
     attr_accessor :async_handler
     attr_accessor :branch
-    attr_accessor :before_process
+    attr_reader :before_process
     attr_accessor :code_version
     attr_accessor :custom_data_method
     attr_accessor :delayed_job_enabled
@@ -24,7 +24,7 @@ module Rollbar
     attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :ignored_person_ids
-    attr_accessor :logger
+    attr_writer :logger
     attr_accessor :payload_options
     attr_accessor :person_method
     attr_accessor :person_id_method
@@ -47,10 +47,10 @@ module Rollbar
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
     attr_accessor :sidekiq_threshold
-    attr_accessor :transform
+    attr_reader :transform
     attr_accessor :verify_ssl_peer
     attr_accessor :use_async
-    attr_accessor :use_eventmachine
+    attr_reader :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
     attr_reader :send_extra_frame_data

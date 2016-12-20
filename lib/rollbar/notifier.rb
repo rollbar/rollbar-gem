@@ -1,6 +1,5 @@
-require 'rollbar'
-require 'rollbar/lazy_store'
 require 'rollbar/configuration'
+require 'rollbar/lazy_store'
 require 'rollbar/util'
 require 'rollbar/json'
 require 'rollbar/exceptions'
