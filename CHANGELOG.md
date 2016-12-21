@@ -4,21 +4,21 @@
 
 Features:
 
-- Add Rollbar::Middleware::Rack. See [#558](https://github.com/rollbar/rollbar-gem/pull/537).
-- Send request body on DELETE request. See [#555](https://github.com/rollbar/rollbar-gem/pull/537).
+- Add Rollbar::Middleware::Rack. See [#558](https://github.com/rollbar/rollbar-gem/pull/558).
+- Send request body on DELETE request. See [#555](https://github.com/rollbar/rollbar-gem/pull/555).
 
 Fixes:
 
-- Fix validations plugin on Rails 5.0 with belong_to.See [#556](https://github.com/rollbar/rollbar-gem/pull/537).
-- Remove few warnings when using minitest with rollbar installed. See [#557](https://github.com/rollbar/rollbar-gem/pull/537).
-- Fix tests 1.9. See [#554](https://github.com/rollbar/rollbar-gem/pull/537).
+- Fix validations plugin on Rails 5.0 with belong_to.See [#556](https://github.com/rollbar/rollbar-gem/pull/556).
+- Remove few warnings when using minitest with rollbar installed. See [#557](https://github.com/rollbar/rollbar-gem/pull/557).
+- Fix tests 1.9. See [#554](https://github.com/rollbar/rollbar-gem/pull/554).
 
 Others:
 
-- Updating readme. See [#552](https://github.com/rollbar/rollbar-gem/pull/537).
-- Removed doctoc tag. See [#550](https://github.com/rollbar/rollbar-gem/pull/537).
-- Adding info about Sidekiq and ActiveJob. See [#548](https://github.com/rollbar/rollbar-gem/pull/537).
-- Fix wrong version number in Readme. See [#535](https://github.com/rollbar/rollbar-gem/pull/537).
+- Updating readme. See [#552](https://github.com/rollbar/rollbar-gem/pull/552).
+- Removed doctoc tag. See [#550](https://github.com/rollbar/rollbar-gem/pull/550).
+- Adding info about Sidekiq and ActiveJob. See [#548](https://github.com/rollbar/rollbar-gem/pull/548).
+- Fix wrong version number in Readme. See [#535](https://github.com/rollbar/rollbar-gem/pull/535).
 
 ## 2.13.3
 
