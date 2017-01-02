@@ -131,6 +131,12 @@ tracked by [rollbar-agent](https://github.com/rollbar/rollbar-agent).
 Indicates which framework you're using. Common options include 'Rails',
 'Sinatra', and 'Rack' to name a few.
 
+### host
+
+**Default** `nil`
+
+The hostname (reported to Rollbar as `server.host`). When nil, the value of `Socket.gethostname` will be used.
+
 ### ignored_person_ids
 
 **Default** `[]`

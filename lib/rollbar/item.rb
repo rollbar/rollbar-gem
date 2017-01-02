@@ -194,7 +194,7 @@ module Rollbar
 
     def server_data
       data = {
-        :host => Socket.gethostname
+        :host => configuration.host || Socket.gethostname
       }
       data[:root] = configuration.root.to_s if configuration.root
       data[:branch] = configuration.branch if configuration.branch
