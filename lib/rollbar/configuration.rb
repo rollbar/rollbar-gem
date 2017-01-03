@@ -24,6 +24,7 @@ module Rollbar
     attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :ignored_person_ids
+    attr_accessor :host
     attr_writer :logger
     attr_accessor :payload_options
     attr_accessor :person_method

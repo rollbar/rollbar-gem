@@ -585,6 +585,18 @@ describe Rollbar::Item do
         payload['data'][:server][:root].should == '/path/to/root'
         payload['data'][:server][:branch].should == 'master'
       end
+
+      context 'with custom hostname' do
+        before do
+          configuration.host = host
+        end
+
+        let(:host) { 'my-custom-hostname' }
+
+        it 'sends the custom hostname' do
+          expect(payload['data'][:server][:host]).to be_eql(host)
+        end
+      end
     end
 
     context 'with ignored person ids' do
