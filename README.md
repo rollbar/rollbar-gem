@@ -424,18 +424,18 @@ And the following http header
 
 If a request contains one of these fields, the value will be replaced with a ```"*"``` before being sent.
 
-Additional fields can be scrubbed by updating ```Rollbar.configuration.scrub_fields```:
+Additional params can be scrubbed by updating ```config.scrub_fields```:
 
 ```ruby
 # scrub out the "user_password" field
-Rollbar.configuration.scrub_fields |= [:user_password]
+config.scrub_fields |= [:user_password]
 ```
 
-And ```Rollbar.configuration.scrub_headers```:
+And ```config.scrub_headers```:
 
 ```ruby
 # scrub out the "X-Access-Token" http header
-Rollbar.configuration.scrub_headers |= ["X-Access-Token"]
+config.scrub_headers |= ["X-Access-Token"]
 ```
 
 If you want to obfuscate the user IP reported to the Rollbar API you can configure a secret to do it and a different IP address from the original will be reported:
@@ -456,6 +456,12 @@ end
 ```
 
 In the previous example we are scrubbing the `key` value inside the session data.
+
+If you would simply like to scrub all params, you can use `:scrub_all` like so:
+
+```
+config.scrub_fields = :scrub_all
+```
 
 
 ## Including additional runtime data
@@ -839,7 +845,7 @@ require 'rollbar/logger'
 
 Rails.logger.extend(ActiveSupport::Logger.broadcast(Rollbar::Logger.new))
 ```
- 
+
 ## Using with rollbar-agent
 
 For even more asynchrony, you can configure the gem to write to a file instead of sending the payload to Rollbar servers directly. [rollbar-agent](https://github.com/rollbar/rollbar-agent) can then be hooked up to this file to actually send the payload across. To enable, add the following in ```config/initializers/rollbar.rb```:
