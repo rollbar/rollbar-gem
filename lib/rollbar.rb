@@ -190,6 +190,8 @@ module Rollbar
       end
     end
   end
+
+  self.root_notifier = nil
 end
 
 Rollbar.plugins.require_all
