@@ -169,7 +169,7 @@ Rollbar.configure do |config|
 end
 ```
 
-The `Hash` passed to `#js_options=` should have the same availalbe options that you can find in [Rollbar.js](https://github.com/rollbar/rollbar.js), using symbols or strings for the keys.
+The `Hash` passed to `#js_options=` should have the same available options that you can find in [Rollbar.js](https://github.com/rollbar/rollbar.js), using symbols or strings for the keys.
 
 ## Test your installation
 
