@@ -53,7 +53,7 @@ module Rollbar
         return scrub_array(params, options) if params.is_a?(Array)
 
         params.to_hash.inject({}) do |result, (key, value)|
-          if fields_regex && fields_regex =~ Rollbar::Encoding.encode(key).to_s
+          if fields_regex === Rollbar::Encoding.encode(key).to_s
             result[key] = scrub_value(value)
           elsif value.is_a?(Hash)
             result[key] = scrub(value, options)
