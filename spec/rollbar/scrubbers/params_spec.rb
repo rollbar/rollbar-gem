@@ -78,6 +78,10 @@ describe Rollbar::Scrubbers::Params do
       end
 
       context 'with nested Hash' do
+        let(:scrub_config) do
+          super().push(:other)
+        end
+
         let(:params) do
           {
             :foo => 'bar',
@@ -85,6 +89,9 @@ describe Rollbar::Scrubbers::Params do
               :secret => 'the-secret',
               :password => 'the-password',
               :password_confirmation => 'the-password'
+            },
+            :other => {
+              :param => 'filtered'
             }
           }
         end
@@ -95,7 +102,8 @@ describe Rollbar::Scrubbers::Params do
               :secret => /\*+/,
               :password => /\*+/,
               :password_confirmation => /\*+/
-            }
+            },
+            :other => /\*+/
           }
         end
 
@@ -105,6 +113,10 @@ describe Rollbar::Scrubbers::Params do
       end
 
       context 'with nested Array' do
+        let(:scrub_config) do
+          super().push(:other)
+        end
+
         let(:params) do
           {
             :foo => 'bar',
@@ -112,6 +124,9 @@ describe Rollbar::Scrubbers::Params do
               :secret => 'the-secret',
               :password => 'the-password',
               :password_confirmation => 'the-password'
+            }],
+            :other => [{
+              :param => 'filtered'
             }]
           }
         end
@@ -122,7 +137,8 @@ describe Rollbar::Scrubbers::Params do
               :secret => /\*+/,
               :password => /\*+/,
               :password_confirmation => /\*+/
-            }]
+            }],
+            :other => /\*+/
           }
         end
 
