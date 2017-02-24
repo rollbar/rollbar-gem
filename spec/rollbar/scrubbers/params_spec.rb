@@ -271,10 +271,7 @@ describe Rollbar::Scrubbers::Params do
           :foo => /\*+/,
           :password => /\*+/,
           :bar => /\*+/,
-          :extra => {
-            :foo => /\*+/,
-            :bar => /\*+/
-          }
+          :extra => /\*+/
         }
       end
 
@@ -296,3 +293,4 @@ describe Rollbar::Scrubbers::Params::SKIPPED_CLASSES do
     expect(described_class).to be_eql([Tempfile])
   end
 end
+
