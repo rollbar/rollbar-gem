@@ -16,7 +16,7 @@ gem 'oj', '~> 2.12.14' unless is_jruby
 gem 'sidekiq', '>= 2.13.0' if RUBY_VERSION != '1.8.7'
 
 platforms :rbx do
-  gem "rubysl", "~> 2.0" if RUBY_VERSION.start_with?('2')
+  gem "rubysl", "~> 2.0" unless RUBY_VERSION.start_with?('1')
   gem "racc"
   gem "minitest"
   gem "rubinius-developer_tools"
