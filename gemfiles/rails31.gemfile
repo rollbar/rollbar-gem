@@ -1,25 +1,25 @@
 require 'rubygems/version'
 
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
-gem "sqlite3", :platform => [:ruby, :mswin, :mingw]
-gem "jruby-openssl", :platform => :jruby
-gem "activerecord-jdbcsqlite3-adapter", :platform => :jruby
-gem "appraisal", '= 1.0.2'
-gem "rails", "3.1.12"
+gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
+gem 'jruby-openssl', :platform => :jruby
+gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
+gem 'appraisal', '= 1.0.2'
+gem 'rails', '3.1.12'
 gem 'rspec-rails', '~> 3.4'
 gem 'rake'
 
 gem 'oj', '~> 2.12.14' unless is_jruby
 
 platforms :rbx do
-  gem "rubysl", "~> 2.0" unless RUBY_VERSION.start_with?('1')
-  gem "racc"
-  gem "minitest"
-  gem "rubysl-test-unit"
-  gem "rubinius-developer_tools"
+  gem 'minitest'
+  gem 'racc'
+  gem 'rubinius-developer_tools'
+  gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
+  gem 'rubysl-test-unit'
 end
 
 if RUBY_VERSION.start_with?('1.9')
@@ -48,4 +48,4 @@ end
 
 gem 'resque'
 
-gemspec :path => "../"
+gemspec :path => '../'
