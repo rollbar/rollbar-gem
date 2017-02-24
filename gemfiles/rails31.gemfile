@@ -8,16 +8,19 @@ gem "sqlite3", :platform => [:ruby, :mswin, :mingw]
 gem "jruby-openssl", :platform => :jruby
 gem "activerecord-jdbcsqlite3-adapter", :platform => :jruby
 gem "appraisal", '= 1.0.2'
-gem "rubysl", "~> 2.0", :platform => :rbx
-gem "racc", :platform => :rbx
-gem "minitest", :platform => :rbx
-gem "rubysl-test-unit", :platform => :rbx
-gem "rubinius-developer_tools", :platform => :rbx
 gem "rails", "3.1.12"
 gem 'rspec-rails', '~> 3.4'
 gem 'rake'
 
 gem 'oj', '~> 2.12.14' unless is_jruby
+
+platforms :rbx do
+  gem "rubysl", "~> 2.0" unless RUBY_VERSION.start_with?('1')
+  gem "racc"
+  gem "minitest"
+  gem "rubysl-test-unit"
+  gem "rubinius-developer_tools"
+end
 
 if RUBY_VERSION.start_with?('1.9')
   gem 'sucker_punch'
