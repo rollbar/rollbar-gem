@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.14.1
+
+- Add host as a configuration options. See [#560](https://github.com/rollbar/rollbar-gem/pull/560).
+- Scrub all values based on matched keys set in the configuration rather than only string values.
+  See [#567](https://github.com/rollbar/rollbar-gem/pull/567).
+- Allow for a specification of the name of the queue for delayed_job. See
+  [#574](https://github.com/rollbar/rollbar-gem/pull/574).
+
 ## 2.14.0
 
 Features:
