@@ -791,6 +791,15 @@ Add the following in ```config/initializers/rollbar.rb```:
 config.use_delayed_job
 ```
 
+By default, an unnamed queue is used for processing jobs. If you wish to use a named queue, as
+[described here](https://github.com/collectiveidea/delayed_job#named-queues), pass the name of the
+queue as an option in the configuraton:
+
+```ruby
+config.use_delayed_job :queue => 'my_queue'
+```
+
+
 ### Threading
 
 Add the following in ```config/initializers/rollbar.rb```:
