@@ -8,10 +8,10 @@ module Rollbar
       # not allowing bulk, to not double-report rollbars if one of them failed in bunch.
       shoryuken_options queue: ->{ "rollbar_#{Rollbar.configuration.environment.to_s}" }, auto_delete: true, body_parser: :json, retry_intervals: [60, 180, 360, 1200, 3600, 18600]
 
-      ## responsible for performing job
-      def perform(*args)
+      ## responsible for performing job. - payload is a json parsed body of the message.
+      def perform(sqs_message, payload)
         begin
-          Rollbar.process_from_async_handler(*args)
+          Rollbar.process_from_async_handler(payload)
         rescue
           # Raise the exception so Shoryuken can track the errored job
           # and retry it
