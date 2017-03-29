@@ -115,7 +115,7 @@ end
 If you disabled the `Rack::Builder` monkey patch or it doesn't work for the Rack framework you are using, then add our Rack middleware to your app:
 
 ```ruby
-require 'rollbar/middleware/rack
+require 'rollbar/middleware/rack'
 
 use Rollbar::Middleware::Rack
 ```
