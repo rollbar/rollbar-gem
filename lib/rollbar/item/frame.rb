@@ -105,7 +105,7 @@ module Rollbar
         to_line = lineno - 2
         from_line = [to_line - MAX_CONTEXT_LENGTH + 1, 0].max
 
-        file_lines[from_line, (to_line - from_line + 1)].select(&:present?)
+        file_lines[from_line, (to_line - from_line + 1)].select { |line| line && !line.empty? }
       end
     end
   end
