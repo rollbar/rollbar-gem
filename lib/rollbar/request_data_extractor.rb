@@ -31,7 +31,7 @@ module Rollbar
       post_params = scrub_params(rollbar_post_params(rack_req), sensitive_params)
       raw_body_params = scrub_params(mergeable_raw_body_params(rack_req), sensitive_params)
       cookies = scrub_params(rollbar_request_cookies(rack_req), sensitive_params)
-      session = scrub_params(rollbar_request_session(rack_req), sensitive_params)
+      session = scrub_params(rollbar_request_session(env), sensitive_params)
       route_params = scrub_params(rollbar_route_params(env), sensitive_params)
 
       url = scrub_url(rollbar_url(env), sensitive_params)
@@ -203,8 +203,8 @@ module Rollbar
       end
     end
 
-    def rollbar_request_session(rack_req)
-      session = rack_req.session
+    def rollbar_request_session(env)
+      session = env.fetch('rack.session', {})
 
       session.to_hash
     rescue
