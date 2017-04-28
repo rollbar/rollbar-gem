@@ -217,7 +217,7 @@ Sets the number of retries cause timeouts on the POST request.
 ### root
 
 Set the server root, all stack frames outside that root are considered
-'non-project' frames. Also used to setup Github linking.
+'non-project' frames. Also used to setup GitHub linking.
 
 ### safely
 
