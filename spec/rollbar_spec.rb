@@ -565,6 +565,16 @@ describe Rollbar do
 
           Rollbar.error(exception)
         end
+
+        it 'should not use the filters if overriden at log site' do
+          Rollbar.configure do |config|
+            config.exception_level_filters = { 'NameError' => 'ignore' }
+          end
+
+          Rollbar.error(exception, :use_exception_level_filters => false)
+
+          expect(Rollbar.last_report[:level]).to be_eql('error')
+        end
       end
     end
 

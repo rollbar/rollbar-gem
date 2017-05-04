@@ -15,7 +15,11 @@ gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
 gem 'test-unit'
 
 gem 'oj', '~> 2.12.14' unless is_jruby
-gem 'sidekiq', '>= 2.13.0' if RUBY_VERSION != '1.8.7'
+if RUBY_VERSION > '1.8.7' && RUBY_VERSION < '2.2.2'
+  gem 'sidekiq', '>= 2.13.0', '< 5.0'
+else
+  gem 'sidekiq', '>= 2.13.0'
+end
 
 platforms :rbx do
   gem 'minitest'
