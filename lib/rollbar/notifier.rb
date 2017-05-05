@@ -123,7 +123,7 @@ module Rollbar
       return 'disabled' unless configuration.enabled
 
       message, exception, extra = extract_arguments(args)
-      use_exception_level_filters = extra && extra.delete(:use_exception_level_filters) == true
+      use_exception_level_filters = use_exception_level_filters?(extra)
 
       return 'ignored' if ignored?(exception, use_exception_level_filters)
 
@@ -290,6 +290,14 @@ module Rollbar
     end
 
     private
+
+    def use_exception_level_filters?(options)
+      option_value = options && options.delete(:use_exception_level_filters)
+
+      return option_value unless option_value.nil?
+
+      configuration.use_exception_level_filters_default
+    end
 
     def call_before_process(options)
       options = {

@@ -294,6 +294,12 @@ installed, uses `girl_friday`, otherwise defaults to `Thread`.
 When `true` indicates you wish to send data to Rollbar with `eventmachine`.
 Won't work unless `eventmachine` is installed.
 
+### use_exception_level_filters_default
+
+**Default** `false`
+
+When `true` the notifier will use the `exception_level_filters` when reporting. It can be overriden using `:use_exception_level_filters` option. see [Exception level filters](https://github.com/rollbar/rollbar-gem#exception-level-filters)
+
 ### web_base
 
 **Default** `'https://rollbar.com'`
