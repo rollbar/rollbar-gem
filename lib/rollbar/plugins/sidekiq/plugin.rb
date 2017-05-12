@@ -12,10 +12,11 @@ module Rollbar
       end
     end
 
-    def self.handle_exception(msg_or_context, e)
-      return if skip_report?(msg_or_context, e)
+    def self.handle_exception(ctx_hash, e)
+      job_hash = ctx_hash[:job] || ctx_hash
+      return if skip_report?(job_hash, e)
 
-      params = msg_or_context.reject{ |k| PARAM_BLACKLIST.include?(k) }
+      params = job_hash.reject{ |k| PARAM_BLACKLIST.include?(k) }
       scrubbed_params = scrub_params(params)
       scope = {
         :request => { :params => scrubbed_params },
@@ -38,9 +39,9 @@ module Rollbar
       Rollbar::Scrubbers::Params.call(options)
     end
 
-    def self.skip_report?(msg_or_context, e)
-      msg_or_context.is_a?(Hash) && msg_or_context['retry'] &&
-        msg_or_context['retry_count'] && msg_or_context['retry_count'] < ::Rollbar.configuration.sidekiq_threshold
+    def self.skip_report?(job_hash, e)
+      job_hash['retry'] && job_hash['retry_count'] &&
+        job_hash['retry_count'] < ::Rollbar.configuration.sidekiq_threshold
     end
 
     def call(worker, msg, queue)
