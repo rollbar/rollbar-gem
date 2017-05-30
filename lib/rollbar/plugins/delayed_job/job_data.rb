@@ -33,7 +33,7 @@ module Rollbar
 
         object_data(payload_object.object)
       rescue
-        payload_object = job
+        {}
       end
 
       def object_data(object)
