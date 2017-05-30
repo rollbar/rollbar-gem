@@ -32,6 +32,8 @@ module Rollbar
         return payload_object unless payload_object.respond_to?(:object)
 
         object_data(payload_object.object)
+      rescue
+        payload_object = job
       end
 
       def object_data(object)

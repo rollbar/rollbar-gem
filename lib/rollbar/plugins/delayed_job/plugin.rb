@@ -10,6 +10,9 @@ module Rollbar
     class RollbarPlugin < ::Delayed::Plugin
       callbacks do |lifecycle|
         lifecycle.around(:invoke_job, &Delayed::invoke_job_callback)
+        lifecycle.after(:failure) do |worker, job, *args, &block|
+          Delayed.report(job.last_error, job)
+        end
       end
     end
 

@@ -34,6 +34,15 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
   end
 
+  context 'with failed deserialization' do
+    it 'sends the exception' do
+      expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
+      allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
+      expect_any_instance_of(Rollbar::Notifier).to receive(:error)
+
+      FailingJob.new.delay.do_job_please!(:foo, :bar)
+    end
+  end
 
   describe '.build_job_data' do
     let(:job) { double(:payload_object => {}) }
