@@ -13,16 +13,15 @@ module Rollbar
     end
 
     def self.handle_exception(ctx_hash, e)
-      job_hash = ctx_hash[:job] || ctx_hash
+      job_hash = ctx_hash && (ctx_hash[:job] || ctx_hash)
       return if skip_report?(job_hash, e)
 
-      params = job_hash.reject{ |k| PARAM_BLACKLIST.include?(k) }
-      scrubbed_params = scrub_params(params)
       scope = {
-        :request => { :params => scrubbed_params },
         :framework => "Sidekiq: #{::Sidekiq::VERSION}"
       }
-      if params.is_a?(Hash)
+      unless job_hash.nil?
+        params = job_hash.reject{ |k| PARAM_BLACKLIST.include?(k) }
+        scope[:request] = { :params => scrub_params(params) }
         scope[:context] = params['class']
         scope[:queue] = params['queue']
       end
@@ -40,8 +39,8 @@ module Rollbar
     end
 
     def self.skip_report?(job_hash, e)
-      job_hash['retry'] && job_hash['retry_count'] &&
-        job_hash['retry_count'] < ::Rollbar.configuration.sidekiq_threshold
+      !job_hash.nil? && (job_hash['retry'] && job_hash['retry_count'] &&
+        job_hash['retry_count'] < ::Rollbar.configuration.sidekiq_threshold)
     end
 
     def call(worker, msg, queue)

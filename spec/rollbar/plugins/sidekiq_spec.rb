@@ -60,6 +60,19 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       end
     end
 
+    context 'sidekiq < 4.0.0 nil ctx hash from Launcher#actor_died' do
+      let(:ctx_hash) { nil }
+
+      it 'constructs scope from ctx hash' do
+        allow(rollbar).to receive(:error)
+        expect(Rollbar).to receive(:scope).with({
+          :framework => "Sidekiq: #{Sidekiq::VERSION}",
+        }) { rollbar }
+
+        described_class.handle_exception(ctx_hash, exception)
+      end
+    end
+
     it 'sends the passed-in error to rollbar' do
       allow(Rollbar).to receive(:scope).and_return(rollbar)
       expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
