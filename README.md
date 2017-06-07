@@ -313,7 +313,7 @@ class NotificationJob
   include Sidekiq::Worker
 
   def perform(user_id)
-    Rollbar.scope!(:person => { :id => :user_id })
+    Rollbar.scope!(:person => { :id => user_id })
 
     # If this next line causes an exception, the reported exception (which will
     # be reported by Rollbar's standard Sidekiq instrumentation) will also
