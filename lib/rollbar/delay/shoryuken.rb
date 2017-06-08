@@ -14,13 +14,7 @@ module Rollbar
 
       ## responsible for performing job. - payload is a json parsed body of the message.
       def perform(sqs_message, payload)
-        begin
           Rollbar.process_from_async_handler(payload)
-        rescue
-          # Raise the exception so Shoryuken can track the errored job
-          # and retry it
-          raise
-        end
       end
 
       ## to push the job !
