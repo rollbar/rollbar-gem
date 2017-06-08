@@ -18,6 +18,7 @@ module Rollbar
             _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
             _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
             _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
+            _cset(:rollbar_comment) { fetch(:rollbar_comment) }
 
             unless configuration.dry_run
               uri = URI.parse('https://api.rollbar.com/api/1/deploy/')
@@ -26,7 +27,8 @@ module Rollbar
                 :local_username => rollbar_user,
                 :access_token => rollbar_token,
                 :environment => rollbar_env,
-                :revision => current_revision
+                :revision => current_revision,
+                :comment => rollbar_comment
               }
 
               request = Net::HTTP::Post.new(uri.request_uri)
