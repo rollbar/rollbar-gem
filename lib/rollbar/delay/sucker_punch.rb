@@ -4,7 +4,6 @@ require 'sucker_punch/version'
 module Rollbar
   module Delay
     class SuckerPunch
-
       include ::SuckerPunch::Job
 
       class << self

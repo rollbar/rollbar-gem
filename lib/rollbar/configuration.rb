@@ -75,7 +75,7 @@ module Rollbar
       @disable_core_monkey_patch = false
       @disable_rack_monkey_patch = false
       @dj_threshold = 0
-      @enabled = nil  # set to true when configure is called
+      @enabled = nil # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
       @environment = nil
       @exception_level_filters = {
@@ -101,7 +101,7 @@ module Rollbar
       @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
-                       :api_key, :access_token ]
+                       :api_key, :access_token]
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true
@@ -172,7 +172,7 @@ module Rollbar
     end
 
     def use_sidekiq=(value)
-      deprecation_message = "#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration."
+      deprecation_message = '#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration.'
       defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
 
       value.is_a?(Hash) ? use_sidekiq(value) : use_sidekiq
@@ -191,7 +191,7 @@ module Rollbar
     end
 
     def use_sucker_punch=(value)
-      deprecation_message = "#use_sucker_punch=(value) has been deprecated in favor of #use_sucker_punch. Please update your rollbar configuration."
+      deprecation_message = '#use_sucker_punch=(value) has been deprecated in favor of #use_sucker_punch. Please update your rollbar configuration.'
       defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
 
       use_sucker_punch
@@ -205,9 +205,7 @@ module Rollbar
     def project_gems=(gems)
       @project_gem_paths = gems.map do |name|
         found = Gem::Specification.each.select { |spec| name === spec.name }
-        if found.empty?
-          puts "[Rollbar] No gems found matching #{name.inspect}"
-        end
+        puts "[Rollbar] No gems found matching #{name.inspect}" if found.empty?
         found
       end.flatten.uniq.map(&:gem_dir)
     end

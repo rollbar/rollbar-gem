@@ -4,7 +4,8 @@ module Rollbar
       extend self
 
       def options
-        { :mode=> :compat,
+        {
+          :mode => :compat,
           :use_to_json => false,
           :symbol_keys => false,
           :circular => false

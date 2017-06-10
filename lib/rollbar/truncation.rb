@@ -13,8 +13,7 @@ module Rollbar
     STRATEGIES = [RawStrategy,
                   FramesStrategy,
                   StringsStrategy,
-                  MinBodyStrategy
-                 ]
+                  MinBodyStrategy]
 
     def self.truncate(payload)
       result = nil
