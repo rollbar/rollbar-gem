@@ -82,7 +82,7 @@ module Rollbar
     def self.truncate(str, length)
       ellipsis = '...'
 
-      return str if (str.length <= length || str.length <= ellipsis.length)
+      return str if str.length <= length || str.length <= ellipsis.length
 
       str.unpack('U*').slice(0, length - ellipsis.length).pack('U*') + ellipsis
     end
