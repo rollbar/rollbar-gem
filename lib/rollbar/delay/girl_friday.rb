@@ -1,7 +1,6 @@
 module Rollbar
   module Delay
     class GirlFriday
-
       class << self
         def queue_class
           ::GirlFriday::WorkQueue

@@ -23,9 +23,9 @@ Rollbar.plugins.define('goalie') do
             env['rollbar.exception_uuid'] = exception_data[:uuid]
             Rollbar.log_info "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
           elsif exception_data == 'disabled'
-            Rollbar.log_info "[Rollbar] Exception not reported because Rollbar is disabled"
+            Rollbar.log_info '[Rollbar] Exception not reported because Rollbar is disabled'
           elsif exception_data == 'ignored'
-            Rollbar.log_info "[Rollbar] Exception not reported because it was ignored"
+            Rollbar.log_info '[Rollbar] Exception not reported because it was ignored'
           end
 
           # now continue as normal

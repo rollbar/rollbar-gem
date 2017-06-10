@@ -1,6 +1,5 @@
 require 'rollbar/util/hash'
 
-
 module Rollbar
   module Util
     def self.iterate_and_update(obj, block)
@@ -28,9 +27,7 @@ module Rollbar
             obj[k] = block.call(v)
           end
 
-          if new_key != k
-            key_updates.push([k, new_key])
-          end
+          key_updates.push([k, new_key]) if new_key != k
         end
 
         key_updates.each do |old_key, new_key|
@@ -53,12 +50,12 @@ module Rollbar
     def self.deep_copy(obj)
       if obj.is_a?(::Hash)
         result = obj.clone
-        obj.each {|k, v| result[k] = deep_copy(v)}
+        obj.each { |k, v| result[k] = deep_copy(v)}
         result
       elsif obj.is_a?(Array)
         result = obj.clone
         result.clear
-        obj.each {|v| result << deep_copy(v)}
+        obj.each { |v| result << deep_copy(v)}
         result
       else
         obj
@@ -85,11 +82,9 @@ module Rollbar
     def self.truncate(str, length)
       ellipsis = '...'
 
-      if str.length <= length or str.length <= ellipsis.length
-        return str
-      end
+      return str if (str.length <= length || str.length <= ellipsis.length)
 
-      str.unpack("U*").slice(0, length - ellipsis.length).pack("U*") + ellipsis
+      str.unpack('U*').slice(0, length - ellipsis.length).pack('U*') + ellipsis
     end
 
     def self.uuid_rollbar_url(data, configuration)

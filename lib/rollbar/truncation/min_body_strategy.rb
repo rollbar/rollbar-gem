@@ -22,7 +22,6 @@ module Rollbar
           body['trace'] = truncate_trace_data(body['trace'])
         end
 
-
         dump(new_payload)
       end
 
