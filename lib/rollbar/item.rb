@@ -147,8 +147,7 @@ module Rollbar
       backtrace = Backtrace.new(exception,
                                 :message => message,
                                 :extra => build_extra,
-                                :configuration => configuration
-                               )
+                                :configuration => configuration)
 
       backtrace.to_h
     end

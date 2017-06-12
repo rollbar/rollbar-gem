@@ -60,7 +60,7 @@ module Rollbar
 
         def person_data_proc(env)
           block = proc { extract_person_data_from_controller(env) }
-          return block unless(defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?)
+          return block unless defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?
 
           proc { ActiveRecord::Base.connection_pool.with_connection(&block) }
         end

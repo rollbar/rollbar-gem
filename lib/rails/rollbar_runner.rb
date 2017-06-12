@@ -38,7 +38,7 @@ module Rails
     def eval_runner
       string_to_eval = File.read(runner_path)
 
-      ::Rails.module_eval(<<-EOL,__FILE__,__LINE__ + 2)
+      ::Rails.module_eval(<<-EOL, __FILE__, __LINE__ + 2)
           #{string_to_eval}
       EOL
     end
@@ -68,5 +68,3 @@ module Rails
     end
   end
 end
-
-

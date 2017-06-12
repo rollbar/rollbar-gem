@@ -15,4 +15,3 @@ module Rollbar
     end
   end
 end
-
