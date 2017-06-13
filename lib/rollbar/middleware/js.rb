@@ -1,10 +1,14 @@
 require 'rack'
 require 'rack/response'
 
+require 'rollbar/request_data_extractor'
+
 module Rollbar
   module Middleware
     # Middleware to inject the rollbar.js snippet into a 200 html response
     class Js
+      include Rollbar::RequestDataExtractor
+
       attr_reader :app
       attr_reader :config
 
@@ -103,7 +107,13 @@ module Rollbar
       end
 
       def config_js_tag(env)
-        script_tag("var _rollbarConfig = #{config[:options].to_json};", env)
+        js_config = config[:options].dup
+
+        person_data = extract_person_data_from_controller(env)
+
+        js_config[:person] = person_data if person_data
+
+        script_tag("var _rollbarConfig = #{js_config.to_json};", env)
       end
 
       def snippet_js_tag(env)
