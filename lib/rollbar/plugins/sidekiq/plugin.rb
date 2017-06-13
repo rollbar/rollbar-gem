@@ -20,7 +20,7 @@ module Rollbar
         :framework => "Sidekiq: #{::Sidekiq::VERSION}"
       }
       unless job_hash.nil?
-        params = job_hash.reject{ |k| PARAM_BLACKLIST.include?(k) }
+        params = job_hash.reject { |k| PARAM_BLACKLIST.include?(k) }
         scope[:request] = { :params => scrub_params(params) }
         scope[:context] = params['class']
         scope[:queue] = params['queue']
