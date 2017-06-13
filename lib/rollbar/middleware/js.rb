@@ -111,7 +111,7 @@ module Rollbar
 
         person_data = extract_person_data_from_controller(env)
 
-        js_config[:person] = person_data if person_data
+        js_config[:payload][:person] = person_data if person_data
 
         script_tag("var _rollbarConfig = #{js_config.to_json};", env)
       end
