@@ -108,7 +108,7 @@ module Rollbar
 
       def config_js_tag(env)
         js_config = config[:options].dup
-        if js_config[:payload][:person_tracking]
+        if js_config.try(:[], :payload).try(:[], :person_tracking)
           person_data = extract_person_data_from_controller(env)
           js_config[:payload][:person] = person_data if person_data
         end
