@@ -230,6 +230,57 @@ END
           allow(subject).to receive(:add_js).and_raise(StandardError.new)
         end
       end
+
+      context 'with person data' do
+        let(:body) { [html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+        let(:env) do
+          {
+            'rollbar.person_data' => {
+              :id => 100,
+              :username => 'foo',
+              :email => 'foo@bar.com'
+            }
+          }
+        end
+        let(:expected_js_options) do
+          {
+            :foo => :bar,
+            :payload => {
+              :person => {
+                :id => 100,
+                :username => 'foo',
+                :email => 'foo@bar.com'
+              }
+            }
+          }
+        end
+
+        it 'adds the person data to the configuration' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(expected_js_options.to_json)
+        end
+
+        context 'when the person data is nil' do
+          let(:env) do
+            {
+              'rollbar.person_data' => nil
+            }
+          end
+
+          it 'works correctly and doesnt add anything about person data' do
+            _, _, response = subject.call(env)
+            new_body = response.body.join
+
+            expect(new_body).not_to include('person')
+          end
+        end
+      end
     end
 
     context 'having the config disabled', :add_js => false do

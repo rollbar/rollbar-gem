@@ -108,11 +108,19 @@ module Rollbar
 
       def config_js_tag(env)
         js_config = config[:options].dup
-        if js_config.try(:[], :payload).try(:[], :person_tracking)
-          person_data = extract_person_data_from_controller(env)
-          js_config[:payload][:person] = person_data if person_data
-        end
+
+        add_person_data(js_config, env)
+
         script_tag("var _rollbarConfig = #{js_config.to_json};", env)
+      end
+
+      def add_person_data(js_config, env)
+        person_data = extract_person_data_from_controller(env)
+
+        return if person_data && person_data.empty?
+
+        js_config[:payload] ||= {}
+        js_config[:payload][:person] = person_data if person_data
       end
 
       def snippet_js_tag(env)
