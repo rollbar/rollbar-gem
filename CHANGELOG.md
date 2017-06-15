@@ -1,5 +1,26 @@
 # Change Log
 
+## 2.15.0
+
+Features:
+
+- Support person data in rollbar.js. See [#602](https://github.com/rollbar/rollbar-gem/pull/602).
+- Update rollbar.js to v2.0.4. See [#600](https://github.com/rollbar/rollbar-gem/pull/600).
+- Add Configuration#use_exception_level_filters option. See [#588](https://github.com/rollbar/rollbar-gem/pull/588).
+
+Fixes:
+
+- get session from env instead of request. See [#586](https://github.com/rollbar/rollbar-gem/pull/586).
+- If multiple forwarded hosts are present in the headers, use the first. See [#582](https://github.com/rollbar/rollbar-gem/pull/582).
+- Replace present? call with plain ruby alternative. See [#579](https://github.com/rollbar/rollbar-gem/pull/579).
+
+Others:
+- Codacy cleanup. See [#599](https://github.com/rollbar/rollbar-gem/pull/599).
+- Remove warning on @root_notifier cause not initialized. See [#562](https://github.com/rollbar/rollbar-gem/pull/562).
+- [Docs] I think you mean this. See [#596](https://github.com/rollbar/rollbar-gem/pull/596).
+- Fix syntax error in code example. See [#581](https://github.com/rollbar/rollbar-gem/pull/581).
+
+
 ## 2.14.1
 
 - Add host as a configuration options. See [#560](https://github.com/rollbar/rollbar-gem/pull/560).
