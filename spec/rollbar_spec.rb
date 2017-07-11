@@ -20,6 +20,11 @@ begin
 rescue LoadError
 end
 
+begin
+  require 'rollbar/delay/shoryuken'
+rescue LoadError
+end
+
 require 'spec_helper'
 
 describe Rollbar do
@@ -1169,6 +1174,16 @@ describe Rollbar do
         expect(Rollbar::Delay::SuckerPunch).to receive(:call)
 
         Rollbar.configure(&:use_sucker_punch)
+        Rollbar.error(exception)
+      end
+    end
+
+    describe "#use_shoryuken", :if => defined?(Shoryuken) do
+      it "should send the payload to shoryuken delayer" do
+        logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+        expect(Rollbar::Delay::Shoryuken).to receive(:call)
+
+        Rollbar.configure(&:use_shoryuken)
         Rollbar.error(exception)
       end
     end

@@ -39,6 +39,7 @@ gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque'
+gem 'shoryuken'
 gem 'sinatra'
 
 gemspec

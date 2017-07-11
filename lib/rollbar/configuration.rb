@@ -171,6 +171,12 @@ module Rollbar
       @async_handler  = Rollbar::Delay::Resque
     end
 
+    def use_shoryuken
+      require 'rollbar/delay/shoryuken' if defined?(Shoryuken)
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::Shoryuken
+    end
+
     def use_sidekiq=(value)
       deprecation_message = '#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration.'
       defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)

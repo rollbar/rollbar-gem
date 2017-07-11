@@ -763,6 +763,27 @@ For every errored job a new report will be sent to Rollbar API, also for errored
 config.sidekiq_threshold = 3 # Start reporting from 3 retries jobs
 ```
 
+### Shoryuken
+
+Add the following in ```config/initializers/rollbar.rb```
+
+```ruby
+config.environment = Rails.env # necessary for building proper SQS name.
+config.use_shoryuken
+```
+
+You also need to have the configuration for shoryuken in you project `shoryuken.yml` and AWS settings, or, at least:
+```ruby
+ENV['AWS_ACCESS_KEY_ID'] = 'xxx'
+ENV['AWS_SECRET_ACCESS_KEY'] = 'xxx'
+ENV['AWS_REGION'] = 'xxx'
+```
+Read more about [Shoryuken configuration]https://github.com/phstc/shoryuken/wiki/Shoryuken-options
+
+Also create the SQS channels equals to your environments, as follows:
+The queues to report will be equal to ```rollbar_{CURRENT_ENVIRONMENT}``` ex: if the project runs in staging environment the SQS to throw messages to will be equal to ```rollbar_staging```
+At this stage, you are unable to set custom SQS name to use.
+
 ### Resque
 
 Add the following in ```config/initializers/rollbar.rb```:
