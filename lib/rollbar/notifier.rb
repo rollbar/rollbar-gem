@@ -8,6 +8,7 @@ require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
 require 'rollbar/logger_proxy'
 require 'rollbar/item'
+require 'ostruct'
 
 module Rollbar
   # The notifier class. It has the core functionality
@@ -438,12 +439,13 @@ module Rollbar
 
     ## Delivery functions
 
-    def send_item_using_eventmachine(item)
+    def send_item_using_eventmachine(item, uri)
       body = item.dump
       return unless body
 
       headers = { 'X-Rollbar-Access-Token' => item['access_token'] }
-      req = EventMachine::HttpRequest.new(configuration.endpoint).post(:body => body, :head => headers)
+      options = http_proxy_for_em(uri)
+      req = EventMachine::HttpRequest.new(uri.to_s, options).post(:body => body, :head => headers)
 
       req.callback do
         if req.response_header.status == 200
@@ -463,21 +465,23 @@ module Rollbar
     def send_item(item)
       log_info '[Rollbar] Sending item'
 
-      if configuration.use_eventmachine
-        send_item_using_eventmachine(item)
-        return
-      end
-
       body = item.dump
       return unless body
 
       uri = URI.parse(configuration.endpoint)
 
+      if configuration.use_eventmachine
+        send_item_using_eventmachine(item, uri)
+        return
+      end
+
       handle_response(do_post(uri, body, item['access_token']))
     end
 
     def do_post(uri, body, access_token)
-      http = Net::HTTP.new(uri.host, uri.port)
+      proxy = http_proxy(uri)
+      http  = Net::HTTP.new(uri.host, uri.port, proxy.host, proxy.port, proxy.user, proxy.password)
+
       http.open_timeout = configuration.open_timeout
       http.read_timeout = configuration.request_timeout
 
@@ -494,6 +498,40 @@ module Rollbar
       request.add_field('X-Rollbar-Access-Token', access_token)
 
       handle_net_retries { http.request(request) }
+    end
+
+    def http_proxy_for_em(uri)
+      proxy = http_proxy(uri)
+      {
+        :proxy => {
+          :host => proxy.host,
+          :port => proxy.port,
+          :authorization => [proxy.user, proxy.password]
+        }
+      }
+    end
+
+    def http_proxy(uri)
+      @http_proxy ||= get_proxy_from_config || get_proxy_from_env(uri) || null_proxy
+    end
+
+    def get_proxy_from_config
+      proxy = configuration.proxy
+      return nil unless proxy
+
+      px = URI.parse(proxy[:host])
+      px.port = proxy[:port]
+      px.user = proxy[:user]
+      px.password = proxy[:password]
+      px
+    end
+
+    def get_proxy_from_env(uri)
+      uri.find_proxy
+    end
+
+    def null_proxy
+      OpenStruct.new(:host => nil, :port => nil, :user => nil, :password => nil)
     end
 
     def handle_net_retries
