@@ -1041,10 +1041,10 @@ describe Rollbar do
       before do
         Rollbar.configure do |config|
           config.proxy = {
-            host: 'http://config.com',
-            port: 8080,
-            user: 'foo',
-            password: 'bar'
+            :host => 'http://config.com',
+            :port => 8080,
+            :user => 'foo',
+            :password => 'bar'
           }
         end
       end
