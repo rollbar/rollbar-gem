@@ -512,10 +512,10 @@ module Rollbar
     end
 
     def http_proxy(uri)
-      @http_proxy ||= get_proxy_from_config || get_proxy_from_env(uri) || null_proxy
+      @http_proxy ||= proxy_from_config || proxy_from_env(uri) || null_proxy
     end
 
-    def get_proxy_from_config
+    def proxy_from_config
       proxy = configuration.proxy
       return nil unless proxy
 
@@ -526,7 +526,7 @@ module Rollbar
       px
     end
 
-    def get_proxy_from_env(uri)
+    def proxy_from_env(uri)
       uri.find_proxy
     end
 
