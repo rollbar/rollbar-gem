@@ -133,7 +133,23 @@ END
         it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
           secure_headers_config = double(:configuration, :current_csp => {
                                            :script_src => %w('unsafe-inline')
-                                         })
+                                         },
+                                         :csp => double(:opt_out? => false)
+                                        )
+          allow(SecureHeaders::Configuration).to receive(:get).and_return(secure_headers_config)
+
+          res_status, res_headers, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include('<script type="text/javascript">')
+          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+          expect(new_body).to include(snippet)
+
+          SecureHeaders.send(:remove_const, 'Configuration')
+        end
+
+        it 'renders the snippet in the response without nonce if SecureHeaders CSP is OptOut' do
+          secure_headers_config = double(:configuration, :csp => double(:opt_out? => true))
           allow(SecureHeaders::Configuration).to receive(:get).and_return(secure_headers_config)
 
           res_status, res_headers, response = subject.call(env)
