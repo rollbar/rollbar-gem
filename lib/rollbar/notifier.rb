@@ -531,7 +531,7 @@ module Rollbar
     end
 
     def null_proxy
-      OpenStruct.new(:host => nil, :port => nil, :user => nil, :password => nil)
+      Struct.new(:host, :port, :user, :password).new
     end
 
     def handle_net_retries
