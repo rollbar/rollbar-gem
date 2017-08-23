@@ -45,13 +45,13 @@ module NotifierHelpers
     env_vars
   end
 
-  def restore_proxy_env_vars(vars)
+  def restore_proxy_env_vars(env_vars)
     proxy_env_vars.each do |var|
-      ENV[var] = @env_vars[var]
+      ENV[var] = env_vars[var]
     end
   end
 
   def proxy_env_vars
-    %w(http_proxy HTTP_PROXY https_proxy HTTPS_PROXY)
+    %w[http_proxy HTTP_PROXY https_proxy HTTPS_PROXY]
   end
 end
