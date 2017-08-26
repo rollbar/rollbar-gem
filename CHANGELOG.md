@@ -1,5 +1,14 @@
 # Change Log
 
+## 2.15.1
+
+- Update rollbar.js to v2.2.3 [#630](https://github.com/rollbar/rollbar-gem/pull/630)
+- allow csp opt out [#629](https://github.com/rollbar/rollbar-gem/pull/629)
+- Fix: [#472](https://github.com/rollbar/rollbar-gem/issues/472)
+- Ignore empty ROLLBAR_ENV [#604](https://github.com/rollbar/rollbar-gem/pull/604)
+- Shoryuken gem support [#576](https://github.com/rollbar/rollbar-gem/pull/576)
+- support new sidekiq context structure [#598](https://github.com/rollbar/rollbar-gem/pull/598)
+
 ## 2.15.0
 
 Features:
