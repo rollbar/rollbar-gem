@@ -21,6 +21,7 @@ module Rollbar
         # parse the line
         match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
         return unknown_frame unless match
+
         return nil if !configuration.send_non_project_frames && outside_project?(match[1])
 
         filename = match[1]
