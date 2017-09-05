@@ -82,7 +82,7 @@ module Rollbar
         # let's check it's in any of the Gem.path paths
         Gem.path.any? { |path| filename.start_with?(path) }
       end
- 
+
       def code_data(file_lines, lineno)
         file_lines[lineno - 1]
       end
