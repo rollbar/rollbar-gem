@@ -61,6 +61,7 @@ foo13
         let(:configuration) do
           double('configuration',
                  :send_extra_frame_data => :none,
+                 :send_non_project_frames => true,
                  :root => '/var/www')
         end
 
@@ -79,6 +80,7 @@ foo13
         let(:configuration) do
           double('configuration',
                  :send_extra_frame_data => :all,
+                 :send_non_project_frames => true,                 
                  :root => '/var/www')
         end
 
@@ -134,6 +136,7 @@ foo13
           let(:configuration) do
             double('configuration',
                    :send_extra_frame_data => :app,
+                   :send_non_project_frames => true,                   
                    :root => '/outside/project',
                    :project_gem_paths => [])
           end
@@ -153,6 +156,7 @@ foo13
           let(:configuration) do
             double('configuration',
                    :send_extra_frame_data => :app,
+                   :send_non_project_frames => true,                   
                    :root => '/var/outside/',
                    :project_gem_paths => ['/var/www/'])
           end
@@ -177,6 +181,7 @@ foo13
           let(:configuration) do
             double('configuration',
                    :send_extra_frame_data => :app,
+                   :send_non_project_frames => true,                   
                    :root => '/var/www',
                    :project_gem_paths => [])
           end
@@ -200,6 +205,7 @@ foo13
             let(:configuration) do
               double('configuration',
                      :send_extra_frame_data => :app,
+                     :send_non_project_frames => true,                     
                      :root => '/var/www/',
                      :project_gem_paths => [])
             end
@@ -259,6 +265,125 @@ foo13
 
               expect(subject.to_h).to be_eql(expected_result)
             end
+          end
+        end
+      end
+
+      context 'with send_non_project_frames = false' do
+        context 'with frame outside the root' do
+          let(:configuration) do
+            double('configuration',
+                   :send_non_project_frames => false,
+                   :send_extra_frame_data => :none,
+                   :root => '/outside/project',
+                   :project_gem_paths => [])
+          end
+
+          it 'just returns nil' do
+            expected_result = nil
+
+            expect(subject.to_h).to be_eql(expected_result)
+          end
+        end
+
+        context 'with frame inside project_gem_paths' do
+          let(:configuration) do
+            double('configuration',
+                   :send_non_project_frames => false,
+                   :send_extra_frame_data => :none,                   
+                   :root => '/var/outside/',
+                   :project_gem_paths => ['/var/www/'])
+          end
+
+          it 'returns a normal frame with basic data' do
+            expected_result = {
+              :filename => filepath,
+              :lineno => 7,
+              :method => 'send_action'
+            }
+
+            expect(subject.to_h).to be_eql(expected_result)
+          end
+        end
+
+        context 'and frame inside app root' do
+          let(:configuration) do
+            double('configuration',
+                   :send_non_project_frames => false,
+                   :send_extra_frame_data => :none,                   
+                   :root => '/var/www',
+                   :project_gem_paths => [])
+          end
+
+          it 'returns also normal frame with basic data' do
+            expected_result = {
+              :filename => filepath,
+              :lineno => 7,
+              :method => 'send_action'
+            }
+
+            expect(subject.to_h).to be_eql(expected_result)
+          end
+        end
+      end
+
+      context 'with send_non_project_frames = true' do
+        context 'with frame outside the root' do
+          let(:configuration) do
+            double('configuration',
+                   :send_non_project_frames => true,
+                   :send_extra_frame_data => :none,                   
+                   :root => '/outside/project',
+                   :project_gem_paths => [])
+          end
+
+          it 'returns a normal frame with basic data' do
+            expected_result = {
+              :filename => filepath,
+              :lineno => 7,
+              :method => 'send_action'
+            }
+            expect(subject.to_h).to be_eql(expected_result)
+          end
+        end
+
+        context 'with frame inside project_gem_paths' do
+          let(:configuration) do
+            double('configuration',
+                   :send_non_project_frames => true,
+                   :send_extra_frame_data => :none,                   
+                   :root => '/var/outside/',
+                   :project_gem_paths => ['/var/www/'])
+          end
+
+          it 'returns also normal frame with basic data' do
+            expected_result = {
+              :filename => filepath,
+              :lineno => 7,
+              :method => 'send_action'
+            }
+
+            expect(subject.to_h).to be_eql(expected_result)
+          end
+        end
+
+        context 'and frame inside app root' do
+          let(:configuration) do
+            double('configuration',
+                   :send_non_project_frames => true,
+                   :send_extra_frame_data => :none,                   
+                   :root => '/var/www',
+                   :project_gem_paths => [])
+          end
+
+          it 'returns also normal frame with basic data' do
+            expected_result = {
+              :filename => filepath,
+              :lineno => 7,
+              :method => 'send_action'
+            }
+
+            expect(subject.to_h).to be_eql(expected_result)
           end
         end
       end
