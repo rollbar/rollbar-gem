@@ -2,6 +2,7 @@ require 'rack'
 require 'rack/response'
 
 require 'rollbar/request_data_extractor'
+require 'rollbar/util'
 
 module Rollbar
   module Middleware
@@ -107,7 +108,7 @@ module Rollbar
       end
 
       def config_js_tag(env)
-        js_config = config[:options].dup
+        js_config = Rollbar::Util.deep_copy(config[:options])
 
         add_person_data(js_config, env)
 

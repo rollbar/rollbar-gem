@@ -253,6 +253,12 @@ END
         let(:headers) do
           { 'Content-Type' => content_type }
         end
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar, :payload => { :a => 42 } }
+          }
+        end
         let(:env) do
           {
             'rollbar.person_data' => {
@@ -266,6 +272,7 @@ END
           {
             :foo => :bar,
             :payload => {
+              :a => 42,
               :person => {
                 :id => 100,
                 :username => 'foo',
@@ -290,6 +297,20 @@ END
           end
 
           it 'works correctly and doesnt add anything about person data' do
+            _, _, response = subject.call(env)
+            new_body = response.body.join
+
+            expect(new_body).not_to include('person')
+          end
+
+          it 'doesnt include old data when called a second time' do
+            _, _, _ = subject.call({
+                'rollbar.person_data' => {
+                  :id => 100,
+                  :username => 'foo',
+                  :email => 'foo@bar.com'
+                }
+            })
             _, _, response = subject.call(env)
             new_body = response.body.join
 
