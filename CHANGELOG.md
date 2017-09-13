@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.15.2
+
+- Fix how person data is injected into javascript
+
 ## 2.15.1
 
 - Update rollbar.js to v2.2.3 [#630](https://github.com/rollbar/rollbar-gem/pull/630)
