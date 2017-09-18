@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.15.3
+
+- Fix a bug when host is nil when we are trying to extract data about a request
+  [#637](https://github.com/rollbar/rollbar-gem/pull/637).
+- Make a copy of extra data passed in so we don't modify frozen objects
+  [#638](https://github.com/rollbar/rollbar-gem/pull/638)
+
 ## 2.15.2
 
 - Fix how person data is injected into javascript
