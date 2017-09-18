@@ -112,8 +112,8 @@ module Rollbar
       forwarded_proto = env['HTTP_X_FORWARDED_PROTO'] || env['rack.url_scheme'] || ''
       scheme = forwarded_proto.split(',').first
 
-      forwarded_host = env['HTTP_X_FORWARDED_HOST'] || env['HTTP_HOST'] || env['SERVER_NAME']
-      host = forwarded_host && forwarded_host.split(',').first.strip
+      host = env['HTTP_X_FORWARDED_HOST'] || env['HTTP_HOST'] || env['SERVER_NAME'] || ''
+      host = host.split(',').first.strip unless host.empty?
 
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
       unless path.nil? || path.empty?
@@ -121,8 +121,8 @@ module Rollbar
       end
 
       port = env['HTTP_X_FORWARDED_PORT']
-      if port && !(scheme.downcase == 'http' && port.to_i == 80) && \
-         !(scheme.downcase == 'https' && port.to_i == 443) && \
+      if port && !(!scheme.nil? && scheme.downcase == 'http' && port.to_i == 80) && \
+         !(!scheme.nil? && scheme.downcase == 'https' && port.to_i == 443) && \
          !(host.include? ':')
         host = host + ':' + port
       end
