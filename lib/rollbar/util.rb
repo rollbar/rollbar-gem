@@ -62,6 +62,21 @@ module Rollbar
       end
     end
 
+    def self.deep_dup(obj)
+      if obj.is_a?(::Hash)
+        result = obj.dup
+        obj.each { |k, v| result[k] = deep_dup(v)}
+        result
+      elsif obj.is_a?(Array)
+        result = obj.dup
+        result.clear
+        obj.each { |v| result << deep_dup(v)}
+        result
+      else
+        obj.dup
+      end
+    end
+
     def self.deep_merge(hash1, hash2)
       hash1 ||= {}
       hash2 ||= {}
