@@ -113,9 +113,7 @@ module Rollbar
       scheme = forwarded_proto.split(',').first
 
       host = env['HTTP_X_FORWARDED_HOST'] || env['HTTP_HOST'] || env['SERVER_NAME'] || ''
-      if !host.empty?
-        host = host.split(',').first.strip
-      end
+      host = host.split(',').first.strip unless host.empty?
 
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
       unless path.nil? || path.empty?
