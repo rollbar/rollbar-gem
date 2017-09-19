@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.15.4
+
+- Fix bug related to dup'ing extra passed in data
+
 ## 2.15.3
 
 - Fix a bug when host is nil when we are trying to extract data about a request
