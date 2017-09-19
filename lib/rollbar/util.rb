@@ -3,6 +3,7 @@ require 'rollbar/util/hash'
 module Rollbar
   module Util
     def self.iterate_and_update(obj, block)
+      return if obj.frozen?
       if obj.is_a?(Array)
         for i in 0 ... obj.size
           value = obj[i]
@@ -59,21 +60,6 @@ module Rollbar
         result
       else
         obj
-      end
-    end
-
-    def self.deep_dup(obj)
-      if obj.is_a?(::Hash)
-        result = obj.dup
-        obj.each { |k, v| result[k] = deep_dup(v)}
-        result
-      elsif obj.is_a?(Array)
-        result = obj.dup
-        result.clear
-        obj.each { |v| result << deep_dup(v)}
-        result
-      else
-        obj.dup
       end
     end
 
