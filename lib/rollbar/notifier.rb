@@ -337,7 +337,7 @@ module Rollbar
         end
       end
 
-      [message, exception, Rollbar::Util.deep_dup(extra)]
+      [message, exception, extra]
     end
 
     def lookup_exception_level(orig_level, exception, use_exception_level_filters)
