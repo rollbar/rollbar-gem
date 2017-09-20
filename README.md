@@ -1013,6 +1013,24 @@ Rollbar.configure do |config|
 end
 ```
 
+## Web Proxies
+
+If your application is deployed behind a proxy server, you can set the ```https_proxy``` (note the 's') environment variable and it will be honored, including username and password, if any.
+
+```shell
+export https_proxy='http://some_user:some_password@some.proxy.com:80'
+```
+
+Alternately, you can configure the proxy settings in  ```config/initializers/rollbar.rb```.  If used, ```host``` is mandatory and must include the URL scheme (e.g. ```http://```), all other fields are optional:
+
+```ruby
+config.proxy = {
+  host: 'http://some.proxy.server',
+  port: 80,
+  user: 'username_if_auth_required',
+  password: 'password_if_auth_required'
+}
+```
 
 ## Using with Zeus
 

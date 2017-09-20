@@ -8,6 +8,8 @@ require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
 require 'rollbar/item'
+require 'ostruct'
+
 begin
   require 'rollbar/delay/sidekiq'
   require 'rollbar/delay/sucker_punch'
@@ -1004,6 +1006,62 @@ describe Rollbar do
 
       Rollbar.configure do |config|
         config.write_to_file = false
+      end
+    end
+  end
+
+  context 'using a proxy server' do
+    before do
+      allow_any_instance_of(Net::HTTP).to receive(:request).and_return(OpenStruct.new(:code => 200, :body => "Success"))
+      @env_vars = clear_proxy_env_vars
+    end
+
+    after do
+     restore_proxy_env_vars(@env_vars)
+    end
+
+    context 'via environment variables' do
+      it 'honors proxy settings in the environment' do
+        ENV['http_proxy']  = 'http://user:pass@example.com:80'
+        ENV['https_proxy'] = 'http://user:pass@example.com:80'
+
+        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, 'example.com', 80, 'user', 'pass').and_call_original
+        Rollbar.info("proxy this")
+      end
+
+      it 'does not use a proxy if no proxy settings in environemnt' do
+        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, nil, nil, nil, nil).and_call_original
+        Rollbar.info("proxy this")
+      end
+    end
+
+    context 'set in configuration file' do
+      before do
+        Rollbar.configure do |config|
+          config.proxy = {
+            :host => 'http://config.com',
+            :port => 8080,
+            :user => 'foo',
+            :password => 'bar'
+          }
+        end
+      end
+
+      it 'honors proxy settings in the config file' do
+        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        Rollbar.info("proxy this")
+      end
+
+      it 'gives the configuration settings precedence over environment' do
+        ENV['http_proxy']  = 'http://user:pass@example.com:80'
+        ENV['https_proxy'] = 'http://user:pass@example.com:80'
+
+        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        Rollbar.info("proxy this")
       end
     end
   end

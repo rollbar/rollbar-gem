@@ -57,6 +57,18 @@ Rollbar.configure do |config|
   # You can supply custom Sidekiq options:
   # config.use_sidekiq 'queue' => 'default'
 
+  # If your application runs behind a proxy server, you can set proxy parameters here.
+  # If https_proxy is set in your environment, that will be used. Settings here have precedence.
+  # The :host key is mandatory and must include the URL scheme (e.g. 'http://'), all other fields
+  # are optional.
+  #
+  # config.proxy = {
+  #   host: 'http://some.proxy.server',
+  #   port: 80,
+  #   user: 'username_if_auth_required',
+  #   password: 'password_if_auth_required'
+  # }
+
   # If you run your staging application instance in production environment then
   # you'll want to override the environment reported by `Rails.env` with an
   # environment variable like this: `ROLLBAR_ENV=staging`. This is a recommended

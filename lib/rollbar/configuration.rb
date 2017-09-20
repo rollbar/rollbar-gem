@@ -56,6 +56,7 @@ module Rollbar
     attr_accessor :write_to_file
     attr_reader :send_extra_frame_data
     attr_accessor :use_exception_level_filters_default
+    attr_accessor :proxy
 
     attr_reader :project_gem_paths
 
@@ -118,6 +119,7 @@ module Rollbar
       @send_extra_frame_data = :none
       @project_gem_paths = []
       @use_exception_level_filters_default = false
+      @proxy = nil
     end
 
     def initialize_copy(orig)
