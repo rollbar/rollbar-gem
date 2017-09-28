@@ -76,12 +76,15 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
   describe '.skip_report' do
     let(:configuration) { Rollbar.configuration }
     let(:threshold) { 5 }
+    let(:only_report_failures) { false }
 
     before do
       allow(configuration).to receive(:dj_threshold).and_return(threshold)
+      allow(configuration).to receive(:dj_only_report_failures).and_return(only_report_failures)
     end
 
     context 'with attempts > configuration.dj_threshold' do
+      let(:failed_at) { nil }
       let(:object) do
         double(:to_s => 'foo')
       end
@@ -93,19 +96,30 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       let(:job) do
         double(
           :attempts => 6,
+          :failed_at => failed_at,
           :job => { :payload_object => payload_object }
         )
       end
 
-      it 'returns true' do
+      it 'returns false' do
         expect(described_class.skip_report?(job)).to be(false)
+      end
+
+      context "with configuration.only_report_failures = true" do
+        context "and the job is failed" do
+          let(:failed_at) { Time.now }
+
+          it 'returns false' do
+            expect(described_class.skip_report?(job)).to be(false)
+          end
+        end
       end
     end
 
     context 'with attempts < configuration.dj_threshold' do
       let(:job) { double(:attempts => 3) }
 
-      it 'returns false' do
+      it 'returns true' do
         expect(described_class.skip_report?(job)).to be(true)
       end
     end
