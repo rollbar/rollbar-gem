@@ -105,8 +105,8 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
         expect(described_class.skip_report?(job)).to be(false)
       end
 
-      context "with configuration.only_report_failures = true" do
-        context "and the job is failed" do
+      context 'with configuration.only_report_failures = true' do
+        context 'and the job is failed' do
           let(:failed_at) { Time.now }
 
           it 'returns false' do
