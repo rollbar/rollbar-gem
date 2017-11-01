@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.15.5
+
+- Support proxies [#626](https://github.com/rollbar/rollbar-gem/pull/626)
+
 ## 2.15.4
 
 - Fix bug related to dup'ing extra passed in data
