@@ -29,6 +29,35 @@ END
 <html><head><link rel="stylesheet" href="url" type="text/css" media="screen" /><script type="text/javascript" src="foo"></script></head><body><h1>Testing the middleware</h1></body></html>
 END
   end
+  let(:meta_charset_html) do
+    <<-END
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="url" type="text/css" media="screen" />
+    <script type="text/javascript" src="foo"></script>
+  </head>
+  <body>
+    <h1>Testing the middleware</h1>
+  </body>
+</html>
+END
+  end
+  let(:meta_content_html) do
+    <<-END
+<html>
+  <head>
+    <meta content="origin" id="mref" name="referrer">
+    <link rel="stylesheet" href="url" type="text/css" media="screen" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script type="text/javascript" src="foo"></script>
+  </head>
+  <body>
+    <h1>Testing the middleware</h1>
+  </body>
+</html>
+END
+  end
   let(:snippet) { 'THIS IS THE SNIPPET' }
   let(:content_type) { 'text/html' }
 
@@ -94,6 +123,46 @@ END
           expect(new_body).to include(config[:options].to_json)
           expect(res_status).to be_eql(status)
           expect(res_headers['Content-Type']).to be_eql(content_type)
+        end
+      end
+
+      context 'having a html 200 resposne with meta charset tag' do
+        let(:body) { [meta_charset_html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+        it 'adds the config and the snippet to the response' do
+          res_status, res_headers, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to_not include('>>')
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(config[:options].to_json)
+          expect(res_status).to be_eql(status)
+          expect(res_headers['Content-Type']).to be_eql(content_type)
+          meta_tag = '<meta charset="UTF-8"/>'
+          expect(new_body.index(snippet)).to be > new_body.index(meta_tag)
+        end
+      end
+
+      context 'having a html 200 resposne with meta content-type tag' do
+        let(:body) { [meta_content_html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+        it 'adds the config and the snippet to the response' do
+          res_status, res_headers, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to_not include('>>')
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(config[:options].to_json)
+          expect(res_status).to be_eql(status)
+          expect(res_headers['Content-Type']).to be_eql(content_type)
+          meta_tag = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
+          expect(new_body.index(snippet)).to be > new_body.index(meta_tag)
         end
       end
 

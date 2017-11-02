@@ -65,10 +65,10 @@ module Rollbar
 
         return nil unless body
 
-        head_open_end = find_end_of_head_open(body)
-        return nil unless head_open_end
+        insert_after_idx = find_insertion_point(body)
+        return nil unless insert_after_idx
 
-        build_body_with_js(env, body, head_open_end)
+        build_body_with_js(env, body, insert_after_idx)
       rescue => e
         Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
         nil
@@ -91,9 +91,15 @@ module Rollbar
           body[head_open_end + 1..-1]
       end
 
-      def find_end_of_head_open(body)
-        head_open = body.index(/<head\W/)
-        body.index('>', head_open) if head_open
+      def find_insertion_point(body)
+        find_end_after_regex(body, /<meta\s*charset=/) ||
+        find_end_after_regex(body, /<meta\s*http-equiv="[Cc]ontent-[Tt]ype"/) ||
+        find_end_after_regex(body, /<head\W/)
+      end
+
+      def find_end_after_regex(body, regex)
+        open_idx = body.index(regex)
+        body.index('>', open_idx) if open_idx
       end
 
       def join_body(response)
