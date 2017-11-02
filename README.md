@@ -26,7 +26,7 @@ $ gem install rollbar
 Unless you are using JRuby, we suggest also installing [Oj](https://github.com/ohler55/oj) for JSON serialization. Add this line to your Gemfile:
 
 ```ruby
-gem 'oj', '~> 2.12.14'
+gem 'oj', '~> 2.16.1'
 ```
 
 and then `bundle install` again.
