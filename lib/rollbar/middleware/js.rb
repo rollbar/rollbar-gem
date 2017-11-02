@@ -92,9 +92,9 @@ module Rollbar
       end
 
       def find_insertion_point(body)
-        find_end_after_regex(body, /<meta\s*charset=/) ||
-        find_end_after_regex(body, /<meta\s*http-equiv="[Cc]ontent-[Tt]ype"/) ||
-        find_end_after_regex(body, /<head\W/)
+        find_end_after_regex(body, /<meta\s*charset=/i) ||
+          find_end_after_regex(body, /<meta\s*http-equiv="Content-Type"/i) ||
+          find_end_after_regex(body, /<head\W/i)
       end
 
       def find_end_after_regex(body, regex)
