@@ -176,7 +176,12 @@ module Rollbar
       return {} unless correct_method
       return {} unless json_request?(rack_req)
 
-      Rollbar::JSON.load(rack_req.body.read)
+      raw_body = rack_req.body.read
+      begin
+        Rollbar::JSON.load(raw_body)
+      rescue
+        raw_body
+      end
     rescue
       {}
     ensure
