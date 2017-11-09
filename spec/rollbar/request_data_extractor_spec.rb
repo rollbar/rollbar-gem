@@ -30,6 +30,7 @@ describe Rollbar::RequestDataExtractor do
       expected_options = {
         :url => url,
         :scrub_fields => [:password, :secret, :param1, :param2],
+        :scrub_fields_whitelist => [],
         :scrub_user => true,
         :scrub_password => true,
         :randomize_scrub_length => true
@@ -50,6 +51,7 @@ describe Rollbar::RequestDataExtractor do
     end
     let(:sensitive_params) { [:param1, :param2] }
     let(:scrub_fields) { [:password, :secret] }
+    let(:whitelist) { [] }
 
     before do
       allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_fields)
@@ -59,6 +61,7 @@ describe Rollbar::RequestDataExtractor do
       expected_options = {
         :params => params,
         :config => scrub_fields,
+        :whitelist => whitelist,
         :extra_fields => sensitive_params
       }
 

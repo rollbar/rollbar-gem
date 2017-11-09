@@ -18,8 +18,12 @@ describe Rollbar::Scrubbers::Params do
     let(:options) do
       {
         :params => params,
-        :config => scrub_config
+        :config => scrub_config,
+        :whitelist => whitelist
       }
+    end
+    let(:whitelist) do
+      []
     end
 
     context 'with scrub fields configured' do
@@ -33,16 +37,21 @@ describe Rollbar::Scrubbers::Params do
             {
               :foo => 'bar',
               :secret => 'the-secret',
+              :secret_thing => 'the-secret-thing',
               :password => 'the-password',
               :password_confirmation => 'the-password'
             }
           ]
+        end
+        let(:whitelist) do
+          [:secret_thing]
         end
         let(:result) do
           [
             {
               :foo => 'bar',
               :secret => /\*+/,
+              :secret_thing => 'the-secret-thing',
               :password => /\*+/,
               :password_confirmation => /\*+/
             }
@@ -59,14 +68,19 @@ describe Rollbar::Scrubbers::Params do
           {
             :foo => 'bar',
             :secret => 'the-secret',
+            :secret_thing => 'the-secret-thing',
             :password => 'the-password',
             :password_confirmation => 'the-password'
           }
+        end
+        let(:whitelist) do
+          []
         end
         let(:result) do
           {
             :foo => 'bar',
             :secret => /\*+/,
+            :secret_thing => /\*+/,
             :password => /\*+/,
             :password_confirmation => /\*+/
           }
@@ -95,13 +109,16 @@ describe Rollbar::Scrubbers::Params do
             }
           }
         end
+        let(:whitelist) do
+          [:password_confirmation]
+        end
         let(:result) do
           {
             :foo => 'bar',
             :extra => {
               :secret => /\*+/,
               :password => /\*+/,
-              :password_confirmation => /\*+/
+              :password_confirmation => 'the-password'
             },
             :other => /\*+/
           }
@@ -129,6 +146,9 @@ describe Rollbar::Scrubbers::Params do
               :param => 'filtered'
             }]
           }
+        end
+        let(:whitelist) do
+          []
         end
         let(:result) do
           {
