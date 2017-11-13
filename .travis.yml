@@ -31,6 +31,7 @@ gemfile:
   - gemfiles/rails41.gemfile
   - gemfiles/rails42.gemfile
   - gemfiles/rails50.gemfile
+  - gemfiles/rails51.gemfile
 matrix:
   include:
     - rvm: 1.8.7
