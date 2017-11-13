@@ -115,6 +115,8 @@ matrix:
       gemfile: gemfiles/rails42.gemfile
     - rvm: 1.8.7
       gemfile: gemfiles/rails50.gemfile
+    - rvm: 1.8.7
+      gemfile: gemfiles/rails51.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails31.gemfile
     - rvm: 1.9.2
@@ -127,12 +129,20 @@ matrix:
       gemfile: gemfiles/rails42.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails50.gemfile
+    - rvm: 1.9.2
+      gemfile: gemfiles/rails51.gemfile
     - rvm: 1.9.3
       gemfile: gemfiles/rails50.gemfile
+    - rvm: 1.9.3
+      gemfile: gemfiles/rails51.gemfile
     - rvm: 2.0.0
       gemfile: gemfiles/rails50.gemfile
+    - rvm: 2.0.0
+      gemfile: gemfiles/rails51.gemfile
     - rvm: 2.1.0
       gemfile: gemfiles/rails50.gemfile
+    - rvm: 2.1.0
+      gemfile: gemfiles/rails51.gemfile
     - rvm: 2.2.2
       gemfile: gemfiles/rails30.gemfile
     - rvm: 2.2.2
@@ -163,6 +173,8 @@ matrix:
       gemfile: gemfiles/rails42.gemfile
     - rvm: jruby-19mode
       gemfile: gemfiles/rails50.gemfile
+    - rvm: jruby-19mode
+      gemfile: gemfiles/rails51.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails30.gemfile
     - rvm: rbx
@@ -177,3 +189,5 @@ matrix:
       gemfile: gemfiles/rails42.gemfile
     - rvm: rbx
       gemfile: gemfiles/rails50.gemfile
+    - rvm: rbx
+      gemfile: gemfiles/rails51.gemfile
