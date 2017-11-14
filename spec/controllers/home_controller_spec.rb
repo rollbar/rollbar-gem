@@ -193,7 +193,7 @@ describe HomeController do
         :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6",
       }
 
-      post '/report_exception', params
+      post '/report_exception', :params => params
 
       filtered = Rollbar.last_report[:request][:POST]
 
@@ -216,7 +216,7 @@ describe HomeController do
         :notpass => "hidden"
       }
 
-      post '/report_exception', params
+      post '/report_exception', :params => params
 
       filtered = Rollbar.last_report[:request][:POST]
 
@@ -248,7 +248,7 @@ describe HomeController do
     it "should raise a NameError and have PUT params in the reported exception" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      put '/report_exception', { :putparam => "putval" }
+      put '/report_exception', :params => { :putparam => "putval" }
 
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:POST]["putparam"].should == "putval"
@@ -258,7 +258,7 @@ describe HomeController do
       it 'reports the errors successfully' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-        put '/deprecated_report_exception', { :putparam => "putval" }
+        put '/deprecated_report_exception', :params => { :putparam => "putval" }
 
         Rollbar.last_report.should_not be_nil
         Rollbar.last_report[:request][:POST]["putparam"].should == "putval"
@@ -270,7 +270,7 @@ describe HomeController do
       @request.env["HTTP_ACCEPT"] = "application/json"
 
       params = { :jsonparam => 'jsonval' }.to_json
-      post '/report_exception', params, { 'CONTENT_TYPE' => 'application/json' }
+      post '/report_exception', :params => params, :headers => { 'CONTENT_TYPE' => 'application/json' }
 
       Rollbar.last_report.should_not be_nil
       expect(Rollbar.last_report[:request][:body]).to be_eql(params)
@@ -328,7 +328,7 @@ describe HomeController do
         before { cookies[:session_id] = user.id }
 
         it 'sends the current user data' do
-          put '/report_exception', { 'foo' => 'bar' }
+          put '/report_exception', :params => { 'foo' => 'bar' }
 
           person_data = Rollbar.last_report[:person]
 
@@ -342,7 +342,7 @@ describe HomeController do
 
   context 'with routing errors', :type => :request do
     it 'raises a RoutingError exception' do
-      expect { get '/foo/bar', { :foo => :bar } }.to raise_exception(ActionController::RoutingError)
+      expect { get '/foo/bar', :params => { :foo => :bar } }.to raise_exception(ActionController::RoutingError)
 
       report = Rollbar.last_report
       expect(report[:request][:GET]['foo']).to be_eql('bar')
@@ -365,7 +365,7 @@ describe HomeController do
 
     context 'with a single upload' do
       it "saves attachment data" do
-        expect { post '/file_upload', { :upload => file1 } }.to raise_exception(NameError)
+        expect { post '/file_upload', :params => { :upload => file1 } }.to raise_exception(NameError)
 
         upload_param = Rollbar.last_report[:request][:POST]['upload']
 
@@ -380,7 +380,7 @@ describe HomeController do
 
     context 'with multiple uploads', :type => :request do
       it "saves attachment data for all uploads" do
-        expect { post '/file_upload', { :upload => [file1, file2] } }.to raise_exception(NameError)
+        expect { post '/file_upload', :params => { :upload => [file1, file2] } }.to raise_exception(NameError)
         sent_params = Rollbar.last_report[:request][:POST]['upload']
 
         expect(sent_params).to be_kind_of(Array)
@@ -406,7 +406,7 @@ describe HomeController do
 
     it 'parses the correct headers' do
       expect do
-        post '/cause_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+        post '/cause_exception', :params => params, :headers => { 'ACCEPT' => 'application/vnd.github.v3+json' }
       end.to raise_exception(NameError)
 
       expect(Rollbar.last_report[:request][:POST]['foo']).to be_eql('bar')
@@ -429,7 +429,7 @@ describe HomeController do
     end
 
     it 'scrubs sensible data from URL' do
-      expect { get '/cause_exception', { :password => 'my-secret-password' }, headers }.to raise_exception(NameError)
+      expect { get '/cause_exception', :params => { :password => 'my-secret-password' }, :headers => headers }.to raise_exception(NameError)
 
       request_data = Rollbar.last_report[:request]
 
