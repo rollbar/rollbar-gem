@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_filter :authenticate_user!
+  respond_to?(:before_action) ? (before_action :authenticate_user!) : (before_filter :authenticate_user!)
 
   def index
     @users = User.all
