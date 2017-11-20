@@ -643,6 +643,15 @@ Rollbar.silenced {
   foo = bar  # will not be reported
 }
 ```
+## Non-project frames
+
+By default all backtrace frames are sent whether they are in-project frames or non-project frames. Since the backtrace can be very long and non-project frames are mostly irrelevant, you can configure Rollbar to only send the in-project frames by setting `send_non_project_frames` to either `true` or `false`. Example:
+
+```ruby
+Rollbar.configure do |config|
+   config.send_non_project_frames = true
+end
+```
 
 ## Sending backtrace without rescued exceptions
 

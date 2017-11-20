@@ -20,8 +20,9 @@ module Rollbar
       def to_h
         # parse the line
         match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
-
         return unknown_frame unless match
+
+        return nil if !configuration.send_non_project_frames && outside_project?(match[1])
 
         filename = match[1]
         lineno = match[2].to_i

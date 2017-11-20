@@ -55,6 +55,7 @@ module Rollbar
     attr_accessor :web_base
     attr_accessor :write_to_file
     attr_reader :send_extra_frame_data
+    attr_accessor :send_non_project_frames
     attr_accessor :use_exception_level_filters_default
     attr_accessor :proxy
 
@@ -117,6 +118,7 @@ module Rollbar
       @web_base = DEFAULT_WEB_BASE
       @write_to_file = false
       @send_extra_frame_data = :none
+      @send_non_project_frames = true
       @project_gem_paths = []
       @use_exception_level_filters_default = false
       @proxy = nil
