@@ -900,15 +900,26 @@ First, move your `config/initializers/rollbar.rb` file to `config/rollbar.rb`. T
 require File.expand_path('../application', __FILE__)
 require File.expand_path('../rollbar', __FILE__)
 
+notify = ->(e) do
+  begin
+    Rollbar.with_config(use_async: false) do
+      Rollbar.error(e)
+    end
+  rescue
+    Rails.logger.error "Synchronous Rollbar notification failed.  Sending async to preserve info"
+    Rollbar.error(e)
+  end
+end
+
 begin
   Rails.application.initialize!
 rescue Exception => e
-  Rollbar.error(e)
+  notify.(e)
   raise
 end
 ```
 
-How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.
+How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.  We first try to send the notification synchronously since, with our app failing to boot, it is likely the async handler relies on the app booting, and will not process the notification.
 
 ## Rails runner command
 
