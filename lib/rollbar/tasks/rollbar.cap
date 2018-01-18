@@ -21,7 +21,12 @@ namespace :rollbar do
       request      = Net::HTTP::Post.new(uri.request_uri)
       request.body = ::JSON.dump(params)
 
-      Net::HTTP.start(uri.host, uri.port, :use_ssl => true) do |http|
+      p_env = ENV['http_proxy'] || ENV['HTTP_PROXY']
+      p_uri = p_env ? URI.parse(p_env) : nil
+      p_addr = p_env ? p_uri.host : nil
+      p_port = p_env ? p_uri.port : nil
+
+      Net::HTTP.start(uri.host, uri.port, p_addr, p_port, :use_ssl => true) do |http|
         http.request(request)
       end
 
