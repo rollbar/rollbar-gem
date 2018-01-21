@@ -22,11 +22,17 @@ namespace :rollbar do
       request.body = ::JSON.dump(params)
 
       p_env = ENV['http_proxy'] || ENV['HTTP_PROXY']
-      p_uri = p_env ? URI.parse(p_env) : nil
-      p_addr = p_env ? p_uri.host : nil
-      p_port = p_env ? p_uri.port : nil
+      begin
+        p_uri = p_env ? URI.parse(p_env) : nil
+      rescue URI::InvalidUriError
+        raise "Failed to parse URI provided for proxy: #{p_env}"
+      end
+      using_proxy = p_uri.is_a? URI::HTTP
+      p_addr = using_proxy ? :ENV : nil
 
-      Net::HTTP.start(uri.host, uri.port, p_addr, p_port, :use_ssl => true) do |http|
+      debug "Using http_proxy: #{p_env}" if using_proxy
+
+      Net::HTTP.start(uri.host, uri.port, p_addr, :use_ssl => true) do |http|
         http.request(request)
       end
 
