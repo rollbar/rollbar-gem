@@ -41,7 +41,7 @@ module Rollbar
       end
 
       def add_js?(env, status, headers)
-        enabled? && status == 200 && !env[JS_IS_INJECTED_KEY] &&
+        enabled? && !env[JS_IS_INJECTED_KEY] &&
           html?(headers) && !attachment?(headers) && !streaming?(env)
       end
 
