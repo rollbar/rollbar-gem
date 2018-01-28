@@ -35,11 +35,11 @@ end
 
 gem 'database_cleaner', '~> 1.0.0'
 
-if RUBY_VERSION >= '1.9.3'
-  gem 'delayed_job', :require => false
-else
+# if RUBY_VERSION >= '1.9.3'
+#   gem 'delayed_job', :require => false
+# else
   gem 'delayed_job', '4.1.3', :require => false
-end
+# end
 
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
