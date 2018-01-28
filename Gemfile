@@ -34,7 +34,13 @@ elsif RUBY_VERSION.start_with?('2')
 end
 
 gem 'database_cleaner', '~> 1.0.0'
-gem 'delayed_job', :require => false
+
+if RUBY_VERSION < '1.9.3'
+  gem 'delayed_job', '4.1.3', :require => false
+else
+  gem 'delayed_job', :require => false
+end
+
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
