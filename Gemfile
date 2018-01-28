@@ -7,7 +7,7 @@ is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == '
 # if RUBY_VERSION >= '1.9.3'
 #   gem 'delayed_job', :require => false
 # else
-  gem 'delayed_job', '4.1.3', :require => false
+#  gem 'delayed_job', '4.1.3', :require => false
 # end
 
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
