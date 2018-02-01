@@ -60,7 +60,7 @@ describe Rollbar::Logger do
     end
 
     context 'without active_support/core_ext/object/blank' do
-      let(:message) { 'foo'.tap{ |message| message.instance_eval('undef :blank?') } }
+      let(:message) { 'foo'.tap { |message| message.instance_eval('undef :blank?') } }
 
       it 'calls Rollbar to send the message' do
         expect_any_instance_of(Rollbar::Notifier).to receive(:log).with(:error, message)
