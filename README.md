@@ -939,6 +939,12 @@ set :rollbar_env, Proc.new { fetch :stage }
 set :rollbar_role, Proc.new { :app }
 ```
 
+If you want to upload sourcemaps to Rollbar on each deployment, then you also need to specify `rollbar_sourcemaps_minified_url_base`, where `rollbar_sourcemaps_minified_url_base` is your asset host.
+
+```ruby
+set :rollbar_sourcemaps_minified_url_base, "https://www.my-site.com"
+```
+
 NOTE: We've seen problems with Capistrano version `3.0.x` where the revision reported is incorrect. Version `3.1.0` and higher works correctly.
 
 ### Capistrano 2

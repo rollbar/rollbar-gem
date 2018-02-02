@@ -19,4 +19,5 @@ Gem::Specification.new do |gem|
   gem.version       = Rollbar::VERSION
 
   gem.add_runtime_dependency 'multi_json'
+  gem.add_dependency 'multipart-post'
 end
