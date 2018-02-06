@@ -28,9 +28,34 @@ namespace :rollbar do
       info 'Rollbar notification complete.'
     end
   end
+
+  desc 'Upload sourcemaps to Rollbar.'
+  task :sourcemap do
+    on primary fetch(:rollbar_role) do
+      info "Uploading source maps from #{fetch(:rollbar_sourcemaps_target_dir)}"
+      warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly upload sourcemaps to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
+      url_base = fetch(:rollbar_sourcemaps_minified_url_base)
+      unless url_base
+        warn "No #{rollbar_sourcemaps_minified_url_base} was specified. Sourcemaps won't be uploaded."
+        return
+      end
+      url_base = "http://#{url_base}" unless url_base.index(/https?:\/\//)
+      within release_path do
+        within 'public' do
+          source_maps = capture(:find, '-name', "'*.js.map'").split("\n")
+          source_maps = source_maps.map { |file| file.gsub(/^\.\//, '') }
+          source_maps.each do |source_map|
+            minified_url = File.join(url_base, source_map)
+            execute(:curl, *%W(https://api.rollbar.com/api/1/sourcemap -F access_token=#{fetch(:rollbar_token)} -F version=#{fetch(:rollbar_revision)} -F minified_url=#{minified_url} -F source_map=@./#{source_map}))
+          end
+        end
+      end
+    end
+  end
 end
 
 namespace :deploy do
+  after 'deploy:compile_assets', 'rollbar:sourcemap'
   after 'deploy:finished', 'rollbar:deploy'
 end
 
