@@ -61,6 +61,21 @@ $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 
 That's all you need to use Rollbar with Rails.
 
+#### Grape
+
+To capture 500s inside the API gem "Grape" for Rails applications, add the following as a global exception handler:
+
+```ruby
+rescue_from :all do |e|
+  if Rails.env.development?
+    raise e
+  else
+    Rollbar.error(e)
+    error_response(message: "Internal server error", status: 500)
+  end
+end
+```
+
 
 ### Sinatra
 
@@ -323,6 +338,7 @@ class NotificationJob
 end
 ```
 
+Note: if you are using `Rollbar.scope!` within a scoped block, your context will only apply within that scoped block because of how Rollbar gets shadowed.
 
 ## Person tracking
 
