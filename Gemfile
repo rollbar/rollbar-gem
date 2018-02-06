@@ -33,6 +33,7 @@ elsif RUBY_VERSION.start_with?('2')
   gem 'sucker_punch', '~> 2.0'
 end
 
+gem 'aws-sdk-sqs'
 gem 'database_cleaner', '~> 1.0.0'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
