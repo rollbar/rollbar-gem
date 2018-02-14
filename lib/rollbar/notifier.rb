@@ -345,9 +345,7 @@ module Rollbar
           context = extra[:custom_data_method_context]
           extra.delete :custom_data_method_context
           
-          if extra.empty?
-            extra = nil
-          end
+          extra = nil if extra.empty?
         end
       end
 
