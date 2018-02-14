@@ -26,7 +26,7 @@ module Rollbar
     attr_reader :message
     attr_reader :exception
     attr_reader :extra
-
+    
     attr_reader :configuration
     attr_reader :scope
     attr_reader :logger
@@ -168,7 +168,6 @@ module Rollbar
     end
 
     def custom_data
-      
       if configuration.custom_data_method.arity == 3
         data = configuration.custom_data_method.call(message, exception, context)
       else
