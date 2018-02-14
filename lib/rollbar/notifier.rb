@@ -409,7 +409,7 @@ module Rollbar
       log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
 
       begin
-        item = build_item('error', nil, exception, :internal => true)
+        item = build_item('error', nil, exception, { :internal => true }, nil)
       rescue => e
         send_failsafe('build_item in exception_data', e)
         return
