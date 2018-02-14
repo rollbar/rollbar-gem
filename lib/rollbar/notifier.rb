@@ -107,9 +107,10 @@ module Rollbar
     # will become the associated exception for the report. The last hash
     # argument will be used as the extra data for the report.
     #
-    # Named arguments:
-    # :context - a hash with additional app data which will be avaiable to 
-    # access in configuration.custom_data_method lambda
+    # If the extra hash contains a symbol key :custom_data_method_context
+    # the value of the key will be used as the context for
+    # configuration.custom_data_method and will be removed from the extra
+    # hash.
     #
     # @example
     #   begin
@@ -124,13 +125,10 @@ module Rollbar
     # @example
     #   Rollbar.log(e, 'This is a description of the exception')
     #
-    # @example
-    #   Rollbar.log('This is a simple log message', context: { context_object: {} })
-    #
-    def log(level, *args, **options)
+    def log(level, *args)
       return 'disabled' unless configuration.enabled
 
-      message, exception, extra = extract_arguments(args)
+      message, exception, extra, context = extract_arguments(args)
       use_exception_level_filters = use_exception_level_filters?(extra)
 
       return 'ignored' if ignored?(exception, use_exception_level_filters)
@@ -148,7 +146,7 @@ module Rollbar
                                      use_exception_level_filters)
 
       begin
-        report(level, message, exception, extra, options)
+        report(level, message, exception, extra, context)
       rescue StandardError, SystemStackError => e
         report_internal_error(e)
 
@@ -334,6 +332,7 @@ module Rollbar
       message = nil
       exception = nil
       extra = nil
+      context = nil
 
       args.each do |arg|
         if arg.is_a?(String)
@@ -342,10 +341,17 @@ module Rollbar
           exception = arg
         elsif arg.is_a?(Hash)
           extra = arg
+          
+          context = extra[:custom_data_method_context]
+          extra.delete :custom_data_method_context
+          
+          if extra.empty?
+            extra = nil
+          end
         end
       end
 
-      [message, exception, extra]
+      [message, exception, extra, context]
     end
 
     def lookup_exception_level(orig_level, exception, use_exception_level_filters)
@@ -376,14 +382,14 @@ module Rollbar
       end
     end
 
-    def report(level, message, exception, extra, options)
+    def report(level, message, exception, extra, context)
       unless message || exception || extra
         log_error '[Rollbar] Tried to send a report with no message, exception or extra data.'
 
         return 'error'
       end
 
-      item = build_item(level, message, exception, extra, options)
+      item = build_item(level, message, exception, extra, context)
 
       return 'ignored' if item.ignored?
 
@@ -426,7 +432,7 @@ module Rollbar
 
     ## Payload building functions
 
-    def build_item(level, message, exception, extra, **options)
+    def build_item(level, message, exception, extra, context)
       options = {
         :level => level,
         :message => message,
@@ -436,7 +442,7 @@ module Rollbar
         :logger => logger,
         :scope => scope_object,
         :notifier => self,
-        :context => options[:context]
+        :context => context
       }
 
       item = Item.new(options)
