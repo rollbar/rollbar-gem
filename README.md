@@ -504,6 +504,38 @@ This data will appear in the Occurrences tab and on the Occurrence Detail pages 
 
 If your `custom_data_method` crashes while reporting an error, Rollbar will report that new error and will attach its uuid URL to the parent error report.
 
+`context` for your `custom_data_method` is the value passed in the `:custom_data_method_context` key of your `log` method's `extra_data` argument. Note that once the value is passed as `context` it is removed from your `extra_data` and will be not be included in your `extra` by default.
+
+```ruby
+config.custom_data_method = lambda{ |message, exception, context|
+  {
+    fully_qualified_controller_name: "MyApp::" + context[:controller_name]
+  }
+}
+
+Rollbar.log(
+  "error", 
+  "Simple message", 
+  { 
+    extra_data_1: "some value",
+    custom_data_method_context: { 
+      controller_name: "ExampleController"
+    }
+  }
+)
+```
+
+The above example will result in the following `extra`:
+
+```ruby
+  { 
+    extra_data_1: "some value",
+    fully_qualified_controller_name: "MyApp::ExampleController"
+  }
+```
+
+As you can see, the `custom_data_method_context` will not be directly included in your `extra`.
+
 ## Exception level filters
 
 By default, all uncaught exceptions are reported at the "error" level, except for the following, which are reported at "warning" level:
