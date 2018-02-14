@@ -482,12 +482,20 @@ config.scrub_fields = :scrub_all
 
 ## Including additional runtime data
 
-You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
+You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that either takes no arguments or takes three arguments (message, exception, context) and returns a hash.
 
 Add the following in ```config/initializers/rollbar.rb```:
 
 ```ruby
 config.custom_data_method = lambda {
+  { :some_key => :some_value, :complex_key => {:a => 1, :b => [2, 3, 4]} }
+}
+```
+
+Or
+
+```ruby
+config.custom_data_method = lambda{ |message, exception, context|
   { :some_key => :some_value, :complex_key => {:a => 1, :b => [2, 3, 4]} }
 }
 ```

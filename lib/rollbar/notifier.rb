@@ -107,6 +107,10 @@ module Rollbar
     # will become the associated exception for the report. The last hash
     # argument will be used as the extra data for the report.
     #
+    # Named arguments:
+    # :context - a hash with additional app data which will be avaiable to 
+    # access in configuration.custom_data_method lambda
+    #
     # @example
     #   begin
     #     foo = bar
@@ -120,7 +124,10 @@ module Rollbar
     # @example
     #   Rollbar.log(e, 'This is a description of the exception')
     #
-    def log(level, *args)
+    # @example
+    #   Rollbar.log('This is a simple log message', context: { context_object: {} })
+    #
+    def log(level, *args, **options)
       return 'disabled' unless configuration.enabled
 
       message, exception, extra = extract_arguments(args)
@@ -141,7 +148,7 @@ module Rollbar
                                      use_exception_level_filters)
 
       begin
-        report(level, message, exception, extra)
+        report(level, message, exception, extra, options)
       rescue StandardError, SystemStackError => e
         report_internal_error(e)
 
@@ -369,14 +376,14 @@ module Rollbar
       end
     end
 
-    def report(level, message, exception, extra)
+    def report(level, message, exception, extra, options)
       unless message || exception || extra
         log_error '[Rollbar] Tried to send a report with no message, exception or extra data.'
 
         return 'error'
       end
 
-      item = build_item(level, message, exception, extra)
+      item = build_item(level, message, exception, extra, options)
 
       return 'ignored' if item.ignored?
 
@@ -419,7 +426,7 @@ module Rollbar
 
     ## Payload building functions
 
-    def build_item(level, message, exception, extra)
+    def build_item(level, message, exception, extra, **options)
       options = {
         :level => level,
         :message => message,
@@ -428,7 +435,8 @@ module Rollbar
         :configuration => configuration,
         :logger => logger,
         :scope => scope_object,
-        :notifier => self
+        :notifier => self,
+        :context => options[:context]
       }
 
       item = Item.new(options)

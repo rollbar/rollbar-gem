@@ -158,6 +158,28 @@ describe Rollbar do
         expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data)
         notifier.log('error', exception, extra_data, 'exception description')
       end
+      
+      context 'an item with a context' do
+        let(:context) { { :controller => 'ExampleController' } }
+        
+        context 'with a custom_data_method configured' do
+          before do
+            Rollbar.configure do |config|
+              config.custom_data_method = lambda do |message, exception, context| 
+                { result: "MyApp#" + context[:controller] }
+              end
+            end
+          end
+          
+          it 'should have access to the context data through configuration.custom_data_method' do
+            
+            result = notifier.log('error', "Custom message", :context => context)
+            
+            result[:body][:message][:extra].should_not be_nil
+            result[:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
+          end
+        end
+      end
     end
 
     context 'with before_process handlers in configuration' do
@@ -331,24 +353,24 @@ describe Rollbar do
       end
 
       it 'should report with an error level' do
-        expect(notifier).to receive(:report).with('error', nil, exception, nil)
+        expect(notifier).to receive(:report).with('error', nil, exception, nil, {})
         notifier.error(exception)
 
-        expect(notifier).to receive(:report).with('error', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('error', 'description', exception, nil, {})
         notifier.error(exception, 'description')
 
-        expect(notifier).to receive(:report).with('error', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('error', 'description', exception, extra_data, {})
         notifier.error(exception, 'description', extra_data)
       end
 
       it 'should report with a critical level' do
-        expect(notifier).to receive(:report).with('critical', nil, exception, nil)
+        expect(notifier).to receive(:report).with('critical', nil, exception, nil, {})
         notifier.critical(exception)
 
-        expect(notifier).to receive(:report).with('critical', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('critical', 'description', exception, nil, {})
         notifier.critical(exception, 'description')
 
-        expect(notifier).to receive(:report).with('critical', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('critical', 'description', exception, extra_data, {})
         notifier.critical(exception, 'description', extra_data)
       end
     end

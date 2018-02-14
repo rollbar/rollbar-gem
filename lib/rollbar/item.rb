@@ -31,6 +31,8 @@ module Rollbar
     attr_reader :scope
     attr_reader :logger
     attr_reader :notifier
+    
+    attr_reader :context
 
     def_delegators :payload, :[]
 
@@ -52,6 +54,7 @@ module Rollbar
       @scope = options[:scope]
       @payload = nil
       @notifier = options[:notifier]
+      @context = options[:context]
     end
 
     def payload
@@ -165,7 +168,13 @@ module Rollbar
     end
 
     def custom_data
-      data = configuration.custom_data_method.call
+      
+      if configuration.custom_data_method.parameters.empty?
+        data = configuration.custom_data_method.call
+      else
+        data = configuration.custom_data_method.call(message, exception, context)
+      end
+      
       Rollbar::Util.deep_copy(data)
     rescue => e
       return {} if configuration.safely?
