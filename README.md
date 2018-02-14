@@ -507,7 +507,7 @@ If your `custom_data_method` crashes while reporting an error, Rollbar will repo
 `context` for your `custom_data_method` is the value passed in the `:custom_data_method_context` key of your `log` method's `extra_data` argument. Note that once the value is passed as `context` it is removed from your `extra_data` and will be not be included in your `extra` by default.
 
 ```ruby
-config.custom_data_method = lambda{ |message, exception, context|
+config.custom_data_method = lambda { |message, exception, context|
   {
     fully_qualified_controller_name: "MyApp::" + context[:controller_name]
   }
