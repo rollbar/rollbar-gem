@@ -1356,7 +1356,7 @@ describe Rollbar do
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
       gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
       (data[:project_package_paths] - gem_paths).length.should == 0
