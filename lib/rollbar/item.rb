@@ -169,10 +169,10 @@ module Rollbar
 
     def custom_data
       
-      if configuration.custom_data_method.parameters.empty?
-        data = configuration.custom_data_method.call
-      else
+      if configuration.custom_data_method.arity == 3
         data = configuration.custom_data_method.call(message, exception, context)
+      else
+        data = configuration.custom_data_method.call
       end
       
       Rollbar::Util.deep_copy(data)
