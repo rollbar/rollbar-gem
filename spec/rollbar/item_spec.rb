@@ -128,7 +128,7 @@ describe Rollbar::Item do
     
       it 'should have access to the context in custom_data_method' do
         configuration.custom_data_method = lambda do |message, exception, context|
-          { result: "MyApp#" + context[:controller] }
+          { :result => "MyApp#" + context[:controller] }
         end
   
         payload['data'][:body][:message][:extra].should_not be_nil
@@ -143,7 +143,7 @@ describe Rollbar::Item do
       
       it 'should have access to the message in custom_data_method' do
         configuration.custom_data_method = lambda do |message, exception, context|
-          { result: "Transformed in custom_data_method: " + message }
+          { :result => "Transformed in custom_data_method: " + message }
         end
         
         payload['data'][:body][:message][:extra].should_not be_nil
@@ -155,7 +155,7 @@ describe Rollbar::Item do
         
         it 'should have access to the current exception in custom_data_method' do
           configuration.custom_data_method = lambda do |message, exception, context|
-            { result: "Transformed in custom_data_method: " + exception.message }
+            { :result => "Transformed in custom_data_method: " + exception.message }
           end
           
           payload['data'][:body][:trace][:extra].should_not be_nil

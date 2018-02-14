@@ -166,7 +166,7 @@ describe Rollbar do
           before do
             Rollbar.configure do |config|
               config.custom_data_method = lambda do |message, exception, context| 
-                { result: "MyApp#" + context[:controller] }
+                { :result => "MyApp#" + context[:controller] }
               end
             end
           end
