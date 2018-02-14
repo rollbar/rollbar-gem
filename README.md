@@ -536,6 +536,36 @@ The above example will result in the following `extra`:
 
 As you can see, the `custom_data_method_context` will not be directly included in your `extra`.
 
+Below is an example usage in a Rails application:
+
+```ruby
+# config/initializers/rollbar.rb
+Rollbar.configure do |config|
+  ...
+  
+  config.custom_data_method = lambda do |message, exception, context|
+    { controller_name: context[:controller].controller_name }
+  end
+end
+```
+
+```ruby
+# app/controller/welcome_controller.rb
+class WelcomeController < ApplicationController
+  def check_context
+    Rollbar.log(
+      'info', 
+      'This is a message from Welcome#check_context',
+      {
+        custom_data_method_context: {
+          controller: self
+        }
+      }
+    )
+  end
+end
+```
+
 ## Exception level filters
 
 By default, all uncaught exceptions are reported at the "error" level, except for the following, which are reported at "warning" level:
