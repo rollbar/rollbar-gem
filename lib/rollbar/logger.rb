@@ -28,7 +28,7 @@ module Rollbar
 
       message ||= block_given? ? yield : progname
 
-      return true if message.blank?
+      return true if blank?(message)
 
       rollbar.log(rollbar_level(severity), message)
     end
@@ -64,6 +64,11 @@ module Rollbar
     end
 
     private
+
+    def blank?(message)
+      return message.blank? if message.respond_to?(:blank?)
+      message.respond_to?(:empty?) ? !!message.empty? : !message
+    end
 
     # Find correct Rollbar level to use using the indexes in Logger::Severity
     # DEBUG = 0

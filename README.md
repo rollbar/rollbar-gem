@@ -1,4 +1,4 @@
-# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=v2.15.5)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+# Rollbar [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=master)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 
 <!-- RemoveNext -->
 [Rollbar](https://rollbar.com) is an error tracking service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
@@ -60,6 +60,21 @@ $ heroku config:add ROLLBAR_ACCESS_TOKEN=POST_SERVER_ITEM_ACCESS_TOKEN
 ```
 
 That's all you need to use Rollbar with Rails.
+
+#### Grape
+
+To capture 500s inside the API gem "Grape" for Rails applications, add the following as a global exception handler:
+
+```ruby
+rescue_from :all do |e|
+  if Rails.env.development?
+    raise e
+  else
+    Rollbar.error(e)
+    error_response(message: "Internal server error", status: 500)
+  end
+end
+```
 
 
 ### Sinatra
@@ -323,6 +338,7 @@ class NotificationJob
 end
 ```
 
+Note: if you are using `Rollbar.scope!` within a scoped block, your context will only apply within that scoped block because of how Rollbar gets shadowed.
 
 ## Person tracking
 
@@ -778,7 +794,7 @@ ENV['AWS_ACCESS_KEY_ID'] = 'xxx'
 ENV['AWS_SECRET_ACCESS_KEY'] = 'xxx'
 ENV['AWS_REGION'] = 'xxx'
 ```
-Read more about [Shoryuken configuration]https://github.com/phstc/shoryuken/wiki/Shoryuken-options
+Read more about [Shoryuken configuration](https://github.com/phstc/shoryuken/wiki/Shoryuken-options).
 
 Also create the SQS channels equals to your environments, as follows:
 The queues to report will be equal to ```rollbar_{CURRENT_ENVIRONMENT}``` ex: if the project runs in staging environment the SQS to throw messages to will be equal to ```rollbar_staging```
@@ -900,15 +916,26 @@ First, move your `config/initializers/rollbar.rb` file to `config/rollbar.rb`. T
 require File.expand_path('../application', __FILE__)
 require File.expand_path('../rollbar', __FILE__)
 
+notify = ->(e) do
+  begin
+    Rollbar.with_config(use_async: false) do
+      Rollbar.error(e)
+    end
+  rescue
+    Rails.logger.error "Synchronous Rollbar notification failed.  Sending async to preserve info"
+    Rollbar.error(e)
+  end
+end
+
 begin
   Rails.application.initialize!
 rescue Exception => e
-  Rollbar.error(e)
+  notify.(e)
   raise
 end
 ```
 
-How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.
+How this works: first, Rollbar config (which is now at `config/rollbar.rb` is required). Later, `Rails.application/initialize` statement is wrapped with a `begin/rescue` and any exceptions within will be reported to Rollbar.  We first try to send the notification synchronously since, with our app failing to boot, it is likely the async handler relies on the app booting, and will not process the notification.
 
 ## Rails runner command
 
@@ -937,6 +964,12 @@ And then, to your `deploy.rb`:
 set :rollbar_token, 'POST_SERVER_ITEM_ACCESS_TOKEN'
 set :rollbar_env, Proc.new { fetch :stage }
 set :rollbar_role, Proc.new { :app }
+```
+
+If you want to upload sourcemaps to Rollbar on each deployment, then you also need to specify `rollbar_sourcemaps_minified_url_base`, where `rollbar_sourcemaps_minified_url_base` is your asset host.
+
+```ruby
+set :rollbar_sourcemaps_minified_url_base, "https://www.my-site.com"
 ```
 
 NOTE: We've seen problems with Capistrano version `3.0.x` where the revision reported is incorrect. Version `3.1.0` and higher works correctly.
