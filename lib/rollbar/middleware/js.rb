@@ -25,7 +25,7 @@ module Rollbar
         app_result = app.call(env)
 
         begin
-          return app_result unless add_js?(env, app_result[0], app_result[1])
+          return app_result unless add_js?(env, app_result[1])
 
           response_string = add_js(env, app_result[2])
           build_response(env, app_result, response_string)
@@ -40,8 +40,8 @@ module Rollbar
         !!config[:enabled]
       end
 
-      def add_js?(env, status, headers)
-        enabled? && status == 200 && !env[JS_IS_INJECTED_KEY] &&
+      def add_js?(env, headers)
+        enabled? && !env[JS_IS_INJECTED_KEY] &&
           html?(headers) && !attachment?(headers) && !streaming?(env)
       end
 
