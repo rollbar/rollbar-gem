@@ -339,6 +339,8 @@ module Rollbar
           message = arg
         elsif arg.is_a?(Exception)
           exception = arg
+        elsif RUBY_PLATFORM == 'java' && arg.is_a?(java.lang.Exception)
+          exception = arg
         elsif arg.is_a?(Hash)
           extra = arg
           
