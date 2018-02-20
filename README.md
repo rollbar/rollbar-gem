@@ -482,7 +482,7 @@ config.scrub_fields = :scrub_all
 
 ## Including additional runtime data
 
-You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that takes no arguments and returns a hash.
+You can provide a callable that will be called for each exception or message report.  ```custom_data_method``` should be a lambda that either takes no arguments or takes three arguments (message, exception, context) and returns a hash.
 
 Add the following in ```config/initializers/rollbar.rb```:
 
@@ -492,9 +492,79 @@ config.custom_data_method = lambda {
 }
 ```
 
+Or
+
+```ruby
+config.custom_data_method = lambda{ |message, exception, context|
+  { :some_key => :some_value, :complex_key => {:a => 1, :b => [2, 3, 4]} }
+}
+```
+
 This data will appear in the Occurrences tab and on the Occurrence Detail pages in the Rollbar interface.
 
 If your `custom_data_method` crashes while reporting an error, Rollbar will report that new error and will attach its uuid URL to the parent error report.
+
+`context` for your `custom_data_method` is the value passed in the `:custom_data_method_context` key of your `log` method's `extra_data` argument. Note that once the value is passed as `context` it is removed from your `extra_data` and will be not be included in your `extra` by default.
+
+```ruby
+config.custom_data_method = lambda { |message, exception, context|
+  {
+    fully_qualified_controller_name: "MyApp::" + context[:controller_name]
+  }
+}
+
+Rollbar.log(
+  "error", 
+  "Simple message", 
+  { 
+    extra_data_1: "some value",
+    custom_data_method_context: { 
+      controller_name: "ExampleController"
+    }
+  }
+)
+```
+
+The above example will result in the following `extra`:
+
+```ruby
+  { 
+    extra_data_1: "some value",
+    fully_qualified_controller_name: "MyApp::ExampleController"
+  }
+```
+
+As you can see, the `custom_data_method_context` will not be directly included in your `extra`.
+
+Below is an example usage in a Rails application:
+
+```ruby
+# config/initializers/rollbar.rb
+Rollbar.configure do |config|
+  ...
+  
+  config.custom_data_method = lambda do |message, exception, context|
+    { controller_name: context[:controller].controller_name }
+  end
+end
+```
+
+```ruby
+# app/controller/welcome_controller.rb
+class WelcomeController < ApplicationController
+  def check_context
+    Rollbar.log(
+      'info', 
+      'This is a message from Welcome#check_context',
+      {
+        custom_data_method_context: {
+          controller: self
+        }
+      }
+    )
+  end
+end
+```
 
 ## Exception level filters
 

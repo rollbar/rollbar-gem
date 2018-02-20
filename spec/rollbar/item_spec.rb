@@ -20,6 +20,7 @@ describe Rollbar::Item do
   let(:exception) {}
   let(:extra) {}
   let(:scope) {}
+  let(:context) {}
 
   let(:options) do
     {
@@ -30,7 +31,8 @@ describe Rollbar::Item do
       :configuration => configuration,
       :logger => logger,
       :scope => scope,
-      :notifier => notifier
+      :notifier => notifier,
+      :context => context
     }
   end
 
@@ -119,6 +121,47 @@ describe Rollbar::Item do
       payload['data'][:body][:message][:extra].should_not be_nil
       payload['data'][:body][:message][:extra][:a].should == 1
       payload['data'][:body][:message][:extra][:b][2].should == 4
+    end
+    
+    context do
+      let(:context) { { :controller => "ExampleController" } }
+    
+      it 'should have access to the context in custom_data_method' do
+        configuration.custom_data_method = lambda do |message, exception, context|
+          { :result => "MyApp#" + context[:controller] }
+        end
+  
+        payload['data'][:body][:message][:extra].should_not be_nil
+        payload['data'][:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
+      end
+      
+      it 'should not include data passed in :context if there is no custom_data_method configured' do
+        configuration.custom_data_method = nil
+  
+        payload['data'][:body][:message][:extra].should be_nil
+      end
+      
+      it 'should have access to the message in custom_data_method' do
+        configuration.custom_data_method = lambda do |message, exception, context|
+          { :result => "Transformed in custom_data_method: " + message }
+        end
+        
+        payload['data'][:body][:message][:extra].should_not be_nil
+        payload['data'][:body][:message][:extra][:result].should == "Transformed in custom_data_method: " + message
+      end
+      
+      context do
+        let(:exception) { Exception.new "Exception to test custom_data_method" }
+        
+        it 'should have access to the current exception in custom_data_method' do
+          configuration.custom_data_method = lambda do |message, exception, context|
+            { :result => "Transformed in custom_data_method: " + exception.message }
+          end
+          
+          payload['data'][:body][:trace][:extra].should_not be_nil
+          payload['data'][:body][:trace][:extra][:result].should == "Transformed in custom_data_method: " + exception.message
+        end
+      end
     end
 
     context do
