@@ -100,7 +100,27 @@ class MyApp < Sinatra::Base
   # ...
 end
 ```
+#### Note
+There is a known conflict between Sinatra and other gems where Sinatra's top-level-binded methods get overriden by other gems (more details here: https://github.com/sinatra/sinatra-contrib/issues/111 and https://github.com/rollbar/rollbar-gem/issues/663). This came to attention when using `sinatra/namespace` and `Rollbar.configure`. If your top-level-binded methods get overshadowed by other gems, like Rake's `:namespace`, you will need to redefine the method manually as intended by Sinatra.
 
+Here is an example if you want to use `sinatra/namespace`:
+
+```ruby
+configure do
+  Rollbar.configure do |config|
+    ...
+  end
+  
+  # Redefine :namespace to use Sinatra's :namespace method
+  self.instance_eval do 
+    undef :namespace
+    
+    define_singleton_method(:namespace) do |*args, &block|
+      Sinatra::Delegator.target.send(:namespace, *args, &block)
+    end
+  end
+end
+```
 
 ### Rack
 
