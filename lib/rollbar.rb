@@ -3,6 +3,7 @@ require 'net/https'
 require 'socket'
 require 'thread'
 require 'uri'
+require 'open-uri'
 require 'forwardable'
 
 begin
