@@ -46,6 +46,22 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
     end
+    
+    context 'with dj_threshold > 0' do
+      before do
+        Rollbar.configure do |config|
+          config.dj_threshold = 1
+        end
+      end
+      
+      it 'sends the exception' do
+        expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
+        allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
+        expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*expected_args)
+  
+        FailingJob.new.delay.do_job_please!(:foo, :bar)
+      end
+    end
   end
 
   describe '.build_job_data' do
