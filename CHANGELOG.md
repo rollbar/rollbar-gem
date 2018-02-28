@@ -1,5 +1,16 @@
 # Change Log
 
+## 2.15.6
+- Update rollbar.js snippet to `v2.3.8` [#680](https://github.com/rollbar/rollbar-gem/issues/680)
+- Update `delayed_job` dependency to `4.1.3` [#672](https://github.com/rollbar/rollbar-gem/issues/672)
+- Add rollbar.js snippet on all responses regardless of status code [#664](https://github.com/rollbar/rollbar-gem/issues/664)
+- Add documentation for `sinatra/namespace` vs `rake` conflict to `README.md` [#663](https://github.com/rollbar/rollbar-gem/issues/663)
+- Add `aws-sdk-sqs` gem dependency [#659](https://github.com/rollbar/rollbar-gem/issues/659)
+- Upgrade `rails` gem dependency to `4.2.7.1` [#656](https://github.com/rollbar/rollbar-gem/issues/656)
+- Add documentation note for usage of `Rollbar.scope!` to `README.md` [#653](https://github.com/rollbar/rollbar-gem/issues/653)
+- Add example of using `Grape` to deal with `500` responses status [#645](https://github.com/rollbar/rollbar-gem/issues/645)
+- Always report errors from `delayed_job` to deal with `dj_threshold > 0` edge case [#615](https://github.com/rollbar/rollbar-gem/issues/615)
+
 ## 2.15.5
 
 - Support proxies [#626](https://github.com/rollbar/rollbar-gem/pull/626)
