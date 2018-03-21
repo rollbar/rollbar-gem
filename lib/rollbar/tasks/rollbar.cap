@@ -42,7 +42,7 @@ namespace :rollbar do
       url_base = "http://#{url_base}" unless url_base.index(/https?:\/\//)
       within release_path do
         within 'public' do
-          source_maps = capture(:find, '-name', "'*.js.map'").split("\n")
+          source_maps = capture(:find, '-L', '.', '-name', "'*.js.map'").split("\n")
           source_maps = source_maps.map { |file| file.gsub(/^\.\//, '') }
           source_maps.each do |source_map|
             minified_url = File.join(url_base, source_map)
