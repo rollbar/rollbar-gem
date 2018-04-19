@@ -7,12 +7,14 @@ Rollbar.configure do |config|
     :foo => :bar
   }
   # By default, Rollbar will try to call the `current_user` controller method
-  # to fetch the logged-in user object, and then call that object's `id`,
-  # `username`, and `email` methods to fetch those properties. To customize:
+  # to fetch the logged-in user object, and then call that object's `id` and
+  # `username` methods to fetch those properties. To customize:
   # config.person_method = "my_current_user"
   # config.person_id_method = "my_id"
   # config.person_username_method = "my_username"
-  # config.person_email_method = "my_email"
+
+  # Additionally, if you're happy to send Rollbar personally identifiable information...
+  # config.person_email_method = "email"
 
   # Add exception class names to the exception_level_filters hash to
   # change the level that exception is reported at. Note that if an exception

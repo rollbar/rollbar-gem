@@ -91,7 +91,7 @@ module Rollbar
       @person_method = 'current_user'
       @person_id_method = 'id'
       @person_username_method = 'username'
-      @person_email_method = 'email'
+      @person_email_method = nil
       @project_gems = []
       @populate_empty_backtraces = false
       @report_dj_data = true
