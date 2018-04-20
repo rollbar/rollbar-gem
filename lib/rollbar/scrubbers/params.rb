@@ -3,9 +3,9 @@ require 'rollbar/scrubbers'
 
 module Rollbar
   module Scrubbers
-    # This class contains the logic to scrub the receive parameters. It will
+    # This class contains the logic to scrub the received parameters. It will
     # scrub the parameters matching Rollbar.configuration.scrub_fields Array.
-    # Also, if that configuration option is se to :scrub_all, it will scrub all
+    # Also, if that configuration option is set to :scrub_all, it will scrub all
     # received parameters
     class Params
       SKIPPED_CLASSES = [::Tempfile]
