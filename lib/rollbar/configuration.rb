@@ -90,7 +90,7 @@ module Rollbar
       @payload_options = {}
       @person_method = 'current_user'
       @person_id_method = 'id'
-      @person_username_method = 'username'
+      @person_username_method = nil
       @person_email_method = nil
       @project_gems = []
       @populate_empty_backtraces = false

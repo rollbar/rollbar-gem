@@ -342,24 +342,32 @@ describe HomeController do
         end
 
         context 'default' do
-          it 'sends the current user data excluding email address' do
-            expect(person_data[:id]).to be_eql(user.id)
-            expect(person_data[:email]).to be_nil
-            expect(person_data[:username]).to be_eql(user.username)
+          it 'sends the current user data excluding personally identifiable information' do
+            expect(person_data).to eq(:id => user.id,
+                                      :email => nil,
+                                      :username => nil)
           end
         end
 
-        context 'configured to send email addresses (no EU GDPR worries)' do
-          before do
-            Rollbar.configure do |config|
-              config.person_email_method = 'email'
-            end
-          end
+        context 'without EU GDPR subjects' do
+          context 'configured to send email addresses' do
+            before { Rollbar.configure { |config| config.person_email_method = 'email' } }
 
-          it 'sends the current user data including email address' do
-            expect(person_data[:id]).to be_eql(user.id)
-            expect(person_data[:email]).to eq('foo@bar.com')
-            expect(person_data[:username]).to be_eql(user.username)
+            it 'sends the current user data including email address' do
+              expect(person_data).to eq(:id => user.id,
+                                        :email => 'foo@bar.com',
+                                        :username => nil)
+            end
+
+            context 'configured to send email addresses and username' do
+              before { Rollbar.configure { |config| config.person_username_method = 'username' } }
+
+              it 'sends the current user data including email address and username' do
+                  expect(person_data).to eq(:id => user.id,
+                                            :email => 'foo@bar.com',
+                                            :username => 'the_username')
+              end
+            end
           end
         end
       end
