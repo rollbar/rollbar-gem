@@ -10,6 +10,7 @@
 - Add documentation note for usage of `Rollbar.scope!` to `README.md` [#653](https://github.com/rollbar/rollbar-gem/issues/653)
 - Add example of using `Grape` to deal with `500` responses status [#645](https://github.com/rollbar/rollbar-gem/issues/645)
 - Always report errors from `delayed_job` to deal with `dj_threshold > 0` edge case [#615](https://github.com/rollbar/rollbar-gem/issues/615)
+- Fix "Empty message" items for exceptions reported from JRuby [#658]
 
 ## 2.15.5
 
