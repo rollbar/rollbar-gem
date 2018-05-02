@@ -43,7 +43,7 @@ describe Rollbar::Notifier do
   
   if RUBY_PLATFORM == 'java'
     describe "#extract_arguments" do
-      it "extracts Java exceptions" do
+      it "extracts java.lang.Exception" do
         begin
           raise java.lang.Exception.new("Hello")
         rescue java.lang.Exception => e
