@@ -42,17 +42,17 @@ describe Rollbar::Notifier do
   end
   
   if RUBY_PLATFORM == 'java'
-    describe "#extract_arguments" do
-      it "extracts java.lang.Exception" do
+    describe '#extract_arguments' do
+      it 'extracts java.lang.Exception' do
         begin
-          raise java.lang.Exception.new("Hello")
+          raise java.lang.Exception.new('Hello')
         rescue java.lang.Exception => e
           message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
           expect(exception).to eq(e)
         end
       end
       
-      it "extracts java.lang.Error" do
+      it 'extracts java.lang.Error' do
         # NOTE: not raising because otherwise you'd get
         # "Unable to infer file and line number from backtrace"
         e = java.lang.OutOfMemoryError.new
