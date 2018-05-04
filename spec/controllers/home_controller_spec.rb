@@ -334,15 +334,31 @@ describe HomeController do
         end
 
         before { cookies[:session_id] = user.id }
-
+        
         it 'sends the current user data' do
           put '/report_exception', *wrap_process_args({ 'foo' => 'bar' })
 
           person_data = Rollbar.last_report[:person]
 
           expect(person_data[:id]).to be_eql(user.id)
-          expect(person_data[:email]).to be_eql(user.email)
-          expect(person_data[:username]).to be_eql(user.username)
+        end
+
+        context 'with person_collect_email_username enable' do
+          before do
+            Rollbar.configure do |config|
+              config.person_collect_email_username = true
+            end
+          end
+          
+          it 'sends the current user data' do
+            put '/report_exception', *wrap_process_args({ 'foo' => 'bar' })
+  
+            person_data = Rollbar.last_report[:person]
+  
+            expect(person_data[:id]).to be_eql(user.id)
+            expect(person_data[:email]).to be_eql(user.email)
+            expect(person_data[:username]).to be_eql(user.username)
+          end
         end
       end
     end
