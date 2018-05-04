@@ -92,7 +92,13 @@ module Rollbar
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
       Util.deep_merge(data, configuration.payload_options)
+      
       Util.deep_merge(data, scope)
+      
+      if !configuration.person_collect_email_username && data[:person].is_a?(Hash)
+        data[:person].delete(:username)
+        data[:person].delete(:email)
+      end
 
       # Our API doesn't allow null context values, so just delete
       # the key if value is nil.

@@ -31,6 +31,7 @@ module Rollbar
     attr_accessor :person_id_method
     attr_accessor :person_username_method
     attr_accessor :person_email_method
+    attr_accessor :person_collect_email_username
     attr_accessor :populate_empty_backtraces
     attr_accessor :report_dj_data
     attr_accessor :open_timeout
@@ -92,6 +93,7 @@ module Rollbar
       @person_id_method = 'id'
       @person_username_method = 'username'
       @person_email_method = 'email'
+      @person_collect_email_username = false
       @project_gems = []
       @populate_empty_backtraces = false
       @report_dj_data = true

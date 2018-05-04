@@ -21,6 +21,7 @@ module Rollbar
     @file_semaphore = Mutex.new
 
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
+      
       if parent_notifier
         self.configuration = parent_notifier.configuration.clone
         self.scope_object = parent_notifier.scope_object.clone
@@ -126,6 +127,7 @@ module Rollbar
     #   Rollbar.log(e, 'This is a description of the exception')
     #
     def log(level, *args)
+      
       return 'disabled' unless configuration.enabled
 
       message, exception, extra, context = extract_arguments(args)
