@@ -664,6 +664,52 @@ describe Rollbar::Item do
         expect(subject).to be_ignored
       end
     end
+    
+    context 'with person data' do
+      let(:ignored_ids) { [1,2,4] }
+      let(:person_data) do
+        { :person => {
+            :id => 2,
+            :username => 'foo',
+            :email => 'foo@bar.com'
+          }
+        }
+      end
+      let(:scope) { Rollbar::LazyStore.new(person_data) }
+      
+      it 'scrubs the person identifiable information' do
+        result = subject.build
+
+        expect(result['data'][:person]).to_not have_key(:username)
+        expect(result['data'][:person]).to_not have_key(:email)
+      end
+      
+      context 'with person_collect_email_username enabled' do
+        before do
+          configuration.person_collect_email_username = true
+        end
+        
+        it 'does not scrub the person identifiable information' do
+          result = subject.build
+  
+          expect(result['data'][:person]).to have_key(:username)
+          expect(result['data'][:person]).to have_key(:email)
+        end
+      end
+      
+      context 'with person_collect_email_username disabled' do
+        before do
+          configuration.person_collect_email_username = false
+        end
+        
+        it 'scrubs the person identifiable information' do
+          result = subject.build
+  
+          expect(result['data'][:person]).to_not have_key(:username)
+          expect(result['data'][:person]).to_not have_key(:email)
+        end
+      end
+    end
 
   end # end #build
 

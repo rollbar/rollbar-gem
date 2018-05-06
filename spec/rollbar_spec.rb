@@ -973,7 +973,7 @@ describe Rollbar do
       Rollbar.info("Test message", extra_data)
 
       Rollbar.last_report[:request].should == request_data
-      Rollbar.last_report[:person].should == person_data
+      Rollbar.last_report[:person].should == {:id => person_data[:id]}
       Rollbar.last_report[:body][:message][:extra][:extra_foo].should == 'extra_bar'
     end
   end
