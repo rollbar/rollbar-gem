@@ -335,14 +335,40 @@ describe HomeController do
 
         before { cookies[:session_id] = user.id }
 
-        it 'sends the current user data' do
-          put '/report_exception', *wrap_process_args({ 'foo' => 'bar' })
+        subject(:person_data) do
+          put '/report_exception', *wrap_process_args('foo' => 'bar')
 
-          person_data = Rollbar.last_report[:person]
+          Rollbar.last_report[:person]
+        end
 
-          expect(person_data[:id]).to be_eql(user.id)
-          expect(person_data[:email]).to be_eql(user.email)
-          expect(person_data[:username]).to be_eql(user.username)
+        context 'default' do
+          it 'sends the current user data excluding personally identifiable information' do
+            expect(person_data).to eq(:id => user.id,
+                                      :email => nil,
+                                      :username => nil)
+          end
+        end
+
+        context 'without EU GDPR subjects' do
+          context 'configured to send email addresses' do
+            before { Rollbar.configure { |config| config.person_email_method = 'email' } }
+
+            it 'sends the current user data including email address' do
+              expect(person_data).to eq(:id => user.id,
+                                        :email => 'foo@bar.com',
+                                        :username => nil)
+            end
+
+            context 'configured to send email addresses and username' do
+              before { Rollbar.configure { |config| config.person_username_method = 'username' } }
+
+              it 'sends the current user data including email address and username' do
+                  expect(person_data).to eq(:id => user.id,
+                                            :email => 'foo@bar.com',
+                                            :username => 'the_username')
+              end
+            end
+          end
         end
       end
     end

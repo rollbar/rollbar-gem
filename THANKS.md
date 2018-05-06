@@ -25,6 +25,7 @@ Huge thanks to the following contributors (by github username). For the most up-
 - [jeremyvdw](https://github.com/jeremyvdw)
 - [jjb](https://github.com/jjb)
 - [johnknott](https://github.com/johnknott)
+- [johnsyweb](https://github.com/johnsyweb)
 - [jonah-williams](https://github.com/jonah-williams)
 - [jondeandres](https://github.com/jondeandres)
 - [JoshuaOSHickman](https://github.com/JoshuaOSHickman)

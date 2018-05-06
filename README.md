@@ -379,8 +379,8 @@ If the methods to extract the ```id```, ```username```, and ```email``` from the
 ```ruby
 Rollbar.configure do |config|
   config.person_id_method = "user_id"  # default is "id"
-  config.person_username_method = "user_name"  # default is "username"
-  config.person_email_method = "email_address"  # default is "email"
+  config.person_username_method = "user_name"  # default is `nil`
+  config.person_email_method = "email_address"  # default is `nil`
 end
 ```
 
