@@ -131,6 +131,7 @@ module Rollbar
     end
 
     def rollbar_user_ip(env)
+      return nil unless Rollbar.configuration.collect_user_ip
       user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || x_forwarded_for_client(env['HTTP_X_FORWARDED_FOR']) || env['REMOTE_ADDR']).to_s
 
       Rollbar::Util::IPObfuscator.obfuscate_ip(user_ip_string)

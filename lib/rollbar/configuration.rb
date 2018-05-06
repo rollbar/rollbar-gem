@@ -43,6 +43,7 @@ module Rollbar
     attr_accessor :scrub_fields
     attr_accessor :scrub_user
     attr_accessor :scrub_password
+    attr_accessor :collect_user_ip
     attr_accessor :user_ip_obfuscator_secret
     attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
@@ -120,6 +121,7 @@ module Rollbar
       @project_gem_paths = []
       @use_exception_level_filters_default = false
       @proxy = nil
+      @collect_user_ip = true
     end
 
     def initialize_copy(orig)
