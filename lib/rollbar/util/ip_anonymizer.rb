@@ -5,17 +5,9 @@ module Rollbar
 
       def self.anonymize_ip(ip_string)
         return ip_string unless Rollbar.configuration.anonymize_user_ip
-        
         ip = IPAddr.new(ip_string)
-          
-        if ip.ipv6?
-          return anonymize_ipv6 ip
-        end
-        
-        if ip.ipv4?
-          return anonymize_ipv4 ip
-        end
-        
+        return anonymize_ipv6 ip if ip.ipv6?
+        return anonymize_ipv4 ip if ip.ipv4?
       rescue
         nil
       end
@@ -23,7 +15,7 @@ module Rollbar
       def self.anonymize_ipv4(ip)
         ip_parts = ip.to_s.split '.'
         
-        ip_parts[ip_parts.count-1] = "0"
+        ip_parts[ip_parts.count - 1] = '0'
         
         IPAddr.new(ip_parts.join('.')).to_s
       end
