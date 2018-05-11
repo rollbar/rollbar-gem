@@ -44,6 +44,7 @@ module Rollbar
     attr_accessor :scrub_user
     attr_accessor :scrub_password
     attr_accessor :collect_user_ip
+    attr_accessor :anonymize_user_ip
     attr_accessor :user_ip_obfuscator_secret
     attr_accessor :randomize_scrub_length
     attr_accessor :uncaught_exception_level
@@ -122,6 +123,7 @@ module Rollbar
       @use_exception_level_filters_default = false
       @proxy = nil
       @collect_user_ip = true
+      @anonymize_user_ip = false
     end
 
     def initialize_copy(orig)
