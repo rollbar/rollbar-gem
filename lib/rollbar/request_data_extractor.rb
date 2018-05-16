@@ -5,6 +5,7 @@ require 'rollbar/scrubbers'
 require 'rollbar/scrubbers/url'
 require 'rollbar/scrubbers/params'
 require 'rollbar/util/ip_obfuscator'
+require 'rollbar/util/ip_anonymizer'
 require 'rollbar/json'
 
 module Rollbar
@@ -131,7 +132,10 @@ module Rollbar
     end
 
     def rollbar_user_ip(env)
+      return nil unless Rollbar.configuration.collect_user_ip
       user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || x_forwarded_for_client(env['HTTP_X_FORWARDED_FOR']) || env['REMOTE_ADDR']).to_s
+
+      user_ip_string = Rollbar::Util::IPAnonymizer.anonymize_ip(user_ip_string)
 
       Rollbar::Util::IPObfuscator.obfuscate_ip(user_ip_string)
     rescue

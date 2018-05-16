@@ -138,6 +138,30 @@ describe Rollbar::RequestDataExtractor do
 
           expect(result[:user_ip]).to be_eql('2.2.2.2')
         end
+        
+        context 'with collect_user_ip configuration option disabled' do
+          before do
+            Rollbar.configuration.collect_user_ip = false
+          end
+          
+          it 'does not extract user\'s IP' do
+            result = subject.extract_request_data_from_rack(env)
+  
+            expect(result[:user_ip]).to be_nil
+          end
+        end
+        
+        context 'with anonymize_user_ip configuration option enabled' do
+          before do
+            Rollbar.configuration.anonymize_user_ip = true
+          end
+          
+          it 'it anonymizes the IPv4 address' do
+            result = subject.extract_request_data_from_rack(env)
+  
+            expect(result[:user_ip]).to be_eql('2.2.2.0')
+          end
+        end
       end
 
       context 'with private first client IP' do
