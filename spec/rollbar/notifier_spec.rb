@@ -48,7 +48,7 @@ describe Rollbar::Notifier do
       it 'extracts java.lang.Exception' do
         begin
           raise java.lang.Exception.new('Hello')
-        rescue java.lang.Exception => e
+        rescue => e
           message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
           expect(exception).to eq(e)
         end
