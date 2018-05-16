@@ -43,6 +43,8 @@ describe Rollbar::Notifier do
   
   if RUBY_PLATFORM == 'java'
     describe '#extract_arguments' do
+      # See https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html
+      # for more background
       it 'extracts java.lang.Exception' do
         begin
           raise java.lang.Exception.new('Hello')
