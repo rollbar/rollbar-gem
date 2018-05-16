@@ -55,11 +55,12 @@ describe Rollbar::Notifier do
       end
       
       it 'extracts java.lang.Error' do
-        # NOTE: not raising because otherwise you'd get
-        # "Unable to infer file and line number from backtrace"
-        e = java.lang.OutOfMemoryError.new
-        message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
-        expect(exception).to eq(e)
+        begin
+          raise java.lang.AssertionError.new('Hello')
+        rescue java.lang.Error => e
+          message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
+          expect(exception).to eq(e)
+        end
       end
     end
   end
