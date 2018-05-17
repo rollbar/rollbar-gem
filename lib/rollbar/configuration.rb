@@ -12,7 +12,7 @@ module Rollbar
     attr_accessor :custom_data_method
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
-    attr_accessor :logger_level
+    attr_reader :logger_level
     attr_accessor :disable_monkey_patch
     attr_accessor :disable_rack_monkey_patch
     attr_accessor :disable_core_monkey_patch
