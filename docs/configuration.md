@@ -59,7 +59,7 @@ end
 
 ### default_logger
 
-**Default** `Logger.new(STDERR)`
+**Default** `Logger.new(STDERR)` or `::Rails.logger` when using Rails
 
 What logger to use for printing debugging and informational messages during
 operation.
