@@ -8,6 +8,10 @@ module Rollbar
     class Shoryuken
       include ::Shoryuken::Worker
 
+      def self.call(payload)
+        new.call(payload)
+      end
+
       def self.queue_name
         "rollbar_#{Rollbar.configuration.environment}"
       end
