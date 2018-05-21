@@ -34,9 +34,9 @@ namespace :rollbar do
     on primary fetch(:rollbar_role) do
       info "Uploading source maps"
       warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly upload sourcemaps to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
-      url_base = fetch(:rollbar_sourcemaps_minified_url_base)
+      url_base = fetch(:rollbar_sourcemaps_minified_url_base, nil)
       unless url_base
-        warn "No #{rollbar_sourcemaps_minified_url_base} was specified. Sourcemaps won't be uploaded."
+        warn "No :rollbar_sourcemaps_minified_url_base was specified. Sourcemaps won't be uploaded."
         return
       end
       url_base = "http://#{url_base}" unless url_base.index(/https?:\/\//)
