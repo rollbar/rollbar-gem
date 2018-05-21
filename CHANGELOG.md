@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.16.0
+- Anonymize IP address config option [#728](https://github.com/rollbar/rollbar-gem/issues/728)
+- Allow IP collection to be easily turned on and off in config [#727](https://github.com/rollbar/rollbar-gem/issues/727)
+- Don't send person's personally identifiable information as a default [#715](https://github.com/rollbar/rollbar-gem/issues/715)
+- Follow symlinks when looking up source maps [#702](https://github.com/rollbar/rollbar-gem/issues/702)
+- Better logging for capistrano sourcemap uploading [#682](https://github.com/rollbar/rollbar-gem/issues/682)
+- Allow access to controller variables from custom_data_method [#341](https://github.com/rollbar/rollbar-gem/issues/341)
+- Failure to add rollbar.js to page [#539](https://github.com/rollbar/rollbar-gem/issues/539)
+- Exception from Delayed::Job not reported if job fails to deserialize [#472](https://github.com/rollbar/rollbar-gem/issues/472)
+
 ## 2.15.6
 - Update rollbar.js snippet to `v2.3.8` [#680](https://github.com/rollbar/rollbar-gem/issues/680)
 - Update `delayed_job` dependency to `4.1.3` [#672](https://github.com/rollbar/rollbar-gem/issues/672)
