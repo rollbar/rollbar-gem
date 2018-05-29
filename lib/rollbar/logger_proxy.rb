@@ -23,7 +23,7 @@ module Rollbar
     end
 
     def log(level, message)
-      return unless Rollbar.configuration.enabled || acceptable_levels.include?(level.to_sym)
+      return unless Rollbar.configuration.enabled && acceptable_levels.include?(level.to_sym)
 
       @object.send(level, message)
     rescue
