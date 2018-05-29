@@ -24,3 +24,5 @@ tmp
 .byebug_history
 
 gemfiles/vendor
+
+vendor
