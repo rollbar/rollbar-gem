@@ -103,6 +103,8 @@ module Rollbar
           {}
         elsif sensitive_headers_list.include?(name)
           { name => Rollbar::Scrubbers.scrub_value(env[header]) }
+        elsif name == 'X-Forwarded-For' && !Rollbar.configuration.collect_user_ip
+          {}
         else
           { name => env[header] }
         end

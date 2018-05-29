@@ -149,6 +149,12 @@ describe Rollbar::RequestDataExtractor do
   
             expect(result[:user_ip]).to be_nil
           end
+          
+          it 'does not extract user\'s IP on X-Forwarded-For header' do
+            result = subject.extract_request_data_from_rack(env)
+
+            expect(result[:headers]['X-Forwarded-For']).to be_nil
+          end
         end
         
         context 'with anonymize_user_ip configuration option enabled' do
