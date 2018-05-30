@@ -8,11 +8,11 @@ Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, 
 # Setup Instructions
 
 1. [Sign up for a Rollbar account](https://rollbar.com/signup)
-2. Follow the [Getting Started](https://docs.rollbar.com/docs/ruby#section-getting-started) instructions in our [Ruby SDK doccs](https://docs.rollbar.com/docs/ruby) to install rollbar-gem and configure it for your platform.
+2. Follow the [Getting Started](https://docs.rollbar.com/docs/ruby#section-getting-started) instructions in our [Ruby SDK docs](https://docs.rollbar.com/docs/ruby) to install rollbar-gem and configure it for your platform.
 
 # Usage and Reference
 
-For complete usage instructions and configuration reference, see our [Ruby SDK doccs](https://docs.rollbar.com/docs/ruby).
+For complete usage instructions and configuration reference, see our [Ruby SDK docs](https://docs.rollbar.com/docs/ruby).
   
 # Release History & Changelog
 
