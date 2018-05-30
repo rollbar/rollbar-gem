@@ -3,16 +3,21 @@
 
 [Rollbar](https://rollbar.com) is a real-time exception reporting service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
 
-This is the Ruby library for Rollbar. It will instrument many kinds of Ruby applications automatically at the framework level. You can also make direct calls to send exceptions and messages to Rollbar.
+Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, Sinatra, Rack, plain Ruby, and other frameworks.
 
 # Setup Instructions
 
 1. [Sign up for a Rollbar account](https://rollbar.com/signup)
-2. Follow the [Getting Started](https://docs.rollbar.com/docs/ruby#section-getting-started) instructions in our [Ruby SDK Guide](https://docs.rollbar.com/docs/ruby).
-3. Perform additional setup steps for your specific platform:
-  * Rails
-  * ...
+2. Follow the [Getting Started](https://docs.rollbar.com/docs/ruby#section-getting-started) instructions in our [Ruby SDK doccs](https://docs.rollbar.com/docs/ruby) to install rollbar-gem and configure it for your platform.
+
+# Usage and Reference
+
+For complete usage instructions and configuration reference, see our [Ruby SDK doccs](https://docs.rollbar.com/docs/ruby).
   
+# Release History & Changelog
+
+See our [Releases](https://github.com/rollbar/rollbar-gem/releases) page for a list of all releases, including changes.
+
 # Help / Support
 
 If you run into any issues, please email us at [support@rollbar.com](mailto:support@rollbar.com)
