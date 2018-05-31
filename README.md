@@ -5,26 +5,26 @@
 
 Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, Sinatra, Rack, plain Ruby, and other frameworks.
 
-# Setup Instructions
+## Setup Instructions
 
 1. [Sign up for a Rollbar account](https://rollbar.com/signup)
 2. Follow the [Getting Started](https://docs.rollbar.com/docs/ruby#section-getting-started) instructions in our [Ruby SDK docs](https://docs.rollbar.com/docs/ruby) to install rollbar-gem and configure it for your platform.
 
-# Usage and Reference
+## Usage and Reference
 
 For complete usage instructions and configuration reference, see our [Ruby SDK docs](https://docs.rollbar.com/docs/ruby).
   
-# Release History & Changelog
+## Release History & Changelog
 
 See our [Releases](https://github.com/rollbar/rollbar-gem/releases) page for a list of all releases, including changes.
 
-# Help / Support
+## Help / Support
 
 If you run into any issues, please email us at [support@rollbar.com](mailto:support@rollbar.com)
 
 For bug reports, please [open an issue on GitHub](https://github.com/rollbar/rollbar-gem/issues/new).
 
-# Contributing
+## Contributing
 
 1. Fork it
 2. Create your feature branch (```git checkout -b my-new-feature```).
@@ -34,5 +34,5 @@ For bug reports, please [open an issue on GitHub](https://github.com/rollbar/rol
 
 We're using RSpec for testing. Run the test suite with ```rake spec```. Tests for pull requests are appreciated but not required. (If you don't include a test, we'll write one before merging.)
 
-# License
+## License
 Rollbar-gem is free software released under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
