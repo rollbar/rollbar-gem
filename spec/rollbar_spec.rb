@@ -1043,18 +1043,20 @@ describe Rollbar do
     end
 
     context 'via environment variables' do
+      before do
+        @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+      end
+
       it 'honors proxy settings in the environment' do
         ENV['http_proxy']  = 'http://user:pass@example.com:80'
         ENV['https_proxy'] = 'http://user:pass@example.com:80'
 
-        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
-        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, 'example.com', 80, 'user', 'pass').and_call_original
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'example.com', 80, 'user', 'pass').and_call_original
         Rollbar.info("proxy this")
       end
 
       it 'does not use a proxy if no proxy settings in environemnt' do
-        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
-        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, nil, nil, nil, nil).and_call_original
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, nil, nil, nil, nil).and_call_original
         Rollbar.info("proxy this")
       end
     end
@@ -1069,11 +1071,12 @@ describe Rollbar do
             :password => 'bar'
           }
         end
+
+        @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
       end
 
       it 'honors proxy settings in the config file' do
-        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
-        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
         Rollbar.info("proxy this")
       end
 
@@ -1081,8 +1084,16 @@ describe Rollbar do
         ENV['http_proxy']  = 'http://user:pass@example.com:80'
         ENV['https_proxy'] = 'http://user:pass@example.com:80'
 
-        uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
-        expect(Net::HTTP).to receive(:new).with(uri.host, uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        Rollbar.info("proxy this")
+      end
+
+      it 'allows @-signs in passwords' do
+        Rollbar.configure do |config|
+          config.proxy[:password] = "manh@tan"
+	end
+
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'config.com', 8080, 'foo', 'manh@tan').and_call_original
         Rollbar.info("proxy this")
       end
     end
