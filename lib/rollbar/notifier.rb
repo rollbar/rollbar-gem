@@ -530,14 +530,15 @@ module Rollbar
     end
 
     def proxy_from_config
-      proxy = configuration.proxy
-      return nil unless proxy
+      proxy_settings = configuration.proxy
+      return nil unless proxy_settings
 
-      px = URI.parse(proxy[:host])
-      px.port = proxy[:port]
-      px.user = proxy[:user]
-      px.password = proxy[:password]
-      px
+      proxy = null_proxy
+      proxy.host = URI.parse(proxy_settings[:host]).host
+      proxy.port = proxy_settings[:port]
+      proxy.user = proxy_settings[:user]
+      proxy.password = proxy_settings[:password]
+      proxy
     end
 
     def proxy_from_env(uri)
