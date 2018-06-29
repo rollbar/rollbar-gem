@@ -118,11 +118,12 @@ describe Rollbar::RequestDataExtractor do
       end
     end
 
-    context 'with multiple addresses in X-Forwarded-For' do
+    context 'with multiple IP addresses in headers and in user ip' do
       let(:env) do
         Rack::MockRequest.env_for('/',
                                   'HTTP_HOST' => 'localhost:81',
-                                  'HTTP_X_FORWARDED_FOR' => header_value,
+                                  'HTTP_X_FORWARDED_FOR' => x_forwarded_for,
+                                  'HTTP_X_REAL_IP' => x_real_ip,
                                   'REMOTE_ADDR' => '3.3.3.3',
                                   'CONTENT_TYPE' => 'application/json',
                                   'CONTENT_LENGTH' => 20)
@@ -131,12 +132,19 @@ describe Rollbar::RequestDataExtractor do
       end
 
       context 'with public client IP' do
-        let(:header_value) { '2.2.2.2, 3.3.3.3' }
+        let(:x_forwarded_for) { '2.2.2.2, 3.3.3.3' }
+        let(:x_real_ip) { '2.2.2.2' }
 
         it 'extracts the correct user IP' do
           result = subject.extract_request_data_from_rack(env)
 
           expect(result[:user_ip]).to be_eql('2.2.2.2')
+        end
+        
+        it 'extracts the correct X-Forwarded-For' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:headers]['X-Forwarded-For']).to be_eql('2.2.2.2, 3.3.3.3')
         end
         
         context 'with collect_user_ip configuration option disabled' do
@@ -167,16 +175,29 @@ describe Rollbar::RequestDataExtractor do
   
             expect(result[:user_ip]).to be_eql('2.2.2.0')
           end
+          
+          it 'it anonymizes IP addresses in X-Forwarded-For' do
+            result = subject.extract_request_data_from_rack(env)
+  
+            expect(result[:headers]['X-Forwarded-For']).to be_eql('2.2.2.0, 3.3.3.0')
+          end
         end
       end
 
       context 'with private first client IP' do
-        let(:header_value) { '192.168.1.1, 2.2.2.2, 3.3.3.3' }
+        let(:x_forwarded_for) { '192.168.1.1, 2.2.2.2, 3.3.3.3' }
+        let(:x_real_ip) { '2.2.2.2' }
 
         it 'extracts the correct user IP' do
           result = subject.extract_request_data_from_rack(env)
 
           expect(result[:user_ip]).to be_eql('2.2.2.2')
+        end
+        
+        it 'extracts the correct X-Forwarded-For' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:headers]['X-Forwarded-For']).to be_eql('192.168.1.1, 2.2.2.2, 3.3.3.3')
         end
       end
     end
