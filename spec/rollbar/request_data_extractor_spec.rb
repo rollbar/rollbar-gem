@@ -147,6 +147,12 @@ describe Rollbar::RequestDataExtractor do
           expect(result[:headers]['X-Forwarded-For']).to be_eql('2.2.2.2, 3.3.3.3')
         end
         
+        it 'extracts the correct X-Real-Ip' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:headers]['X-Real-Ip']).to be_eql('2.2.2.2')
+        end
+        
         context 'with collect_user_ip configuration option disabled' do
           before do
             Rollbar.configuration.collect_user_ip = false
@@ -162,6 +168,12 @@ describe Rollbar::RequestDataExtractor do
             result = subject.extract_request_data_from_rack(env)
 
             expect(result[:headers]['X-Forwarded-For']).to be_nil
+          end
+        
+          it 'does not extract user\'s IP on X-Real-Ip header' do
+            result = subject.extract_request_data_from_rack(env)
+  
+            expect(result[:headers]['X-Real-Ip']).to be_nil
           end
         end
         
@@ -181,6 +193,12 @@ describe Rollbar::RequestDataExtractor do
   
             expect(result[:headers]['X-Forwarded-For']).to be_eql('2.2.2.0, 3.3.3.0')
           end
+          
+          it 'it anonymizes IP addresses in X-Real-Ip' do
+            result = subject.extract_request_data_from_rack(env)
+  
+            expect(result[:headers]['X-Real-Ip']).to be_eql('2.2.2.0')
+          end
         end
       end
 
@@ -198,6 +216,12 @@ describe Rollbar::RequestDataExtractor do
           result = subject.extract_request_data_from_rack(env)
 
           expect(result[:headers]['X-Forwarded-For']).to be_eql('192.168.1.1, 2.2.2.2, 3.3.3.3')
+        end
+        
+        it 'extracts the correct X-Real-Ip' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:headers]['X-Real-Ip']).to be_eql('2.2.2.2')
         end
       end
     end
