@@ -39,8 +39,11 @@ module Rollbar
     end
 
     def self.skip_report?(job_hash, e)
-      !job_hash.nil? && (job_hash['retry'] && job_hash['retry_count'] &&
-        job_hash['retry_count'] < ::Rollbar.configuration.sidekiq_threshold)
+      return false if job_hash.nil?
+      # when rollbar middleware catches, sidekiq's retry_job processor hasn't set
+      # the retry_count for the current job yet, so adding 1 gives the actual retry count
+      actual_retry_count = job_hash.fetch('retry_count', -1) + 1
+      job_hash['retry'] && actual_retry_count < ::Rollbar.configuration.sidekiq_threshold
     end
 
     def call(worker, msg, queue)
