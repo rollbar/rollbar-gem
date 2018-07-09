@@ -54,4 +54,7 @@ else
   gem 'webmock', :require => false
 end
 
+gem 'aws-sdk-sqs'
+gem 'shoryuken'
+
 gemspec :path => '../'

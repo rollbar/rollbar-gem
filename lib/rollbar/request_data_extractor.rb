@@ -103,6 +103,16 @@ module Rollbar
           {}
         elsif sensitive_headers_list.include?(name)
           { name => Rollbar::Scrubbers.scrub_value(env[header]) }
+        elsif name == 'X-Forwarded-For' && !Rollbar.configuration.collect_user_ip
+          {}
+        elsif name == 'X-Forwarded-For' && Rollbar.configuration.collect_user_ip && Rollbar.configuration.anonymize_user_ip
+          ips = env[header].sub(" ", "").split(',')
+          ips = ips.map { |ip| Rollbar::Util::IPAnonymizer.anonymize_ip(ip) }
+          { name => ips.join(', ') }
+        elsif name == 'X-Real-Ip' && !Rollbar.configuration.collect_user_ip
+          {}
+        elsif name == 'X-Real-Ip' && Rollbar.configuration.collect_user_ip && Rollbar.configuration.anonymize_user_ip
+          { name => Rollbar::Util::IPAnonymizer.anonymize_ip(env[header]) }
         else
           { name => env[header] }
         end

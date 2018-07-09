@@ -1,5 +1,9 @@
 # Change Log
 
+## 2.16.0 and above
+
+For changes in version 2.16 and above, the change log has moved to this repo's [GitHub Releases Page](https://github.com/rollbar/rollbar-gem/releases)
+
 ## 2.15.6
 - Update rollbar.js snippet to `v2.3.8` [#680](https://github.com/rollbar/rollbar-gem/issues/680)
 - Update `delayed_job` dependency to `4.1.3` [#672](https://github.com/rollbar/rollbar-gem/issues/672)
