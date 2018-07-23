@@ -35,4 +35,4 @@ For bug reports, please [open an issue on GitHub](https://github.com/rollbar/rol
 We're using RSpec for testing. Run the test suite with ```rake spec```. Tests for pull requests are appreciated but not required. (If you don't include a test, we'll write one before merging.)
 
 ## License
-Rollbar-gem is free software released under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
+Rollbar-gem is free software released under the MIT License. See [LICENSE](LICENSE) for details.
