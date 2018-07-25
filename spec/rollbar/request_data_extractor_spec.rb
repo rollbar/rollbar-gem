@@ -18,12 +18,14 @@ describe Rollbar::RequestDataExtractor do
     let(:url) { 'http://this-is-the-url.com/foobar?param1=value1' }
     let(:sensitive_params) { [:param1, :param2] }
     let(:scrub_fields) { [:password, :secret] }
+    let(:scrub_whitelist) { false }
 
     before do
       allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_fields)
       allow(Rollbar.configuration).to receive(:scrub_user).and_return(true)
       allow(Rollbar.configuration).to receive(:scrub_password).and_return(true)
       allow(Rollbar.configuration).to receive(:randomize_secret_length).and_return(true)
+      allow(Rollbar.configuration).to receive(:scrub_whitelist).and_return(false)
     end
 
     it 'calls the scrubber with the correct options' do
@@ -32,7 +34,8 @@ describe Rollbar::RequestDataExtractor do
         :scrub_fields => [:password, :secret, :param1, :param2],
         :scrub_user => true,
         :scrub_password => true,
-        :randomize_scrub_length => true
+        :randomize_scrub_length => true,
+        :whitelist => false
       }
 
       expect(Rollbar::Scrubbers::URL).to receive(:call).with(expected_options)
@@ -50,16 +53,19 @@ describe Rollbar::RequestDataExtractor do
     end
     let(:sensitive_params) { [:param1, :param2] }
     let(:scrub_fields) { [:password, :secret] }
+    let(:scrub_whitelist) { false }
 
     before do
       allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_fields)
+      allow(Rollbar.configuration).to receive(:scrub_whitelist).and_return(scrub_whitelist)
     end
 
     it 'calls the scrubber with the correct options' do
       expected_options = {
         :params => params,
         :config => scrub_fields,
-        :extra_fields => sensitive_params
+        :extra_fields => sensitive_params,
+        :whitelist => scrub_whitelist
       }
 
       expect(Rollbar::Scrubbers::Params).to receive(:call).with(expected_options)

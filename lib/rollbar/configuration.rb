@@ -43,6 +43,7 @@ module Rollbar
     attr_accessor :scrub_fields
     attr_accessor :scrub_user
     attr_accessor :scrub_password
+    attr_accessor :scrub_whitelist
     attr_accessor :collect_user_ip
     attr_accessor :anonymize_user_ip
     attr_accessor :user_ip_obfuscator_secret
@@ -108,6 +109,7 @@ module Rollbar
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true
+      @scrub_whitelist = false
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
       @sidekiq_threshold = 0
