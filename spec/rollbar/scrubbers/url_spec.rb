@@ -7,6 +7,7 @@ describe Rollbar::Scrubbers::URL do
     {
       :url => url,
       :scrub_fields => [:password, :secret],
+      :scrub_fields_whitelist => [],
       :scrub_user => false,
       :scrub_password => false,
       :randomize_scrub_length => true
@@ -48,6 +49,7 @@ describe Rollbar::Scrubbers::URL do
           {
             :url => url,
             :scrub_fields => [],
+            :scrub_fields_whitelist => [],
             :scrub_password => true,
             :scrub_user => true
           }
@@ -80,6 +82,26 @@ describe Rollbar::Scrubbers::URL do
             expect(subject.call(options)).to match(expected_url)
           end
         end
+
+        context 'with some whitelisted' do
+          let(:options) do
+            {
+              :url => url,
+              :scrub_fields => [:password, :secret],
+              :scrub_fields_whitelist => [:secret],
+              :scrub_user => false,
+              :scrub_password => false,
+              :randomize_scrub_length => true
+            }
+          end
+          let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue#fragment' }
+
+          it 'returns the URL with some params filtered' do
+            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{3,8}&secret=somevalue#fragment/
+
+            expect(subject.call(options)).to match(expected_url)
+          end
+        end
       end
 
       context 'with no-random scrub length' do
@@ -87,6 +109,7 @@ describe Rollbar::Scrubbers::URL do
           {
             :url => url,
             :scrub_fields => [:password, :secret],
+            :scrub_fields_whitelist => [],
             :scrub_user => false,
             :scrub_password => false,
             :randomize_scrub_length => false
@@ -120,6 +143,7 @@ describe Rollbar::Scrubbers::URL do
           {
             :url => url,
             :scrub_fields => [:passwd, :password, :password_confirmation, :secret, :confirm_password, :secret_token, :api_key, :access_token, :auth, :SAMLResponse, :password, :auth],
+            :scrub_fields_whitelist => [],
             :scrub_user => true,
             :scrub_password => true,
             :randomize_scrub_length => true

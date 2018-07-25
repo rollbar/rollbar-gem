@@ -21,19 +21,21 @@ module Rollbar
         return {} unless params
 
         config = options[:config]
+        whitelist = (options[:whitelist] || []).map{|s| s.to_s}
         extra_fields = options[:extra_fields]
 
-        scrub(params, build_scrub_options(config, extra_fields))
+        scrub(params, build_scrub_options(config, whitelist, extra_fields))
       end
 
       private
 
-      def build_scrub_options(config, extra_fields)
+      def build_scrub_options(config, whitelist, extra_fields)
         ary_config = Array(config)
 
         {
           :fields_regex => build_fields_regex(ary_config, extra_fields),
-          :scrub_all => ary_config.include?(SCRUB_ALL)
+          :scrub_all => ary_config.include?(SCRUB_ALL),
+          :fields_whitelist => whitelist
         }
       end
 
@@ -49,11 +51,15 @@ module Rollbar
       def scrub(params, options)
         fields_regex = options[:fields_regex]
         scrub_all = options[:scrub_all]
+        fields_whitelist = options[:fields_whitelist]
 
         return scrub_array(params, options) if params.is_a?(Array)
 
         params.to_hash.inject({}) do |result, (key, value)|
-          if fields_regex === Rollbar::Encoding.encode(key).to_s
+          k = Rollbar::Encoding.encode(key).to_s
+          if fields_whitelist.include?(k)
+            result[key] = rollbar_filtered_param_value(value) 
+          elsif fields_regex === k
             result[key] = scrub_value(value)
           elsif value.is_a?(Hash)
             result[key] = scrub(value, options)

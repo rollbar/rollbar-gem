@@ -41,6 +41,7 @@ module Rollbar
     attr_accessor :js_enabled
     attr_accessor :safely
     attr_accessor :scrub_fields
+    attr_accessor :scrub_fields_whitelist
     attr_accessor :scrub_user
     attr_accessor :scrub_password
     attr_accessor :collect_user_ip
@@ -103,8 +104,9 @@ module Rollbar
       @js_enabled = false
       @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
-                       :confirm_password, :password_confirmation, :secret_token,
+                       :confirm_password, :secret_token,
                        :api_key, :access_token]
+      @scrub_fields_whitelist = []
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true

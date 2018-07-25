@@ -61,6 +61,7 @@ module Rollbar
       options = {
         :url => url,
         :scrub_fields => Array(Rollbar.configuration.scrub_fields) + sensitive_params,
+        :scrub_fields_whitelist => Rollbar.configuration.scrub_fields_whitelist,
         :scrub_user => Rollbar.configuration.scrub_user,
         :scrub_password => Rollbar.configuration.scrub_password,
         :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length
@@ -73,6 +74,7 @@ module Rollbar
       options = {
         :params => params,
         :config => Rollbar.configuration.scrub_fields,
+        :whitelist => Rollbar.configuration.scrub_fields_whitelist,
         :extra_fields => sensitive_params
       }
       Rollbar::Scrubbers::Params.call(options)
