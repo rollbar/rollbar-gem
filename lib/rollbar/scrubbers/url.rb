@@ -18,7 +18,8 @@ module Rollbar
                build_regex(options[:scrub_fields]),
                options[:scrub_user],
                options[:scrub_password],
-               options.fetch(:randomize_scrub_length, true))
+               options.fetch(:randomize_scrub_length, true),
+               options[:whitelist])
       rescue => e
         Rollbar.logger.error("[Rollbar] There was an error scrubbing the url: #{e}, options: #{options.inspect}")
         url
@@ -26,12 +27,12 @@ module Rollbar
 
       private
 
-      def filter(url, regex, scrub_user, scrub_password, randomize_scrub_length)
+      def filter(url, regex, scrub_user, scrub_password, randomize_scrub_length, whitelist)
         uri = URI.parse(url)
 
         uri.user = filter_user(uri.user, scrub_user, randomize_scrub_length)
         uri.password = filter_password(uri.password, scrub_password, randomize_scrub_length)
-        uri.query = filter_query(uri.query, regex, randomize_scrub_length)
+        uri.query = filter_query(uri.query, regex, randomize_scrub_length, whitelist)
 
         uri.to_s
       end
@@ -52,12 +53,12 @@ module Rollbar
         scrub_password && password ? filtered_value(password, randomize_scrub_length) : password
       end
 
-      def filter_query(query, regex, randomize_scrub_length)
+      def filter_query(query, regex, randomize_scrub_length, whitelist)
         return query unless query
 
         params = decode_www_form(query)
 
-        encoded_query = encode_www_form(filter_query_params(params, regex, randomize_scrub_length))
+        encoded_query = encode_www_form(filter_query_params(params, regex, randomize_scrub_length, whitelist))
 
         # We want this to rebuild array params like foo[]=1&foo[]=2
         URI.escape(CGI.unescape(encoded_query))
@@ -71,9 +72,13 @@ module Rollbar
         URI.encode_www_form(params)
       end
 
-      def filter_query_params(params, regex, randomize_scrub_length)
+      def filter_query_params(params, regex, randomize_scrub_length, whitelist)
         params.map do |key, value|
-          [key, filter_key?(key, regex) ? filtered_value(value, randomize_scrub_length) : value]
+          if whitelist
+            [key, filter_key?(key, regex) ? value : filtered_value(value, randomize_scrub_length)]
+          else
+            [key, filter_key?(key, regex) ? filtered_value(value, randomize_scrub_length) : value]
+          end
         end
       end
 
