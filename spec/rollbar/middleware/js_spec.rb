@@ -339,7 +339,7 @@ END
         end
         let(:expected_js_options) do
           {
-            :foo => :bar,
+            :foo => 'bar',
             :payload => {
               :a => 42,
               :person => {
@@ -354,8 +354,11 @@ END
         it 'adds the person data to the configuration' do
           _, _, response = subject.call(env)
           new_body = response.body.join
-
-          expect(new_body).to include(expected_js_options.to_json)
+          
+          rollbar_config = new_body[/var _rollbarConfig = (.*);<\/script>/, 1]
+          rollbar_config = JSON.parse(rollbar_config, { :symbolize_names => true})
+          
+          expect(rollbar_config).to eql(expected_js_options)
         end
 
         context 'when the person data is nil' do
