@@ -143,66 +143,69 @@ describe Rollbar::Scrubbers::URL do
       
       let(:whitelist) { true }
       
-      context 'cannot scrub URLs' do
-        next if Rollbar::LanguageSupport.can_scrub_url?
-  
-        let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
-  
-        it 'returns the URL without any change' do
-          expect(subject.call(options)).to be_eql(url)
-        end
-      end
+      context 'with ruby different from 1.8' do
+        next unless Rollbar::LanguageSupport.can_scrub_url?
         
-      context 'scrubbing user and password' do
-        let(:options) do
-          {
-            :url => url,
-            :scrub_fields => [],
-            :scrub_password => true,
-            :scrub_user => true,
-            :whitelist => whitelist
-          }
+        context 'cannot scrub URLs' do
+    
+          let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
+    
+          it 'returns the URL without any change' do
+            expect(subject.call(options)).to be_eql(url)
+          end
         end
-
-        let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
-
-        it 'returns the URL without any change' do
-          expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
-
-          expect(subject.call(options)).to match(expected_url)
-        end
-      end
-      
-      context 'with params to be filtered' do
-        let(:options) do
-          {
-            :url => url,
-            :scrub_fields => [:dont_scrub],
-            :scrub_password => false,
-            :scrub_user => false,
-            :whitelist => whitelist
-          }
-        end
-        
-        let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
-
-        it 'returns the URL with some params filtered' do
-          expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=\*{3,8}&dont_scrub=foo#fragment/
-
-          expect(subject.call(options)).to match(expected_url)
-        end
-
-        context 'having array params' do
-          let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
-
-          it 'returns the URL with some params filtered' do
-            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}&dont_scrub=foo#fragment/
-
+          
+        context 'scrubbing user and password' do
+          
+          let(:options) do
+            {
+              :url => url,
+              :scrub_fields => [],
+              :scrub_password => true,
+              :scrub_user => true,
+              :whitelist => whitelist
+            }
+          end
+  
+          let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
+  
+          it 'returns the URL without any change' do
+            expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
+  
             expect(subject.call(options)).to match(expected_url)
           end
         end
+        
+        context 'with params to be filtered' do
+          let(:options) do
+            {
+              :url => url,
+              :scrub_fields => [:dont_scrub],
+              :scrub_password => false,
+              :scrub_user => false,
+              :whitelist => whitelist
+            }
+          end
+          
+          let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
+  
+          it 'returns the URL with some params filtered' do
+            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=\*{3,8}&dont_scrub=foo#fragment/
+            
+            expect(subject.call(options)).to match(expected_url)
+          end
+  
+          context 'having array params' do
+            let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
+  
+            it 'returns the URL with some params filtered' do
+              expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}&dont_scrub=foo#fragment/
+  
+              expect(subject.call(options)).to match(expected_url)
+            end
+          end
+        end
       end
-      
     end
   end
 end
