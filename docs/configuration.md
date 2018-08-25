@@ -64,6 +64,12 @@ end
 What logger to use for printing debugging and informational messages during
 operation.
 
+### logger_level
+
+**Default** `:info`
+
+Regardless of what Logger you're using, Rollbar will not proxy logs to it if its less than this particular level.
+
 ### disable_monkey_patch
 
 **Default** `false`

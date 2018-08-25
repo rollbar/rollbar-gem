@@ -12,6 +12,7 @@ module Rollbar
     attr_accessor :custom_data_method
     attr_accessor :delayed_job_enabled
     attr_accessor :default_logger
+    attr_reader :logger_level
     attr_accessor :disable_monkey_patch
     attr_accessor :disable_rack_monkey_patch
     attr_accessor :disable_core_monkey_patch
@@ -74,6 +75,7 @@ module Rollbar
       @code_version = nil
       @custom_data_method = nil
       @default_logger = lambda { ::Logger.new(STDERR) }
+      @logger_level = :info
       @delayed_job_enabled = true
       @disable_monkey_patch = false
       @disable_core_monkey_patch = false
@@ -248,6 +250,10 @@ module Rollbar
     # allow params to be read like a hash
     def [](option)
       send(option)
+    end
+
+    def logger_level=(level)
+      @logger_level = level.to_sym
     end
 
     def logger

@@ -8,6 +8,7 @@ describe Rollbar::LoggerProxy do
 
   before do
     allow(Rollbar.configuration).to receive(:enabled).and_return(true)
+    allow(Rollbar.configuration).to receive(:logger_level).and_return(:debug)
   end
 
   shared_examples 'delegate to logger' do
@@ -44,6 +45,24 @@ describe Rollbar::LoggerProxy do
         allow(logger).to receive(:info).and_raise(StandardError.new)
 
         expect { subject.log('info', message) }.not_to raise_error
+      end
+    end
+
+    context 'if logger_level is :info' do
+      before do
+        allow(Rollbar.configuration).to receive(:logger_level).and_return(:info)
+      end
+
+      it 'doesnt call the logger (debug)' do
+        expect(logger).to_not receive(:debug)
+
+        subject.log('debug', 'foo')
+      end
+
+      it 'calls the logger (error)' do
+        expect(logger).to receive(:error)
+
+        subject.log('error', 'foo')
       end
     end
   end
