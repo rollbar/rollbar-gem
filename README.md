@@ -1,5 +1,7 @@
-# Rollbar-gem 
+# Rollbar-gem
 [![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=master)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+[![Gem Version](https://badge.fury.io/rb/rollbar.svg)](http://badge.fury.io/rb/rollbar)
+[![SemVer](https://api.dependabot.com/badges/compatibility_score?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&target-version=latest)](https://dependabot.com/compatibility-score.html?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&new-version=latest)
 
 [Rollbar](https://rollbar.com) is a real-time exception reporting service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
 
@@ -13,7 +15,7 @@ Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, 
 ## Usage and Reference
 
 For complete usage instructions and configuration reference, see our [Ruby SDK docs](https://docs.rollbar.com/docs/ruby).
-  
+
 ## Release History & Changelog
 
 See our [Releases](https://github.com/rollbar/rollbar-gem/releases) page for a list of all releases, including changes.
