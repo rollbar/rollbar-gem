@@ -42,11 +42,22 @@ describe Rollbar::Notifier do
   end
   
   if RUBY_PLATFORM == 'java'
-    describe "#extract_arguments" do
-      it "extracts Java exceptions" do
+    describe '#extract_arguments' do
+      # See https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html
+      # for more background
+      it 'extracts java.lang.Exception' do
         begin
-          raise java.lang.Exception.new("Hello")
-        rescue java.lang.Exception => e
+          raise java.lang.Exception.new('Hello')
+        rescue => e
+          message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
+          expect(exception).to eq(e)
+        end
+      end
+      
+      it 'extracts java.lang.Error' do
+        begin
+          raise java.lang.AssertionError.new('Hello')
+        rescue java.lang.Error => e
           message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
           expect(exception).to eq(e)
         end
