@@ -179,8 +179,11 @@ module Rollbar
       @async_handler  = Rollbar::Delay::Resque
     end
 
-    def use_shoryuken
+    def use_shoryuken(options = {})
       require 'rollbar/delay/shoryuken' if defined?(Shoryuken)
+
+      Rollbar::Delay::Shoryuken.queue = options[:queue] if options[:queue]
+
       @use_async      = true
       @async_handler  = Rollbar::Delay::Shoryuken
     end
