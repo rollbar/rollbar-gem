@@ -17,6 +17,7 @@ module Rollbar
     attr_accessor :disable_rack_monkey_patch
     attr_accessor :disable_core_monkey_patch
     attr_accessor :dj_threshold
+    attr_accessor :dj_only_report_failures
     attr_accessor :enabled
     attr_accessor :endpoint
     attr_accessor :environment
@@ -81,6 +82,7 @@ module Rollbar
       @disable_core_monkey_patch = false
       @disable_rack_monkey_patch = false
       @dj_threshold = 0
+      @dj_only_report_failures = false
       @enabled = nil # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
       @environment = nil

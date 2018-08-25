@@ -54,7 +54,10 @@ module Rollbar
     end
 
     def self.skip_report?(job)
-      job.attempts < ::Rollbar.configuration.dj_threshold
+      job.attempts < ::Rollbar.configuration.dj_threshold && (
+        !::Rollbar.configuration.dj_only_report_failures ||
+          !job.failed_at
+      )
     end
 
     def self.build_job_data(job)
