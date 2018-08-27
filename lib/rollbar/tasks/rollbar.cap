@@ -33,6 +33,15 @@ namespace :rollbar do
 end
 
 namespace :deploy do
+  task :get_current_revision do
+    on primary fetch(:rollbar_role) do
+      within release_path do
+        set(:current_revision, capture(:cat, 'REVISIONS'))
+      end
+    end
+  end
+
+  after 'deploy:finishing_rollback', 'deploy:get_current_revision'
   after 'deploy:finished', 'rollbar:deploy'
 end
 
