@@ -64,6 +64,12 @@ end
 What logger to use for printing debugging and informational messages during
 operation.
 
+### logger_level
+
+**Default** `:info`
+
+Regardless of what Logger you're using, Rollbar will not proxy logs to it if its less than this particular level.
+
 ### disable_monkey_patch
 
 **Default** `false`
@@ -131,6 +137,12 @@ tracked by [rollbar-agent](https://github.com/rollbar/rollbar-agent).
 Indicates which framework you're using. Common options include 'Rails',
 'Sinatra', and 'Rack' to name a few.
 
+### host
+
+**Default** `nil`
+
+The hostname (reported to Rollbar as `server.host`). When nil, the value of `Socket.gethostname` will be used.
+
 ### ignored_person_ids
 
 **Default** `[]`
@@ -168,11 +180,15 @@ if `person_method` not present.
 
 ### person_username_method
 
+**Default** `nil`
+
 A string or symbol giving the name of the method on the user instance that
 returns the person's username. Gets called on the result of `person_method`.
 Ignored if `person_method` not present.
 
 ### person_email_method
+
+**Default** `nil`
 
 A string or symbol giving the name of the method on the user instance that
 returns the person's email. Gets called on the result of `person_method`.
@@ -211,7 +227,7 @@ Sets the number of retries cause timeouts on the POST request.
 ### root
 
 Set the server root, all stack frames outside that root are considered
-'non-project' frames. Also used to setup Github linking.
+'non-project' frames. Also used to setup GitHub linking.
 
 ### safely
 
@@ -287,6 +303,12 @@ installed, uses `girl_friday`, otherwise defaults to `Thread`.
 
 When `true` indicates you wish to send data to Rollbar with `eventmachine`.
 Won't work unless `eventmachine` is installed.
+
+### use_exception_level_filters_default
+
+**Default** `false`
+
+When `true` the notifier will use the `exception_level_filters` when reporting. It can be overriden using `:use_exception_level_filters` option. see [Exception level filters](https://github.com/rollbar/rollbar-gem#exception-level-filters)
 
 ### web_base
 

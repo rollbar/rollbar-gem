@@ -20,6 +20,7 @@ describe Rollbar::Item do
   let(:exception) {}
   let(:extra) {}
   let(:scope) {}
+  let(:context) {}
 
   let(:options) do
     {
@@ -30,7 +31,8 @@ describe Rollbar::Item do
       :configuration => configuration,
       :logger => logger,
       :scope => scope,
-      :notifier => notifier
+      :notifier => notifier,
+      :context => context
     }
   end
 
@@ -119,6 +121,47 @@ describe Rollbar::Item do
       payload['data'][:body][:message][:extra].should_not be_nil
       payload['data'][:body][:message][:extra][:a].should == 1
       payload['data'][:body][:message][:extra][:b][2].should == 4
+    end
+    
+    context do
+      let(:context) { { :controller => "ExampleController" } }
+    
+      it 'should have access to the context in custom_data_method' do
+        configuration.custom_data_method = lambda do |message, exception, context|
+          { :result => "MyApp#" + context[:controller] }
+        end
+  
+        payload['data'][:body][:message][:extra].should_not be_nil
+        payload['data'][:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
+      end
+      
+      it 'should not include data passed in :context if there is no custom_data_method configured' do
+        configuration.custom_data_method = nil
+  
+        payload['data'][:body][:message][:extra].should be_nil
+      end
+      
+      it 'should have access to the message in custom_data_method' do
+        configuration.custom_data_method = lambda do |message, exception, context|
+          { :result => "Transformed in custom_data_method: " + message }
+        end
+        
+        payload['data'][:body][:message][:extra].should_not be_nil
+        payload['data'][:body][:message][:extra][:result].should == "Transformed in custom_data_method: " + message
+      end
+      
+      context do
+        let(:exception) { Exception.new "Exception to test custom_data_method" }
+        
+        it 'should have access to the current exception in custom_data_method' do
+          configuration.custom_data_method = lambda do |message, exception, context|
+            { :result => "Transformed in custom_data_method: " + exception.message }
+          end
+          
+          payload['data'][:body][:trace][:extra].should_not be_nil
+          payload['data'][:body][:trace][:extra][:result].should == "Transformed in custom_data_method: " + exception.message
+        end
+      end
     end
 
     context do
@@ -585,6 +628,18 @@ describe Rollbar::Item do
         payload['data'][:server][:root].should == '/path/to/root'
         payload['data'][:server][:branch].should == 'master'
       end
+
+      context 'with custom hostname' do
+        before do
+          configuration.host = host
+        end
+
+        let(:host) { 'my-custom-hostname' }
+
+        it 'sends the custom hostname' do
+          expect(payload['data'][:server][:host]).to be_eql(host)
+        end
+      end
     end
 
     context 'with ignored person ids' do
@@ -646,10 +701,35 @@ describe Rollbar::Item do
       end
 
       it 'calls Notifier#send_failsafe and logs the error' do
-        expect(notifier).to receive(:send_failsafe)
-        expect(logger).to receive(:error)
+        original_size = Rollbar::JSON.dump(payload).bytesize
+        final_size = Rollbar::Truncation.truncate(payload.clone).bytesize
+        # final_size = original_size
+        rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}"
+        uuid = payload['data']['uuid']
+        host = payload['data']['server']['host']
+        log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
+
+        expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, uuid, host)
+        expect(logger).to receive(:error).with(log_message)
 
         item.dump
+      end
+
+      context 'with missing server data' do
+        it 'calls Notifier#send_failsafe and logs the error' do
+          payload['data'].delete('server')
+          original_size = Rollbar::JSON.dump(payload).bytesize
+          final_size = Rollbar::Truncation.truncate(payload.clone).bytesize
+          # final_size = original_size
+          rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}"
+          uuid = payload['data']['uuid']
+          log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
+
+          expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, uuid, nil)
+          expect(logger).to receive(:error).with(log_message)
+
+          item.dump
+        end
       end
     end
   end

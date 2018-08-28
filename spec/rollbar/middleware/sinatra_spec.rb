@@ -115,7 +115,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           get '/foo', params
         end.to raise_error(exception)
 
-        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+        expect(Rollbar.last_report[:request][:GET]).to be_eql(params)
       end
     end
 
@@ -132,7 +132,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           post '/crash_post', params
         end.to raise_error(exception)
 
-        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+        expect(Rollbar.last_report[:request][:POST]).to be_eql(params)
       end
     end
 
@@ -149,7 +149,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           post '/crash_post', params.to_json, { 'CONTENT_TYPE' => 'application/json' }
         end.to raise_error(exception)
 
-        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+        expect(Rollbar.last_report[:request][:body]).to be_eql(params.to_json)
       end
 
       it 'appears in the sent payload when the accepts header contains json' do
@@ -157,16 +157,16 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           post '/crash_post', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
         end.to raise_error(exception)
 
-        expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+        expect(Rollbar.last_report[:request][:POST]).to be_eql(params)
       end
     end
 
-    it 'resets the notifier in every request' do
+    it 'resets the notifier scope in every request' do
       get '/bar'
-      id1 = Rollbar.notifier.object_id
+      id1 = Rollbar.scope_object.object_id
 
       get '/bar'
-      id2 = Rollbar.notifier.object_id
+      id2 = Rollbar.scope_object.object_id
 
       expect(id1).not_to be_eql(id2)
     end

@@ -1,6 +1,6 @@
 module Rollbar
   module Middleware
-    module Rack
+    class Rack
       module TestSession
         include ExceptionReporter
 

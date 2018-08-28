@@ -21,4 +21,26 @@ describe Rollbar::Configuration do
       expect(subject.async_handler).to be_eql(Rollbar::Delay::Resque)
     end
   end
+
+  describe '#merge' do
+    it 'returns a new object with overrided values' do
+      subject.environment = 'foo'
+
+      new_config = subject.merge(:environment => 'bar')
+
+      expect(new_config).not_to be(subject)
+      expect(new_config.environment).to be_eql('bar')
+    end
+  end
+
+  describe '#merge!' do
+    it 'returns the same object with overrided values' do
+      subject.environment = 'foo'
+
+      new_config = subject.merge!(:environment => 'bar')
+
+      expect(new_config).to be(subject)
+      expect(new_config.environment).to be_eql('bar')
+    end
+  end
 end

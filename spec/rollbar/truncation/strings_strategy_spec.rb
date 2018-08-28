@@ -43,7 +43,7 @@ describe Rollbar::Truncation::StringsStrategy do
 
     context 'when first threshold is not enough' do
       let(:payload) do
-        129.times.to_enum.reduce({}) do |hash, i|
+        512.times.to_enum.reduce({}) do |hash, i|
           hash[i.to_s] = 'a' * 1024
           hash
         end
@@ -58,7 +58,7 @@ describe Rollbar::Truncation::StringsStrategy do
 
     context 'when second threshold is still not enough' do
       let(:payload) do
-        257.times.to_enum.reduce({}) do |hash, i|
+        1024.times.to_enum.reduce({}) do |hash, i|
           hash[i.to_s] = 'a' * 1024
           hash
         end

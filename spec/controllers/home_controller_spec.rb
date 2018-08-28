@@ -1,11 +1,20 @@
 require 'spec_helper'
 
 
+def wrap_process_args(*args)
+  if ::Gem::Version.new(::Rails.version) >= ::Gem::Version.new('5.0')
+    [{ :params => args[0], :headers => args[1] }]
+  else
+    args
+  end
+end
+
 describe HomeController do
   let(:logger_mock) { double("Rails.logger").as_null_object }
   let(:notifier) { Rollbar.notifier }
 
   before do
+    Rollbar.clear_notifier!
     reset_configuration
     preconfigure_rails_notifier
 
@@ -19,7 +28,7 @@ describe HomeController do
 
   context "rollbar base_data" do
     it 'should have the Rails environment' do
-      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
       data['data'][:environment].should == ::Rails.env
     end
 
@@ -28,7 +37,7 @@ describe HomeController do
         config.environment = 'dev'
       end
 
-      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
       data['data'][:environment].should == 'dev'
     end
 
@@ -36,7 +45,7 @@ describe HomeController do
       old_env, ::Rails.env = ::Rails.env, ''
       preconfigure_rails_notifier
 
-      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
       data['data'][:environment].should == 'unspecified'
 
       ::Rails.env = old_env
@@ -53,7 +62,6 @@ describe HomeController do
       data.should have_key(:headers)
       data.should have_key(:session)
       data.should have_key(:method)
-      data.should have_key(:route)
     end
 
     it "should build empty person data when no one is logged-in" do
@@ -169,21 +177,10 @@ describe HomeController do
     end
 
     context "rollbar_route_params", :type => 'request' do
-      it "should save route params in request[:route]" do
-        route = controller.send(:rollbar_request_data)[:route]
-
-        route.should have_key(:controller)
-        route.should have_key(:action)
-        route.should have_key(:format)
-
-        route[:controller].should == 'home'
-        route[:action].should == 'index'
-      end
-
       it "should save controller and action in the payload body" do
         post '/report_exception'
 
-        route = controller.send(:rollbar_request_data)[:route]
+        route = controller.send(:rollbar_request_data)[:params]
 
         route[:controller].should == 'home'
         route[:action].should == 'report_exception'
@@ -204,9 +201,9 @@ describe HomeController do
         :secret_token => "f6805fea1cae0fb79c5e63bbdcd12bc6",
       }
 
-      post '/report_exception', params
+      post '/report_exception', *wrap_process_args(params)
 
-      filtered = Rollbar.last_report[:request][:params]
+      filtered = Rollbar.last_report[:request][:POST]
 
       expect(filtered["passwd"]).to match(/\**/)
       expect(filtered["password"]).to match(/\**/)
@@ -227,9 +224,9 @@ describe HomeController do
         :notpass => "hidden"
       }
 
-      post '/report_exception', params
+      post '/report_exception', *wrap_process_args(params)
 
-      filtered = Rollbar.last_report[:request][:params]
+      filtered = Rollbar.last_report[:request][:POST]
 
       filtered["passwd"].should == "visible"
       # config.filter_parameters is set to [:password] in
@@ -259,20 +256,20 @@ describe HomeController do
     it "should raise a NameError and have PUT params in the reported exception" do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      put '/report_exception', { :putparam => "putval" }
+      put '/report_exception', *wrap_process_args({ :putparam => "putval" })
 
       Rollbar.last_report.should_not be_nil
-      Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+      Rollbar.last_report[:request][:POST]["putparam"].should == "putval"
     end
 
     context 'using deprecated report_exception' do
       it 'reports the errors successfully' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-        put '/deprecated_report_exception', { :putparam => "putval" }
+        put '/deprecated_report_exception', *wrap_process_args({ :putparam => "putval" })
 
         Rollbar.last_report.should_not be_nil
-        Rollbar.last_report[:request][:params]["putparam"].should == "putval"
+        Rollbar.last_report[:request][:POST]["putparam"].should == "putval"
       end
     end
 
@@ -281,10 +278,10 @@ describe HomeController do
       @request.env["HTTP_ACCEPT"] = "application/json"
 
       params = { :jsonparam => 'jsonval' }.to_json
-      post '/report_exception', params, { 'CONTENT_TYPE' => 'application/json' }
+      post '/report_exception', *wrap_process_args(params, { 'CONTENT_TYPE' => 'application/json' })
 
       Rollbar.last_report.should_not be_nil
-      Rollbar.last_report[:request][:params]['jsonparam'].should == 'jsonval'
+      expect(Rollbar.last_report[:request][:body]).to be_eql(params)
     end
   end
 
@@ -306,7 +303,7 @@ describe HomeController do
         config['action_dispatch.show_exceptions'] = true
       end
 
-      after(:each) do
+      after do
         if Dummy::Application.respond_to? :env_config
           config = Dummy::Application.env_config
         else
@@ -338,14 +335,40 @@ describe HomeController do
 
         before { cookies[:session_id] = user.id }
 
-        it 'sends the current user data' do
-          put '/report_exception', { 'foo' => 'bar' }
+        subject(:person_data) do
+          put '/report_exception', *wrap_process_args('foo' => 'bar')
 
-          person_data = Rollbar.last_report[:person]
+          Rollbar.last_report[:person]
+        end
 
-          expect(person_data[:id]).to be_eql(user.id)
-          expect(person_data[:email]).to be_eql(user.email)
-          expect(person_data[:username]).to be_eql(user.username)
+        context 'default' do
+          it 'sends the current user data excluding personally identifiable information' do
+            expect(person_data).to eq(:id => user.id,
+                                      :email => nil,
+                                      :username => nil)
+          end
+        end
+
+        context 'without EU GDPR subjects' do
+          context 'configured to send email addresses' do
+            before { Rollbar.configure { |config| config.person_email_method = 'email' } }
+
+            it 'sends the current user data including email address' do
+              expect(person_data).to eq(:id => user.id,
+                                        :email => 'foo@bar.com',
+                                        :username => nil)
+            end
+
+            context 'configured to send email addresses and username' do
+              before { Rollbar.configure { |config| config.person_username_method = 'username' } }
+
+              it 'sends the current user data including email address and username' do
+                  expect(person_data).to eq(:id => user.id,
+                                            :email => 'foo@bar.com',
+                                            :username => 'the_username')
+              end
+            end
+          end
         end
       end
     end
@@ -353,10 +376,10 @@ describe HomeController do
 
   context 'with routing errors', :type => :request do
     it 'raises a RoutingError exception' do
-      expect { get '/foo/bar', { :foo => :bar } }.to raise_exception(ActionController::RoutingError)
+      expect { get '/foo/bar', *wrap_process_args({ :foo => :bar }) }.to raise_exception(ActionController::RoutingError)
 
       report = Rollbar.last_report
-      expect(report[:request][:params]['foo']).to be_eql('bar')
+      expect(report[:request][:GET]['foo']).to be_eql('bar')
     end
   end
 
@@ -376,9 +399,9 @@ describe HomeController do
 
     context 'with a single upload' do
       it "saves attachment data" do
-        expect { post '/file_upload', { :upload => file1 } }.to raise_exception(NameError)
+        expect { post '/file_upload', *wrap_process_args({ :upload => file1 }) }.to raise_exception(NameError)
 
-        upload_param = Rollbar.last_report[:request][:params]['upload']
+        upload_param = Rollbar.last_report[:request][:POST]['upload']
 
         expect(upload_param).to have_key(:filename)
         expect(upload_param).to have_key(:type)
@@ -391,8 +414,8 @@ describe HomeController do
 
     context 'with multiple uploads', :type => :request do
       it "saves attachment data for all uploads" do
-        expect { post '/file_upload', { :upload => [file1, file2] } }.to raise_exception(NameError)
-        sent_params = Rollbar.last_report[:request][:params]['upload']
+        expect { post '/file_upload', *wrap_process_args({ :upload => [file1, file2] }) }.to raise_exception(NameError)
+        sent_params = Rollbar.last_report[:request][:POST]['upload']
 
         expect(sent_params).to be_kind_of(Array)
         expect(sent_params.size).to be(2)
@@ -417,10 +440,10 @@ describe HomeController do
 
     it 'parses the correct headers' do
       expect do
-        post '/cause_exception', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+        post '/cause_exception', *wrap_process_args(params, { 'ACCEPT' => 'application/vnd.github.v3+json' })
       end.to raise_exception(NameError)
 
-      expect(Rollbar.last_report[:request][:params]['foo']).to be_eql('bar')
+      expect(Rollbar.last_report[:request][:POST]['foo']).to be_eql('bar')
     end
   end
 
@@ -440,7 +463,7 @@ describe HomeController do
     end
 
     it 'scrubs sensible data from URL' do
-      expect { get '/cause_exception', { :password => 'my-secret-password' }, headers }.to raise_exception(NameError)
+      expect { get '/cause_exception', *wrap_process_args({ :password => 'my-secret-password' }, headers) }.to raise_exception(NameError)
 
       request_data = Rollbar.last_report[:request]
 
@@ -448,7 +471,7 @@ describe HomeController do
     end
   end
 
-  after(:each) do
+  after do
     Rollbar.configure do |config|
       config.logger = ::Rails.logger
     end

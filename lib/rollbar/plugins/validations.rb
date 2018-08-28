@@ -29,5 +29,15 @@ Rollbar.plugins.define('active_model') do
     ActiveModel::Validations.module_eval do
       include Rollbar::ActiveRecordExtension
     end
+
+    active_support_was_defined = defined?(ActiveRecord::Base)
+
+    ActiveSupport.on_load(:active_record) do
+      if active_support_was_defined
+        ActiveRecord::Base.class_eval do
+          include Rollbar::ActiveRecordExtension
+        end
+      end
+    end
   end
 end

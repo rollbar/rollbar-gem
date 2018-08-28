@@ -35,7 +35,12 @@ if ENV['TRAVIS_JDK_VERSION'] == 'oraclejdk7'
   Rollbar::Configuration::DEFAULT_ENDPOINT = 'https://api-alt.rollbar.com/api/1/item/'
 end
 
-Rake::Task['dummy:db:setup'].invoke
+if Gem::Version.new(Rails.version) < Gem::Version.new('5.0')
+  Rake::Task['dummy:db:setup'].invoke
+else
+  Rake::Task['dummy:db:test:prepare'].invoke
+end
+
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
@@ -65,12 +70,12 @@ RSpec.configure do |config|
   config.before(:each) do
     DatabaseCleaner.start
     DatabaseCleaner.clean
-    Rollbar.reset_notifier!
+    Rollbar.clear_notifier!
 
     stub_request(:any, /api.rollbar.com/).to_rack(RollbarAPI.new) if defined?(WebMock)
   end
 
-  config.after(:each) do
+  config.after do
     DatabaseCleaner.clean
   end
 

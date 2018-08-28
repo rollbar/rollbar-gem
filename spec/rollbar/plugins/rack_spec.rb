@@ -16,11 +16,11 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
   let(:app) do
     action_proc = action
 
-    Rack::Builder.new { run action_proc }
+    ::Rack::Builder.new { run action_proc }
   end
 
   let(:request) do
-    Rack::MockRequest.new(app)
+    ::Rack::MockRequest.new(app)
   end
 
   let(:exception) { kind_of(RackMockError) }
@@ -41,11 +41,11 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.get('/will_crash', :params => params)
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      expect(Rollbar.last_report[:request][:GET]).to be_eql(params)
     end
   end
 
-  context 'with POST parameters' do
+  context 'with JSON body parameters' do
     let(:params) do
       { 'key' => 'value' }
     end
@@ -55,7 +55,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:request][:params]).to be_eql(params)
+      expect(Rollbar.last_report[:request][:body]).to be_eql(params.to_json)
     end
   end
 
@@ -69,8 +69,8 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
-      reported_params = Rollbar.last_report[:request][:params]
-      expect(reported_params['body.multi']).to be_eql([{'key' => 'value'}, 'string', 10])
+      reported_body = Rollbar.last_report[:request][:body]
+      expect(reported_body).to be_eql({ 'body.multi' => [{'key' => 'value'}, 'string', 10] }.to_json)
     end
   end
 
@@ -82,8 +82,8 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
         request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
-      reported_params = Rollbar.last_report[:request][:params]
-      expect(reported_params['body.value']).to be_eql(1000)
+      reported_body = Rollbar.last_report[:request][:body]
+      expect(reported_body).to be_eql({ 'body.value' => params }.to_json)
     end
   end
 

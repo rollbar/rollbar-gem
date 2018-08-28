@@ -1,123 +1,153 @@
 require 'spec_helper'
 
-unless RUBY_VERSION == '1.8.7'
-  require 'sidekiq'
-end
+require 'sidekiq' unless RUBY_VERSION == '1.8.7'
 
 Rollbar.plugins.load!
 
 describe Rollbar::Sidekiq, :reconfigure_notifier => false do
   describe '.handle_exception' do
-    let(:msg_or_context) { ['hello', 'error_backtrace', 'backtrace', 'goodbye'] }
     let(:exception) { StandardError.new('oh noes') }
     let(:rollbar) { double }
-    let(:expected_args) do
+
+    let(:job_hash) do
       {
-        :request => { :params => ['hello', 'goodbye'] },
-        :framework => "Sidekiq: #{Sidekiq::VERSION}"
+        'class' => 'FooWorker',
+        'args' => %w(foo bar),
+        'queue' => 'default',
+        'jid' => '96aa59723946616dff537e97',
+        'enqueued_at' => Time.now.to_f,
+        'error_message' => exception.message,
+        'error_class' => exception.class,
+        'created_at' => Time.now.to_f,
+        'failed_at' => Time.now.to_f,
+        'retry' => 3,
+        'retry_count' => 0
       }
     end
 
-    subject { described_class }
+    let(:ctx_hash) do
+      { :context => 'Job raised exception', :job => job_hash }
+    end
 
-    it 'constructs scope from filtered params' do
+    let(:expected_scope) do
+      {
+        :request => {
+          :params => job_hash.reject { |k| described_class::PARAM_BLACKLIST.include?(k) }
+        },
+        :framework => "Sidekiq: #{Sidekiq::VERSION}",
+        :context => job_hash['class'],
+        :queue => job_hash['queue']
+      }
+    end
+
+    it 'constructs scope from ctx hash' do
       allow(rollbar).to receive(:error)
-      expect(Rollbar).to receive(:scope).with(expected_args) { rollbar }
+      expect(Rollbar).to receive(:scope).with(expected_scope) { rollbar }
 
-      described_class.handle_exception(msg_or_context, exception)
+      described_class.handle_exception(ctx_hash, exception)
+    end
+
+    context 'sidekiq < 4.2.3 ctx hash' do
+      let(:ctx_hash) { job_hash }
+
+      it 'constructs scope from ctx hash' do
+        allow(rollbar).to receive(:error)
+        expect(Rollbar).to receive(:scope).with(expected_scope) { rollbar }
+
+        described_class.handle_exception(ctx_hash, exception)
+      end
+    end
+
+    context 'sidekiq < 4.0.0 nil ctx hash from Launcher#actor_died' do
+      let(:ctx_hash) { nil }
+
+      it 'constructs scope from ctx hash' do
+        allow(rollbar).to receive(:error)
+        expect(Rollbar).to receive(:scope).with(
+          :framework => "Sidekiq: #{Sidekiq::VERSION}"
+        ) { rollbar }
+
+        described_class.handle_exception(ctx_hash, exception)
+      end
     end
 
     it 'sends the passed-in error to rollbar' do
       allow(Rollbar).to receive(:scope).and_return(rollbar)
       expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
 
-      described_class.handle_exception(msg_or_context, exception)
+      described_class.handle_exception(ctx_hash, exception)
     end
 
-    context 'with fields in params to be scrubbed' do
-      let(:msg_or_context) do
+    context 'with fields in job hash to be scrubbed' do
+      let(:ctx_hash) do
         {
-          :foo => 'bar',
-          :secret => 'foo',
-          :password => 'foo',
-          :password_confirmation => 'foo'
-        }
-      end
-      let(:expected_params) do
-        {
-          :foo => 'bar',
-          :secret => /\*+/,
-          :password => /\*+/,
-          :password_confirmation => /\*+/
+          :context => 'Job raised exception',
+          :job => job_hash.merge(
+            'foo' => 'bar',
+            'secret' => 'foo',
+            'password' => 'foo',
+            'password_confirmation' => 'foo'
+          )
         }
       end
 
       before { reconfigure_notifier }
 
       it 'sends a report with the scrubbed fields' do
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(ctx_hash, exception)
 
-        expect(Rollbar.last_report[:request][:params]).to be_eql_hash_with_regexes(expected_params)
+        expect(Rollbar.last_report[:request][:params]).to be_eql_hash_with_regexes(
+          'foo' => 'bar',
+          'secret' => /\*+/,
+          'password' => /\*+/,
+          'password_confirmation' => /\*+/
+        )
       end
     end
 
-    context 'when a sidekiq worker class is set' do
-      it 'adds the sidekiq#queue-name to the error report context' do
-        msg_or_context = {"retry" => true, "retry_count" => 1, 'queue' => 'default', 'class' => 'MyWorkerClass'}
-        expected_args = {
-          :request => { :params => msg_or_context },
-          :framework => "Sidekiq: #{Sidekiq::VERSION}",
-          :context => 'MyWorkerClass',
-          :queue => 'default'
-        }
-
-        allow(rollbar).to receive(:error)
-        allow(Rollbar).to receive(:scope).with(expected_args).and_return(rollbar)
-        described_class.handle_exception(msg_or_context, exception)
-      end
-    end
-
-    context 'when set a sidekiq_threshold' do
+    context 'with a sidekiq_threshold set' do
       before do
-        Rollbar.configuration.sidekiq_threshold = 2
+        Rollbar.configuration.sidekiq_threshold = 3
       end
 
       it 'does not send error to rollbar under the threshold' do
         allow(Rollbar).to receive(:scope).and_return(rollbar)
         expect(rollbar).to receive(:error).never
 
-        msg_or_context = {"retry" => true, "retry_count" => 1}
-
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(
+          { :job => { 'retry' => true, 'retry_count' => 1 } },
+          exception
+        )
       end
 
       it 'sends the error to rollbar above the threshold' do
         allow(Rollbar).to receive(:scope).and_return(rollbar)
         expect(rollbar).to receive(:error)
 
-        msg_or_context = {"retry" => true, "retry_count" => 2}
-
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(
+          { :job => { 'retry' => true, 'retry_count' => 2 } },
+          exception
+        )
       end
 
       it 'sends the error to rollbar if not retry' do
         allow(Rollbar).to receive(:scope).and_return(rollbar)
         expect(rollbar).to receive(:error)
 
-        msg_or_context = {"retry" => false}
-
-        described_class.handle_exception(msg_or_context, exception)
+        described_class.handle_exception(
+          { :job => { 'retry' => false } },
+          exception
+        )
       end
 
-      it 'does not blow up and sends the error to rollbar if retry is true but there is no retry count' do
+      it "does not blow up and doesn't send the error to rollbar if retry is true but there is no retry count" do
         allow(Rollbar).to receive(:scope).and_return(rollbar)
-        expect(rollbar).to receive(:error)
+        expect(rollbar).to receive(:error).never
 
-        msg_or_context = {"retry" => true}
-
-        expect {
-          described_class.handle_exception(msg_or_context, exception)
-        }.to_not raise_error
+        described_class.handle_exception(
+          { :job => { 'retry' => true } },
+          exception
+        )
       end
     end
   end

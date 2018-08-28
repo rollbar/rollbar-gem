@@ -8,8 +8,11 @@ require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
 require 'rollbar/item'
+require 'ostruct'
+
 begin
   require 'rollbar/delay/sidekiq'
+  require 'rollbar/delay/sucker_punch'
 rescue LoadError
 end
 
@@ -19,19 +22,24 @@ begin
 rescue LoadError
 end
 
+begin
+  require 'rollbar/delay/shoryuken'
+rescue LoadError
+end
+
 require 'spec_helper'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
+
   before do
-    Rollbar.unconfigure
+    Rollbar.clear_notifier!
     configure
   end
 
   context 'when notifier has been used before configure it' do
     before do
-      Rollbar.unconfigure
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
     end
 
     it 'is finally reset' do
@@ -41,6 +49,49 @@ describe Rollbar do
       reconfigure_notifier
 
       expect(Rollbar.error('error message')).not_to be_eql('disabled')
+    end
+  end
+
+  shared_examples 'stores the root notifier' do
+
+  end
+
+  describe '.configure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      Rollbar.configure { |c| }
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
+  describe '.preconfigure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      Rollbar.preconfigure { |c| }
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
+  describe '.reconfigure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      Rollbar.reconfigure { |c| }
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
+    end
+  end
+
+  describe '.unconfigure' do
+    before { Rollbar.clear_notifier! }
+
+    it 'stores the root notifier' do
+      expect(Rollbar.root_notifier).to receive(:unconfigure)
+
+      Rollbar.unconfigure
+
+      expect(Rollbar.root_notifier).to be(Rollbar.notifier)
     end
   end
 
@@ -58,8 +109,7 @@ describe Rollbar do
 
       context 'executing a Thread before Rollbar is configured' do
         before do
-          Rollbar.reset_notifier!
-          Rollbar.unconfigure
+          Rollbar.clear_notifier!
 
           Thread.new {}
 
@@ -74,39 +124,61 @@ describe Rollbar do
       end
 
       it 'should report a simple message' do
-        expect(notifier).to receive(:report).with('error', 'test message', nil, nil)
+        expect(notifier).to receive(:report).with('error', 'test message', nil, nil, nil)
         notifier.log('error', 'test message')
       end
 
       it 'should report a simple message with extra data' do
         extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
 
-        expect(notifier).to receive(:report).with('error', 'test message', nil, extra_data)
+        expect(notifier).to receive(:report).with('error', 'test message', nil, extra_data, nil)
         notifier.log('error', 'test message', extra_data)
       end
 
       it 'should report an exception' do
-        expect(notifier).to receive(:report).with('error', nil, exception, nil)
+        expect(notifier).to receive(:report).with('error', nil, exception, nil, nil)
         notifier.log('error', exception)
       end
 
       it 'should report an exception with extra data' do
         extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
 
-        expect(notifier).to receive(:report).with('error', nil, exception, extra_data)
+        expect(notifier).to receive(:report).with('error', nil, exception, extra_data, nil)
         notifier.log('error', exception, extra_data)
       end
 
       it 'should report an exception with a description' do
-        expect(notifier).to receive(:report).with('error', 'exception description', exception, nil)
+        expect(notifier).to receive(:report).with('error', 'exception description', exception, nil, nil)
         notifier.log('error', exception, 'exception description')
       end
 
       it 'should report an exception with a description and extra data' do
         extra_data = {:key => 'value', :hash => {:inner_key => 'inner_value'}}
 
-        expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data)
+        expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data, nil)
         notifier.log('error', exception, extra_data, 'exception description')
+      end
+      
+      context 'an item with a context' do
+        let(:context) { { :controller => 'ExampleController' } }
+        
+        context 'with a custom_data_method configured' do
+          before do
+            Rollbar.configure do |config|
+              config.custom_data_method = lambda do |message, exception, context| 
+                { :result => "MyApp#" + context[:controller] }
+              end
+            end
+          end
+          
+          it 'should have access to the context data through configuration.custom_data_method' do
+            result = notifier.log('error', "Custom message", { :custom_data_method_context => context})
+            
+            result[:body][:message][:extra].should_not be_nil
+            result[:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
+            result[:body][:message][:extra][:custom_data_method_context].should be_nil
+          end
+        end
       end
     end
 
@@ -150,7 +222,7 @@ describe Rollbar do
           }
 
           expect(handler).to receive(:call).with(options)
-          expect(notifier).to receive(:report).with(level, message, exception, extra)
+          expect(notifier).to receive(:report).with(level, message, exception, extra, nil)
 
           notifier.log(level, message, exception, extra)
         end
@@ -248,57 +320,57 @@ describe Rollbar do
       let(:extra_data) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
 
       it 'should report with a debug level' do
-        expect(notifier).to receive(:report).with('debug', nil, exception, nil)
+        expect(notifier).to receive(:report).with('debug', nil, exception, nil, nil)
         notifier.debug(exception)
 
-        expect(notifier).to receive(:report).with('debug', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('debug', 'description', exception, nil, nil)
         notifier.debug(exception, 'description')
 
-        expect(notifier).to receive(:report).with('debug', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('debug', 'description', exception, extra_data, nil)
         notifier.debug(exception, 'description', extra_data)
       end
 
       it 'should report with an info level' do
-        expect(notifier).to receive(:report).with('info', nil, exception, nil)
+        expect(notifier).to receive(:report).with('info', nil, exception, nil, nil)
         notifier.info(exception)
 
-        expect(notifier).to receive(:report).with('info', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('info', 'description', exception, nil, nil)
         notifier.info(exception, 'description')
 
-        expect(notifier).to receive(:report).with('info', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('info', 'description', exception, extra_data, nil)
         notifier.info(exception, 'description', extra_data)
       end
 
       it 'should report with a warning level' do
-        expect(notifier).to receive(:report).with('warning', nil, exception, nil)
+        expect(notifier).to receive(:report).with('warning', nil, exception, nil, nil)
         notifier.warning(exception)
 
-        expect(notifier).to receive(:report).with('warning', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('warning', 'description', exception, nil, nil)
         notifier.warning(exception, 'description')
 
-        expect(notifier).to receive(:report).with('warning', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('warning', 'description', exception, extra_data, nil)
         notifier.warning(exception, 'description', extra_data)
       end
 
       it 'should report with an error level' do
-        expect(notifier).to receive(:report).with('error', nil, exception, nil)
+        expect(notifier).to receive(:report).with('error', nil, exception, nil, nil)
         notifier.error(exception)
 
-        expect(notifier).to receive(:report).with('error', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('error', 'description', exception, nil, nil)
         notifier.error(exception, 'description')
 
-        expect(notifier).to receive(:report).with('error', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('error', 'description', exception, extra_data, nil)
         notifier.error(exception, 'description', extra_data)
       end
 
       it 'should report with a critical level' do
-        expect(notifier).to receive(:report).with('critical', nil, exception, nil)
+        expect(notifier).to receive(:report).with('critical', nil, exception, nil, nil)
         notifier.critical(exception)
 
-        expect(notifier).to receive(:report).with('critical', 'description', exception, nil)
+        expect(notifier).to receive(:report).with('critical', 'description', exception, nil, nil)
         notifier.critical(exception, 'description')
 
-        expect(notifier).to receive(:report).with('critical', 'description', exception, extra_data)
+        expect(notifier).to receive(:report).with('critical', 'description', exception, extra_data, nil)
         notifier.critical(exception, 'description', extra_data)
       end
     end
@@ -333,10 +405,12 @@ describe Rollbar do
       end
 
       it 'should not modify any parent notifier configuration' do
+        Rollbar.clear_notifier!
         configure
         Rollbar.configuration.code_version.should be_nil
         Rollbar.configuration.payload_options.should be_empty
 
+        notifier = Rollbar.notifier.scope
         notifier.configure do |config|
           config.code_version = '123'
           config.payload_options = {
@@ -394,8 +468,7 @@ describe Rollbar do
         end
       end
 
-      after(:each) do
-        Rollbar.unconfigure
+      after do
         configure
       end
 
@@ -403,7 +476,7 @@ describe Rollbar do
         expect(logger_mock).to receive(:error).with('[Rollbar] Tried to send a report with no message, exception or extra data.')
         expect(notifier).not_to receive(:schedule_payload)
 
-        result = notifier.send(:report, 'info', nil, nil, nil)
+        result = notifier.send(:report, 'info', nil, nil, nil, nil)
         result.should == 'error'
       end
 
@@ -421,7 +494,7 @@ describe Rollbar do
 
         expect(notifier).not_to receive(:schedule_payload)
 
-        result = notifier.send(:report, 'info', 'message', nil, nil)
+        result = notifier.send(:report, 'info', 'message', nil, nil, nil)
         result.should == 'ignored'
       end
     end
@@ -439,16 +512,13 @@ describe Rollbar do
     let(:logger_mock) { double("Rails.logger").as_null_object }
     let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
 
-    before(:each) do
+    before do
+      Rollbar.unconfigure
       configure
+
       Rollbar.configure do |config|
         config.logger = logger_mock
       end
-    end
-
-    after(:each) do
-      Rollbar.unconfigure
-      configure
     end
 
     it 'should report exceptions without person or request data' do
@@ -476,25 +546,109 @@ describe Rollbar do
     end
 
     it 'should not be enabled when not configured' do
-      Rollbar.unconfigure
+      Rollbar.clear_notifier!
 
       Rollbar.configuration.enabled.should be_nil
       Rollbar.error(exception).should == 'disabled'
     end
 
     it 'should stay disabled if configure is called again' do
-      Rollbar.unconfigure
-
       # configure once, setting enabled to false.
       Rollbar.configure do |config|
         config.enabled = false
       end
 
       # now configure again (perhaps to change some other values)
-      Rollbar.configure do |config| end
+      Rollbar.configure { |_| }
 
       Rollbar.configuration.enabled.should == false
       Rollbar.error(exception).should == 'disabled'
+    end
+
+    context 'using configuration.use_exception_level_filters_default' do
+      before do
+        Rollbar.configure do |config|
+          config.use_exception_level_filters_default = true
+        end
+      end
+
+      context 'without use_exception_level_filters argument' do
+        it 'sends the correct filtered level' do
+          Rollbar.configure do |config|
+            config.exception_level_filters = { 'NameError' => 'warning' }
+          end
+
+          Rollbar.error(exception)
+
+          expect(Rollbar.last_report[:level]).to be_eql('warning')
+        end
+
+        it 'ignore ignored exception classes' do
+          Rollbar.configure do |config|
+            config.exception_level_filters = { 'NameError' => 'ignore' }
+          end
+
+          logger_mock.should_not_receive(:info)
+          logger_mock.should_not_receive(:warn)
+          logger_mock.should_not_receive(:error)
+
+          Rollbar.error(exception)
+        end
+
+        it 'should not use the filters if overriden at log site' do
+          Rollbar.configure do |config|
+            config.exception_level_filters = { 'NameError' => 'ignore' }
+          end
+
+          Rollbar.error(exception, :use_exception_level_filters => false)
+
+          expect(Rollbar.last_report[:level]).to be_eql('error')
+        end
+      end
+    end
+
+    context 'using :use_exception_level_filters option as true' do
+      it 'sends the correct filtered level' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'warning' }
+        end
+
+        Rollbar.error(exception, :use_exception_level_filters => true)
+        expect(Rollbar.last_report[:level]).to be_eql('warning')
+      end
+
+      it 'ignore ignored exception classes' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = { 'NameError' => 'ignore' }
+        end
+
+        logger_mock.should_not_receive(:info)
+        logger_mock.should_not_receive(:warn)
+        logger_mock.should_not_receive(:error)
+
+        Rollbar.error(exception, :use_exception_level_filters => true)
+      end
+
+      context 'using :use_exception_level_filters option as false' do
+        it 'sends the correct filtered level' do
+          Rollbar.configure do |config|
+            config.exception_level_filters = { 'NameError' => 'warning' }
+          end
+
+          Rollbar.error(exception, :use_exception_level_filters => false)
+          expect(Rollbar.last_report[:level]).to be_eql('error')
+        end
+
+        it 'ignore ignored exception classes' do
+          Rollbar.configure do |config|
+            config.exception_level_filters = { 'NameError' => 'ignore' }
+          end
+
+          Rollbar.error(exception, :use_exception_level_filters => false)
+
+          expect(Rollbar.last_report[:level]).to be_eql('error')
+        end
+      end
     end
 
     context 'using :use_exception_level_filters option as true' do
@@ -833,8 +987,7 @@ describe Rollbar do
       end
     end
 
-    after(:each) do
-      Rollbar.unconfigure
+    after do
       configure
     end
 
@@ -879,16 +1032,83 @@ describe Rollbar do
     end
   end
 
+  context 'using a proxy server' do
+    before do
+      allow_any_instance_of(Net::HTTP).to receive(:request).and_return(OpenStruct.new(:code => 200, :body => "Success"))
+      @env_vars = clear_proxy_env_vars
+    end
+
+    after do
+     restore_proxy_env_vars(@env_vars)
+    end
+
+    context 'via environment variables' do
+      before do
+        @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+      end
+
+      it 'honors proxy settings in the environment' do
+        ENV['http_proxy']  = 'http://user:pass@example.com:80'
+        ENV['https_proxy'] = 'http://user:pass@example.com:80'
+
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'example.com', 80, 'user', 'pass').and_call_original
+        Rollbar.info("proxy this")
+      end
+
+      it 'does not use a proxy if no proxy settings in environemnt' do
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, nil, nil, nil, nil).and_call_original
+        Rollbar.info("proxy this")
+      end
+    end
+
+    context 'set in configuration file' do
+      before do
+        Rollbar.configure do |config|
+          config.proxy = {
+            :host => 'http://config.com',
+            :port => 8080,
+            :user => 'foo',
+            :password => 'bar'
+          }
+        end
+
+        @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+      end
+
+      it 'honors proxy settings in the config file' do
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        Rollbar.info("proxy this")
+      end
+
+      it 'gives the configuration settings precedence over environment' do
+        ENV['http_proxy']  = 'http://user:pass@example.com:80'
+        ENV['https_proxy'] = 'http://user:pass@example.com:80'
+
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'config.com', 8080, 'foo', 'bar').and_call_original
+        Rollbar.info("proxy this")
+      end
+
+      it 'allows @-signs in passwords' do
+        Rollbar.configure do |config|
+          config.proxy[:password] = "manh@tan"
+	end
+
+        expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, 'config.com', 8080, 'foo', 'manh@tan').and_call_original
+        Rollbar.info("proxy this")
+      end
+    end
+  end
+
   context 'asynchronous_handling' do
-    before(:each) do
+    before do
+      Rollbar.clear_notifier!
       configure
       Rollbar.configure do |config|
         config.logger = logger_mock
       end
     end
 
-    after(:each) do
-      Rollbar.unconfigure
+    after do
       configure
     end
 
@@ -1042,13 +1262,19 @@ describe Rollbar do
     describe "#use_sucker_punch", :if => defined?(SuckerPunch) do
       it "should send the payload to sucker_punch delayer" do
         logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-        logger_mock.should_receive(:info).with('[Rollbar] Sending item')
-        logger_mock.should_receive(:info).with('[Rollbar] Success')
+        expect(Rollbar::Delay::SuckerPunch).to receive(:call)
 
-        Rollbar.configure do |config|
-          config.use_sucker_punch
-        end
+        Rollbar.configure(&:use_sucker_punch)
+        Rollbar.error(exception)
+      end
+    end
 
+    describe "#use_shoryuken", :if => defined?(Shoryuken) do
+      it "should send the payload to shoryuken delayer" do
+        logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+        expect(Rollbar::Delay::Shoryuken).to receive(:call)
+
+        Rollbar.configure(&:use_shoryuken)
         Rollbar.error(exception)
       end
     end
@@ -1099,7 +1325,7 @@ describe Rollbar do
       Rollbar.send(:logger).should_not be_nil
     end
 
-    after(:each) do
+    after do
       reset_configuration
     end
   end
@@ -1118,7 +1344,7 @@ describe Rollbar do
         gem_spec.gem_dir if gem_spec
       end.compact
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
 
@@ -1141,7 +1367,7 @@ describe Rollbar do
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
       gem_paths.any?{|path| path.include? 'rspec-rails'}.should == true
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == gem_paths.length
       (data[:project_package_paths] - gem_paths).length.should == 0
@@ -1154,7 +1380,7 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {})['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
       data[:project_package_paths].kind_of?(Array).should == true
       data[:project_package_paths].length.should == 1
     end
@@ -1222,6 +1448,18 @@ describe Rollbar do
         expect(sent_payload['data'][:body][:message][:body]).to be_eql(expected_body)
       end
     end
+
+    context 'with uuid and host' do
+      let(:host) { 'the-host' }
+      let(:uuid) { 'the-uuid' }
+      it 'sets the uuid and host in correct keys' do
+        sent_payload = notifier.send(:send_failsafe, 'testing uuid and host',
+                                     exception, uuid, host)
+
+        expect(sent_payload['data'][:custom][:orig_uuid]).to be_eql('the-uuid')
+        expect(sent_payload['data'][:custom][:orig_host]).to be_eql('the-host')
+      end
+    end
   end
 
   context 'when reporting internal error with nil context' do
@@ -1267,7 +1505,7 @@ describe Rollbar do
     end
 
     it 'changes data in scope_object inside the block' do
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
       configure
 
       current_notifier_id = Rollbar.notifier.object_id
@@ -1330,12 +1568,13 @@ describe Rollbar do
     end
   end
 
-  describe '.reset_notifier' do
-    it 'resets the notifier' do
-      notifier1_id = Rollbar.notifier.object_id
+  describe '.clear_notifier' do
+    before { Rollbar.notifier }
 
-      Rollbar.reset_notifier!
-      expect(Rollbar.notifier.object_id).not_to be_eql(notifier1_id)
+    it 'resets the notifier' do
+      Rollbar.clear_notifier!
+      expect(Rollbar.instance_variable_get('@notifier')).to be_nil
+      expect(Rollbar.instance_variable_get('@root_notifier')).to be_nil
     end
   end
 
@@ -1373,8 +1612,7 @@ describe Rollbar do
 
   describe '.preconfigure'do
     before do
-      Rollbar.unconfigure
-      Rollbar.reset_notifier!
+      Rollbar.clear_notifier!
     end
 
     it 'resets the notifier' do
@@ -1414,6 +1652,22 @@ describe Rollbar do
       expect(Rollbar.notifier).to receive(:report_internal_error).with(net_exception)
 
       Rollbar.info('foo')
+    end
+  end
+
+  describe '.with_config' do
+    let(:new_config) do
+      { 'environment' => 'foo' }
+    end
+
+    it 'uses the new config and restores the old one' do
+      config1 = described_class.configuration
+
+      subject.with_config(:environment => 'bar') do
+        expect(described_class.configuration).not_to be(config1)
+      end
+
+      expect(described_class.configuration).to be(config1)
     end
   end
 

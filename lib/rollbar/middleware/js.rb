@@ -1,9 +1,15 @@
 require 'rack'
 require 'rack/response'
 
+require 'rollbar/request_data_extractor'
+require 'rollbar/util'
+
 module Rollbar
   module Middleware
+    # Middleware to inject the rollbar.js snippet into a 200 html response
     class Js
+      include Rollbar::RequestDataExtractor
+
       attr_reader :app
       attr_reader :config
 
@@ -16,40 +22,27 @@ module Rollbar
       end
 
       def call(env)
-        result = app.call(env)
+        app_result = app.call(env)
 
-        _call(env, result)
-      end
+        begin
+          return app_result unless add_js?(env, app_result[1])
 
-      private
+          response_string = add_js(env, app_result[2])
+          build_response(env, app_result, response_string)
+        rescue => e
+          Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
 
-      def _call(env, result)
-        return result unless should_add_js?(env, result[0], result[1])
-
-        if response_string = add_js(env, result[2])
-          env[JS_IS_INJECTED_KEY] = true
-          response = ::Rack::Response.new(response_string, result[0], result[1])
-
-          response.finish
-        else
-          result
+          app_result
         end
-      rescue => e
-        Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
-        result
       end
 
       def enabled?
         !!config[:enabled]
       end
 
-      def should_add_js?(env, status, headers)
-        enabled? &&
-          status == 200 &&
-          !env[JS_IS_INJECTED_KEY] &&
-          html?(headers) &&
-          !attachment?(headers) &&
-          !streaming?(env)
+      def add_js?(env, headers)
+        enabled? && !env[JS_IS_INJECTED_KEY] &&
+          html?(headers) && !attachment?(headers) && !streaming?(env)
       end
 
       def html?(headers)
@@ -72,31 +65,48 @@ module Rollbar
 
         return nil unless body
 
-        head_open_end = find_end_of_head_open(body)
-        return nil unless head_open_end
+        insert_after_idx = find_insertion_point(body)
+        return nil unless insert_after_idx
 
-        if head_open_end
-          body = body[0..head_open_end] <<
-                 config_js_tag(env) <<
-                 snippet_js_tag(env) <<
-                 body[head_open_end + 1..-1]
-        end
-
-        body
+        build_body_with_js(env, body, insert_after_idx)
       rescue => e
         Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
         nil
       end
 
-      def find_end_of_head_open(body)
-        head_open = body.index(/<head\W/)
-        body.index('>', head_open) if head_open
+      def build_response(env, app_result, response_string)
+        return app_result unless response_string
+
+        env[JS_IS_INJECTED_KEY] = true
+        response = ::Rack::Response.new(response_string, app_result[0],
+                                        app_result[1])
+
+        response.finish
+      end
+
+      def build_body_with_js(env, body, head_open_end)
+        return body unless head_open_end
+
+        body[0..head_open_end] << config_js_tag(env) << snippet_js_tag(env) <<
+          body[head_open_end + 1..-1]
+      end
+
+      def find_insertion_point(body)
+        find_end_after_regex(body, /<meta\s*charset=/i) ||
+          find_end_after_regex(body, /<meta\s*http-equiv="Content-Type"/i) ||
+          find_end_after_regex(body, /<head\W/i)
+      end
+
+      def find_end_after_regex(body, regex)
+        open_idx = body.index(regex)
+        body.index('>', open_idx) if open_idx
       end
 
       def join_body(response)
-        source = nil
-        response.each { |fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
-        source
+        response.to_enum.reduce('') do |acc, fragment|
+          acc << fragment.to_s
+          acc
+        end
       end
 
       def close_old_response(response)
@@ -104,7 +114,20 @@ module Rollbar
       end
 
       def config_js_tag(env)
-        script_tag("var _rollbarConfig = #{config[:options].to_json};", env)
+        js_config = Rollbar::Util.deep_copy(config[:options])
+
+        add_person_data(js_config, env)
+
+        script_tag("var _rollbarConfig = #{js_config.to_json};", env)
+      end
+
+      def add_person_data(js_config, env)
+        person_data = extract_person_data_from_controller(env)
+
+        return if person_data && person_data.empty?
+
+        js_config[:payload] ||= {}
+        js_config[:payload][:person] = person_data if person_data
       end
 
       def snippet_js_tag(env)
@@ -116,7 +139,7 @@ module Rollbar
       end
 
       def script_tag(content, env)
-        if defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce)
+        if append_nonce?
           nonce = ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
           script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
         else
@@ -129,6 +152,13 @@ module Rollbar
       def html_safe_if_needed(string)
         string = string.html_safe if string.respond_to?(:html_safe)
         string
+      end
+
+      def append_nonce?
+        defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce) &&
+          defined?(::SecureHeaders::Configuration) &&
+          !::SecureHeaders::Configuration.default.csp.opt_out? &&
+          !::SecureHeaders::Configuration.default.current_csp[:script_src].to_a.include?("'unsafe-inline'")
       end
     end
   end

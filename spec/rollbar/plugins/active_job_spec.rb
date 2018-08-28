@@ -29,7 +29,12 @@ describe Rollbar::ActiveJob do
   let(:argument) { 12 }
 
   it "reports the error to Rollbar" do
-    expected_params = { :job => "TestJob", :job_id => job_id, :arguments => [argument] }
+    expected_params = {
+      :job => "TestJob",
+      :job_id => job_id,
+      :use_exception_level_filters => true,
+      :arguments => [argument]
+    }
     expect(Rollbar).to receive(:error).with(exception, expected_params)
     TestJob.new(argument).perform(exception, job_id) rescue nil
   end

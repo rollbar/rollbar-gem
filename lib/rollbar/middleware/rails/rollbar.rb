@@ -60,17 +60,17 @@ module Rollbar
 
         def person_data_proc(env)
           block = proc { extract_person_data_from_controller(env) }
-          return block unless(defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?)
+          return block unless defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?
 
           proc { ActiveRecord::Base.connection_pool.with_connection(&block) }
         end
 
         def context(request_data)
-          return unless request_data[:route]
+          return unless request_data[:params]
 
-          route = request_data[:route]
+          route_params = request_data[:params]
           # make sure route is a hash built by RequestDataExtractor
-          return "#{route[:controller]}" + '#' + "#{route[:action]}" if route.is_a?(Hash) && !route.empty?
+          return route_params[:controller].to_s + '#' + route_params[:action].to_s if route_params.is_a?(Hash) && !route_params.empty?
         end
       end
     end

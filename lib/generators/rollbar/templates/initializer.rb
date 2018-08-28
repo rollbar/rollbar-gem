@@ -19,12 +19,14 @@ Rollbar.configure do |config|
 <%- end -%>
 
   # By default, Rollbar will try to call the `current_user` controller method
-  # to fetch the logged-in user object, and then call that object's `id`,
-  # `username`, and `email` methods to fetch those properties. To customize:
+  # to fetch the logged-in user object, and then call that object's `id`
+  # method to fetch this property. To customize:
   # config.person_method = "my_current_user"
   # config.person_id_method = "my_id"
-  # config.person_username_method = "my_username"
-  # config.person_email_method = "my_email"
+
+  # Additionally, you may specify the following:
+  # config.person_username_method = "username"
+  # config.person_email_method = "email"
 
   # If you want to attach custom data to all exception and message reports,
   # provide a lambda like the following. It should return a hash.
@@ -57,10 +59,22 @@ Rollbar.configure do |config|
   # You can supply custom Sidekiq options:
   # config.use_sidekiq 'queue' => 'default'
 
+  # If your application runs behind a proxy server, you can set proxy parameters here.
+  # If https_proxy is set in your environment, that will be used. Settings here have precedence.
+  # The :host key is mandatory and must include the URL scheme (e.g. 'http://'), all other fields
+  # are optional.
+  #
+  # config.proxy = {
+  #   host: 'http://some.proxy.server',
+  #   port: 80,
+  #   user: 'username_if_auth_required',
+  #   password: 'password_if_auth_required'
+  # }
+
   # If you run your staging application instance in production environment then
   # you'll want to override the environment reported by `Rails.env` with an
   # environment variable like this: `ROLLBAR_ENV=staging`. This is a recommended
   # setup for Heroku. See:
   # https://devcenter.heroku.com/articles/deploying-to-a-custom-rails-environment
-  config.environment = ENV['ROLLBAR_ENV'] || Rails.env
+  config.environment = ENV['ROLLBAR_ENV'].presence || Rails.env
 end

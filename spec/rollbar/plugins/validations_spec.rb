@@ -17,6 +17,19 @@ describe Rollbar::ActiveRecordExtension do
 
       user.valid?
     end
+
+    context 'using Rails 5.0' do
+      next unless Gem::Version.new(Rails.version) >= Gem::Version.new('5.0')
+
+      context 'with belongs_to' do
+        let(:book) { Book.new }
+
+        it 'report validations error' do
+          expect(book).to receive(:report_validation_errors_to_rollbar)
+          book.valid?
+        end
+      end
+    end
   end
 
   context 'with class using ActiveModel::Validations' do

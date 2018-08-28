@@ -10,6 +10,8 @@ end
 require 'rollbar/item/backtrace'
 require 'rollbar/util'
 require 'rollbar/encoding'
+require 'rollbar/truncation'
+require 'rollbar/json'
 
 module Rollbar
   # This class represents the payload to be sent to the API.
@@ -24,11 +26,13 @@ module Rollbar
     attr_reader :message
     attr_reader :exception
     attr_reader :extra
-
+    
     attr_reader :configuration
     attr_reader :scope
     attr_reader :logger
     attr_reader :notifier
+    
+    attr_reader :context
 
     def_delegators :payload, :[]
 
@@ -50,6 +54,7 @@ module Rollbar
       @scope = options[:scope]
       @payload = nil
       @notifier = options[:notifier]
+      @context = options[:context]
     end
 
     def payload
@@ -82,7 +87,7 @@ module Rollbar
         },
         :body => build_body
       }
-      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths
+      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths.any?
       data[:code_version] = configuration.code_version if configuration.code_version
       data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
@@ -101,14 +106,22 @@ module Rollbar
       # from an async handler job, which can be serialized.
       stringified_payload = Util::Hash.deep_stringify_keys(payload)
       result = Truncation.truncate(stringified_payload)
+
       return result unless Truncation.truncate?(result)
 
-      original_size = Rollbar::JSON.dump(payload).bytesize
-      final_size = result.bytesize
-      notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil)
-      logger.error("[Rollbar] Payload too large to be sent: #{Rollbar::JSON.dump(payload)}")
+      handle_too_large_payload(stringified_payload, result)
 
       nil
+    end
+
+    def handle_too_large_payload(stringified_payload, final_payload)
+      original_size = Rollbar::JSON.dump(stringified_payload).bytesize
+      final_size = final_payload.bytesize
+      uuid = stringified_payload['data']['uuid']
+      host = stringified_payload['data'].fetch('server', {})['host']
+
+      notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil, uuid, host)
+      logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")
     end
 
     def ignored?
@@ -137,10 +150,9 @@ module Rollbar
       backtrace = Backtrace.new(exception,
                                 :message => message,
                                 :extra => build_extra,
-                                :configuration => configuration
-                               )
+                                :configuration => configuration)
 
-      backtrace.build
+      backtrace.to_h
     end
 
     def build_extra
@@ -156,7 +168,12 @@ module Rollbar
     end
 
     def custom_data
-      data = configuration.custom_data_method.call
+      if configuration.custom_data_method.arity == 3
+        data = configuration.custom_data_method.call(message, exception, context)
+      else
+        data = configuration.custom_data_method.call
+      end
+      
       Rollbar::Util.deep_copy(data)
     rescue => e
       return {} if configuration.safely?
@@ -184,7 +201,7 @@ module Rollbar
 
     def server_data
       data = {
-        :host => Socket.gethostname
+        :host => configuration.host || Socket.gethostname
       }
       data[:root] = configuration.root.to_s if configuration.root
       data[:branch] = configuration.branch if configuration.branch

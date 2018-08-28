@@ -34,7 +34,6 @@ module Rollbar
       def ratchetio_request_data
         rollbar_request_data
       end
-
     end
   end
 end

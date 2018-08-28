@@ -1,5 +1,149 @@
 # Change Log
 
+## 2.16.0 and above
+
+For changes in version 2.16 and above, the change log has moved to this repo's [GitHub Releases Page](https://github.com/rollbar/rollbar-gem/releases)
+
+## 2.15.6
+- Update rollbar.js snippet to `v2.3.8` [#680](https://github.com/rollbar/rollbar-gem/issues/680)
+- Update `delayed_job` dependency to `4.1.3` [#672](https://github.com/rollbar/rollbar-gem/issues/672)
+- Add rollbar.js snippet on all responses regardless of status code [#664](https://github.com/rollbar/rollbar-gem/issues/664)
+- Add documentation for `sinatra/namespace` vs `rake` conflict to `README.md` [#663](https://github.com/rollbar/rollbar-gem/issues/663)
+- Add `aws-sdk-sqs` gem dependency [#659](https://github.com/rollbar/rollbar-gem/issues/659)
+- Upgrade `rails` gem dependency to `4.2.7.1` [#656](https://github.com/rollbar/rollbar-gem/issues/656)
+- Add documentation note for usage of `Rollbar.scope!` to `README.md` [#653](https://github.com/rollbar/rollbar-gem/issues/653)
+- Add example of using `Grape` to deal with `500` responses status [#645](https://github.com/rollbar/rollbar-gem/issues/645)
+- Always report errors from `delayed_job` to deal with `dj_threshold > 0` edge case [#615](https://github.com/rollbar/rollbar-gem/issues/615)
+- Fix "Empty message" items for exceptions reported from JRuby [#658]
+
+## 2.15.5
+
+- Support proxies [#626](https://github.com/rollbar/rollbar-gem/pull/626)
+
+## 2.15.4
+
+- Fix bug related to dup'ing extra passed in data
+
+## 2.15.3
+
+- Fix a bug when host is nil when we are trying to extract data about a request
+  [#637](https://github.com/rollbar/rollbar-gem/pull/637).
+- Make a copy of extra data passed in so we don't modify frozen objects
+  [#638](https://github.com/rollbar/rollbar-gem/pull/638)
+
+## 2.15.2
+
+- Fix how person data is injected into javascript
+
+## 2.15.1
+
+- Update rollbar.js to v2.2.3 [#630](https://github.com/rollbar/rollbar-gem/pull/630)
+- allow csp opt out [#629](https://github.com/rollbar/rollbar-gem/pull/629)
+- Fix: [#472](https://github.com/rollbar/rollbar-gem/issues/472)
+- Ignore empty ROLLBAR_ENV [#604](https://github.com/rollbar/rollbar-gem/pull/604)
+- Shoryuken gem support [#576](https://github.com/rollbar/rollbar-gem/pull/576)
+- support new sidekiq context structure [#598](https://github.com/rollbar/rollbar-gem/pull/598)
+
+## 2.15.0
+
+Features:
+
+- Support person data in rollbar.js. See [#602](https://github.com/rollbar/rollbar-gem/pull/602).
+- Update rollbar.js to v2.0.4. See [#600](https://github.com/rollbar/rollbar-gem/pull/600).
+- Add Configuration#use_exception_level_filters option. See [#588](https://github.com/rollbar/rollbar-gem/pull/588).
+
+Fixes:
+
+- get session from env instead of request. See [#586](https://github.com/rollbar/rollbar-gem/pull/586).
+- If multiple forwarded hosts are present in the headers, use the first. See [#582](https://github.com/rollbar/rollbar-gem/pull/582).
+- Replace present? call with plain ruby alternative. See [#579](https://github.com/rollbar/rollbar-gem/pull/579).
+
+Others:
+- Codacy cleanup. See [#599](https://github.com/rollbar/rollbar-gem/pull/599).
+- Remove warning on @root_notifier cause not initialized. See [#562](https://github.com/rollbar/rollbar-gem/pull/562).
+- [Docs] I think you mean this. See [#596](https://github.com/rollbar/rollbar-gem/pull/596).
+- Fix syntax error in code example. See [#581](https://github.com/rollbar/rollbar-gem/pull/581).
+
+
+## 2.14.1
+
+- Add host as a configuration options. See [#560](https://github.com/rollbar/rollbar-gem/pull/560).
+- Scrub all values based on matched keys set in the configuration rather than only string values.
+  See [#567](https://github.com/rollbar/rollbar-gem/pull/567).
+- Allow for a specification of the name of the queue for delayed_job. See
+  [#574](https://github.com/rollbar/rollbar-gem/pull/574).
+
+## 2.14.0
+
+Features:
+
+- Add Rollbar::Middleware::Rack. See [#558](https://github.com/rollbar/rollbar-gem/pull/558).
+- Send request body on DELETE request. See [#555](https://github.com/rollbar/rollbar-gem/pull/555).
+
+Fixes:
+
+- Fix validations plugin on Rails 5.0 with belong_to.See [#556](https://github.com/rollbar/rollbar-gem/pull/556).
+- Remove few warnings when using minitest with rollbar installed. See [#557](https://github.com/rollbar/rollbar-gem/pull/557).
+- Fix tests 1.9. See [#554](https://github.com/rollbar/rollbar-gem/pull/554).
+
+Others:
+
+- Updating readme. See [#552](https://github.com/rollbar/rollbar-gem/pull/552).
+- Removed doctoc tag. See [#550](https://github.com/rollbar/rollbar-gem/pull/550).
+- Adding info about Sidekiq and ActiveJob. See [#548](https://github.com/rollbar/rollbar-gem/pull/548).
+- Fix wrong version number in Readme. See [#535](https://github.com/rollbar/rollbar-gem/pull/535).
+
+## 2.13.3
+
+- Fix undefined variable name in rollbar.js middleware. See [#537](https://github.com/rollbar/rollbar-gem/pull/537).
+
+## 2.13.2
+
+Fixes:
+
+- Fix URL scrubbing with spaces in the query. See [#532](https://github.com/rollbar/rollbar-gem/pull/532).
+- Use :use_exception_level_filters in ActiveJob plugin. See [#533](https://github.com/rollbar/rollbar-gem/pull/533).
+
+Other:
+
+- Add docs for custom scrubbing with transform hook. See [#526](https://github.com/rollbar/rollbar-gem/pull/526).
+
+## 2.13.1
+
+Fixes:
+
+- Inherit test controller from ActionController::Base
+- Fix test rake task when Rack::MockRequest is not defined
+- Fix docs for Sinatra middleware
+- Fix few basic rubocop offenses
+
+## 2.13.0
+
+Features:
+- Allow to override config. See [#519](https://github.com/rollbar/rollbar-gem/pull/519).
+- Send code and context frame data. See [#523](https://github.com/rollbar/rollbar-gem/pull/523).
+- Send GET, POST and raw body in their correct place. See [#522](https://github.com/rollbar/rollbar-gem/pull/522).
+- Increase max payload from 128kb to 512kb. See [#521](https://github.com/rollbar/rollbar-gem/pull/521).
+- Add resque-rollbar functionality to the gem. See [#516](https://github.com/rollbar/rollbar-gem/pull/516).
+- Send custom.orig_host and custom.orig_uuid on too large payloads. See [#518](https://github.com/rollbar/rollbar-gem/pull/518).
+- Add Content-Length and Content-Type headers to the reports. See [#513](https://github.com/rollbar/rollbar-gem/pull/513).
+
+Bug fixes:
+- SecureHeaders fixes. See [#478](https://github.com/rollbar/rollbar-gem/pull/478).
+- Include validations plugin in activerecord base. See [#503](https://github.com/rollbar/rollbar-gem/pull/503).
+- Require tempfile and use ::Tempfile. See [#514](https://github.com/rollbar/rollbar-gem/pull/514).
+- Extract correct client IP from X-Forwarded-For header. See [#515](https://github.com/rollbar/rollbar-gem/pull/515).
+- Delayed job fix on job serialization. See [#512](https://github.com/rollbar/rollbar-gem/pull/512).
+
+Others:
+- Fix tests on rails40 and ruby 1.8.7. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
+- Move log methods to public section. See [#498](https://github.com/rollbar/rollbar-gem/pull/498).
+- Change rails50.gemfile to use Rails 5.0.0. See [#495](https://github.com/rollbar/rollbar-gem/pull/495).
+- Update CHANGELOG.md to fix incorrect links. See [#502](https://github.com/rollbar/rollbar-gem/pull/502).
+- Improve Rake support to avoid conflicts with other services. See [#517](https://github.com/rollbar/rollbar-gem/pull/517).
+- Make Codeclimate happier with Rollbar::Middlware::Js. See [#520](https://github.com/rollbar/rollbar-gem/pull/520).
+
+
 ## 2.12.0
 
 Features:
@@ -13,7 +157,7 @@ Others:
 
 ## 2.11.5
 
-Bugfixes:
+Bugf ixes:
 
 - Use require_dependency for rake and sidekiq plugins. See [#485](https://github.com/rollbar/rollbar-gem/pull/485).
 - Add immediate ActiveModel::Validations monkey patch. See [#484](https://github.com/rollbar/rollbar-gem/pull/484).

@@ -4,8 +4,14 @@ module Rollbar
     # use DelayedJob in order to send the reports to the Rollbar API
     class DelayedJob
       class << self
+        attr_accessor :queue
+
         def call(payload)
-          new.delay.call(payload)
+          if queue
+            new.delay(:queue => queue).call(payload)
+          else
+            new.delay.call(payload)
+          end
         end
       end
 

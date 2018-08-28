@@ -1,5 +1,7 @@
 module NotifierHelpers
   def reconfigure_notifier
+    Rollbar.clear_notifier!
+
     Rollbar.reconfigure do |config|
       # special test access token
       config.access_token = test_access_token
@@ -33,5 +35,23 @@ module NotifierHelpers
   def reset_configuration
     Rollbar.reconfigure do |config|
     end
+  end
+
+  def clear_proxy_env_vars
+    env_vars = {}
+    proxy_env_vars.each do |var|
+      env_vars[var] = ENV.delete(var)
+    end
+    env_vars
+  end
+
+  def restore_proxy_env_vars(env_vars)
+    proxy_env_vars.each do |var|
+      ENV[var] = env_vars[var]
+    end
+  end
+
+  def proxy_env_vars
+    %w[http_proxy HTTP_PROXY https_proxy HTTPS_PROXY]
   end
 end
