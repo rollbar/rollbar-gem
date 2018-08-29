@@ -1,5 +1,3 @@
-require 'rollbar'
-
 module Rollbar
   module RailtieMixin
     extend ActiveSupport::Concern
