@@ -412,6 +412,7 @@ module Rollbar
         item = build_item('error', nil, exception, { :internal => true }, nil)
       rescue => e
         send_failsafe('build_item in exception_data', e)
+        log_error "[Rollbar] Exception: #{exception}"
         return
       end
 
@@ -419,6 +420,7 @@ module Rollbar
         process_item(item)
       rescue => e
         send_failsafe('error in process_item', e)
+        log_error "[Rollbar] Item: #{item}"
         return
       end
 
@@ -426,6 +428,7 @@ module Rollbar
         log_instance_link(item['data'])
       rescue => e
         send_failsafe('error logging instance link', e)
+        log_error "[Rollbar] Item: #{item}"
         return
       end
     end
