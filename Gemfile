@@ -42,5 +42,6 @@ gem 'redis'
 gem 'resque'
 gem 'shoryuken'
 gem 'sinatra'
+gem 'webmock'
 
 gemspec

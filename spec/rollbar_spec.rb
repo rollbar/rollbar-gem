@@ -165,7 +165,6 @@ describe Rollbar do
           config = Rollbar::Configuration.new
           config.access_token = test_access_token
           config.enabled = true
-          config.endpoint = "http://rollbar.com/foo"
           
           config.hook :on_error_response do |response|
             return ":on_error_response executed"
@@ -181,6 +180,9 @@ describe Rollbar do
         end
         
         it "calls the :on_error_response hook if response status is not 200" do
+          
+          stub_request(:any, /api.rollbar.com/).to_return(:status => 500)
+          
           expect(notifier.configuration.hook(:on_error_response)).to receive(:call)
           notifier.log(level, message)
         end
