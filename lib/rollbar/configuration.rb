@@ -128,6 +128,10 @@ module Rollbar
       @proxy = nil
       @collect_user_ip = true
       @anonymize_user_ip = false
+      @hooks = {
+        :on_error_response => nil, # params: response
+        :on_report_internal_error => nil, #params: exception
+      }
     end
 
     def initialize_copy(orig)
@@ -258,6 +262,22 @@ module Rollbar
 
     def logger
       @logger ||= default_logger.call
+    end
+    
+    def hook(symbol, &block)
+      if @hooks.has_key?(symbol)
+        if block_given?
+          @hooks[symbol] = block
+        else
+          @hooks[symbol]
+        end
+      else
+        raise StandardError.new "Hook :" + symbol.to_s + " is not supported by Rollbar SDK."
+      end
+    end
+    
+    def execute_hook(symbol, *args)
+      hook(symbol).call(*args) if hook(symbol).is_a?(Proc)
     end
   end
 end

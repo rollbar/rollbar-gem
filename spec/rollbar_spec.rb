@@ -159,6 +159,65 @@ describe Rollbar do
         notifier.log('error', exception, extra_data, 'exception description')
       end
       
+      context 'with :on_error_response hook configured' do
+        let!(:notifier) { Rollbar::Notifier.new }
+        let(:configuration) do
+          config = Rollbar::Configuration.new
+          config.access_token = test_access_token
+          config.enabled = true
+          
+          config.hook :on_error_response do |response|
+            return ":on_error_response executed"
+          end
+          
+          config
+        end
+        let(:message) { 'foo' }
+        let(:level) { 'foo' }
+  
+        before do
+          notifier.configuration = configuration
+          allow_any_instance_of(Net::HTTP).to receive(:request).and_return(OpenStruct.new(:code => 500, :body => "Error"))
+          @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
+        end
+        
+        it "calls the :on_error_response hook if response status is not 200" do
+          expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, nil, nil, nil, nil).and_call_original
+          expect(notifier.configuration.hook(:on_error_response)).to receive(:call)
+          
+          notifier.log(level, message)
+        end
+      end
+      
+      context 'with :on_report_internal_error hook configured' do
+        let!(:notifier) { Rollbar::Notifier.new }
+        let(:configuration) do
+          config = Rollbar::Configuration.new
+          config.access_token = test_access_token
+          config.enabled = true
+          
+          config.hook :on_report_internal_error do |response|
+            return ":on_report_internal_error executed"
+          end
+          
+          config
+        end
+        let(:message) { 'foo' }
+        let(:level) { 'foo' }
+  
+        before do
+          notifier.configuration = configuration
+        end
+        
+        it "calls the :on_report_internal_error hook if" do
+          expect(notifier.configuration.hook(:on_report_internal_error)).to receive(:call)
+          expect(notifier).to receive(:report) do
+            raise StandardError.new
+          end
+          notifier.log(level, message)
+        end
+      end
+    
       context 'an item with a context' do
         let(:context) { { :controller => 'ExampleController' } }
         
