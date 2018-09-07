@@ -407,6 +407,8 @@ module Rollbar
     # If that fails, we'll fall back to a more static failsafe response.
     def report_internal_error(exception)
       log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
+      
+      configuration.execute_hook(:on_report_internal_error, exception)
 
       begin
         item = build_item('error', nil, exception, { :internal => true }, nil)
@@ -575,6 +577,7 @@ module Rollbar
       else
         log_warning "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
         log_info "[Rollbar] Response: #{response.body}"
+        configuration.execute_hook(:on_error_response, response)
       end
     end
 

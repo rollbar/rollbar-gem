@@ -43,4 +43,32 @@ describe Rollbar::Configuration do
       expect(new_config.environment).to be_eql('bar')
     end
   end
+  
+  describe '#hook' do
+    it "assigns and returns the appropriate hook" do
+      subject.hook :on_error_response do
+        puts "foo hook"
+      end
+      
+      expect(subject.hook(:on_error_response).is_a?(Proc)).to be_eql(true)
+    end
+    
+    it "raises a StandardError if requested hook is not supported" do
+      expect{ subject.hook(:foo) }.to raise_error(StandardError)
+    end
+  end
+  
+  describe '#execute_hook' do
+    it "executes the approriate hook" do
+      bar = "test value"
+      
+      subject.hook :on_error_response do
+        bar = "changed value"
+      end
+      
+      subject.execute_hook :on_error_response
+      
+      expect(bar).to be_eql("changed value")
+    end
+  end
 end
