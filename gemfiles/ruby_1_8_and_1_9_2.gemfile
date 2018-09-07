@@ -39,8 +39,6 @@ gem 'girl_friday', '>= 0.11.1'
 gem 'redis', '< 3.3.5'
 gem 'resque'
 gem 'sinatra'
-gem 'addressable', '< 2.4.0'
-gem 'webmock', '<= 1.21.0'
 
 ruby_version = RUBY_VERSION.dup
 

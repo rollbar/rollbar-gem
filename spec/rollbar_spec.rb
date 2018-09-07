@@ -177,13 +177,14 @@ describe Rollbar do
   
         before do
           notifier.configuration = configuration
+          allow_any_instance_of(Net::HTTP).to receive(:request).and_return(OpenStruct.new(:code => 500, :body => "Error"))
+          @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
         end
         
         it "calls the :on_error_response hook if response status is not 200" do
-          
-          stub_request(:any, /api.rollbar.com/).to_return(:status => 500)
-          
+          expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, nil, nil, nil, nil).and_call_original
           expect(notifier.configuration.hook(:on_error_response)).to receive(:call)
+          
           notifier.log(level, message)
         end
       end
