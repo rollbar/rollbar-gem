@@ -12,7 +12,7 @@ module Rollbar
         lifecycle.around(:invoke_job, &Delayed::invoke_job_callback)
         lifecycle.after(:failure) do |_, job, _, _|
           data = Rollbar::Delayed.build_job_data(job)
-          ::Rollbar.scope(:request => data).error(job.last_error, :use_exception_level_filters => true) if job.last_error
+          ::Rollbar.scope(:request => data).error("Job has failed and won't be retried anymore: " + job.last_error, :use_exception_level_filters => true) if job.last_error
         end
       end
     end
