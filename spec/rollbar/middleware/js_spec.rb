@@ -177,7 +177,7 @@ END
           Object.const_set('SecureHeaders', Module.new)
           SecureHeaders.const_set('VERSION', '3.0.0')
           SecureHeaders.const_set('Configuration', Module.new {
-            def self.default
+            def self.dup
             end
           })
           allow(SecureHeaders).to receive(:content_security_policy_script_nonce) { 'lorem-ipsum-nonce' }
@@ -188,8 +188,9 @@ END
         end
 
         it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
-          secure_headers_config = double(:configuration, :current_csp => {}, :csp => double(:opt_out? => false))
-          allow(SecureHeaders::Configuration).to receive(:default).and_return(secure_headers_config)
+          csp = double(:opt_out? => false, :[] => nil)
+          secure_headers_config = double(:configuration, :csp => csp)
+          allow(SecureHeaders::Configuration).to receive(:dup).and_return(secure_headers_config)
           res_status, res_headers, response = subject.call(env)
 
           new_body = response.body.join
@@ -200,12 +201,10 @@ END
         end
 
         it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
-          secure_headers_config = double(:configuration,
-                                         :current_csp => {
-                                           :script_src => %w('unsafe-inline')
-                                         },
-                                         :csp => double(:opt_out? => false))
-          allow(SecureHeaders::Configuration).to receive(:default).and_return(secure_headers_config)
+          csp = double(:opt_out? => false)
+          allow(csp).to(receive(:[])) { |key| { :script_src => %w('unsafe-inline') }[key] }
+          secure_headers_config = double(:configuration, :csp => csp)
+          allow(SecureHeaders::Configuration).to receive(:dup).and_return(secure_headers_config)
 
           res_status, res_headers, response = subject.call(env)
           new_body = response.body.join
@@ -219,7 +218,7 @@ END
 
         it 'renders the snippet in the response without nonce if SecureHeaders CSP is OptOut' do
           secure_headers_config = double(:configuration, :csp => double(:opt_out? => true))
-          allow(SecureHeaders::Configuration).to receive(:default).and_return(secure_headers_config)
+          allow(SecureHeaders::Configuration).to receive(:dup).and_return(secure_headers_config)
 
           res_status, res_headers, response = subject.call(env)
           new_body = response.body.join

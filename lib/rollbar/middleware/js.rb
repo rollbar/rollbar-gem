@@ -157,8 +157,8 @@ module Rollbar
       def append_nonce?
         defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce) &&
           defined?(::SecureHeaders::Configuration) &&
-          !::SecureHeaders::Configuration.default.csp.opt_out? &&
-          !::SecureHeaders::Configuration.default.current_csp[:script_src].to_a.include?("'unsafe-inline'")
+          !::SecureHeaders::Configuration.dup.csp.opt_out? &&
+          !::SecureHeaders::Configuration.dup.csp[:script_src].to_a.include?("'unsafe-inline'")
       end
     end
   end
