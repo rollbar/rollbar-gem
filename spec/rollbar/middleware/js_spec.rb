@@ -1,6 +1,50 @@
 require 'spec_helper'
 require 'rollbar/middleware/js'
 
+
+shared_examples 'secure_headers' do
+  it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
+    SecureHeadersMocks::CSP.config = {
+      :opt_out? => false
+    }
+
+    _, _, response = subject.call(env)
+
+    new_body = response.body.join
+
+    expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
+    expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+    expect(new_body).to include(snippet)
+  end
+
+  it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
+    SecureHeadersMocks::CSP.config = {
+      :opt_out? => false,
+      :script_src => %w('unsafe-inline')
+    }
+
+    _, _, response = subject.call(env)
+    new_body = response.body.join
+
+    expect(new_body).to include('<script type="text/javascript">')
+    expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+    expect(new_body).to include(snippet)
+  end
+
+  it 'renders the snippet in the response without nonce if SecureHeaders CSP is OptOut' do
+    SecureHeadersMocks::CSP.config = {
+      :opt_out? => true
+    }
+
+    _, _, response = subject.call(env)
+    new_body = response.body.join
+
+    expect(new_body).to include('<script type="text/javascript">')
+    expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+    expect(new_body).to include(snippet)
+  end
+end
+
 describe Rollbar::Middleware::Js do
   subject { described_class.new(app, config) }
 
@@ -174,61 +218,26 @@ END
         end
 
         before do
-          Object.const_set('SecureHeaders', Module.new)
-          SecureHeaders.const_set('VERSION', '3.0.0')
-          SecureHeaders.const_set('Configuration', Module.new {
-            def self.default
-            end
-          })
-          allow(SecureHeaders).to receive(:content_security_policy_script_nonce) { 'lorem-ipsum-nonce' }
+          stub_const('::SecureHeaders', secure_headers_mock)
+          SecureHeadersMocks::CSP.config = {}
         end
 
-        after do
-          Object.send(:remove_const, 'SecureHeaders')
+        context 'with secure headers 3.0.x-3.4.x' do
+          let(:secure_headers_mock) {  SecureHeadersMocks::SecureHeaders30 }
+
+          include_examples 'secure_headers'
         end
 
-        it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
-          secure_headers_config = double(:configuration, :current_csp => {}, :csp => double(:opt_out? => false))
-          allow(SecureHeaders::Configuration).to receive(:default).and_return(secure_headers_config)
-          res_status, res_headers, response = subject.call(env)
+        context 'with secure headers 3.5' do
+          let(:secure_headers_mock) {  SecureHeadersMocks::SecureHeaders35 }
 
-          new_body = response.body.join
-
-          expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
-          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
-          expect(new_body).to include(snippet)
+          include_examples 'secure_headers'
         end
 
-        it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
-          secure_headers_config = double(:configuration,
-                                         :current_csp => {
-                                           :script_src => %w('unsafe-inline')
-                                         },
-                                         :csp => double(:opt_out? => false))
-          allow(SecureHeaders::Configuration).to receive(:default).and_return(secure_headers_config)
+        context 'with secure headers 6.0' do
+          let(:secure_headers_mock) {  SecureHeadersMocks::SecureHeaders60 }
 
-          res_status, res_headers, response = subject.call(env)
-          new_body = response.body.join
-
-          expect(new_body).to include('<script type="text/javascript">')
-          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
-          expect(new_body).to include(snippet)
-
-          SecureHeaders.send(:remove_const, 'Configuration')
-        end
-
-        it 'renders the snippet in the response without nonce if SecureHeaders CSP is OptOut' do
-          secure_headers_config = double(:configuration, :csp => double(:opt_out? => true))
-          allow(SecureHeaders::Configuration).to receive(:default).and_return(secure_headers_config)
-
-          res_status, res_headers, response = subject.call(env)
-          new_body = response.body.join
-
-          expect(new_body).to include('<script type="text/javascript">')
-          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
-          expect(new_body).to include(snippet)
-
-          SecureHeaders.send(:remove_const, 'Configuration')
+          include_examples 'secure_headers'
         end
       end
 
@@ -240,16 +249,11 @@ END
         end
 
         before do
-          Object.const_set('SecureHeaders', Module.new)
-          SecureHeaders.const_set('VERSION', '2.4.0')
-        end
-
-        after do
-          Object.send(:remove_const, 'SecureHeaders')
+          stub_const('::SecureHeaders', ::SecureHeadersMocks::SecureHeaders20)
         end
 
         it 'renders the snippet and config in the response without nonce in script tag when too old SecureHeaders installed' do
-          res_status, res_headers, response = subject.call(env)
+          _, _, response = subject.call(env)
           new_body = response.body.join
 
           expect(new_body).to include('<script type="text/javascript">')
@@ -354,10 +358,10 @@ END
         it 'adds the person data to the configuration' do
           _, _, response = subject.call(env)
           new_body = response.body.join
-          
+
           rollbar_config = new_body[/var _rollbarConfig = (.*);<\/script>/, 1]
           rollbar_config = JSON.parse(rollbar_config, { :symbolize_names => true})
-          
+
           expect(rollbar_config).to eql(expected_js_options)
         end
 
