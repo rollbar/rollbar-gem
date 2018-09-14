@@ -36,6 +36,8 @@ module Rollbar
         end
       end
 
+      private
+
       def enabled?
         !!config[:enabled]
       end
@@ -155,10 +157,86 @@ module Rollbar
       end
 
       def append_nonce?
-        defined?(::SecureHeaders) && ::SecureHeaders.respond_to?(:content_security_policy_script_nonce) &&
-          defined?(::SecureHeaders::Configuration) &&
-          !::SecureHeaders::Configuration.default.csp.opt_out? &&
-          !::SecureHeaders::Configuration.default.current_csp[:script_src].to_a.include?("'unsafe-inline'")
+        secure_headers.append_nonce?
+      end
+
+      def secure_headers
+        return SecureHeadersFalse.new unless defined?(::SecureHeaders::Configuration)
+
+        config = ::SecureHeaders::Configuration
+
+        secure_headers_cls = nil
+
+        if !::SecureHeaders::respond_to?(:content_security_policy_script_nonce)
+          secure_headers_cls = SecureHeadersFalse
+        elsif config.respond_to?(:get)
+          secure_headers_cls = SecureHeaders3To5
+        elsif config.dup.respond_to?(:csp)
+          secure_headers_cls = SecureHeaders6
+        else
+          secure_headers_cls = SecureHeadersFalse
+        end
+
+          secure_headers_cls.new
+      end
+
+      class SecureHeadersResolver
+        def append_nonce?
+          csp_needs_nonce?(find_csp)
+        end
+
+        private
+
+        def find_csp
+          raise NotImplementedError
+        end
+
+        def csp_needs_nonce?(csp)
+          !opt_out?(csp) && !unsafe_inline?(csp)
+        end
+
+        def opt_out?(csp)
+          raise NotImplementedError
+        end
+
+        def unsafe_inline?(csp)
+          csp[:script_src].to_a.include?("'unsafe-inline'")
+        end
+      end
+
+      class SecureHeadersFalse < SecureHeadersResolver
+        def append_nonce?
+          false
+        end
+      end
+
+      class SecureHeaders3To5 < SecureHeadersResolver
+        private
+
+        def find_csp
+          ::SecureHeaders::Configuration.get.csp
+        end
+
+        def opt_out?(csp)
+          if csp.respond_to?(:opt_out?) && csp.opt_out?
+            csp.opt_out?
+          # secure_headers csp 3.0.x-3.4.x doesn't respond to 'opt_out?'
+          elsif defined?(::SecureHeaders::OPT_OUT) && ::SecureHeaders::OPT_OUT.is_a?(Symbol)
+            csp == ::SecureHeaders::OPT_OUT
+          end
+        end
+      end
+
+      class SecureHeaders6 < SecureHeadersResolver
+        private
+
+        def find_csp
+          ::SecureHeaders::Configuration.dup.csp
+        end
+
+        def opt_out?(csp)
+          csp.opt_out?
+        end
       end
     end
   end
