@@ -21,7 +21,7 @@ db/*.sqlite3
 /tmp/*
 
 # various artifacts
-**.war
+**/*.war
 *.rbc
 *.sassc
 .rspec
@@ -55,7 +55,7 @@ pickle-email-*.html
 # Here are some files you may want to ignore globally:
 
 # scm revert files
-**.orig
+**/*.orig
 
 # Mac finder artifacts
 .DS_Store
@@ -70,4 +70,4 @@ pickle-email-*.html
 /*.tmproj
 
 # vim artifacts
-**.swp
+**/*.swp
