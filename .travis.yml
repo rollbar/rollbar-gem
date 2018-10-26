@@ -13,6 +13,7 @@ rvm:
   - 2.0.0
   - 2.1.0
   - 2.2.2
+  - 2.3.0
   - jruby-18mode
   - jruby-19mode
   - rbx
@@ -88,6 +89,12 @@ matrix:
       jdk: oraclejdk7
     - rvm: 2.2.2
       jdk: oraclejdk8
+    - rvm: 2.3.0
+      jdk: openjdk6
+    - rvm: 2.3.0
+      jdk: oraclejdk7
+    - rvm: 2.3.0
+      jdk: oraclejdk8
 
     - rvm: ruby-head
       jdk: openjdk6
@@ -146,6 +153,10 @@ matrix:
     - rvm: 2.2.2
       gemfile: gemfiles/rails30.gemfile
     - rvm: 2.2.2
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.3.0
+      gemfile: gemfiles/rails30.gemfile
+    - rvm: 2.3.0
       gemfile: gemfiles/rails31.gemfile
     - rvm: jruby-18mode
       gemfile: gemfiles/rails30.gemfile
