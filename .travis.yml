@@ -170,6 +170,10 @@ matrix:
       gemfile: gemfiles/rails41.gemfile
     - rvm: jruby-18mode
       gemfile: gemfiles/rails42.gemfile
+    - rvm: jruby-18mode
+      gemfile: gemfiles/rails50.gemfile
+    - rvm: jruby-18mode
+      gemfile: gemfiles/rails51.gemfile
     - rvm: jruby-19mode
       gemfile: gemfiles/rails30.gemfile
     - rvm: jruby-19mode
