@@ -12,8 +12,9 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'https://rollbar.com'
   gem.license       = 'MIT'
 
-  gem.files         = `git ls-files`.split($\)
-  gem.test_files    = gem.files.grep(%r{^(spec)/})
+  gem.files         = Dir.chdir(File.expand_path('..', __FILE__)) do
+    `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  end
   gem.name          = 'rollbar'
   gem.require_paths = ['lib']
   gem.version       = Rollbar::VERSION
