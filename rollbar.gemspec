@@ -11,10 +11,7 @@ Gem::Specification.new do |gem|
   gem.summary       = %q{Reports exceptions to Rollbar}
   gem.homepage      = 'https://rollbar.com'
   gem.license       = 'MIT'
-
-  gem.files         = Dir.chdir(File.expand_path(__dir__)) do
-    `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  end
+  gem.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   gem.name          = 'rollbar'
   gem.require_paths = ['lib']
   gem.version       = Rollbar::VERSION
