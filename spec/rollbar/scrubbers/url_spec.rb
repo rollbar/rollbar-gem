@@ -141,7 +141,7 @@ describe Rollbar::Scrubbers::URL do
     
     context 'in whitelist mode' do
       
-      let(:whitelist) { true }
+      let(:whitelist) { [:user, :secret] }
       
       context 'with ruby different from 1.8' do
         next unless Rollbar::LanguageSupport.can_scrub_url?
@@ -180,7 +180,7 @@ describe Rollbar::Scrubbers::URL do
           let(:options) do
             {
               :url => url,
-              :scrub_fields => [:dont_scrub],
+              :scrub_fields => [:dont_scrub, :secret, :password, :foo],
               :scrub_password => false,
               :scrub_user => false,
               :whitelist => whitelist
@@ -190,7 +190,7 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
   
           it 'returns the URL with some params filtered' do
-            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=\*{3,8}&dont_scrub=foo#fragment/
+            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment/
             
             expect(subject.call(options)).to match(expected_url)
           end
@@ -199,7 +199,7 @@ describe Rollbar::Scrubbers::URL do
             let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
   
             it 'returns the URL with some params filtered' do
-              expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}&dont_scrub=foo#fragment/
+              expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment/
   
               expect(subject.call(options)).to match(expected_url)
             end

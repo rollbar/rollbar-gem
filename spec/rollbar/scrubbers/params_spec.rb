@@ -311,7 +311,7 @@ describe Rollbar::Scrubbers::Params do
         [:secret, :password]
       end
       
-      let(:whitelist) { true }
+      let(:whitelist) { [:password] }
 
       context 'with Array object' do
         let(:params) do
@@ -327,8 +327,8 @@ describe Rollbar::Scrubbers::Params do
         let(:result) do
           [
             {
-              :foo => /\*+/,
-              :secret => 'the-secret',
+              :foo => 'bar',
+              :secret => /\*+/,
               :password => 'the-password',
               :password_confirmation => 'the-password'
             }
@@ -351,8 +351,8 @@ describe Rollbar::Scrubbers::Params do
         end
         let(:result) do
           {
-            :foo => /\*+/,
-            :secret => 'the-secret',
+            :foo => 'bar',
+            :secret => /\*+/,
             :password => 'the-password',
             :password_confirmation => 'the-password'
           }
@@ -384,15 +384,15 @@ describe Rollbar::Scrubbers::Params do
         end
         let(:result) do
           {
-            :foo => /\*+/,
+            :foo => 'bar',
             :extra => {
-              :secret => 'the-secret',
+              :secret => /\*+/,
               :password => 'the-password',
               :password_confirmation => 'the-password'
             },
             :other => {
-              :param => 'filtered',
-              :to_scrub => /\*+/
+              :param => /\*+/,
+              :to_scrub => 'to_scrub'
             }
           }
         end
@@ -423,15 +423,15 @@ describe Rollbar::Scrubbers::Params do
         end
         let(:result) do
           {
-            :foo => /\*+/,
+            :foo => 'bar',
             :extra => [{
-              :secret => 'the-secret',
+              :secret => /\*+/,
               :password => 'the-password',
               :password_confirmation => 'the-password'
             }],
             :other => [{
-              :param => 'filtered',
-              :to_scrub => /\*+/
+              :param => /\*+/,
+              :to_scrub => 'to_scrub'
             }]
           }
         end
@@ -456,9 +456,9 @@ describe Rollbar::Scrubbers::Params do
         end
         let(:result) do
           {
-            :foo => /\*+/,
+            :foo => 'bar',
             :extra => [{
-              :secret => 'the-secret',
+              :secret => /\*+/,
               :password => 'the-password',
               :password_confirmation => 'the-password',
               :skipped => "Skipped value of class 'Tempfile'"
