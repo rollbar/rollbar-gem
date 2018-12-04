@@ -12,7 +12,13 @@ gem 'rake'
 gem 'rspec-rails', '~> 3.4'
 gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
 
-gem 'oj', '~> 2.12.14' unless is_jruby
+unless is_jruby
+  if RUBY_VERSION >= '2.4.0'
+    gem 'oj', '~> 2.16.1'
+  else
+    gem 'oj', '~> 2.12.14'
+  end
+end
 
 if RUBY_VERSION > '1.8.7' && RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '>= 2.13.0', '< 5.0'

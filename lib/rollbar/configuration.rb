@@ -111,7 +111,7 @@ module Rollbar
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true
-      @scrub_whitelist = false
+      @scrub_whitelist = []
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
       @sidekiq_threshold = 0

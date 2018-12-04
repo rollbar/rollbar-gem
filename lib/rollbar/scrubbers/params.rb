@@ -22,7 +22,7 @@ module Rollbar
 
         config = options[:config]
         extra_fields = options[:extra_fields]
-        whitelist = options[:whitelist] | false
+        whitelist = options[:whitelist] || []
 
         scrub(params, build_scrub_options(config, extra_fields, whitelist))
       end
@@ -33,31 +33,29 @@ module Rollbar
         ary_config = Array(config)
 
         {
-          :fields_regex => build_fields_regex(ary_config, extra_fields),
-          :scrub_all => ary_config.include?(SCRUB_ALL),
-          :whitelist => whitelist
+          :fields_regex => build_fields_regex(ary_config, extra_fields, whitelist),
+          :scrub_all => ary_config.include?(SCRUB_ALL)
         }
       end
 
-      def build_fields_regex(config, extra_fields)
+      def build_fields_regex(config, extra_fields, whitelist)
         fields = config.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
         fields += Array(extra_fields)
 
         return unless fields.any?
 
-        Regexp.new(fields.map { |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+        Regexp.new(fields.reject { |f| whitelist.include? f }.map { |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
       end
 
       def scrub(params, options)
         fields_regex = options[:fields_regex]
         scrub_all = options[:scrub_all]
-        whitelist = options[:whitelist]
 
         return scrub_array(params, options) if params.is_a?(Array)
 
         params.to_hash.inject({}) do |result, (key, value)|
           if fields_regex === Rollbar::Encoding.encode(key).to_s
-            result[key] = whitelist ? rollbar_filtered_param_value(value) : scrub_value(value)
+            result[key] = scrub_value(value)
           elsif value.is_a?(Hash)
             result[key] = scrub(value, options)
           elsif value.is_a?(Array)
@@ -67,7 +65,7 @@ module Rollbar
           elsif scrub_all
             result[key] = scrub_value(value)
           else
-            result[key] = whitelist ? scrub_value(value) : rollbar_filtered_param_value(value)
+            result[key] = rollbar_filtered_param_value(value)
           end
 
           result
