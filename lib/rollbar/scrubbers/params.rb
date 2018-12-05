@@ -21,7 +21,7 @@ module Rollbar
         return {} unless params
 
         config = options[:config]
-        extra_fields = options[:extra_fields]
+        extra_fields = options[:whitelist] ? [] : options[:extra_fields]
         whitelist = options[:whitelist] | false
 
         scrub(params, build_scrub_options(config, extra_fields, whitelist))
