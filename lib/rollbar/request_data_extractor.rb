@@ -60,7 +60,8 @@ module Rollbar
     def scrub_url(url, sensitive_params)
       options = {
         :url => url,
-        :scrub_fields => Array(Rollbar.configuration.scrub_fields) + sensitive_params,
+        :scrub_fields => Array(Rollbar.configuration.scrub_fields),
+        :extra_fields => sensitive_params,
         :scrub_user => Rollbar.configuration.scrub_user,
         :scrub_password => Rollbar.configuration.scrub_password,
         :randomize_scrub_length => Rollbar.configuration.randomize_scrub_length,

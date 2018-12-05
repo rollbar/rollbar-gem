@@ -31,7 +31,8 @@ describe Rollbar::RequestDataExtractor do
     it 'calls the scrubber with the correct options' do
       expected_options = {
         :url => url,
-        :scrub_fields => [:password, :secret, :param1, :param2],
+        :scrub_fields => [:password, :secret],
+        :extra_fields => [:param1, :param2],
         :scrub_user => true,
         :scrub_password => true,
         :randomize_scrub_length => true,

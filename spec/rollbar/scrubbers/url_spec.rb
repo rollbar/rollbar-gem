@@ -9,7 +9,8 @@ describe Rollbar::Scrubbers::URL do
       :scrub_fields => [:password, :secret],
       :scrub_user => false,
       :scrub_password => false,
-      :randomize_scrub_length => true
+      :randomize_scrub_length => true,
+      :extra_fields => [:password, :api_key]
     }
       
     if defined? whitelist
@@ -55,7 +56,8 @@ describe Rollbar::Scrubbers::URL do
             :url => url,
             :scrub_fields => [],
             :scrub_password => true,
-            :scrub_user => true
+            :scrub_user => true,
+            :extra_fields => [:password, :api_key]
           }
         end
 
@@ -95,7 +97,8 @@ describe Rollbar::Scrubbers::URL do
             :scrub_fields => [:password, :secret],
             :scrub_user => false,
             :scrub_password => false,
-            :randomize_scrub_length => false
+            :randomize_scrub_length => false,
+            :extra_fields => []
           }
         end
         let(:password) { 'longpasswordishere' }
@@ -125,10 +128,11 @@ describe Rollbar::Scrubbers::URL do
         let(:options) do
           {
             :url => url,
-            :scrub_fields => [:passwd, :password, :password_confirmation, :secret, :confirm_password, :secret_token, :api_key, :access_token, :auth, :SAMLResponse, :password, :auth],
+            :scrub_fields => [:passwd, :password, :password_confirmation, :secret, :confirm_password, :secret_token, :auth, :SAMLResponse, :password, :auth],
             :scrub_user => true,
             :scrub_password => true,
-            :randomize_scrub_length => true
+            :randomize_scrub_length => true,
+            :extra_fields => [:password, :api_key, :access_token]
           }
         end
 
@@ -163,13 +167,14 @@ describe Rollbar::Scrubbers::URL do
               :scrub_fields => [],
               :scrub_password => true,
               :scrub_user => true,
-              :whitelist => whitelist
+              :whitelist => whitelist,
+              :extra_fields => [:user, :password]
             }
           end
   
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
   
-          it 'returns the URL without any change' do
+          it 'returns the URL with scrubbed user and password' do
             expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
   
             expect(subject.call(options)).to match(expected_url)

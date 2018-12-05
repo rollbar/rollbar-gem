@@ -15,7 +15,7 @@ module Rollbar
         return url unless Rollbar::LanguageSupport.can_scrub_url?
 
         filter(url,
-               build_regex(options[:scrub_fields]),
+               build_regex(options[:scrub_fields], options[:extra_fields], options[:whitelist]),
                options[:scrub_user],
                options[:scrub_password],
                options.fetch(:randomize_scrub_length, true),
@@ -39,7 +39,8 @@ module Rollbar
 
       # Builds a regex to match with any of the received fields.
       # The built regex will also match array params like 'user_ids[]'.
-      def build_regex(fields)
+      def build_regex(scrub_fields, extra_fields, whitelist)
+        fields = whitelist ? scrub_fields : scrub_fields + extra_fields
         fields_or = fields.map { |field| "#{field}(\\[\\])?" }.join('|')
 
         Regexp.new("^#{fields_or}$")
