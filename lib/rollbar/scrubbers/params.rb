@@ -6,7 +6,8 @@ module Rollbar
     # This class contains the logic to scrub the received parameters. It will
     # scrub the parameters matching Rollbar.configuration.scrub_fields Array.
     # Also, if that configuration option is set to :scrub_all, it will scrub all
-    # received parameters
+    # received parameters. It will not scrub anything that is in the scrub_whitelist
+    # configuration array even if :scrub_all is true.
     class Params
       SKIPPED_CLASSES = [::Tempfile]
       ATTACHMENT_CLASSES = %w(ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile).freeze
@@ -33,37 +34,46 @@ module Rollbar
         ary_config = Array(config)
 
         {
-          :fields_regex => build_fields_regex(ary_config, extra_fields, whitelist),
-          :scrub_all => ary_config.include?(SCRUB_ALL)
+          :fields_regex => build_fields_regex(ary_config, extra_fields),
+          :scrub_all => ary_config.include?(SCRUB_ALL),
+          :whitelist => build_whitelist_regex(whitelist)
         }
       end
 
-      def build_fields_regex(config, extra_fields, whitelist)
+      def build_fields_regex(config, extra_fields)
         fields = config.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
         fields += Array(extra_fields)
 
         return unless fields.any?
 
-        Regexp.new(fields.reject { |f| whitelist.include? f }.map { |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+        Regexp.new(fields.map { |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+      end
+
+      def build_whitelist_regex(whitelist)
+        fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
+        return unless fields.any?
+        Regexp.new(fields.map { |val| /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
       end
 
       def scrub(params, options)
         fields_regex = options[:fields_regex]
         scrub_all = options[:scrub_all]
+        whitelist_regex = options[:whitelist]
 
         return scrub_array(params, options) if params.is_a?(Array)
 
         params.to_hash.inject({}) do |result, (key, value)|
-          if fields_regex === Rollbar::Encoding.encode(key).to_s
+          encoded_key = Rollbar::Encoding.encode(key).to_s
+          if fields_regex === encoded_key && !(whitelist_regex === encoded_key)
             result[key] = scrub_value(value)
           elsif value.is_a?(Hash)
             result[key] = scrub(value, options)
+          elsif scrub_all && !(whitelist_regex === encoded_key)
+            result[key] = scrub_value(value)
           elsif value.is_a?(Array)
             result[key] = scrub_array(value, options)
           elsif skip_value?(value)
             result[key] = "Skipped value of class '#{value.class.name}'"
-          elsif scrub_all
-            result[key] = scrub_value(value)
           else
             result[key] = rollbar_filtered_param_value(value)
           end
