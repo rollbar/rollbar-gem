@@ -15,10 +15,12 @@ describe Rollbar::Scrubbers::Params do
   end
 
   describe '#call' do
+    let(:extra_fields) { [:secret, :password] }
     let(:options) do
       options = {
-        :params => params,
-        :config => scrub_config
+        params: params,
+        config: scrub_config,
+        extra_fields: extra_fields
       }
       
       if defined? whitelist
@@ -308,9 +310,9 @@ describe Rollbar::Scrubbers::Params do
     
     context 'with :whitelist option' do
       let(:scrub_config) do
-        [:secret, :password]
+        [:foo]
       end
-      
+
       let(:whitelist) { true }
 
       context 'with Array object' do
@@ -327,10 +329,10 @@ describe Rollbar::Scrubbers::Params do
         let(:result) do
           [
             {
-              :foo => /\*+/,
-              :secret => 'the-secret',
-              :password => 'the-password',
-              :password_confirmation => 'the-password'
+              :foo => 'bar',
+              :secret => /\*+/,
+              :password => /\*+/,
+              :password_confirmation => /\*+/
             }
           ]
         end
@@ -351,10 +353,10 @@ describe Rollbar::Scrubbers::Params do
         end
         let(:result) do
           {
-            :foo => /\*+/,
-            :secret => 'the-secret',
-            :password => 'the-password',
-            :password_confirmation => 'the-password'
+            :foo => 'bar',
+            :secret => /\*+/,
+            :password => /\*+/,
+            :password_confirmation => /\*+/
           }
         end
 
@@ -377,21 +379,21 @@ describe Rollbar::Scrubbers::Params do
               :password_confirmation => 'the-password'
             },
             :other => {
-              :param => 'filtered',
+              :param => 'unfiltered',
               :to_scrub => 'to_scrub'
             }
           }
         end
         let(:result) do
           {
-            :foo => /\*+/,
+            :foo => 'bar',
             :extra => {
-              :secret => 'the-secret',
-              :password => 'the-password',
-              :password_confirmation => 'the-password'
+              :secret => /\*+/,
+              :password => /\*+/,
+              :password_confirmation => /\*+/
             },
             :other => {
-              :param => 'filtered',
+              :param => 'unfiltered',
               :to_scrub => /\*+/
             }
           }
@@ -416,21 +418,21 @@ describe Rollbar::Scrubbers::Params do
               :password_confirmation => 'the-password'
             }],
             :other => [{
-              :param => 'filtered',
+              :param => 'unfiltered',
               :to_scrub => 'to_scrub'
             }]
           }
         end
         let(:result) do
           {
-            :foo => /\*+/,
+            :foo => 'bar',
             :extra => [{
-              :secret => 'the-secret',
-              :password => 'the-password',
-              :password_confirmation => 'the-password'
+              :secret => /\*+/,
+              :password => /\*+/,
+              :password_confirmation => /\*+/
             }],
             :other => [{
-              :param => 'filtered',
+              :param => 'unfiltered',
               :to_scrub => /\*+/
             }]
           }
@@ -456,11 +458,11 @@ describe Rollbar::Scrubbers::Params do
         end
         let(:result) do
           {
-            :foo => /\*+/,
+            :foo => 'bar',
             :extra => [{
-              :secret => 'the-secret',
-              :password => 'the-password',
-              :password_confirmation => 'the-password',
+              :secret => /\*+/,
+              :password => /\*+/,
+              :password_confirmation => /\*+/,
               :skipped => "Skipped value of class 'Tempfile'"
             }]
           }
