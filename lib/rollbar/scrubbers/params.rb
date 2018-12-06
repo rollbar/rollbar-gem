@@ -64,7 +64,7 @@ module Rollbar
 
         params.to_hash.inject({}) do |result, (key, value)|
           encoded_key = Rollbar::Encoding.encode(key).to_s
-          if fields_regex === encoded_key && !(whitelist_regex === encoded_key)
+          if (fields_regex === encoded_key) && !(whitelist_regex === encoded_key)
             result[key] = scrub_value(value)
           elsif value.is_a?(Hash)
             result[key] = scrub(value, options)
