@@ -278,31 +278,140 @@ describe Rollbar::Scrubbers::Params do
     context 'with :scrub_all option' do
       let(:scrub_config) { :scrub_all }
       
-      let(:params) do
-        {
-          :foo => 'bar',
-          :password => 'the-password',
-          :bar => 'foo',
-          :extra => {
-            :foo => 'more-foo',
-            :bar => 'more-bar'
+      context 'with simple hash' do
+        let(:params) do
+          {
+            :foo => 'bar',
+            :password => 'the-password',
+            :bar => 'foo',
+            :extra => {
+              :foo => 'more-foo',
+              :bar => 'more-bar'
+            }
           }
-        }
-      end
-      let(:result) do
-        {
-          :foo => /\*+/,
-          :password => /\*+/,
-          :bar => /\*+/,
-          :extra => {
+        end
+        let(:result) do
+          {
             :foo => /\*+/,
-            :bar => /\*+/
+            :password => /\*+/,
+            :bar => /\*+/,
+            :extra => {
+              :foo => /\*+/,
+              :bar => /\*+/
+            }
           }
-        }
+        end
+
+        it 'scrubs the required parameters' do
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+        end
       end
 
-      it 'scrubs the required parameters' do
-        expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+      context 'with nested arrays' do
+        let(:params) do
+          {
+            :foo => 'bar',
+            :password => 'the-password',
+            :bar => 'foo',
+            :extra => [
+              'hello world',
+              {
+                :foo => 'more-foo',
+                :bar => 'more-bar'
+              }
+            ]
+          }
+        end
+        let(:result) do
+          {
+            :foo => /\*+/,
+            :password => /\*+/,
+            :bar => /\*+/,
+            :extra => /\*+/,
+          }
+        end
+
+        it 'scrubs the required parameters' do
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+        end
+      end
+
+      context 'and with :whitelist option' do
+        let (:whitelist) { [:foo, :buzz] }
+
+        context 'with simple hash' do
+          let(:params) do
+            {
+              :foo => 'bar',
+              :password => 'the-password',
+              :bar => 'foo',
+              :extra => {
+                :foo => 'more-foo',
+                :bar => 'more-bar'
+              }
+            }
+          end
+          let(:result) do
+            {
+              :foo => 'bar',
+              :password => /\*+/,
+              :bar => /\*+/,
+              :extra => {
+                :foo => 'more-foo',
+                :bar => /\*+/
+              }
+            }
+          end
+
+          it 'scrubs the required parameters' do
+            expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+          end
+        end
+
+        context 'with nested arrays' do
+          let(:params) do
+            {
+              :foo => 'bar',
+              :password => 'the-password',
+              :bar => 'foo',
+              :extra => [
+                'hello world',
+                {
+                  :foo => 'more-foo',
+                  :bar => 'more-bar'
+                }
+              ],
+              :buzz => [
+                'fizzbuzz',
+                {
+                  :a => 42,
+                  :foo => 'another-foo',
+                  :b => 'this should be scrubbed'
+                }
+              ]
+            }
+          end
+          let(:result) do
+            {
+              :foo => 'bar',
+              :password => /\*+/,
+              :bar => /\*+/,
+              :extra => /\*+/,
+              :buzz => [
+                'fizzbuzz',
+                {
+                  :a => /\*+/,
+                  :foo => 'another-foo',
+                  :b => /\*+/
+                }
+              ]
+            }
+          end
+
+          it 'scrubs the required parameters' do
+            expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+          end
+        end
       end
     end
     
@@ -330,7 +439,7 @@ describe Rollbar::Scrubbers::Params do
               :foo => 'bar',
               :secret => /\*+/,
               :password => 'the-password',
-              :password_confirmation => 'the-password'
+              :password_confirmation => /\*+/
             }
           ]
         end
@@ -354,7 +463,7 @@ describe Rollbar::Scrubbers::Params do
             :foo => 'bar',
             :secret => /\*+/,
             :password => 'the-password',
-            :password_confirmation => 'the-password'
+            :password_confirmation => /\*+/
           }
         end
 
@@ -388,7 +497,7 @@ describe Rollbar::Scrubbers::Params do
             :extra => {
               :secret => /\*+/,
               :password => 'the-password',
-              :password_confirmation => 'the-password'
+              :password_confirmation => /\*+/
             },
             :other => {
               :param => /\*+/,
@@ -427,7 +536,7 @@ describe Rollbar::Scrubbers::Params do
             :extra => [{
               :secret => /\*+/,
               :password => 'the-password',
-              :password_confirmation => 'the-password'
+              :password_confirmation => /\*+/
             }],
             :other => [{
               :param => /\*+/,
@@ -460,7 +569,7 @@ describe Rollbar::Scrubbers::Params do
             :extra => [{
               :secret => /\*+/,
               :password => 'the-password',
-              :password_confirmation => 'the-password',
+              :password_confirmation => /\*+/,
               :skipped => "Skipped value of class 'Tempfile'"
             }]
           }
