@@ -1420,7 +1420,10 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      gem_paths = gems.map{|gem| Gem::Specification.find_all_by_name(gem).map(&:gem_dir) }.flatten.compact.uniq
+      gem_paths = gems.map do |name|
+        Gem::Specification.each.select { |spec| name === spec.name }
+      end.flatten.uniq.map(&:gem_dir)
+
       gem_paths.length.should > 1
 
       gem_paths.any?{|path| path.include? 'rollbar-gem'}.should == true
