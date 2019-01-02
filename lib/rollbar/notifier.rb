@@ -295,6 +295,10 @@ module Rollbar
       end
     end
 
+    def logger
+      @logger ||= LoggerProxy.new(configuration.logger)
+    end
+
     private
 
     def use_exception_level_filters?(options)
@@ -705,10 +709,6 @@ module Rollbar
 
       uuid_url = Util.uuid_rollbar_url(data, configuration)
       log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
-    end
-
-    def logger
-      @logger ||= LoggerProxy.new(configuration.logger)
     end
   end
 end
