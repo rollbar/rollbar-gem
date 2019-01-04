@@ -87,7 +87,7 @@ module Rollbar
         
         uri = URI.parse(
           ::Rollbar::Deploy::ENDPOINT + 
-          deploy_id +
+          deploy_id.to_s +
           "?access_token=" + access_token
         )
 
