@@ -2,6 +2,7 @@ require 'net/http'
 require 'rubygems'
 require 'json'
 require 'rollbar/deploy/capistrano'
+require 'byebug'
 
 namespace :rollbar do
 
@@ -24,7 +25,10 @@ namespace :rollbar do
       
       info result[:request_info]
       
-      info result[:response_info] if result[:response_info]
+      if result[:response]
+        info result[:response_info] if result[:response_info]
+        set :rollbar_deploy_id, JSON.parse(result[:response].body)['data']['deploy_id']
+      end
       
       info "Notified Rollbar of deployment start"
     end
@@ -36,7 +40,7 @@ namespace :rollbar do
 
       result = ::Rollbar::Deploy::Capistrano.update(
         access_token: fetch(:rollbar_token),
-        deploy_id: "123",
+        deploy_id: fetch(:rollbar_deploy_id),
         status: 'succeeded',
         proxy: :ENV,
         dry_run: dry_run?
@@ -52,7 +56,7 @@ namespace :rollbar do
 end
 
 namespace :deploy do
-  after 'deploy:starting', 'rollbar:start_deploy'
+  after 'deploy:set_current_revision', 'rollbar:start_deploy'
   after 'deploy:finished', 'rollbar:deploy_succeeded'
 end
 
