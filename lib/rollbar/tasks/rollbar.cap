@@ -1,39 +1,59 @@
 require 'net/http'
 require 'rubygems'
 require 'json'
+require 'rollbar/deploy/capistrano'
 
 namespace :rollbar do
 
-  desc 'Send the deployment notification to Rollbar.'
-  task :deploy do
+  desc 'Send deployment started notification to Rollbar.'
+  task :start_deploy do
     on primary fetch(:rollbar_role) do
       warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
 
-      uri    = URI.parse 'https://api.rollbar.com/api/1/deploy/'
-      params = {
-        :local_username => fetch(:rollbar_user),
-        :access_token   => fetch(:rollbar_token),
-        :environment    => fetch(:rollbar_env),
-        :revision       => fetch(:rollbar_revision),
-        :comment        => fetch(:rollbar_comment),
-      }
+      result = ::Rollbar::Deploy::Capistrano.report(
+        access_token: fetch(:rollbar_token),
+        environment: fetch(:rollbar_env),
+        revision: fetch(:rollbar_revision),
+        rollbar_username: fetch(:rollbar_user),
+        local_username: fetch(:rollbar_user),
+        comment: fetch(:rollbar_comment),
+        status: 'started',
+        proxy: :ENV,
+        dry_run: dry_run?
+      )
+      
+      info result[:request_info]
+      
+      info result[:response_info] if result[:response_info]
+      
+      info "Notified Rollbar of deployment start"
+    end
+  end
+  
+  task :deploy_succeeded do
+    on primary fetch(:rollbar_role) do
+      warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
 
-      debug "Building Rollbar POST to #{uri} with #{params.inspect}"
-
-      request      = Net::HTTP::Post.new(uri.request_uri)
-      request.body = ::JSON.dump(params)
-
-      Net::HTTP.start(uri.host, uri.port, :ENV, :use_ssl => true) do |http|
-        http.request(request)
-      end
-
-      info 'Rollbar notification complete.'
+      result = ::Rollbar::Deploy::Capistrano.update(
+        access_token: fetch(:rollbar_token),
+        deploy_id: "123",
+        status: 'succeeded',
+        proxy: :ENV,
+        dry_run: dry_run?
+      )
+      
+      info result[:request_info]
+      
+      info result[:response_info] if result[:response_info]
+      
+      info "Notified Rollbar of successful deployment"
     end
   end
 end
 
 namespace :deploy do
-  after 'deploy:finished', 'rollbar:deploy'
+  after 'deploy:starting', 'rollbar:start_deploy'
+  after 'deploy:finished', 'rollbar:deploy_succeeded'
 end
 
 namespace :load do
