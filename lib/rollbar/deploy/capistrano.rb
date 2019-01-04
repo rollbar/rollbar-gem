@@ -70,7 +70,7 @@ module Rollbar
           :rollbar_username => rollbar_username,
           :local_username => local_username,
           :comment => comment,
-          :status => status
+          :status => status.to_s
         })
         
         self.send_request(uri, proxy, request, dry_run)
@@ -93,7 +93,7 @@ module Rollbar
 
         request = Net::HTTP::Patch.new(uri.request_uri)
         request.body = ::JSON.dump({
-          :status => status,
+          :status => status.to_s,
           :comment => comment
         })
         

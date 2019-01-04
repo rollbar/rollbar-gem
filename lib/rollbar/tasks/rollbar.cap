@@ -18,7 +18,7 @@ namespace :rollbar do
         rollbar_username: fetch(:rollbar_user),
         local_username: fetch(:rollbar_user),
         comment: fetch(:rollbar_comment),
-        status: 'started',
+        status: :started,
         proxy: :ENV,
         dry_run: dry_run?
       )
@@ -41,7 +41,7 @@ namespace :rollbar do
       result = ::Rollbar::Deploy::Capistrano.update(
         access_token: fetch(:rollbar_token),
         deploy_id: fetch(:rollbar_deploy_id),
-        status: 'succeeded',
+        status: :succeeded,
         proxy: :ENV,
         dry_run: dry_run?
       )
