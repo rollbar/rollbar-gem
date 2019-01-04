@@ -11,6 +11,8 @@ namespace :rollbar do
     on primary fetch(:rollbar_role) do
       warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
 
+      info "Notifying Rollbar of deployment start"
+
       result = ::Rollbar::Deploy::Capistrano.report(
         access_token: fetch(:rollbar_token),
         environment: fetch(:rollbar_env),
@@ -25,32 +27,62 @@ namespace :rollbar do
       
       info result[:request_info]
       
-      if result[:response]
+      if dry_run?
+        
+        set :rollbar_deploy_id, 123
+        info "Skipping sending HTTP requests to Rollbar in dry run."
+        
+      else
+        
         info result[:response_info] if result[:response_info]
-        set :rollbar_deploy_id, JSON.parse(result[:response].body)['data']['deploy_id']
+        
+        if result[:deploy_id]
+          set :rollbar_deploy_id, result[:deploy_id]
+        else
+          error "Unable to report deploy to Rollbar"
+        end
+        
       end
-      
-      info "Notified Rollbar of deployment start"
     end
   end
   
   task :deploy_succeeded do
     on primary fetch(:rollbar_role) do
       warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
-
-      result = ::Rollbar::Deploy::Capistrano.update(
-        access_token: fetch(:rollbar_token),
-        deploy_id: fetch(:rollbar_deploy_id),
-        status: :succeeded,
-        proxy: :ENV,
-        dry_run: dry_run?
-      )
       
-      info result[:request_info]
+      info "Setting deployment status to `succeeded` in Rollbar"  
       
-      info result[:response_info] if result[:response_info]
+      deploy_id = fetch(:rollbar_deploy_id)
       
-      info "Notified Rollbar of successful deployment"
+      if deploy_id      
+        result = ::Rollbar::Deploy::Capistrano.update(
+          access_token: fetch(:rollbar_token),
+          deploy_id: deploy_id,
+          status: :succeeded,
+          proxy: :ENV,
+          dry_run: dry_run?
+        )
+        
+        info result[:request_info]
+        
+        info result[:response_info] if result[:response_info]
+        
+        if dry_run?
+          
+          info "Skipping sending HTTP requests to Rollbar in dry run."
+          
+        else
+          
+          if result[:response].is_a? Net::HTTPSuccess
+            info "Set deployment status to `succeeded` in Rollbar"  
+          else
+            error "Unable to update deploy status in Rollbar"
+          end
+          
+        end
+      else
+        error "Failed to update the deploy in Rollbar. No deploy id available."
+      end
     end
   end
 end

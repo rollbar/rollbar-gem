@@ -73,7 +73,13 @@ module Rollbar
           :status => status.to_s
         })
         
-        self.send_request(uri, proxy, request, dry_run)
+        result = self.send_request(uri, proxy, request, dry_run)
+        
+        if result[:response].is_a? Net::HTTPSuccess
+          result[:deploy_id] = JSON.parse(result[:response].body)['data']['deploy_id']
+        end
+        
+        result
       end
       
       def self.update(
