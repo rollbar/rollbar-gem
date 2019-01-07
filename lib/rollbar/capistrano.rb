@@ -1,8 +1,6 @@
 require 'capistrano'
 require 'rollbar/deploy'
 
-require 'capistrano'
-
 module Rollbar
     module Capistrano
       
