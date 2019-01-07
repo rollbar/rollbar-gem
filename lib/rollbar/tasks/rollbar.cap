@@ -1,19 +1,21 @@
 require 'net/http'
 require 'rubygems'
 require 'json'
-require 'rollbar/deploy/capistrano'
+require 'rollbar/deploy'
 require 'byebug'
 
 namespace :rollbar do
 
+  # TODO: adjust code for capistrano 2
+
   desc 'Send deployment started notification to Rollbar.'
-  task :start_deploy do
+  task :deploy_started do
     on primary fetch(:rollbar_role) do
       warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
 
       info "Notifying Rollbar of deployment start"
 
-      result = ::Rollbar::Deploy::Capistrano.report(
+      result = ::Rollbar::Deploy.report(
         access_token: fetch(:rollbar_token),
         environment: fetch(:rollbar_env),
         revision: fetch(:rollbar_revision),
@@ -55,7 +57,7 @@ namespace :rollbar do
       deploy_id = fetch(:rollbar_deploy_id)
       
       if deploy_id      
-        result = ::Rollbar::Deploy::Capistrano.update(
+        result = ::Rollbar::Deploy.update(
           access_token: fetch(:rollbar_token),
           deploy_id: deploy_id,
           status: :succeeded,
@@ -85,11 +87,57 @@ namespace :rollbar do
       end
     end
   end
+  
+  task :deploy_failed do
+    on primary fetch(:rollbar_role) do
+      warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if Capistrano::VERSION =~ /^3\.0/
+      
+      info "Setting deployment status to `failed` in Rollbar"  
+      
+      deploy_id = fetch(:rollbar_deploy_id)
+      
+      if deploy_id      
+        result = ::Rollbar::Deploy.update(
+          access_token: fetch(:rollbar_token),
+          deploy_id: deploy_id,
+          status: :failed,
+          proxy: :ENV,
+          dry_run: dry_run?
+        )
+        
+        info result[:request_info]
+        
+        info result[:response_info] if result[:response_info]
+        
+        if dry_run?
+          
+          info "Skipping sending HTTP requests to Rollbar in dry run."
+          
+        else
+          
+          if result[:response].is_a? Net::HTTPSuccess
+            info "Set deployment status to `failed` in Rollbar"  
+          else
+            error "Unable to update deploy status in Rollbar"
+          end
+          
+        end
+      else
+        error "Failed to update the deploy in Rollbar. No deploy id available."
+      end
+    end
+  end
+  
+  task :fail do
+    raise StandardError.new
+  end
+  
 end
 
 namespace :deploy do
-  after 'deploy:set_current_revision', 'rollbar:start_deploy'
+  after 'deploy:set_current_revision', 'rollbar:deploy_started'
   after 'deploy:finished', 'rollbar:deploy_succeeded'
+  after 'deploy:failed', 'rollbar:deploy_failed'
 end
 
 namespace :load do
