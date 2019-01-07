@@ -2,7 +2,6 @@ require 'net/http'
 require 'rubygems'
 require 'json'
 require 'rollbar/deploy'
-require 'byebug'
 
 namespace :rollbar do
 
