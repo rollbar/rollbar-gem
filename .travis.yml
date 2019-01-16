@@ -4,24 +4,29 @@ services:
 language: ruby
 # Broken bundler on travis CI - https://github.com/bundler/bundler/issues/2784
 before_install:
-  - gem update --system 2.5.1
+  - gem update --system 2.7.7
   - gem --version
   - gem install bundler -v 1.6.1
   - bundle --version
+
 rvm:
   - 1.9.3
   - 2.0.0
   - 2.1.0
   - 2.2.2
   - 2.3.0
+  - 2.3.8
+  - 2.4.5
+  - 2.5.3
+  - 2.6.0
   - jruby-18mode
   - jruby-19mode
   - rbx
 jdk:
-  - openjdk6
   - openjdk7
-  - oraclejdk7
+  - openjdk8
   - oraclejdk8
+  - oraclejdk9
 env:
   - ROLLBAR_SSL_CERT_FILE=/home/travis/build/rollbar/rollbar-gem/spec/cacert.pem
 gemfile:
@@ -38,14 +43,44 @@ matrix:
   include:
     - rvm: 1.8.7
       gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
-      jdk: openjdk6
+      jdk: openjdk7
     - rvm: 1.9.2
       gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
-      jdk: openjdk6
+      jdk: openjdk7
+    - rvm: jruby-18mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: openjdk7
+    - rvm: jruby-19mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: openjdk7
+    - rvm: jruby-18mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: openjdk8
+    - rvm: jruby-19mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: openjdk8
+    - rvm: jruby-18mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: oraclejdk8
+    - rvm: jruby-19mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: oraclejdk8
+    - rvm: jruby-18mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: oraclejdk9
+    - rvm: jruby-19mode
+      gemfile: gemfiles/ruby_1_8_and_1_9_2.gemfile
+      jdk: oraclejdk9
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-18mode
     - rvm: jruby-head
+    # all JRuby builds have dependency issues that need to be fixed
+    - rvm: jruby-18mode
+    - rvm: jruby-19mode
+    # Ruby 2.4.5 has a known issue, under investigation
+    - rvm: 2.4.5
+    # Ruby 2.6.x is still being eveluated and may have test failures
+    - rvm: 2.6.0
 
     # NOTE: Allowing this to fail because of some strange error in rspec-core `undefined method `example_group_finished'`.
     # Seems to work with oraclejdk7.
@@ -55,62 +90,87 @@ matrix:
     # Don't run tests for non-jruby environments with the JDK.
     # NOTE: openjdk7 is missing from these exclusions so that Travis will run at least 1 build for the given rvm.
     - rvm: 1.8.7
-      jdk: openjdk6
-    - rvm: 1.8.7
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: 1.8.7
       jdk: oraclejdk8
+    - rvm: 1.8.7
+      jdk: oraclejdk9
     - rvm: 1.9.2
-      jdk: openjdk6
+      jdk: openjdk8
     - rvm: 1.9.2
-      jdk: oraclejdk7
+      jdk: oraclejdk8
     - rvm: 1.9.2
+      jdk: oraclejdk9
+    - rvm: 1.9.3
+      jdk: openjdk8
+    - rvm: 1.9.3
       jdk: oraclejdk8
     - rvm: 1.9.3
-      jdk: openjdk6
-    - rvm: 1.9.3
-      jdk: oraclejdk7
-    - rvm: 1.9.3
-      jdk: oraclejdk8
+      jdk: oraclejdk9
     - rvm: 2.0.0
-      jdk: openjdk6
-    - rvm: 2.0.0
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: 2.0.0
       jdk: oraclejdk8
+    - rvm: 2.0.0
+      jdk: oraclejdk9
     - rvm: 2.1.0
-      jdk: openjdk6
-    - rvm: 2.1.0
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: 2.1.0
       jdk: oraclejdk8
+    - rvm: 2.1.0
+      jdk: oraclejdk9
     - rvm: 2.2.2
-      jdk: openjdk6
-    - rvm: 2.2.2
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: 2.2.2
       jdk: oraclejdk8
+    - rvm: 2.2.2
+      jdk: oraclejdk9
     - rvm: 2.3.0
-      jdk: openjdk6
-    - rvm: 2.3.0
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: 2.3.0
       jdk: oraclejdk8
+    - rvm: 2.3.0
+      jdk: oraclejdk9
+    - rvm: 2.3.8
+      jdk: openjdk8
+    - rvm: 2.3.8
+      jdk: oraclejdk8
+    - rvm: 2.3.8
+      jdk: oraclejdk9
+    - rvm: 2.4.5
+      jdk: openjdk8
+    - rvm: 2.4.5
+      jdk: oraclejdk8
+    - rvm: 2.4.5
+      jdk: oraclejdk9
+    - rvm: 2.5.3
+      jdk: openjdk8
+    - rvm: 2.5.3
+      jdk: oraclejdk8
+    - rvm: 2.5.3
+      jdk: oraclejdk9
+    - rvm: 2.6.0
+      jdk: openjdk8
+    - rvm: 2.6.0
+      jdk: oraclejdk8
+    - rvm: 2.6.0
+      jdk: oraclejdk9
 
     - rvm: ruby-head
-      jdk: openjdk6
-    - rvm: ruby-head
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: ruby-head
       jdk: oraclejdk8
+    - rvm: ruby-head
+      jdk: oraclejdk9
     - rvm: rbx
-      jdk: openjdk6
-    - rvm: rbx
-      jdk: oraclejdk7
+      jdk: openjdk8
     - rvm: rbx
       jdk: oraclejdk8
+    - rvm: rbx
+      jdk: oraclejdk9
 
-    # TODO: comment as to why these are excluded
+    # MRI 1.8.x - 1.9.2 have a separate gemfile and cannot use the
+    # gemfiles for 1.9.3 and higher.
     - rvm: 1.8.7
       gemfile: gemfiles/rails31.gemfile
     - rvm: 1.8.7
@@ -143,32 +203,82 @@ matrix:
       gemfile: gemfiles/rails51.gemfile
     - rvm: 1.9.2
       gemfile: gemfiles/rails52.gemfile
+    # Rails 5.x requires Ruby 2.2.2 or higher
     - rvm: 1.9.3
       gemfile: gemfiles/rails50.gemfile
     - rvm: 1.9.3
       gemfile: gemfiles/rails51.gemfile
     - rvm: 1.9.3
       gemfile: gemfiles/rails52.gemfile
+    # Rails 5.x requires Ruby 2.2.2 or higher
     - rvm: 2.0.0
       gemfile: gemfiles/rails50.gemfile
     - rvm: 2.0.0
       gemfile: gemfiles/rails51.gemfile
     - rvm: 2.0.0
       gemfile: gemfiles/rails52.gemfile
+    # Rails 5.x requires Ruby 2.2.2 or higher
     - rvm: 2.1.0
       gemfile: gemfiles/rails50.gemfile
     - rvm: 2.1.0
       gemfile: gemfiles/rails51.gemfile
     - rvm: 2.1.0
       gemfile: gemfiles/rails52.gemfile
+    # MRI 2.2.2 supports Rails 3.2.x and higher
     - rvm: 2.2.2
       gemfile: gemfiles/rails30.gemfile
     - rvm: 2.2.2
       gemfile: gemfiles/rails31.gemfile
+    # MRI 2.3.x supports Rails 4.0.x and higher
     - rvm: 2.3.0
       gemfile: gemfiles/rails30.gemfile
     - rvm: 2.3.0
       gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.3.0
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/rails30.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/rails41.gemfile
+    # MRI 2.4.x and higher (e.g. 2.5.x, 2.6.x, etc) supports Rails 4.2.8 and higher
+    # Rails lower than 4.2.8 is incompatible with Ruby 2.4 Integer class
+    - rvm: 2.4.5
+      gemfile: gemfiles/rails30.gemfile
+    - rvm: 2.4.5
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.4.5
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: 2.4.5
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: 2.4.5
+      gemfile: gemfiles/rails41.gemfile
+    - rvm: 2.5.3
+      gemfile: gemfiles/rails30.gemfile
+    - rvm: 2.5.3
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.5.3
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: 2.5.3
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: 2.5.3
+      gemfile: gemfiles/rails41.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/rails30.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/rails32.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/rails40.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/rails41.gemfile
+    # All current JRubies are 1.8.x and 1.9.x, and use the ruby_1_8_and_1_9_2.gemfile
     - rvm: jruby-18mode
       gemfile: gemfiles/rails30.gemfile
     - rvm: jruby-18mode
