@@ -6,7 +6,7 @@ language: ruby
 before_install:
   - gem update --system 2.5.1
   - gem --version
-  - gem install bundler
+  - gem install bundler -v 1.6.1
   - bundle --version
 rvm:
   - 1.9.3
