@@ -1,49 +1,51 @@
+# This is a tasks file to use with Capistrano 2
+
 require 'capistrano'
 require 'rollbar/deploy'
+require 'net/http'
+require 'rubygems'
+require 'json'
+require 'rollbar/capistrano_tasks'
 
 module Rollbar
     module Capistrano
       
-      def self.load_into(configuration)
-        configuration.load do
-          after 'deploy',            'rollbar:deploy'
-          after 'deploy:migrations', 'rollbar:deploy'
-          after 'deploy:cold',       'rollbar:deploy'
-    
-          namespace :rollbar do
-            desc 'Send the deployment notification to Rollbar.'
-            task :deploy, :except => { :no_release => true } do
-              require 'net/http'
-              require 'rubygems'
-              require 'json'
-    
-              _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
-              _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
-              _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
-    
-              unless configuration.dry_run
-                uri = URI.parse('https://api.rollbar.com/api/1/deploy/')
-    
-                params = {
-                  :local_username => rollbar_user,
-                  :access_token => rollbar_token,
-                  :environment => rollbar_env,
-                  :revision => current_revision
-                }
-    
-                request = Net::HTTP::Post.new(uri.request_uri)
-                request.body = ::JSON.dump(params)
-    
-                Net::HTTP.start(uri.host, uri.port, :use_ssl => true) do |http|
-                  http.request(request)
-                end
+        def self.load_into(configuration)
+          configuration.load do
+            
+            before 'deploy', 'rollbar:deploy_started'
+            
+            after 'deploy', 'rollbar:deploy_succeeded'
+            after 'deploy:migrations', 'rollbar:deploy_succeeded'
+            after 'deploy:cold',       'rollbar:deploy_succeeded'
+            
+            _cset(:rollbar_role)  { :app }
+            _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
+            _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
+            _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
+            _cset(:rollbar_revision) { current_revision }
+            _cset(:rollbar_comment) { nil }
+      
+            namespace :rollbar do
+              
+              desc 'Send deployment started notification to Rollbar.'
+              task :deploy_started do
+                  ::Rollbar::CapistranoTasks.deploy_started(self, self.logger, configuration.method(:dry_run))
               end
-    
-              logger.info('Rollbar notification complete')
+              
+              desc 'Send deployment succeeded notification to Rollbar.'
+              task :deploy_succeeded do
+                  ::Rollbar::CapistranoTasks.deploy_succeeded(self, self.logger, configuration.method(:dry_run))
+              end
+              
+              desc 'Send deployment failed notification to Rollbar.'
+              task :deploy_failed do
+                  ::Rollbar::CapistranoTasks.deploy_failed(self, self.logger, configuration.method(:dry_run))
+              end
+              
             end
           end
         end
-      end
     end
 end
 
