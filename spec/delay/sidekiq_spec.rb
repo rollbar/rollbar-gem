@@ -35,8 +35,8 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
 
     context "with default options" do
       it "enqueues to default queue" do
-        options = Rollbar::Delay::Sidekiq::OPTIONS.merge('args' => payload)
-        ::Sidekiq::Client.should_receive(:push).with options
+        options = Rollbar::Delay::Sidekiq::OPTIONS.merge('args' => [payload])
+        ::Sidekiq::Client.should_receive(:push).with(options){ true }
 
         subject.call payload
       end
@@ -49,8 +49,8 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
       subject { Rollbar::Delay::Sidekiq.new custom_config }
 
       it "enqueues to custom queue" do
-        options = Rollbar::Delay::Sidekiq::OPTIONS.merge(custom_config.merge('args' => payload))
-        ::Sidekiq::Client.should_receive(:push).with options
+        options = Rollbar::Delay::Sidekiq::OPTIONS.merge(custom_config.merge('args' => [payload]))
+        ::Sidekiq::Client.should_receive(:push).with(options){ true }
 
         subject.call payload
       end
