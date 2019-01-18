@@ -1,43 +1,77 @@
+# This is a tasks file to use with Capistrano 2
+
 require 'capistrano'
+require 'rollbar/deploy'
+require 'net/http'
+require 'rubygems'
+require 'json'
+require 'rollbar/capistrano_tasks'
 
 module Rollbar
-  module Capistrano
-    def self.load_into(configuration)
-      configuration.load do
-        after 'deploy',            'rollbar:deploy'
-        after 'deploy:migrations', 'rollbar:deploy'
-        after 'deploy:cold',       'rollbar:deploy'
+  # Module for loading Rollbar Capistrano tasks into Capistrano 2
+  module Capistrano2
+    class << self
+      def load_into(configuration)
+        load_tasks(configuration)
+        load_tasks_flow(configuration)
+        load_properties(configuration)
+      end
 
-        namespace :rollbar do
-          desc 'Send the deployment notification to Rollbar.'
-          task :deploy, :except => { :no_release => true } do
-            require 'net/http'
-            require 'rubygems'
-            require 'json'
+      private
 
-            _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
-            _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
-            _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
+      def load_tasks_flow(configuration)
+        configuration.load do
+          before 'deploy', 'rollbar:deploy_started'
 
-            unless configuration.dry_run
-              uri = URI.parse('https://api.rollbar.com/api/1/deploy/')
+          after 'deploy', 'rollbar:deploy_succeeded'
+          after 'deploy:migrations', 'rollbar:deploy_succeeded'
+          after 'deploy:cold',       'rollbar:deploy_succeeded'
+        end
+      end
 
-              params = {
-                :local_username => rollbar_user,
-                :access_token => rollbar_token,
-                :environment => rollbar_env,
-                :revision => current_revision
-              }
+      def load_properties(configuration)
+        configuration.load do
+          _cset(:rollbar_role)  { :app }
+          _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
+          _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
+          _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
+          _cset(:rollbar_revision) { current_revision }
+          _cset(:rollbar_comment) { nil }
+        end
+      end
 
-              request = Net::HTTP::Post.new(uri.request_uri)
-              request.body = ::JSON.dump(params)
+      def load_tasks(configuration)
+        load_deploy_started(configuration)
+        load_deploy_succeeded(configuration)
+      end
 
-              Net::HTTP.start(uri.host, uri.port, :use_ssl => true) do |http|
-                http.request(request)
-              end
+      def load_deploy_started(configuration)
+        load_task(
+          :desc => 'Send deployment started notification to Rollbar.',
+          :task => :deploy_started,
+          :configuration => configuration
+        ) do
+          ::Rollbar::CapistranoTasks.deploy_started(configuration, configuration.logger, configuration.dry_run)
+        end
+      end
+
+      def load_deploy_succeeded(configuration)
+        load_task(
+          :desc => 'Send deployment succeeded notification to Rollbar.',
+          :task => :deploy_succeeded,
+          :configuration => configuration
+        ) do
+          ::Rollbar::CapistranoTasks.deploy_succeeded(configuration, configuration.logger, configuration.dry_run)
+        end
+      end
+
+      def load_task(configuration:, desc:, task:)
+        configuration.load do
+          namespace :rollbar do
+            desc(desc)
+            task(task) do
+              yield
             end
-
-            logger.info('Rollbar notification complete')
           end
         end
       end
@@ -45,6 +79,4 @@ module Rollbar
   end
 end
 
-if Capistrano::Configuration.instance
-  Rollbar::Capistrano.load_into(Capistrano::Configuration.instance)
-end
+Rollbar::Capistrano2.load_into(Capistrano::Configuration.instance) if Capistrano::Configuration.instance
