@@ -51,6 +51,7 @@ gem 'redis'
 gem 'database_cleaner', '~> 1.0.0'
 gem 'genspec', '>= 0.2.8'
 gem 'girl_friday', '>= 0.11.1'
+gem 'rspec-command'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'public_suffix', '< 1.5'
