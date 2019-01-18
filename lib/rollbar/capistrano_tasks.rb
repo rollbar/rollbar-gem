@@ -7,21 +7,19 @@ module Rollbar
   module CapistranoTasks
     class << self
       def deploy_started(capistrano, logger, dry_run)
-        capistrano_300_warning(logger)
+        deploy_task(logger, {desc: 'Notifying Rollbar of deployment start'}) do
+          result = report_deploy_started(capistrano, dry_run)
 
-        logger.info 'Notifying Rollbar of deployment start'
-
-        result = report_deploy_started(capistrano, dry_run)
-
-        info_request_response(logger, result)
-
-        capistrano.set(:rollbar_deploy_id, 123) if dry_run
-
-        skip_in_dry_run(logger, dry_run) do
-          if (deploy_id = result[:data][:deploy_id])
-            capistrano.set :rollbar_deploy_id, deploy_id
-          else
-            logger.error 'Unable to report deploy to Rollbar'
+          info_request_response(logger, result)
+  
+          capistrano.set(:rollbar_deploy_id, 123) if dry_run
+  
+          skip_in_dry_run(logger, dry_run) do
+            if (deploy_id = result[:data][:deploy_id])
+              capistrano.set :rollbar_deploy_id, deploy_id
+            else
+              logger.error 'Unable to report deploy to Rollbar'
+            end
           end
         end
       end
@@ -39,21 +37,26 @@ module Rollbar
       end
 
       private
-
-      def deploy_update(capistrano, logger, dry_run, opts = {})
+      
+      def deploy_task(logger, opts = {})
         capistrano_300_warning(logger)
         logger.info opts[:desc] if opts[:desc]
+        yield
+      end
 
-        depend_on_deploy_id(capistrano, logger) do
-          result = yield(capistrano, dry_run)
-
-          info_request_response(logger, result)
-
-          skip_in_dry_run(logger, dry_run) do
-            if result[:response].is_a?(Net::HTTPSuccess)
-              logger.info 'Set deployment status to `failed` in Rollbar'
-            else
-              logger.error 'Unable to update deploy status in Rollbar'
+      def deploy_update(capistrano, logger, dry_run, opts = {})
+        deploy_task(logger, opts) do
+          depend_on_deploy_id(capistrano, logger) do
+            result = yield
+  
+            info_request_response(logger, result)
+  
+            skip_in_dry_run(logger, dry_run) do
+              if result[:response].is_a?(Net::HTTPSuccess)
+                logger.info 'Set deployment status to `failed` in Rollbar'
+              else
+                logger.error 'Unable to update deploy status in Rollbar'
+              end
             end
           end
         end
