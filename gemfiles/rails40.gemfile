@@ -54,6 +54,7 @@ gem 'sinatra'
 gem 'database_cleaner', '~> 1.0.0'
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
+gem 'rspec-command'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'

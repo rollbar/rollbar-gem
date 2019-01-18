@@ -49,6 +49,7 @@ gem 'redis'
 gem 'database_cleaner'
 gem 'girl_friday'
 gem 'generator_spec'
+gem 'rspec-command'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'

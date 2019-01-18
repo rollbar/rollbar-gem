@@ -1,7 +1,10 @@
 require 'rails'
 require 'rollbar'
 
-APP_PATH = File.expand_path('config/application', Dir.pwd)
+# Rails.root is not present here.
+# RSpec needs ENV['DUMMYAPP_PATH'] in order to have a valid path.
+# Dir.pwd is used in normal operation.
+APP_PATH = File.expand_path('config/application', (ENV['DUMMYAPP_PATH'] || Dir.pwd))
 
 module Rails
   class RollbarRunner
@@ -36,11 +39,23 @@ module Rails
     end
 
     def eval_runner
+      if Rails.version >= '5.0.0'
+        rails5_runner
+      else
+        legacy_runner
+      end
+    end
+
+    def legacy_runner
       string_to_eval = File.read(runner_path)
 
       ::Rails.module_eval(<<-EOL, __FILE__, __LINE__ + 2)
           #{string_to_eval}
       EOL
+    end
+
+    def rails5_runner
+      Rails::Command.invoke 'runner', ARGV
     end
 
     def rollbar_managed
