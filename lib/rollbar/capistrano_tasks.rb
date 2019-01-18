@@ -11,15 +11,17 @@ module Rollbar
       logger.info 'Notifying Rollbar of deployment start'
 
       result = ::Rollbar::Deploy.report(
+        {
+          rollbar_username: capistrano.fetch(:rollbar_user),
+          local_username: capistrano.fetch(:rollbar_user),
+          comment: capistrano.fetch(:rollbar_comment),
+          status: :started,
+          proxy: :ENV,
+          dry_run: dry_run_proc.call
+        },
         :access_token => capistrano.fetch(:rollbar_token),
         :environment => capistrano.fetch(:rollbar_env),
-        :revision => capistrano.fetch(:rollbar_revision),
-        :rollbar_username => capistrano.fetch(:rollbar_user),
-        :local_username => capistrano.fetch(:rollbar_user),
-        :comment => capistrano.fetch(:rollbar_comment),
-        :status => :started,
-        :proxy => :ENV,
-        :dry_run => dry_run_proc.call
+        :revision => capistrano.fetch(:rollbar_revision)
       )
 
       logger.info result[:request_info]
@@ -51,11 +53,13 @@ module Rollbar
 
       if deploy_id
         result = ::Rollbar::Deploy.update(
+          {
+            proxy: :ENV,
+            dry_run: dry_run_proc.call
+          },
           :access_token => capistrano.fetch(:rollbar_token),
           :deploy_id => deploy_id,
-          :status => :succeeded,
-          :proxy => :ENV,
-          :dry_run => dry_run_proc.call
+          :status => :succeeded
         )
 
         logger.info result[:request_info]
@@ -66,7 +70,7 @@ module Rollbar
 
           logger.info 'Skipping sending HTTP requests to Rollbar in dry run.'
 
-        else
+        else 
 
           if result[:response].is_a? Net::HTTPSuccess
             logger.info 'Set deployment status to `succeeded` in Rollbar'
@@ -89,11 +93,13 @@ module Rollbar
 
       if deploy_id
         result = ::Rollbar::Deploy.update(
+          {
+            proxy: :ENV,
+            dry_run: dry_run_proc.call
+          },
           :access_token => capistrano.fetch(:rollbar_token),
           :deploy_id => deploy_id,
           :status => :failed,
-          :proxy => :ENV,
-          :dry_run => dry_run_proc.call
         )
 
         logger.info result[:request_info]
