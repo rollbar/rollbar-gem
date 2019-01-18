@@ -1,6 +1,7 @@
 require 'capistrano'
 
 module Rollbar
+  # Deploy Tracking API wrapper module
   module Deploy
     ENDPOINT = 'https://api.rollbar.com/api/1/deploy/'.freeze
 
@@ -59,8 +60,6 @@ module Rollbar
 
       send_request(uri, proxy, request, dry_run)
     end
-
-    private
 
     def self.send_request(uri, proxy, request, dry_run)
       Net::HTTP.start(uri.host, uri.port, proxy, :use_ssl => true) do |http|
