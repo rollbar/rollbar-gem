@@ -7,13 +7,13 @@ module Rollbar
   module CapistranoTasks
     class << self
       def deploy_started(capistrano, logger, dry_run)
-        deploy_task(logger, {desc: 'Notifying Rollbar of deployment start'}) do
+        deploy_task(logger, :desc => 'Notifying Rollbar of deployment start') do
           result = report_deploy_started(capistrano, dry_run)
 
           info_request_response(logger, result)
-  
+
           capistrano.set(:rollbar_deploy_id, 123) if dry_run
-  
+
           skip_in_dry_run(logger, dry_run) do
             if (deploy_id = result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
@@ -37,7 +37,7 @@ module Rollbar
       end
 
       private
-      
+
       def deploy_task(logger, opts = {})
         capistrano_300_warning(logger)
         logger.info opts[:desc] if opts[:desc]
@@ -48,9 +48,9 @@ module Rollbar
         deploy_task(logger, opts) do
           depend_on_deploy_id(capistrano, logger) do
             result = yield
-  
+
             info_request_response(logger, result)
-  
+
             skip_in_dry_run(logger, dry_run) do
               if result[:response].is_a?(Net::HTTPSuccess)
                 logger.info 'Updated deploy status in Rollbar'
