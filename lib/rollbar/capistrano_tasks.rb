@@ -53,7 +53,7 @@ module Rollbar
   
             skip_in_dry_run(logger, dry_run) do
               if result[:response].is_a?(Net::HTTPSuccess)
-                logger.info 'Set deployment status to `failed` in Rollbar'
+                logger.info 'Updated deploy status in Rollbar'
               else
                 logger.error 'Unable to update deploy status in Rollbar'
               end
