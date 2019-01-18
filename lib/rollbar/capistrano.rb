@@ -8,6 +8,7 @@ require 'json'
 require 'rollbar/capistrano_tasks'
 
 module Rollbar
+  # Module for loading Capistrano2 tasks
   module Capistrano
     def self.load_into(configuration)
       configuration.load do
