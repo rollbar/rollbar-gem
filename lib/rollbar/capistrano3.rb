@@ -39,7 +39,7 @@ namespace :deploy do
   after 'deploy:failed', 'rollbar:deploy_failed'
 
   # Used for testing :deploy_failed task
-  # after 'rollbar:deploy_started', 'rollbar:fail'
+  after 'rollbar:deploy_started', 'rollbar:fail'
 end
 
 namespace :load do
