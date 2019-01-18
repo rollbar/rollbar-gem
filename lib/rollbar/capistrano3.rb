@@ -44,10 +44,10 @@ end
 
 namespace :load do
   task :defaults do
-    set :rollbar_user,      Proc.new() { fetch :local_user, ENV['USER'] || ENV['USERNAME'] }
-    set :rollbar_env,       Proc.new() { fetch :rails_env, 'production' }
-    set :rollbar_token,     Proc.new() { abort "Please specify the Rollbar access token, set :rollbar_token, 'your token'" }
-    set :rollbar_role,      Proc.new() { :app }
-    set :rollbar_revision,  Proc.new() { fetch :current_revision }
+    set :rollbar_user,      proc { fetch :local_user, ENV['USER'] || ENV['USERNAME'] }
+    set :rollbar_env,       proc { fetch :rails_env, 'production' }
+    set :rollbar_token,     proc { abort "Please specify the Rollbar access token, set :rollbar_token, 'your token'" }
+    set :rollbar_role,      proc { :app }
+    set :rollbar_revision,  proc { fetch :current_revision }
   end
 end
