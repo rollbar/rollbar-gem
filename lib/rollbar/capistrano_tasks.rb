@@ -35,8 +35,8 @@ module Rollbar
 
         logger.info result[:response_info] if result[:response_info]
 
-        if result[:deploy_id]
-          capistrano.set :rollbar_deploy_id, result[:deploy_id]
+        if deploy_id = result[:data][:deploy_id]
+          capistrano.set :rollbar_deploy_id, deploy_id
         else
           logger.error 'Unable to report deploy to Rollbar'
         end

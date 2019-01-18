@@ -7,7 +7,7 @@ module Rollbar
 
     def self.report(opts = {}, access_token:, environment:, revision:)
       opts[:status] ||= :started
-      
+
       uri = URI.parse(::Rollbar::Deploy::ENDPOINT)
 
       request = Net::HTTP::Post.new(uri.request_uri)
@@ -17,11 +17,7 @@ module Rollbar
         :revision => revision
       }.merge(opts))
 
-      result = send_request(opts, :uri => uri, :request => request)
-
-      result[:deploy_id] = JSON.parse(result[:response].body)['data']['deploy_id'] if result[:response].is_a? Net::HTTPSuccess
-
-      result
+      send_request(opts, :uri => uri, :request => request)
     end
 
     def self.update(opts = {}, deploy_id:, access_token:, status:)
@@ -49,6 +45,7 @@ module Rollbar
 
         unless opts[:dry_run]
           result[:response] = http.request(request)
+          result.merge!(JSON.parse(result[:response].body, :symbolize_names => true))
           result[:response_info] = result[:response].code + '; ' + result[:response].message + '; ' + result[:response].body.delete!("\n")
         end
 
