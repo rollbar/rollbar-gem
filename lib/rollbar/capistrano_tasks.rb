@@ -3,6 +3,7 @@ require 'capistrano/version'
 require 'rollbar/deploy'
 
 module Rollbar
+  # Module containing the logic of Capistrano tasks for deploy tracking
   module CapistranoTasks
     def self.deploy_started(capistrano, logger, dry_run_proc)
       logger.warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if ::Capistrano::VERSION =~ /^3\.0/
