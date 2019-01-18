@@ -8,6 +8,9 @@ Style/HashSyntax:
   SupportedStyles:
     - hash_rockets
 
+Style/SymbolArray:
+  Enabled: false # %i[] syntax isn't 1.9.x compatible
+
 Metrics/LineLength:
   Max: 1000
 
