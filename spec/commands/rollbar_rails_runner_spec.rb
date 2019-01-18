@@ -1,0 +1,12 @@
+require 'spec_helper'
+require 'rails/rollbar_runner'
+
+describe 'rollbar-rails-runner' do
+  skip 'Travis tries to run the runner process with the wrong Gemfile.'
+  # This example works locally, but Travis tries to run the runner process with
+  # the wrong Gemfile. Also, neither `echo $BUNDLE_GEMFILE` nor ENV['BUNDLE_GEMFILE']
+  # show the correct value when read from within this example.
+  command %Q[rollbar-rails-runner "puts 'hello'"]
+  environment BUNDLE_GEMFILE: ENV['BUNDLE_GEMFILE']
+  its(:stdout) { is_expected.to include('hello') }
+end

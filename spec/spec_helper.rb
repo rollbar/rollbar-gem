@@ -20,6 +20,9 @@ require File.expand_path('../dummyapp/config/environment', __FILE__)
 require 'rspec/rails'
 require 'database_cleaner'
 
+# Needed for rollbar-rails-runner (or anything else that doesn't have Rails.root)
+ENV['DUMMYAPP_PATH'] = "#{File.dirname(__FILE__)}/dummyapp"
+
 begin
   require 'webmock/rspec'
   WebMock.disable_net_connect!(:allow => 'codeclimate.com')
@@ -81,4 +84,6 @@ RSpec.configure do |config|
 
   config.infer_spec_type_from_file_location! if config.respond_to?(:infer_spec_type_from_file_location!)
   config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
+
+  config.include RSpecCommand
 end
