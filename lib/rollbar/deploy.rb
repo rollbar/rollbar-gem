@@ -28,28 +28,41 @@ module Rollbar
       )
 
       request = Net::HTTP::Patch.new(uri.request_uri)
-      request.body = ::JSON.dump(
-        :status => status.to_s,
-        :comment => opts[:comment]
-      )
+      request.body = ::JSON.dump(:status => status.to_s, :comment => opts[:comment])
 
       send_request(opts, :uri => uri, :request => request)
     end
 
-    def self.send_request(opts = {}, uri:, request:)
-      Net::HTTP.start(uri.host, uri.port, opts[:proxy], :use_ssl => true) do |http|
+    class << self
+      private
+
+      def send_request(opts = {}, uri:, request:)
+        Net::HTTP.start(uri.host, uri.port, opts[:proxy], :use_ssl => true) do |http|
+          build_result(
+            :uri => uri,
+            :request => request,
+            :response => opts[:dry_run] ? nil : http.request(request)
+          )
+        end
+      end
+
+      def build_result(uri:, request:, response: nil)
         result = {
           :request_info => uri.inspect + ': ' + request.body,
-          :request => request
+          :request => request,
+          :response => response
         }
 
-        unless opts[:dry_run]
-          result[:response] = http.request(request)
+        unless result[:response].nil?
           result.merge!(JSON.parse(result[:response].body, :symbolize_names => true))
-          result[:response_info] = result[:response].code + '; ' + result[:response].message + '; ' + result[:response].body.delete!("\n")
+          result[:response_info] = build_response_info(result[:response])
         end
 
         result
+      end
+
+      def build_response_info(response)
+        response.code + '; ' + response.message + '; ' + response.body.delete!("\n")
       end
     end
   end
