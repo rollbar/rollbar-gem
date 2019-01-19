@@ -50,6 +50,7 @@ gem 'database_cleaner', '~> 1.x'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
+gem 'rspec-command'
 gem 'redis'
 gem 'resque'
 
