@@ -107,7 +107,7 @@ module Rollbar
       @js_options = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
-                       :api_key, :access_token]
+                       :api_key, :access_token, :session_id]
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true
