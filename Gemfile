@@ -39,9 +39,9 @@ if RUBY_VERSION.start_with?('1.9')
   gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
   gem 'sucker_punch', '~> 1.0'
 elsif RUBY_VERSION.start_with?('2')
-  gem 'codacy-coverage', :require => false
+  gem 'codacy-coverage'
   gem 'shoryuken' # rubocop:disable Bundler/DuplicatedGem
-  gem 'simplecov', :require => false
+  gem 'simplecov'
   gem 'sucker_punch', '~> 2.0' # rubocop:disable Bundler/DuplicatedGem
 end
 
