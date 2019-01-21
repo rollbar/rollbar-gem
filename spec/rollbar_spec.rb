@@ -158,57 +158,57 @@ describe Rollbar do
         expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data, nil)
         notifier.log('error', exception, extra_data, 'exception description')
       end
-      
+
       context 'with :on_error_response hook configured' do
         let!(:notifier) { Rollbar::Notifier.new }
         let(:configuration) do
           config = Rollbar::Configuration.new
           config.access_token = test_access_token
           config.enabled = true
-          
+
           config.hook :on_error_response do |response|
             return ":on_error_response executed"
           end
-          
+
           config
         end
         let(:message) { 'foo' }
         let(:level) { 'foo' }
-  
+
         before do
           notifier.configuration = configuration
           allow_any_instance_of(Net::HTTP).to receive(:request).and_return(OpenStruct.new(:code => 500, :body => "Error"))
           @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
         end
-        
+
         it "calls the :on_error_response hook if response status is not 200" do
           expect(Net::HTTP).to receive(:new).with(@uri.host, @uri.port, nil, nil, nil, nil).and_call_original
           expect(notifier.configuration.hook(:on_error_response)).to receive(:call)
-          
+
           notifier.log(level, message)
         end
       end
-      
+
       context 'with :on_report_internal_error hook configured' do
         let!(:notifier) { Rollbar::Notifier.new }
         let(:configuration) do
           config = Rollbar::Configuration.new
           config.access_token = test_access_token
           config.enabled = true
-          
+
           config.hook :on_report_internal_error do |response|
             return ":on_report_internal_error executed"
           end
-          
+
           config
         end
         let(:message) { 'foo' }
         let(:level) { 'foo' }
-  
+
         before do
           notifier.configuration = configuration
         end
-        
+
         it "calls the :on_report_internal_error hook if" do
           expect(notifier.configuration.hook(:on_report_internal_error)).to receive(:call)
           expect(notifier).to receive(:report) do
@@ -217,22 +217,22 @@ describe Rollbar do
           notifier.log(level, message)
         end
       end
-    
+
       context 'an item with a context' do
         let(:context) { { :controller => 'ExampleController' } }
-        
+
         context 'with a custom_data_method configured' do
           before do
             Rollbar.configure do |config|
-              config.custom_data_method = lambda do |message, exception, context| 
+              config.custom_data_method = lambda do |message, exception, context|
                 { :result => "MyApp#" + context[:controller] }
               end
             end
           end
-          
+
           it 'should have access to the context data through configuration.custom_data_method' do
             result = notifier.log('error', "Custom message", { :custom_data_method_context => context})
-            
+
             result[:body][:message][:extra].should_not be_nil
             result[:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
             result[:body][:message][:extra][:custom_data_method_context].should be_nil
@@ -977,6 +977,17 @@ describe Rollbar do
     # END Backwards
 
     it 'should not crash with circular extra_data' do
+      skip "This example doesn't do what it says, and leads to undefined behavior. See example for comments."
+      # The example says we should *not* crash with a circular hash, however the matcher
+      # is actually matching on the internal error we get when we *do* crash on a
+      # recursive stack overflow. On some platforms, this will crash deeper in the
+      # interpreter and we don't get the chance to handle the error at all.
+      #
+      # If the intent is to not crash, there are numerous parts of the reporting
+      # code that need to tbe made safe. If not, this spec should be removed because
+      # the behavior at stack overflow is platform dependent at best and undefined
+      # at worst.
+
       a = { :foo => "bar" }
       b = { :a => a }
       c = { :b => b }
