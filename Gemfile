@@ -44,7 +44,7 @@ elsif RUBY_VERSION.start_with?('2')
 end
 
 gem 'aws-sdk-sqs'
-gem 'database_cleaner', '~> 1.0.0'
+gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
