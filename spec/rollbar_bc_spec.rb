@@ -46,6 +46,17 @@ describe Rollbar do
     end
 
     it 'should not crash with circular extra_data' do
+      skip "This example doesn't do what it says, and leads to undefined behavior. See example for comments."
+      # The example says we should *not* crash with a circular hash, however the matcher
+      # is actually matching on the internal error we get when we *do* crash on a
+      # recursive stack overflow. On some platforms, this will crash deeper in the
+      # interpreter and we don't get the chance to handle the error at all.
+      #
+      # If the intent is to not crash, there are numerous parts of the reporting
+      # code that need to tbe made safe. If not, this spec should be removed because
+      # the behavior at stack overflow is platform dependent at best and undefined
+      # at worst.
+
       a = { :foo => 'bar' }
       b = { :a => a }
       c = { :b => b }
