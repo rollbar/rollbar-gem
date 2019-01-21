@@ -239,6 +239,21 @@ describe Rollbar do
           end
         end
       end
+      
+      context 'with a recurisve custom_data_method call' do
+        before do
+          Rollbar.configure do |config|
+            config.custom_data_method = lambda do
+              notifier.error('Recurisve call to rollbar')
+            end
+          end
+        end
+        
+        it 'should detect recursion and stop the infinite loop' do
+          expect(notifier).to receive(:report).twice.and_call_original
+          notifier.log('error', 'Call to Rollbar with custom_data_method')
+        end
+      end
     end
 
     context 'with before_process handlers in configuration' do

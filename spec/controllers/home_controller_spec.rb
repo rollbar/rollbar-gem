@@ -326,6 +326,14 @@ describe HomeController do
 
         get '/cause_exception'
       end
+      
+      it 'should detect and stop recursion in the person method' do
+        Rollbar.configure do |config|
+          config.person_method = 'recursive_current_user'
+        end
+
+        get '/cause_exception'
+      end
 
       context 'with logged user' do
         let(:user) do
