@@ -160,6 +160,13 @@ module Rollbar
 
       self
     end
+    
+    def use_active_job
+      require 'rollbar/delay/active_job'
+      
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::ActiveJob
+    end
 
     def use_delayed_job(options = {})
       require 'rollbar/delay/delayed_job'

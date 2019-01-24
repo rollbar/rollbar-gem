@@ -2,6 +2,15 @@ require 'spec_helper'
 require 'rollbar/configuration'
 
 describe Rollbar::Configuration do
+  
+  describe '#use_active_job' do
+    it "enables async and sets ActiveJob as the handler" do
+      subject.use_active_job
+      
+      expect(subject.use_async).to be_eql(true)
+      expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
+    end
+  end
 
   describe '#use_thread' do
     it 'enables async and sets a Thread as handler' do
