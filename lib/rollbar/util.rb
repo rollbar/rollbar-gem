@@ -101,7 +101,7 @@ module Rollbar
     def self.count_method_in_stack(method_symbol, file_path = '')
       caller.grep(/#{file_path}.*#{method_symbol.to_s}/).count
     end
-    
+
     def self.method_in_stack(method_symbol, file_path = '')
       count_method_in_stack(method_symbol, file_path) > 0
     end
