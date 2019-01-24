@@ -1,3 +1,5 @@
+require 'rollbar/delay/rollbar_report_job'
+
 module Rollbar
   module Delay
     # This class provides the ActiveJob async handler. Users can
@@ -12,6 +14,10 @@ module Rollbar
         
         def queue=(val)
           @@queue = val
+        end
+        
+        def call(payload)
+          RollbarReportJob.perform_later payload
         end
       end
     end
