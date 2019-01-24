@@ -105,7 +105,7 @@ module Rollbar
     def self.method_in_stack(method_symbol, file_path = '')
       count_method_in_stack(method_symbol, file_path) > 0
     end
-    
+
     def self.method_in_stack_twice(method_symbol, file_path = '')
       count_method_in_stack(method_symbol, file_path) > 1
     end
