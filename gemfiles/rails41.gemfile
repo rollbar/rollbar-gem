@@ -39,6 +39,8 @@ if RUBY_VERSION.start_with?('1.9')
 elsif RUBY_VERSION.start_with?('2')
   gem 'sucker_punch', '~> 2.0'
   gem 'shoryuken'
+  gem 'codacy-coverage'
+  gem 'simplecov'
 end
 
 gem 'delayed_job', :require => false

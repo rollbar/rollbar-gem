@@ -42,7 +42,6 @@ elsif RUBY_VERSION.start_with?('2')
   gem 'shoryuken'
 end
 
-gem 'codeclimate-test-reporter', :group => :test, :require => nil
 gem 'database_cleaner', '~> 1.0.0'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
@@ -62,6 +61,8 @@ if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
 else
   gem 'sucker_punch', '~> 2.0'
   gem 'webmock', :require => false
+  gem 'codacy-coverage'
+  gem 'simplecov'
 end
 
 gem 'aws-sdk-sqs'

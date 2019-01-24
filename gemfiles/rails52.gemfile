@@ -42,14 +42,15 @@ gem 'sucker_punch', '~> 2.0'
 # We need last sinatra that uses rack 2.x
 gem 'sinatra', :git => 'https://github.com/sinatra/sinatra'
 
-gem 'codeclimate-test-reporter', :group => :test, :require => nil
 gem 'database_cleaner'
+gem 'codacy-coverage'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'rspec-command'
 gem 'redis'
 gem 'resque'
+gem 'simplecov'
 
 gem 'mime-types'
 
