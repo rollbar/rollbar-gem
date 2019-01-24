@@ -26,12 +26,12 @@ module Rollbar
     attr_reader :message
     attr_reader :exception
     attr_reader :extra
-    
+
     attr_reader :configuration
     attr_reader :scope
     attr_reader :logger
     attr_reader :notifier
-    
+
     attr_reader :context
 
     def_delegators :payload, :[]
@@ -173,7 +173,7 @@ module Rollbar
       else
         data = configuration.custom_data_method.call
       end
-      
+
       Rollbar::Util.deep_copy(data)
     rescue => e
       return {} if configuration.safely?
