@@ -164,7 +164,7 @@ module Rollbar
     def use_active_job(options = {})
       require 'rollbar/delay/active_job'
 
-      Rollbar::Delay::ActiveJob.queue = options[:queue] if options[:queue]
+      Rollbar::Delay::ActiveJob.queue_as(options[:queue] || Rollbar::Delay::ActiveJob.default_queue_name)
       
       @use_async      = true
       @async_handler  = Rollbar::Delay::ActiveJob
