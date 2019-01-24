@@ -10,7 +10,7 @@ describe Rollbar::Configuration do
       subject.use_active_job
       
       expect(subject.use_async).to be_eql(true)
-      expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('rollbar')
+      expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('default')
       expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
     end
     

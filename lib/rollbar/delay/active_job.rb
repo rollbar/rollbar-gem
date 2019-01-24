@@ -5,7 +5,7 @@ module Rollbar
     class ActiveJob < ::ActiveJob::Base
       
       def self.default_queue_name
-        :rollbar
+        :default
       end
       
       queue_as default_queue_name
