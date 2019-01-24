@@ -4,11 +4,7 @@ module Rollbar
     # use ActiveJob in order to send the reports to the Rollbar API
     class ActiveJob < ::ActiveJob::Base
       
-      def self.default_queue_name
-        :default
-      end
-      
-      queue_as default_queue_name
+      queue_as :default
       
       def perform(payload)
         Rollbar.process_from_async_handler(payload)
