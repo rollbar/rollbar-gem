@@ -5,9 +5,9 @@ describe ApplicationController, :type => 'request' do
     it 'renders the snippet and config in the response', :type => 'request' do
       get '/test_rollbar_js'
 
-      snippet_from_submodule = File.read(File.expand_path('../../../../rollbar.js/dist/rollbar.snippet.js', __FILE__))
+      snippet_from_submodule = File.read(File.expand_path('../../../rollbar.js/dist/rollbar.snippet.js', __dir__))
 
-      expect(response.body).to include("var _rollbarConfig = #{Rollbar::configuration.js_options.to_json};")
+      expect(response.body).to include("var _rollbarConfig = #{Rollbar.configuration.js_options.to_json};")
       expect(response.body).to include(snippet_from_submodule)
     end
   end
@@ -24,29 +24,41 @@ describe ApplicationController, :type => 'request' do
   end
 
   context 'using rails5 content_security_policy',
-    :if => (Gem::Version.new(Rails.version) >= Gem::Version.new('5.2.0')) do
+          :if => (Gem::Version.new(Rails.version) >= Gem::Version.new('5.2.0')) do
 
     def configure_csp(mode)
       Rails.application.config.content_security_policy_nonce_generator = lambda { |_| SecureRandom.base64(16) }
       if mode == :nonce_present
-        # Rails will add the nonce to script_src automatically, when script_src is present.
-        Rails.application.config.content_security_policy do |policy|
-          policy.script_src  :self, :https
-        end
+        nonce_present
       elsif mode == :script_src_not_present
-        # This is a valid policy, but Rails will not apply the nonce to script_src.
-        Rails.application.config.content_security_policy do |policy|
-          policy.default_src  :self, :https
-          policy.script_src  nil
-        end
+        script_src_not_present
       elsif mode == :unsafe_inline
-        # Browser behavior is undefined when unsafe_inline and the nonce are both present.
-        # The app should never set both, but if they do, our best behavior is to not use the nonce.
-        Rails.application.config.content_security_policy do |policy|
-          policy.script_src  :self, :unsafe_inline
-        end
+        unsafe_inline
       else
         raise 'Unknown CSP mode'
+      end
+    end
+
+    def nonce_present
+      # Rails will add the nonce to script_src automatically, when script_src is present.
+      Rails.application.config.content_security_policy do |policy|
+        policy.script_src :self, :https
+      end
+    end
+
+    def script_src_not_present
+      # This is a valid policy, but Rails will not apply the nonce to script_src.
+      Rails.application.config.content_security_policy do |policy|
+        policy.default_src :self, :https
+        policy.script_src nil
+      end
+    end
+
+    def unsafe_inline
+      # Browser behavior is undefined when unsafe_inline and the nonce are both present.
+      # The app should never set both, but if they do, our best behavior is to not use the nonce.
+      Rails.application.config.content_security_policy do |policy|
+        policy.script_src :self, :unsafe_inline
       end
     end
 
@@ -89,8 +101,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response without nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %Q(<script type="text/javascript" nonce="#{nonce(response)}">)
-        expect(response.body).to include %Q(<script type="text/javascript">)
+        expect(response.body).to_not include %(<script type="text/javascript" nonce="#{nonce(response)}">)
+        expect(response.body).to include '<script type="text/javascript">'
       end
 
       include_examples 'adds the snippet'
@@ -102,8 +114,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %Q(<script type="text/javascript" nonce="#{nonce(response)}">)
-        expect(response.body).to include %Q(<script type="text/javascript">)
+        expect(response.body).to_not include %(<script type="text/javascript" nonce="#{nonce(response)}">)
+        expect(response.body).to include '<script type="text/javascript">'
       end
 
       include_examples 'adds the snippet'
@@ -115,8 +127,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to include %Q(<script type="text/javascript" nonce="#{nonce(response)}">)
-        expect(response.body).to_not include %Q(<script type="text/javascript">)
+        expect(response.body).to include %(<script type="text/javascript" nonce="#{nonce(response)}">)
+        expect(response.body).to_not include '<script type="text/javascript">'
       end
 
       include_examples 'adds the snippet'
