@@ -22,3 +22,6 @@ Style/Lambda:
 
 Style/EachWithObject:
   Enabled: false
+
+Metrics/BlockLength:
+  ExcludedMethods: ['describe', 'context'] # RSpec DSL is expected to have long blocks.
