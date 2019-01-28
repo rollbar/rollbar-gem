@@ -25,3 +25,6 @@ Style/EachWithObject:
 
 Metrics/BlockLength:
   ExcludedMethods: ['describe', 'context'] # RSpec DSL is expected to have long blocks.
+
+Style/ExpandPathArguments:
+  Enabled: false # syntax requires Ruby >= 2.0
