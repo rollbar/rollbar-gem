@@ -347,10 +347,10 @@ module Rollbar
           exception = arg
         elsif arg.is_a?(Hash)
           extra = arg
-          
+
           context = extra[:custom_data_method_context]
           extra.delete :custom_data_method_context
-          
+
           extra = nil if extra.empty?
         end
       end
@@ -411,7 +411,7 @@ module Rollbar
     # If that fails, we'll fall back to a more static failsafe response.
     def report_internal_error(exception)
       log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
-      
+
       configuration.execute_hook(:on_report_internal_error, exception)
 
       begin
@@ -517,10 +517,27 @@ module Rollbar
 
       request = Net::HTTP::Post.new(uri.request_uri)
 
-      request.body = body
+      request.body = pack_ruby260_bytes(body)
       request.add_field('X-Rollbar-Access-Token', access_token)
 
       handle_net_retries { http.request(request) }
+    end
+
+    def pack_ruby260_bytes(body)
+      # Ruby 2.6.0 shipped with a bug affecting multi-byte body for Net::HTTP.
+      # Fix (committed one day after 2.6.0p0 shipped) is here:
+      # https://github.com/ruby/ruby/commit/1680a13a926b17661329beec1ded6b32aad16c1b#diff-00a99d8c71daaf5fc60a050da41f7261
+      #
+      # We work around this by repacking the body as single byte chars if needed.
+      if RUBY_VERSION == '2.6.0' && multibyte?(body)
+        body.unpack('C*').pack('C*')
+      else
+        body
+      end
+    end
+
+    def multibyte?(str)
+      str.chars.length != str.bytes.length
     end
 
     def http_proxy_for_em(uri)

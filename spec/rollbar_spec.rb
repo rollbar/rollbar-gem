@@ -159,6 +159,30 @@ describe Rollbar do
         notifier.log('error', exception, extra_data, 'exception description')
       end
 
+      # See Notifier#pack_ruby260_bytes for more information.
+      context 'with multi-byte characters in the report' do
+        extra_data = { :key => "\u3042", :hash => { :inner_key => 'あああ' } }
+
+        it 'should send as multi-byte on ruby != 2.6.0',
+           :if => RUBY_VERSION >= '2.0.0' && RUBY_VERSION != '2.6.0' do
+          expect_any_instance_of(Net::HTTP::Post).to receive(:body=).with(
+            satisfy do |body|
+              body.chars.length < body.bytes.length && body.include?('あああ')
+            end
+          ).and_call_original
+          notifier.log('error', 'test message', extra_data)
+        end
+
+        it 'should unpack multi-byte and send as single byte on ruby == 2.6.0', :if => RUBY_VERSION == '2.6.0' do
+          expect_any_instance_of(Net::HTTP::Post).to receive(:body=).with(
+            satisfy do |body|
+              body.chars.length == body.bytes.length && body.force_encoding('utf-8').include?('あああ')
+            end
+          ).and_call_original
+          notifier.log('error', 'test message', extra_data)
+        end
+      end
+
       context 'with :on_error_response hook configured' do
         let!(:notifier) { Rollbar::Notifier.new }
         let(:configuration) do
