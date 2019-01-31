@@ -347,10 +347,10 @@ module Rollbar
           exception = arg
         elsif arg.is_a?(Hash)
           extra = arg
-          
+
           context = extra[:custom_data_method_context]
           extra.delete :custom_data_method_context
-          
+
           extra = nil if extra.empty?
         end
       end
@@ -411,7 +411,7 @@ module Rollbar
     # If that fails, we'll fall back to a more static failsafe response.
     def report_internal_error(exception)
       log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
-      
+
       configuration.execute_hook(:on_report_internal_error, exception)
 
       begin

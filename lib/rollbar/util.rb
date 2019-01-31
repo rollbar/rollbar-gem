@@ -2,14 +2,17 @@ require 'rollbar/util/hash'
 
 module Rollbar
   module Util
-    def self.iterate_and_update(obj, block)
+    def self.iterate_and_update(obj, block, seen = {})
       return if obj.frozen?
+      return if seen[obj.object_id]
+      seen[obj.object_id] = true
+
       if obj.is_a?(Array)
         for i in 0 ... obj.size
           value = obj[i]
 
           if value.is_a?(::Hash) || value.is_a?(Array)
-            self.iterate_and_update(value, block)
+            self.iterate_and_update(value, block, seen)
           else
             obj[i] = block.call(value)
           end
@@ -21,7 +24,7 @@ module Rollbar
           new_key = nil
 
           if v.is_a?(::Hash) || v.is_a?(Array)
-            self.iterate_and_update(v, block)
+            self.iterate_and_update(v, block, seen)
             new_key = block.call(k)
           else
             new_key = block.call(k)
