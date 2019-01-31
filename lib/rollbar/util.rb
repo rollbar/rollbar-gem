@@ -42,36 +42,60 @@ module Rollbar
       end
     end
 
-    def self.deep_copy(obj)
+    def self.deep_copy(obj, copied = {})
+      # if we've already made a copy, return it.
+      return copied[obj.object_id] if copied[obj.object_id]
+
+      result = clone_obj(obj)
+
+      # Memoize the cloned object before recursive calls to #deep_copy below.
+      # This is the point of doing the work in two steps.
+      copied[obj.object_id] = result
+
       if obj.is_a?(::Hash)
-        result = obj.clone
-        obj.each { |k, v| result[k] = deep_copy(v)}
-        result
+        obj.each { |k, v| result[k] = deep_copy(v, copied) }
       elsif obj.is_a?(Array)
-        result = obj.clone
-        result.clear
-        obj.each { |v| result << deep_copy(v)}
-        result
+        obj.each { |v| result << deep_copy(v, copied) }
+      end
+
+      result
+    end
+
+    def self.clone_obj(obj)
+      if obj.is_a?(::Hash)
+        obj.clone
+      elsif obj.is_a?(Array)
+        obj.clone.clear
       else
         obj
       end
     end
 
-    def self.deep_merge(hash1, hash2)
+    def self.deep_merge(hash1, hash2, merged = {})
       hash1 ||= {}
       hash2 ||= {}
 
+      # If we've already merged these two objects, return hash1 now.
+      return hash1 if merged[hash1.object_id] && merged[hash1.object_id].include?(hash2.object_id)
+
+      merged[hash1.object_id] ||= []
+      merged[hash1.object_id] << hash2.object_id
+
+      perform_deep_merge(hash1, hash2, merged)
+
+      hash1
+    end
+
+    def self.perform_deep_merge(hash1, hash2, merged)
       hash2.each_key do |k|
         if hash1[k].is_a?(::Hash) && hash2[k].is_a?(::Hash)
-          hash1[k] = deep_merge(hash1[k], hash2[k])
+          hash1[k] = deep_merge(hash1[k], hash2[k], merged)
         elsif hash1[k].is_a?(Array) && hash2[k].is_a?(Array)
           hash1[k] += deep_copy(hash2[k])
         elsif hash2[k]
           hash1[k] = deep_copy(hash2[k])
         end
       end
-
-      hash1
     end
 
     def self.truncate(str, length)
