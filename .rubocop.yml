@@ -14,6 +14,9 @@ Style/SymbolArray:
 Metrics/LineLength:
   Max: 1000
 
+Metrics/MethodLength:
+  Max: 15 # Relax slightly from the default of 10
+
 Style/DoubleNegation:
   Enabled: false
 

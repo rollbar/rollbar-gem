@@ -1,52 +1,43 @@
 require 'rollbar/util/hash'
 
 module Rollbar
-  module Util
+  module Util # :nodoc:
     def self.iterate_and_update(obj, block, seen = {})
-      return if obj.frozen?
-      return if seen[obj.object_id]
+      return if obj.frozen? || seen[obj.object_id]
+
       seen[obj.object_id] = true
 
       if obj.is_a?(Array)
-        for i in 0 ... obj.size
-          value = obj[i]
-
-          if value.is_a?(::Hash) || value.is_a?(Array)
-            self.iterate_and_update(value, block, seen)
-          else
-            obj[i] = block.call(value)
-          end
-        end
+        iterate_and_update_array(obj, block, seen)
       else
-        key_updates = []
+        iterate_and_update_hash(obj, block, seen)
+      end
+    end
 
-        obj.each do |k, v|
-          new_key = nil
-
-          if v.is_a?(::Hash) || v.is_a?(Array)
-            self.iterate_and_update(v, block, seen)
-            new_key = block.call(k)
-          else
-            new_key = block.call(k)
-            obj[k] = block.call(v)
-          end
-
-          key_updates.push([k, new_key]) if new_key != k
-        end
-
-        key_updates.each do |old_key, new_key|
-          obj[new_key] = obj[old_key]
-          obj.delete(old_key)
+    def self.iterate_and_update_array(array, block, seen)
+      array.each_with_index do |value, i|
+        if value.is_a?(::Hash) || value.is_a?(Array)
+          iterate_and_update(value, block, seen)
+        else
+          array[i] = block.call(value)
         end
       end
     end
 
-    def self.iterate_and_update_hash(hash, block)
-      hash.each do |k, v|
-        if v.is_a?(::Hash)
-          self.iterate_and_update_hash(v, block)
+    def self.iterate_and_update_hash(obj, block, seen)
+      obj.keys.each do |k|
+        v = obj[k]
+        new_key = block.call(k)
+
+        if v.is_a?(::Hash) || v.is_a?(Array)
+          iterate_and_update(v, block, seen)
         else
-          hash[k] = block.call(k, v)
+          obj[k] = block.call(v)
+        end
+
+        if new_key != k
+          obj[new_key] = obj[k]
+          obj.delete(k)
         end
       end
     end
