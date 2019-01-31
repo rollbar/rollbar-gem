@@ -86,7 +86,7 @@ module Rollbar
       hash1
     end
 
-    def self.perform_deep_merge(hash1, hash2, merged)
+    def self.perform_deep_merge(hash1, hash2, merged) # rubocop:disable Metrics/AbcSize
       hash2.each_key do |k|
         if hash1[k].is_a?(::Hash) && hash2[k].is_a?(::Hash)
           hash1[k] = deep_merge(hash1[k], hash2[k], merged)
