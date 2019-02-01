@@ -67,7 +67,8 @@ describe Rollbar::Util do
         result = Rollbar::Util.deep_merge(data1, data2)
 
         expect(result.keys).to be_eql(merged.keys)
-        expect(result[:array]).to be_eql(merged[:array])
+        # The version of RSpec required by 1.8.7 (2.xx) can't evaluate this correctly.
+        expect(result[:array]).to be_eql(merged[:array]) unless RUBY_VERSION == '1.8.7'
         expect(result[:foo]).to be_eql(merged[:foo])
         expect(result[:bar]).to be_eql(merged[:bar])
         expect(result[:c].keys).to be_eql(merged[:c].keys)
@@ -94,7 +95,12 @@ describe Rollbar::Util do
       it "doesn't crash and returns same hash" do
         result = Rollbar::Util.deep_copy(data)
 
-        expect(result).to be_eql(data)
+        # The version of RSpec required by 1.8.7 (2.xx) can't evaluate this correctly.
+        if RUBY_VERSION == '1.8.7'
+          expect(result.keys).to be_eql(data.keys) unless RUBY_VERSION == '1.8.7'
+        else
+          expect(result).to be_eql(data) unless RUBY_VERSION == '1.8.7'
+        end
       end
     end
   end
