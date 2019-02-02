@@ -46,25 +46,18 @@ describe Rollbar do
     end
 
     it 'should not crash with circular extra_data' do
-      skip "This example doesn't do what it says, and leads to undefined behavior. See example for comments."
-      # The example says we should *not* crash with a circular hash, however the matcher
-      # is actually matching on the internal error we get when we *do* crash on a
-      # recursive stack overflow. On some platforms, this will crash deeper in the
-      # interpreter and we don't get the chance to handle the error at all.
-      #
-      # If the intent is to not crash, there are numerous parts of the reporting
-      # code that need to tbe made safe. If not, this spec should be removed because
-      # the behavior at stack overflow is platform dependent at best and undefined
-      # at worst.
-
       a = { :foo => 'bar' }
       b = { :a => a }
       c = { :b => b }
       a[:c] = c
 
-      logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
+      expect(logger_mock).to_not receive(:error).with(
+        /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./
+      )
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      Rollbar.report_message('Test message with circular extra data', 'debug', a)
+      Rollbar.error('Test message with circular extra data', a)
     end
 
     it 'should be able to report form validation errors when they are present' do

@@ -1001,23 +1001,31 @@ describe Rollbar do
     # END Backwards
 
     it 'should not crash with circular extra_data' do
-      skip "This example doesn't do what it says, and leads to undefined behavior. See example for comments."
-      # The example says we should *not* crash with a circular hash, however the matcher
-      # is actually matching on the internal error we get when we *do* crash on a
-      # recursive stack overflow. On some platforms, this will crash deeper in the
-      # interpreter and we don't get the chance to handle the error at all.
-      #
-      # If the intent is to not crash, there are numerous parts of the reporting
-      # code that need to tbe made safe. If not, this spec should be removed because
-      # the behavior at stack overflow is platform dependent at best and undefined
-      # at worst.
-
-      a = { :foo => "bar" }
+      a = { :foo => 'bar' }
       b = { :a => a }
       c = { :b => b }
       a[:c] = c
 
-      logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
+      array1 = ['a', 'b']
+      array2 = ['c', 'd', array1]
+      a[:array] = array1
+
+      # The line below will introduce a cycle in the array, which the rollbar code can handle.
+      # However, both OJ and ActiveSupport `as_json` crash on this when serializing the payload.
+      # We could do without OJ, but it's a moot point because of the ActiveSupport issue.
+      # The gemspec currently uses multi_json to give the user as much control as possible over
+      # choice of JSON serializer. We should continue to allow this flexibility unless it is
+      # determined that cycles of arrays directly referencing arrays (without other objects
+      # in between) must be supported. Then in that case, an appropriate serializer should
+      # be added to the gemspec.
+      #
+      # array1 << array2
+
+      expect(logger_mock).to_not receive(:error).with(
+        /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./
+      )
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.error("Test message with circular extra data", a)
     end
