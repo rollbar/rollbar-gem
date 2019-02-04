@@ -159,6 +159,30 @@ describe Rollbar do
         notifier.log('error', exception, extra_data, 'exception description')
       end
 
+      # See Notifier#pack_ruby260_bytes for more information.
+      context 'with multi-byte characters in the report' do
+        extra_data = { :key => "\u3042", :hash => { :inner_key => 'あああ' } }
+
+        it 'should send as multi-byte on ruby != 2.6.0',
+           :if => RUBY_VERSION >= '2.0.0' && RUBY_VERSION != '2.6.0' do
+          expect_any_instance_of(Net::HTTP::Post).to receive(:body=).with(
+            satisfy do |body|
+              body.chars.length < body.bytes.length && body.include?('あああ')
+            end
+          ).and_call_original
+          notifier.log('error', 'test message', extra_data)
+        end
+
+        it 'should unpack multi-byte and send as single byte on ruby == 2.6.0', :if => RUBY_VERSION == '2.6.0' do
+          expect_any_instance_of(Net::HTTP::Post).to receive(:body=).with(
+            satisfy do |body|
+              body.chars.length == body.bytes.length && body.force_encoding('utf-8').include?('あああ')
+            end
+          ).and_call_original
+          notifier.log('error', 'test message', extra_data)
+        end
+      end
+
       context 'with :on_error_response hook configured' do
         let!(:notifier) { Rollbar::Notifier.new }
         let(:configuration) do
@@ -992,12 +1016,31 @@ describe Rollbar do
     # END Backwards
 
     it 'should not crash with circular extra_data' do
-      a = { :foo => "bar" }
+      a = { :foo => 'bar' }
       b = { :a => a }
       c = { :b => b }
       a[:c] = c
 
-      logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
+      array1 = ['a', 'b']
+      array2 = ['c', 'd', array1]
+      a[:array] = array1
+
+      # The line below will introduce a cycle in the array, which the rollbar code can handle.
+      # However, both OJ and ActiveSupport `as_json` crash on this when serializing the payload.
+      # We could do without OJ, but it's a moot point because of the ActiveSupport issue.
+      # The gemspec currently uses multi_json to give the user as much control as possible over
+      # choice of JSON serializer. We should continue to allow this flexibility unless it is
+      # determined that cycles of arrays directly referencing arrays (without other objects
+      # in between) must be supported. Then in that case, an appropriate serializer should
+      # be added to the gemspec.
+      #
+      # array1 << array2
+
+      expect(logger_mock).to_not receive(:error).with(
+        /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./
+      )
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.error("Test message with circular extra data", a)
     end

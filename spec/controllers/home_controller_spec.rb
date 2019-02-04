@@ -441,6 +441,12 @@ describe HomeController do
 
       expect(session_data['some_value']).to be_eql('this-is-a-cool-value')
     end
+    
+    it 'scrubs session id by default from the request' do
+      expect { get '/use_session_data' }.to raise_exception(NoMethodError)
+      
+      expect(Rollbar.last_report[:request][:session]['session_id']).to match('\*{3,8}')
+    end
   end
 
   context 'with json ACCEPT header', :type => 'request' do

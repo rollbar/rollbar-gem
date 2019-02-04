@@ -51,9 +51,13 @@ describe Rollbar do
       c = { :b => b }
       a[:c] = c
 
-      logger_mock.should_receive(:error).with(/\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./)
+      expect(logger_mock).to_not receive(:error).with(
+        /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./
+      )
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      Rollbar.report_message('Test message with circular extra data', 'debug', a)
+      Rollbar.error('Test message with circular extra data', a)
     end
 
     it 'should be able to report form validation errors when they are present' do

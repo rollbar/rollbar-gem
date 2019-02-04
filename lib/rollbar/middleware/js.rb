@@ -141,7 +141,9 @@ module Rollbar
       end
 
       def script_tag(content, env)
-        if append_nonce?
+        if (nonce = rails5_nonce(env))
+          script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
+        elsif secure_headers_nonce?
           nonce = ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
           script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
         else
@@ -156,7 +158,23 @@ module Rollbar
         string
       end
 
-      def append_nonce?
+      # Rails 5.2 Secure Content Policy
+      def rails5_nonce(env)
+        # The nonce is the preferred method, however 'unsafe-inline' is also possible.
+        # The app gets to decide, so we handle both. If the script_src key is missing,
+        # Rails will not add the nonce to the headers, so we should not add it either.
+        # If the 'unsafe-inline' value is present, the app should not add a nonce and
+        # we should ignore it if they do.
+        req = ::ActionDispatch::Request.new env
+        req.respond_to?(:content_security_policy) &&
+          req.content_security_policy &&
+          req.content_security_policy.directives['script-src'] &&
+          !req.content_security_policy.directives['script-src'].include?("'unsafe-inline'") &&
+          req.content_security_policy_nonce
+      end
+
+      # Secure Headers gem
+      def secure_headers_nonce?
         secure_headers.append_nonce?
       end
 

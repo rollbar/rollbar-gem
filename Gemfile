@@ -39,12 +39,14 @@ if RUBY_VERSION.start_with?('1.9')
   gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
   gem 'sucker_punch', '~> 1.0'
 elsif RUBY_VERSION.start_with?('2')
+  gem 'codacy-coverage'
   gem 'shoryuken' # rubocop:disable Bundler/DuplicatedGem
+  gem 'simplecov'
   gem 'sucker_punch', '~> 2.0' # rubocop:disable Bundler/DuplicatedGem
 end
 
 gem 'aws-sdk-sqs'
-gem 'database_cleaner', '~> 1.0.0'
+gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
