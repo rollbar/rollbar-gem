@@ -10,7 +10,7 @@ gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '4.2.8'
 gem 'rake'
 gem 'rspec-rails', '~> 3.4'
-gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
+gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
 unless is_jruby
   if RUBY_VERSION >= '2.5'
