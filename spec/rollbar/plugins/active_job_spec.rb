@@ -2,10 +2,10 @@ require 'spec_helper'
 
 require 'active_support/rescuable'
 
-describe Rollbar::ActiveJob do
-  
-  context 'using rails4.2 and up',
+context 'using rails4.2 and up',
     :if => (Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')) do
+
+  describe Rollbar::ActiveJob do
       
     class TestJob
       # To mix in rescue_from
