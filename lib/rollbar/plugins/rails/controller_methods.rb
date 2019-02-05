@@ -1,4 +1,5 @@
 require 'rollbar/request_data_extractor'
+require 'rollbar/util'
 
 module Rollbar
   module Rails
@@ -6,7 +7,7 @@ module Rollbar
       include RequestDataExtractor
 
       def rollbar_person_data
-        user = send(Rollbar.configuration.person_method)
+        (user = send(Rollbar.configuration.person_method)) unless Rollbar::Util.method_in_stack_twice(:rollbar_person_data, __FILE__)
         # include id, username, email if non-empty
         if user
           {

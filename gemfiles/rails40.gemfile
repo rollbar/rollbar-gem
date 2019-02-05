@@ -10,7 +10,7 @@ gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '4.0.13'
 gem 'rake'
 gem 'rspec-rails', '~> 3.4'
-gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
+gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 # Please see https://github.com/rspec/rspec-rails/issues/1273
 gem 'test-unit'
 

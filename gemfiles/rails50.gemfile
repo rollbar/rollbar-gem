@@ -8,7 +8,7 @@ gem 'appraisal'
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '~> 5.0.0'
-gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
+gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
 gem 'rspec-core', '~> 3.5.0.beta3'
 gem 'rspec-rails', '~> 3.5.0.beta3'

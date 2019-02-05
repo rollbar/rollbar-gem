@@ -57,4 +57,8 @@ class HomeController < ApplicationController
     user.email = 'email@test.com'
     user
   end
+
+  def recursive_current_user
+    Rollbar.error('Recurisve call to rollbar')
+  end
 end

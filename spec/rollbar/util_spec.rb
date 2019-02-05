@@ -11,10 +11,96 @@ describe Rollbar::Util do
         { :foo => :bar }
       end
 
-      it 'doesnt fail and returns same hash' do
+      it "doesn't fail and returns same hash" do
         result = Rollbar::Util.deep_merge(nil, data)
 
         expect(result).to be_eql(data)
+      end
+    end
+
+    context 'with circular data' do
+      let(:data1) do
+        { :foo => 'bar' }.tap do |a|
+          b = { :a => a }
+          c = { :b => b }
+          a[:c] = c
+
+          array1 = %w[a b]
+          array2 = ['c', array1]
+          a[:array] = array1
+          array1 << array2
+        end
+      end
+
+      let(:data2) do
+        { :bar => 'baz' }.tap do |a|
+          b = { :a => a }
+          c = { :b => b }
+          a[:d] = c
+
+          array3 = %w[d e]
+          array4 = ['f', 'g', array3]
+          a[:array] = array3
+          array3 << array4
+        end
+      end
+
+      let(:merged) do
+        { :foo => 'bar' }.tap do |a|
+          b = { :a => a }
+          c = { :b => b }
+          a[:c] = c
+
+          array1 = %w[a b]
+          array2 = ['c', array1]
+          array1 << array2
+          array3 = %w[d e]
+          array4 = ['f', 'g', array3]
+          array3 << array4
+          a[:array] = array1 + array3
+          a[:bar] = 'baz'
+          a[:d] = c
+        end
+      end
+
+      it "doesn't crash and returns merged hash" do
+        result = Rollbar::Util.deep_merge(data1, data2)
+
+        expect(result.keys).to be_eql(merged.keys)
+        # The version of RSpec required by 1.8.7 (2.xx) can't evaluate this correctly.
+        expect(result[:array]).to be_eql(merged[:array]) unless RUBY_VERSION == '1.8.7'
+        expect(result[:foo]).to be_eql(merged[:foo])
+        expect(result[:bar]).to be_eql(merged[:bar])
+        expect(result[:c].keys).to be_eql(merged[:c].keys)
+        expect(result[:d].keys).to be_eql(merged[:d].keys)
+      end
+    end
+  end
+
+  describe '.deep_copy' do
+    context 'with circular data' do
+      let(:data) do
+        { :foo => 'bar' }.tap do |a|
+          b = { :a => a }
+          c = { :b => b }
+          a[:c] = c
+
+          array1 = %w[a b]
+          array2 = ['c', 'd', array1]
+          a[:array] = array1
+          array1 << array2
+        end
+      end
+
+      it "doesn't crash and returns same hash" do
+        result = Rollbar::Util.deep_copy(data)
+
+        # The version of RSpec required by 1.8.7 (2.xx) can't evaluate this correctly.
+        if RUBY_VERSION == '1.8.7'
+          expect(result.keys).to be_eql(data.keys) unless RUBY_VERSION == '1.8.7'
+        else
+          expect(result).to be_eql(data) unless RUBY_VERSION == '1.8.7'
+        end
       end
     end
   end

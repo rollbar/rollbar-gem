@@ -14,7 +14,13 @@ module Rollbar
             config.environment ||= ::Rails.env
             config.root ||= ::Rails.root
             config.framework = "Rails: #{::Rails::VERSION::STRING}"
-            config.filepath ||= ::Rails.application.class.parent_name + '.rollbar'
+            config.filepath ||= begin
+              if ::Rails.application.class.respond_to?(:module_parent_name)
+                ::Rails.application.class.module_parent_name + '.rollbar'
+              else
+                ::Rails.application.class.parent_name + '.rollbar'
+              end
+            end
           end
         end
       end
