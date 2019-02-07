@@ -18,13 +18,13 @@ module RollbarTest # :nodoc:
   def test_rollbar
     puts 'Raising RollbarTestingException to simulate app failure.'
 
-    raise RollbarTestingException.new, 'Testing rollbar with "rake rollbar:test". If you can see this, it works.'
+    raise RollbarTestingException.new, ::RollbarTest.success_message
   end
 
   def self.run
-    configure_rails if defined?(Rails)
+    return unless confirmed_token?
 
-    exit unless confirmed_token?
+    configure_rails if defined?(Rails)
 
     puts 'Testing manual report...'
     Rollbar.error('Test error from rollbar:test')
@@ -61,17 +61,6 @@ module RollbarTest # :nodoc:
     false
   end
 
-  def self.token_error_message
-    'Rollbar needs an access token configured. Check the README for instructions.'
-  end
-
-  def self.draw_rails_route
-    Rails.application.routes_reloader.execute_if_updated
-    Rails.application.routes.draw do
-      get 'verify' => 'rollbar_test#verify', :as => 'verify'
-    end
-  end
-
   def self.authlogic_config
     # from http://stackoverflow.com/questions/5270835/authlogic-activation-problems
     return unless defined?(Authlogic)
@@ -83,15 +72,42 @@ module RollbarTest # :nodoc:
     puts 'Setting up the test app.'
 
     if defined?(Rails)
-      draw_rails_route
+      app = rails_app
+
+      draw_rails_route(app)
 
       authlogic_config
 
-      protocol = defined?(Rails.application.config.force_ssl && Rails.application.config.force_ssl) ? 'https' : 'http'
-      [protocol, Rails.application]
+      [rails_protocol(app), app]
     else
       ['http', rack_app]
     end
+  end
+
+  def self.rails_app
+    # Spring now runs by default in development on all new Rails installs. This causes
+    # the new `/verify` route to not get picked up if `config.cache_classes == false`
+    # which is also a default in development env.
+    #
+    # `config.cache_classes` needs to be set, but the only possible time is at app load,
+    # so here we clone the default app with an updated config.
+    #
+    config = Rails.application.config
+    config.cache_classes = true
+
+    # Make a copy of the app, so the config can be updated.
+    Rails.application.class.name.constantize.new(:config => config)
+  end
+
+  def self.draw_rails_route(app)
+    app.routes_reloader.execute_if_updated
+    app.routes.draw do
+      get 'verify' => 'rollbar_test#verify', :as => 'verify'
+    end
+  end
+
+  def self.rails_protocol(app)
+    defined?(app.config.force_ssl && app.config.force_ssl) ? 'https' : 'http'
   end
 
   def self.rack_app
@@ -104,8 +120,16 @@ module RollbarTest # :nodoc:
     end
   end
 
+  def self.token_error_message
+    'Rollbar needs an access token configured. Check the README for instructions.'
+  end
+
   def self.error_message
     'Test failed! You may have a configuration issue, or you could be using a gem that\'s blocking the test. Contact support@rollbar.com if you need help troubleshooting.'
+  end
+
+  def self.success_message
+    'Testing rollbar with "rake rollbar:test". If you can see this, it works.'
   end
 end
 

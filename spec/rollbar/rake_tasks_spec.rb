@@ -9,19 +9,15 @@ describe RollbarTest do
         reconfigure_notifier
       end
 
-      it 'raises the test exception' do
+      it 'raises the test exception and exits with success message' do
         expect { subject.run }.to raise_exception(RollbarTestingException)
-
-        exception_info = Rollbar.last_report[:body][:trace][:exception]
-        exception_info[:class].should == 'RollbarTestingException'
+          .with_message(Regexp.new(subject.success_message))
       end
     end
 
     context 'when rollbar is not configured' do
-      it 'exits with message' do
-        subject.run
-
-        STDOUT.should_receive(:puts).with(subject.token_error_message)
+      it 'exits with error message' do
+        expect { subject.run }.to output(Regexp.new(subject.token_error_message)).to_stdout
       end
     end
   end
