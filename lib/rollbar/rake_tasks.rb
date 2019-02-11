@@ -34,7 +34,7 @@ module RollbarTest # :nodoc:
     protocol, app = setup_app
 
     puts 'Processing...'
-    env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
+    env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify", 'REMOTE_ADDR' => '127.0.0.1')
     status, = app.call(env)
 
     puts error_message unless status.to_i == 500
@@ -85,6 +85,10 @@ module RollbarTest # :nodoc:
   end
 
   def self.rails_app
+    # The setup below is needed for Rails 5.x, but not for Rails 4.x and below.
+    # (And fails on Rails 4.x in various ways depending on the exact version.)
+    return Rails.application if Rails.version < '5.0.0'
+
     # Spring now runs by default in development on all new Rails installs. This causes
     # the new `/verify` route to not get picked up if `config.cache_classes == false`
     # which is also a default in development env.

@@ -9,6 +9,11 @@ describe RollbarTest do
         reconfigure_notifier
       end
 
+      after do
+        # Rails <= 4.x needs this, since we modify the default RouteSet in RollbarTest#run.
+        Rails.application.reload_routes!
+      end
+
       it 'raises the test exception and exits with success message' do
         expect { subject.run }.to raise_exception(RollbarTestingException)
           .with_message(Regexp.new(subject.success_message))
