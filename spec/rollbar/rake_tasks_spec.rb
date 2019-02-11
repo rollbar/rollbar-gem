@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'rollbar/rake_tasks'
 
-describe RollbarTest do
+describe RollbarTest, :if => RUBY_VERSION >= '1.9.3' do
   describe '#run' do
     context 'when rollbar is configured' do
       before do
@@ -15,7 +15,7 @@ describe RollbarTest do
       end
 
       it 'raises the test exception and exits with success message' do
-        expect { subject.run }.to raise_exception(RollbarTestingException)
+        expect { subject.run }.to raise_exception(RollbarTestingException) \
           .with_message(Regexp.new(subject.success_message))
       end
     end
