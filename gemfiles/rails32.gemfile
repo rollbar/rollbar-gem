@@ -48,7 +48,6 @@ end
 
 gem 'delayed_job', :require => false
 gem 'redis'
-gem 'resque'
 gem 'sinatra'
 
 gem 'database_cleaner', '~> 1.0.0'
@@ -64,7 +63,7 @@ else
   gem 'webmock', :require => false
 end
 
-gem 'resque'
+gem 'resque', '< 2.0.0'
 gem 'aws-sdk-sqs'
 
 gemspec :path => '../'

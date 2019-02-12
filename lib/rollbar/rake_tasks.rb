@@ -2,92 +2,151 @@ require 'rollbar'
 begin
   require 'rack/mock'
 rescue LoadError
+  puts 'Cannot load rack/mock'
 end
 require 'logger'
 
 namespace :rollbar do
   desc 'Verify your gem installation by sending a test exception to Rollbar'
   task :test => [:environment] do
-    if defined?(Rails)
-      Rails.logger = if defined?(ActiveSupport::TaggedLogging)
-                       ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
-                     else
-                       Logger.new(STDOUT)
-                     end
+    RollbarTest.run
+  end
+end
 
-      Rails.logger.level = Logger::DEBUG
-      Rollbar.preconfigure do |config|
-        config.logger = Rails.logger
-      end
-    end
+# Module to inject into the Rails controllers or rack apps
+module RollbarTest # :nodoc:
+  def test_rollbar
+    puts 'Raising RollbarTestingException to simulate app failure.'
 
-    class RollbarTestingException < RuntimeError; end
+    raise RollbarTestingException.new, ::RollbarTest.success_message
+  end
 
-    unless Rollbar.configuration.access_token
-      puts 'Rollbar needs an access token configured. Check the README for instructions.'
+  def self.run
+    return unless confirmed_token?
 
-      exit
-    end
+    configure_rails if defined?(Rails)
 
     puts 'Testing manual report...'
     Rollbar.error('Test error from rollbar:test')
 
-    # Module to inject into the Rails controllers or
-    # rack apps
-    module RollbarTest
-      def test_rollbar
-        puts 'Raising RollbarTestingException to simulate app failure.'
+    return unless defined?(Rack::MockRequest)
 
-        raise RollbarTestingException.new, 'Testing rollbar with "rake rollbar:test". If you can see this, it works.'
+    protocol, app = setup_app
+
+    puts 'Processing...'
+    env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify", 'REMOTE_ADDR' => '127.0.0.1')
+    status, = app.call(env)
+
+    puts error_message unless status.to_i == 500
+  end
+
+  def self.configure_rails
+    Rails.logger = if defined?(ActiveSupport::TaggedLogging)
+                     ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+                   else
+                     Logger.new(STDOUT)
+                   end
+
+    Rails.logger.level = Logger::DEBUG
+    Rollbar.preconfigure do |config|
+      config.logger = Rails.logger
+    end
+  end
+
+  def self.confirmed_token?
+    return true if Rollbar.configuration.access_token
+
+    puts token_error_message
+
+    false
+  end
+
+  def self.authlogic_config
+    # from http://stackoverflow.com/questions/5270835/authlogic-activation-problems
+    return unless defined?(Authlogic)
+
+    Authlogic::Session::Base.controller = Authlogic::ControllerAdapters::RailsAdapter.new(self)
+  end
+
+  def self.setup_app
+    puts 'Setting up the test app.'
+
+    if defined?(Rails)
+      app = rails_app
+
+      draw_rails_route(app)
+
+      authlogic_config
+
+      [rails_protocol(app), app]
+    else
+      ['http', rack_app]
+    end
+  end
+
+  def self.rails_app
+    # The setup below is needed for Rails 5.x, but not for Rails 4.x and below.
+    # (And fails on Rails 4.x in various ways depending on the exact version.)
+    return Rails.application if Rails.version < '5.0.0'
+
+    # Spring now runs by default in development on all new Rails installs. This causes
+    # the new `/verify` route to not get picked up if `config.cache_classes == false`
+    # which is also a default in development env.
+    #
+    # `config.cache_classes` needs to be set, but the only possible time is at app load,
+    # so here we clone the default app with an updated config.
+    #
+    config = Rails.application.config
+    config.cache_classes = true
+
+    # Make a copy of the app, so the config can be updated.
+    Rails.application.class.name.constantize.new(:config => config)
+  end
+
+  def self.draw_rails_route(app)
+    app.routes_reloader.execute_if_updated
+    app.routes.draw do
+      get 'verify' => 'rollbar_test#verify', :as => 'verify'
+    end
+  end
+
+  def self.rails_protocol(app)
+    defined?(app.config.force_ssl && app.config.force_ssl) ? 'https' : 'http'
+  end
+
+  def self.rack_app
+    Class.new do
+      include RollbarTest
+
+      def self.call(_env)
+        new.test_rollbar
       end
     end
+  end
 
-    if defined?(Rack::MockRequest)
-      if defined?(Rails)
-        puts 'Setting up the controller.'
+  def self.token_error_message
+    'Rollbar needs an access token configured. Check the README for instructions.'
+  end
 
-        class RollbarTestController < ActionController::Base
-          include RollbarTest
+  def self.error_message
+    'Test failed! You may have a configuration issue, or you could be using a gem that\'s blocking the test. Contact support@rollbar.com if you need help troubleshooting.'
+  end
 
-          def verify
-            test_rollbar
-          end
+  def self.success_message
+    'Testing rollbar with "rake rollbar:test". If you can see this, it works.'
+  end
+end
 
-          def logger
-            nil
-          end
-        end
+class RollbarTestingException < RuntimeError; end
 
-        Rails.application.routes_reloader.execute_if_updated
-        Rails.application.routes.draw do
-          get 'verify' => 'rollbar_test#verify', :as => 'verify'
-        end
+class RollbarTestController < ActionController::Base # :nodoc:
+  include RollbarTest
 
-        # from http://stackoverflow.com/questions/5270835/authlogic-activation-problems
-        if defined? Authlogic
-          Authlogic::Session::Base.controller = Authlogic::ControllerAdapters::RailsAdapter.new(self)
-        end
+  def verify
+    test_rollbar
+  end
 
-        protocol = (defined? Rails.application.config.force_ssl && Rails.application.config.force_ssl) ? 'https' : 'http'
-        app = Rails.application
-      else
-        protocol = 'http'
-        app = Class.new do
-          include RollbarTest
-
-          def self.call(_env)
-            new.test_rollbar
-          end
-        end
-      end
-
-      puts 'Processing...'
-      env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
-      status, = app.call(env)
-
-      unless status.to_i == 500
-        puts 'Test failed! You may have a configuration issue, or you could be using a gem that\'s blocking the test. Contact support@rollbar.com if you need help troubleshooting.'
-      end
-    end
+  def logger
+    nil
   end
 end
