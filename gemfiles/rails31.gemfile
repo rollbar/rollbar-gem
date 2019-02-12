@@ -45,7 +45,6 @@ elsif RUBY_VERSION.start_with?('2')
 end
 
 gem 'sinatra'
-gem 'resque'
 gem 'delayed_job', :require => false
 gem 'redis'
 gem 'database_cleaner'
@@ -61,7 +60,7 @@ else
   gem 'webmock', :require => false
 end
 
-gem 'resque'
+gem 'resque', '< 2.0.0'
 gem 'aws-sdk-sqs'
 
 gemspec :path => '../'

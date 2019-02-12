@@ -51,7 +51,7 @@ gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
-gem 'resque'
+gem 'resque', '< 2.0.0'
 gem 'rspec-command'
 gem 'rubocop', :require => false
 gem 'sinatra'
