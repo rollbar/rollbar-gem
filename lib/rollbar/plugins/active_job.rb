@@ -15,4 +15,4 @@ module Rollbar
 end
 
 # Automatically add to ActionMailer::DeliveryJob
-ActionMailer::DeliveryJob.include Rollbar::ActiveJob if defined?(ActionMailer::DeliveryJob)
+ActionMailer::DeliveryJob.send(:include, Rollbar::ActiveJob) if defined?(ActionMailer::DeliveryJob)
