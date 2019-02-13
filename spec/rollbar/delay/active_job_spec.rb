@@ -9,8 +9,8 @@ if (Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0'))
       describe '.call' do
         let(:payload) { {} }
         it 'calls Rollbar' do
+          Rails.application.config.active_job.queue_adapter = :inline
           expect(Rollbar).to receive(:process_from_async_handler).with(payload)
-    
           Rollbar::Delay::ActiveJob.call(payload)
         end
       end
