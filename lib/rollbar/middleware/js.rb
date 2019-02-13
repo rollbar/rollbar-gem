@@ -120,7 +120,11 @@ module Rollbar
 
         add_person_data(js_config, env)
 
-        script_tag("var _rollbarConfig = #{js_config.to_json};", env)
+        # MUST use the Ruby JSON encoder (JSON#generate).
+        # See lib/rollbar/middleware/js/json_value
+        json = ::JSON.generate(js_config)
+
+        script_tag("var _rollbarConfig = #{json};", env)
       end
 
       def add_person_data(js_config, env)
