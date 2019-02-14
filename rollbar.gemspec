@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   gem.name          = 'rollbar'
   gem.require_paths = ['lib']
+  gem.required_ruby_version = '>= 1.9.3'
   gem.version       = Rollbar::VERSION
 
   gem.add_runtime_dependency 'multi_json'
