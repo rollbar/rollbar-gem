@@ -31,3 +31,6 @@ Metrics/BlockLength:
 
 Style/ExpandPathArguments:
   Enabled: false # syntax requires Ruby >= 2.0
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false # rubocop compares to gemspec, yet won't allow 1.9 as minimum version
