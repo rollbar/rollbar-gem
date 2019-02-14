@@ -134,10 +134,11 @@ module Rollbar
       return 'ignored' if ignored?(exception, use_exception_level_filters)
 
       begin
-        call_before_process(:level => level,
-                            :exception => exception,
-                            :message => message,
-                            :extra => extra)
+        status = call_before_process(:level => level,
+                                     :exception => exception,
+                                     :message => message,
+                                     :extra => extra)
+        return 'ignored' if status == 'ignored'
       rescue Rollbar::Ignore
         return 'ignored'
       end
@@ -321,7 +322,8 @@ module Rollbar
 
       handlers.each do |handler|
         begin
-          handler.call(options)
+          status = handler.call(options)
+          return 'ignored' if status == 'ignored'
         rescue Rollbar::Ignore
           raise
         rescue => e
