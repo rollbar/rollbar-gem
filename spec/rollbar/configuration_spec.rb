@@ -3,13 +3,13 @@ require 'rollbar/configuration'
 
 describe Rollbar::Configuration do
   
-  if (Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0'))
+  if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
     context 'using rails4.2 and up' do
       
       require 'rollbar/delay/active_job'
         
       describe '#use_active_job' do
-        it "enables async and sets ActiveJob as the handler and uses default queue name" do
+        it 'enables async and sets ActiveJob as the handler and uses default queue name' do
           subject.use_active_job
     
           expect(subject.use_async).to be_eql(true)
@@ -17,8 +17,8 @@ describe Rollbar::Configuration do
           expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
         end
         
-        it "enables async and sets ActiveJob as the handler and uses provided queue name" do
-          subject.use_active_job({ :queue => 'my_test_queue' })
+        it 'enables async and sets ActiveJob as the handler and uses provided queue name' do
+          subject.use_active_job(:queue => 'my_test_queue')
     
           expect(subject.use_async).to be_eql(true)
           expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('my_test_queue')

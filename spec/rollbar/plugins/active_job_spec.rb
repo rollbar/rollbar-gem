@@ -2,7 +2,7 @@ require 'spec_helper'
 
 require 'active_support/rescuable'
 
-if (Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0'))
+if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
   context 'using rails4.2 and up' do
   
     describe Rollbar::ActiveJob do
@@ -42,7 +42,7 @@ if (Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0'))
         expect(Rollbar).to receive(:error).with(exception, expected_params)
         TestJob.new(argument).perform(exception, job_id) rescue nil
       end
-    
+
       it "reraises the error so the job backend can handle the failure and retry" do
         expect { TestJob.new(argument).perform(exception, job_id) }.to raise_error exception
       end
