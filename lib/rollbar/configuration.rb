@@ -130,7 +130,7 @@ module Rollbar
       @anonymize_user_ip = false
       @hooks = {
         :on_error_response => nil, # params: response
-        :on_report_internal_error => nil, #params: exception
+        :on_report_internal_error => nil, # params: exception
       }
     end
 
@@ -159,6 +159,15 @@ module Rollbar
       end
 
       self
+    end
+
+    def use_active_job(options = {})
+      require 'rollbar/delay/active_job'
+
+      Rollbar::Delay::ActiveJob.queue_as(options[:queue] || Rollbar::Delay::ActiveJob.default_queue_name)
+
+      @use_async      = true
+      @async_handler  = Rollbar::Delay::ActiveJob
     end
 
     def use_delayed_job(options = {})
@@ -263,7 +272,7 @@ module Rollbar
     def logger
       @logger ||= default_logger.call
     end
-    
+
     def hook(symbol, &block)
       if @hooks.has_key?(symbol)
         if block_given?
@@ -275,7 +284,7 @@ module Rollbar
         raise StandardError.new "Hook :" + symbol.to_s + " is not supported by Rollbar SDK."
       end
     end
-    
+
     def execute_hook(symbol, *args)
       hook(symbol).call(*args) if hook(symbol).is_a?(Proc)
     end
