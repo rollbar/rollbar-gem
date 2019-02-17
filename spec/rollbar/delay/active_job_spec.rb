@@ -2,7 +2,6 @@ require 'spec_helper'
 
 if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
   context 'using rails4.2 and up' do
-
     require 'rollbar/delay/active_job'
 
     describe Rollbar::Delay::ActiveJob do
