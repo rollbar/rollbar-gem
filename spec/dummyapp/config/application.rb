@@ -55,7 +55,7 @@ module Dummy
     # Version of your assets, change this if you want to expire all your assets
     #config.assets.version = '1.0'
     
-    config.active_job.queue_adapter = :inline
+    config.active_job.queue_adapter = :inline if (Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0'))
   end
 end
 
