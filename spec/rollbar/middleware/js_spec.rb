@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'rollbar/middleware/js'
+require 'rollbar/middleware/js/json_value'
 
 
 shared_examples 'secure_headers' do
@@ -13,7 +14,7 @@ shared_examples 'secure_headers' do
     new_body = response.body.join
 
     expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
-    expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+    expect(new_body).to include("var _rollbarConfig = #{json_options};")
     expect(new_body).to include(snippet)
   end
 
@@ -27,7 +28,7 @@ shared_examples 'secure_headers' do
     new_body = response.body.join
 
     expect(new_body).to include('<script type="text/javascript">')
-    expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+    expect(new_body).to include("var _rollbarConfig = #{json_options};")
     expect(new_body).to include(snippet)
   end
 
@@ -40,7 +41,7 @@ shared_examples 'secure_headers' do
     new_body = response.body.join
 
     expect(new_body).to include('<script type="text/javascript">')
-    expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+    expect(new_body).to include("var _rollbarConfig = #{json_options};")
     expect(new_body).to include(snippet)
   end
 end
@@ -110,13 +111,29 @@ END
     allow(subject).to receive(:js_snippet).and_return(snippet)
   end
 
+  let(:config) do
+    {
+      :enabled => true,
+      :options => {
+        :foo => :bar,
+        :checkIgnore => Rollbar::JSON::Value.new('function(){ alert("bar") }')
+      }
+    }
+  end
+
+  let(:json_options) do
+    # MUST use the Ruby JSON encoder (JSON#generate).
+    # See lib/rollbar/middleware/js/json_value
+    ::JSON.generate(config[:options])
+  end
+
   shared_examples "doesn't add the snippet or config", :add_js => false do
     it "doesn't add the snippet or config" do
       res_status, res_headers, response = subject.call(env)
       new_body = response.join
 
       expect(new_body).not_to include(snippet)
-      expect(new_body).not_to include(config[:options].to_json)
+      expect(new_body).not_to include(json_options)
       expect(new_body).to be_eql(body.join)
       expect(res_status).to be_eql(status)
       expect(res_headers['Content-Type']).to be_eql(content_type)
@@ -125,13 +142,6 @@ END
 
   describe '#call' do
     context 'with enabled config' do
-      let(:config) do
-        {
-          :enabled => true,
-          :options => { :foo => :bar }
-        }
-      end
-
       context 'having a html 200 response' do
         let(:body) { [html] }
         let(:status) { 200 }
@@ -145,7 +155,7 @@ END
 
           expect(new_body).to_not include('>>')
           expect(new_body).to include(snippet)
-          expect(new_body).to include(config[:options].to_json)
+          expect(new_body).to include(json_options)
           expect(res_status).to be_eql(status)
           expect(res_headers['Content-Type']).to be_eql(content_type)
         end
@@ -164,7 +174,7 @@ END
 
           expect(new_body).to_not include('>>')
           expect(new_body).to include(snippet)
-          expect(new_body).to include(config[:options].to_json)
+          expect(new_body).to include(json_options)
           expect(res_status).to be_eql(status)
           expect(res_headers['Content-Type']).to be_eql(content_type)
         end
@@ -182,7 +192,7 @@ END
 
           expect(new_body).to_not include('>>')
           expect(new_body).to include(snippet)
-          expect(new_body).to include(config[:options].to_json)
+          expect(new_body).to include(json_options)
           expect(res_status).to be_eql(status)
           expect(res_headers['Content-Type']).to be_eql(content_type)
           meta_tag = '<meta charset="UTF-8"/>'
@@ -202,7 +212,7 @@ END
 
           expect(new_body).to_not include('>>')
           expect(new_body).to include(snippet)
-          expect(new_body).to include(config[:options].to_json)
+          expect(new_body).to include(json_options)
           expect(res_status).to be_eql(status)
           expect(res_headers['Content-Type']).to be_eql(content_type)
           meta_tag = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
@@ -257,7 +267,7 @@ END
           new_body = response.body.join
 
           expect(new_body).to include('<script type="text/javascript">')
-          expect(new_body).to include("var _rollbarConfig = #{config[:options].to_json};")
+          expect(new_body).to include("var _rollbarConfig = #{json_options};")
           expect(new_body).to include(snippet)
         end
       end
@@ -391,6 +401,34 @@ END
             new_body = response.body.join
 
             expect(new_body).not_to include('person')
+          end
+        end
+      end
+
+      describe 'json encoding config options' do
+        let(:body) { [html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 'Content-Type' => content_type }
+        end
+        let(:json_value) do
+          Rollbar::JSON::Value.new('function(){ alert("bar") }').to_json
+        end
+
+        context 'using Ruby JSON encoder' do
+          it 'encodes as native json' do
+            expect(json_value).to be_a(String)
+          end
+
+          it 'adds the config and the snippet to the response' do
+            res_status, res_headers, response = subject.call(env)
+            new_body = response.body.join
+
+            expect(new_body).to_not include('>>')
+            expect(new_body).to include(snippet)
+            expect(new_body).to include(json_options)
+            expect(res_status).to be_eql(status)
+            expect(res_headers['Content-Type']).to be_eql(content_type)
           end
         end
       end
