@@ -326,82 +326,119 @@ describe Rollbar do
         end
       end
 
-      context 'raising Rollbar::Ignore in the handler' do
-        let(:handler) do
-          proc do |options|
-            raise Rollbar::Ignore
-          end
-        end
-
+      context 'setting ignore in the handler' do
         before do
           configuration.before_process = handler
         end
 
-        it "calls the handler with correct options and doesn't call #report" do
-          options = {
-            :level => level,
-            :scope => Rollbar::LazyStore.new(scope),
-            :exception => exception,
-            :message => message,
-            :extra => extra
-          }
-          expect(handler).to receive(:call).with(options).and_call_original
-          expect(notifier).not_to receive(:report)
+        shared_examples 'call the handler' do
+          it "calls with correct options and doesn't call #report" do
+            options = {
+              :level => level,
+              :scope => Rollbar::LazyStore.new(scope),
+              :exception => exception,
+              :message => message,
+              :extra => extra
+            }
+            expect(handler).to receive(:call).with(options).and_call_original
+            expect(notifier).not_to receive(:report)
 
-          result = notifier.log(level, message, exception, extra)
+            result = notifier.log(level, message, exception, extra)
 
-          expect(result).to be_eql('ignored')
+            expect(result).to be_eql('ignored')
+          end
+        end
+
+        context "returning 'ignored'" do
+          let(:handler) do
+            proc do |options|
+              'ignored'
+            end
+          end
+
+          include_examples 'call the handler'
+        end
+
+        context 'raising Rollbar::Ignore' do
+          let(:handler) do
+            proc do |options|
+              raise Rollbar::Ignore
+            end
+          end
+
+          include_examples 'call the handler'
         end
       end
 
-      context 'with 2 handlers, raising Rollbar::Ignore in the first one' do
-        let(:handler1) do
-          proc do |options|
-            raise Rollbar::Ignore
-          end
-        end
-
-        let(:handler2) do
-          proc do |options|
-
-          end
-        end
-
+      context 'with 2 handlers, setting ignore in the first one' do
         before do
           configuration.before_process << handler1
           configuration.before_process << handler2
         end
 
-        it "calls only the first handler and doesn't calls #report" do
-          options = {
-            :level => level,
-            :scope => Rollbar::LazyStore.new(scope),
-            :exception => exception,
-            :message => message,
-            :extra => extra
-          }
+        shared_examples 'call two handlers' do
+          it "calls only the first handler and doesn't calls #report" do
+            options = {
+              :level => level,
+              :scope => Rollbar::LazyStore.new(scope),
+              :exception => exception,
+              :message => message,
+              :extra => extra
+            }
 
-          expect(handler1).to receive(:call).with(options).and_call_original
-          expect(handler2).not_to receive(:call)
-          expect(notifier).not_to receive(:report)
+            expect(handler1).to receive(:call).with(options).and_call_original
+            expect(handler2).not_to receive(:call)
+            expect(notifier).not_to receive(:report)
 
-          result = notifier.log(level, message, exception, extra)
+            result = notifier.log(level, message, exception, extra)
 
-          expect(result).to be_eql('ignored')
+            expect(result).to be_eql('ignored')
+          end
+
+          context 'if the first handler fails' do
+            let(:exception) { StandardError.new('foo') }
+            let(:handler1) do
+              proc { |options|  raise exception }
+            end
+
+            it 'doesnt call the second handler and logs the error' do
+              expect(handler2).not_to receive(:call)
+              expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
+
+              notifier.log(level, message, exception, extra)
+            end
+          end
         end
 
-        context 'if the first handler fails' do
-          let(:exception) { StandardError.new('foo') }
+        context "returning 'ignored'" do
           let(:handler1) do
-            proc { |options|  raise exception }
+            proc do |options|
+              'ignored'
+            end
           end
 
-          it 'doesnt call the second handler and logs the error' do
-            expect(handler2).not_to receive(:call)
-            expect(notifier).to receive(:log_error).with("[Rollbar] Error calling the `before_process` hook: #{exception}")
+          let(:handler2) do
+            proc do |options|
 
-            notifier.log(level, message, exception, extra)
+            end
           end
+
+          include_examples 'call two handlers'
+        end
+        context 'raising Rollbar::Ignore' do
+          let(:handler1) do
+            proc do |options|
+              raise Rollbar::Ignore
+            end
+          end
+
+          let(:handler2) do
+            proc do |options|
+
+            end
+          end
+
+          include_examples 'call two handlers'
         end
       end
     end
