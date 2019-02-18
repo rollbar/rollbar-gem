@@ -5,7 +5,7 @@ module Rollbar
   module Delay
     class Thread
       EXIT_SIGNAL  = :exit
-      EXIT_TIMEOUT = 3
+      EXIT_TIMEOUT = 6
 
       Error        = Class.new(StandardError)
       TimeoutError = Class.new(Error)
