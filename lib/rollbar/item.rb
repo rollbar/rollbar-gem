@@ -159,7 +159,7 @@ module Rollbar
       if custom_data_method? && !Rollbar::Util.method_in_stack(:custom_data, __FILE__)
         Util.deep_merge(custom_data, scrub_extra || {})
       else
-        scrub_extra
+        extra
       end
     end
 
