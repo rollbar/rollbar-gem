@@ -165,6 +165,7 @@ module Rollbar
 
     def scrub_extra
       return extra unless extra.is_a? Hash
+
       options = {
         :params => extra,
         :config => Rollbar.configuration.scrub_fields,
