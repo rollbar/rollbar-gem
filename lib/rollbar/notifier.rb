@@ -145,7 +145,6 @@ module Rollbar
 
       level = lookup_exception_level(level, exception,
                                      use_exception_level_filters)
-
       begin
         report(level, message, exception, extra, context)
       rescue StandardError, SystemStackError => e
