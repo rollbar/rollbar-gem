@@ -1,6 +1,8 @@
 module Rollbar
   module ExceptionReporter
     def report_exception_to_rollbar(env, exception)
+      return unless capture_uncaught?
+
       exception_message = exception.respond_to?(:message) ? exception.message : 'No Exception Message'
       Rollbar.log_debug "[Rollbar] Reporting exception: #{exception_message}"
 
@@ -16,6 +18,10 @@ module Rollbar
       end
     rescue => e
       Rollbar.log_warning "[Rollbar] Exception while reporting exception to Rollbar: #{e.message}"
+    end
+
+    def capture_uncaught?
+      Rollbar.configuration.capture_uncaught != false
     end
   end
 end
