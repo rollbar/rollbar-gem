@@ -24,9 +24,9 @@ For complete usage instructions and configuration reference, see our [Ruby SDK d
 
 ## Compatibility
 
-Version x.x is compatible with Ruby >= 1.9.3.
+Version >= 2.19.0 is compatible with Ruby >= 1.9.3.
 
-Version < x.x is compatible with Ruby >= 1.8.7.
+Version < 2.19.0 is compatible with Ruby >= 1.8.7.
 
 ## Release History & Changelog
 
