@@ -3,7 +3,7 @@
 [![Gem Version](https://badge.fury.io/rb/rollbar.svg)](http://badge.fury.io/rb/rollbar)
 [![SemVer](https://api.dependabot.com/badges/compatibility_score?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&target-version=latest)](https://dependabot.com/compatibility-score.html?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&new-version=latest)
 
-> WARNING: Ruby 2.6.0 introduced a new bug bug ([#15472 - 
+> WARNING: Ruby 2.6.0 introduced a new bug bug ([#15472 -
 Invalid JSON data being sent from Net::HTTP in some cases with Ruby 2.6.0](https://bugs.ruby-lang.org/issues/15472)) that may result in the Rollbar API returning an error when an exception is reported.  (See [rollbar-gem issue #797](https://github.com/rollbar/rollbar-gem/issues/797)).
 > Until the Ruby maintainers have released the fix for this bug, we advise Rollbar users to not upgrade their applications to Ruby 2.6.0.
 
@@ -21,6 +21,12 @@ Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, 
 ## Usage and Reference
 
 For complete usage instructions and configuration reference, see our [Ruby SDK docs](https://docs.rollbar.com/docs/ruby).
+
+## Compatibility
+
+Version >= 2.19.0 is compatible with Ruby >= 1.9.3.
+
+Version < 2.19.0 is compatible with Ruby >= 1.8.7.
 
 ## Release History & Changelog
 
