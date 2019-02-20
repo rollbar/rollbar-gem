@@ -292,6 +292,18 @@ describe HomeController do
       expect { get '/cause_exception' }.to raise_exception(NameError)
     end
 
+    context 'with capture_uncaught == false' do
+      it 'should not report the exception' do
+        Rollbar.configure do |config|
+          config.capture_uncaught = false
+        end
+
+        expect(Rollbar).to_not receive(:log)
+
+        expect { get '/cause_exception' }.to raise_exception(NameError)
+      end
+    end
+
     context 'show_exceptions' do
       before(:each) do
         if Dummy::Application.respond_to? :env_config
@@ -333,18 +345,6 @@ describe HomeController do
         end
 
         get '/cause_exception'
-      end
-
-      context 'with capture_uncaught == false' do
-        it 'should not report the exception' do
-          Rollbar.configure do |config|
-            config.capture_uncaught = false
-          end
-
-          expect(notifier).to_not receive(:log)
-
-          get '/cause_exception'
-        end
       end
 
       context 'with logged user' do
