@@ -680,7 +680,6 @@ describe Rollbar::Item do
       let(:item) { Rollbar::Item.build_with(payload) }
 
       it 'dumps to JSON correctly' do
-        redis.set('foo', 'bar')
         json = item.dump
 
         expect(json).to be_kind_of(String)
