@@ -58,6 +58,7 @@ module Rollbar
 
       def scrub(params, options)
         return params if @scrubbed_object_ids[params.object_id].present?
+
         @scrubbed_object_ids[params.object_id] = true
 
         fields_regex = options[:fields_regex]
