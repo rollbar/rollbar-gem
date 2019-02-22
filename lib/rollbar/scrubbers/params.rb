@@ -21,6 +21,8 @@ module Rollbar
         params = options[:params]
         return {} unless params
 
+        @scrubbed_object_ids = {}
+
         config = options[:config]
         extra_fields = options[:extra_fields]
         whitelist = options[:whitelist] || []
@@ -56,6 +58,10 @@ module Rollbar
       end
 
       def scrub(params, options)
+        return params if @scrubbed_object_ids[params.object_id]
+
+        @scrubbed_object_ids[params.object_id] = true
+
         fields_regex = options[:fields_regex]
         scrub_all = options[:scrub_all]
         whitelist_regex = options[:whitelist]

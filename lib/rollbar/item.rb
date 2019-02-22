@@ -157,10 +157,21 @@ module Rollbar
 
     def build_extra
       if custom_data_method? && !Rollbar::Util.method_in_stack(:custom_data, __FILE__)
-        Util.deep_merge(custom_data, extra || {})
+        Util.deep_merge(scrub(custom_data), scrub(extra) || {})
       else
-        extra
+        scrub(extra)
       end
+    end
+
+    def scrub(data)
+      return data unless data.is_a? Hash
+
+      options = {
+        :params => data,
+        :config => Rollbar.configuration.scrub_fields,
+        :whitelist => Rollbar.configuration.scrub_whitelist
+      }
+      Rollbar::Scrubbers::Params.call(options)
     end
 
     def custom_data_method?

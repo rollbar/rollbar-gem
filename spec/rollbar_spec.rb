@@ -1132,6 +1132,15 @@ describe Rollbar do
     end
   end
 
+  it 'should scrub the extra field' do
+    Rollbar.configure do |config|
+      config.scrub_fields |= [:scrubbed_field]
+    end
+
+    Rollbar.error("test error", {scrubbed_field: "sensitive_info"})
+    Rollbar.last_report[:body][:message][:extra][:scrubbed_field].should match(/^*+$/)
+  end
+
   context 'payload_destination' do
     before(:each) do
       configure
