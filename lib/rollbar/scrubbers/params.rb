@@ -20,6 +20,7 @@ module Rollbar
       def call(options = {})
         params = options[:params]
         return {} unless params
+
         @scrubbed_object_ids = {}
 
         config = options[:config]
@@ -57,7 +58,7 @@ module Rollbar
       end
 
       def scrub(params, options)
-        return params if @scrubbed_object_ids[params.object_id].present?
+        return params if @scrubbed_object_ids[params.object_id]
 
         @scrubbed_object_ids[params.object_id] = true
 
