@@ -66,7 +66,7 @@ module Rollbar
       self.payload = {
         'access_token' => configuration.access_token,
         'data' => data
-      }
+    }
 
       enforce_valid_utf8
       transform

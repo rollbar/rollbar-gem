@@ -285,6 +285,20 @@ describe HomeController do
     end
   end
 
+  describe "'cause_exception_with_locals'", :type => "request" do
+    before do
+      Rollbar.configure do |config|
+        config.send_extra_frame_data = :app
+      end
+    end
+
+    it "should raise an uncaught exception and report a message" do
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+      expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+    end
+  end
+
   describe "'cause_exception'", :type => "request" do
     it "should raise an uncaught exception and report a message" do
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
@@ -441,10 +455,10 @@ describe HomeController do
 
       expect(session_data['some_value']).to be_eql('this-is-a-cool-value')
     end
-    
+
     it 'scrubs session id by default from the request' do
       expect { get '/use_session_data' }.to raise_exception(NoMethodError)
-      
+
       expect(Rollbar.last_report[:request][:session]['session_id']).to match('\*{3,8}')
     end
   end

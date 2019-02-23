@@ -91,7 +91,8 @@ foo13
             :context => {
               :pre => %w(foo3 foo4 foo5 foo6),
               :post => %w(foo8 foo9 foo10 foo11)
-            }
+            },
+            :locals => {}
           }
 
           expect(subject.to_h).to be_eql(expected_result)
@@ -166,7 +167,8 @@ foo13
               :context => {
                 :pre => %w(foo3 foo4 foo5 foo6),
                 :post => %w(foo8 foo9 foo10 foo11)
-              }
+              },
+              :locals => {}
             }
 
             expect(subject.to_h).to be_eql(expected_result)
@@ -190,7 +192,8 @@ foo13
               :context => {
                 :pre => %w(foo3 foo4 foo5 foo6),
                 :post => %w(foo8 foo9 foo10 foo11)
-              }
+              },
+              :locals => {}
             }
 
             expect(subject.to_h).to be_eql(expected_result)
@@ -233,7 +236,8 @@ foo13
                 :context => {
                   :pre => %w(foo1 foo2),
                   :post => %w(foo4 foo5 foo6 foo7)
-                }
+                },
+                :locals => {}
               }
 
               expect(subject.to_h).to be_eql(expected_result)
@@ -254,7 +258,8 @@ foo13
                 :context => {
                   :pre => %w(foo7 foo8 foo9 foo10),
                   :post => %w(foo12 foo13)
-                }
+                },
+                :locals => {}
               }
 
               expect(subject.to_h).to be_eql(expected_result)

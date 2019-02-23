@@ -8,6 +8,7 @@ require 'rollbar/delay/girl_friday'
 require 'rollbar/delay/thread'
 require 'rollbar/logger_proxy'
 require 'rollbar/item'
+require 'rollbar/notifier/trace_with_bindings'
 require 'ostruct'
 
 module Rollbar
@@ -298,6 +299,26 @@ module Rollbar
 
     def logger
       @logger ||= LoggerProxy.new(configuration.logger)
+    end
+
+    def trace_with_bindings
+      @trace_with_bindings ||= TraceWithBindings.new
+    end
+
+    def exception_bindings
+      trace_with_bindings.exception_frames
+    end
+
+    def current_bindings
+      trace_with_bindings.frames
+    end
+
+    def enable_locals
+      trace_with_bindings.enable if configuration.send_extra_frame_data
+    end
+
+    def disable_locals
+      trace_with_bindings.disable if configuration.send_extra_frame_data
     end
 
     private
