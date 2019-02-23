@@ -12,7 +12,7 @@ module Rollbar
           puts "Location: #{filename}:#{lineno}"
           if (frame = frame_for_location(filename, lineno))
             puts "Frame: #{frame[:path]}:#{frame[:lineno]}"
-            locals_for(frame[:binding]).tap {|locals| puts locals.inspect }
+            locals_for(frame[:binding]).tap { |locals| puts locals.inspect }
           else
             {}
           end
@@ -22,6 +22,7 @@ module Rollbar
           while (frame = exception_frames.pop)
             return nil unless frame
             return frame if matching_frame?(frame, filename, lineno)
+
             puts "Skipped Frame: #{frame[:path]}:#{frame[:lineno]}"
           end
           nil

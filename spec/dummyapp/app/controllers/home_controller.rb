@@ -38,7 +38,7 @@ class HomeController < ApplicationController
     end
   end
 
-  def build_hash_with_locals(foo, extra)
+  def build_hash_with_locals(foo, _index)
     foo.tap do |obj|
       bar = 'bar'
       hash = { :foo => obj, :bar => bar }
