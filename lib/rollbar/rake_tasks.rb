@@ -139,14 +139,16 @@ end
 
 class RollbarTestingException < RuntimeError; end
 
-class RollbarTestController < ActionController::Base # :nodoc:
-  include RollbarTest
-
-  def verify
-    test_rollbar
-  end
-
-  def logger
-    nil
+if defined?(Rails)
+  class RollbarTestController < ActionController::Base # :nodoc:
+    include RollbarTest
+  
+    def verify
+      test_rollbar
+    end
+  
+    def logger
+      nil
+    end
   end
 end
