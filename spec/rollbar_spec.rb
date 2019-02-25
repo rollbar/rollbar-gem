@@ -52,6 +52,19 @@ describe Rollbar do
     end
   end
 
+  context 'when rollbar is unconfigured' do
+    before do
+      reset_configuration
+    end
+
+    it 'should not send events, and should be disabled' do
+      expect(Rollbar.configuration.access_token).to be_eql(nil)
+      expect(Rollbar.notifier).to receive(:log).and_call_original
+      expect(Rollbar.notifier).to_not receive(:report)
+      expect(Rollbar.error('error message')).to be_eql('disabled')
+    end
+  end
+
   shared_examples 'stores the root notifier' do
 
   end
@@ -1346,6 +1359,7 @@ describe Rollbar do
       context 'with async failover handlers' do
         before do
           Rollbar.reconfigure do |config|
+            config.access_token = test_access_token
             config.use_async = true
             config.async_handler = async_handler
             config.failover_handlers = handlers
