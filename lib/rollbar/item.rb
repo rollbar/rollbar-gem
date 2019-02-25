@@ -12,6 +12,7 @@ require 'rollbar/util'
 require 'rollbar/encoding'
 require 'rollbar/truncation'
 require 'rollbar/json'
+require 'rollbar/scrubbers/params'
 
 module Rollbar
   # This class represents the payload to be sent to the API.
