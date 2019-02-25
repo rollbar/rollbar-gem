@@ -10,6 +10,8 @@ require 'active_support/json/encoding'
 require 'rollbar/item'
 require 'ostruct'
 
+require 'spec_helper'
+
 begin
   require 'rollbar/delay/sidekiq'
   require 'rollbar/delay/sucker_punch'
@@ -26,8 +28,6 @@ begin
   require 'rollbar/delay/shoryuken'
 rescue LoadError
 end
-
-require 'spec_helper'
 
 describe Rollbar do
   let(:notifier) { Rollbar.notifier }
