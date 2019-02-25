@@ -8,6 +8,7 @@ module Rollbar
     attr_accessor :async_handler
     attr_accessor :branch
     attr_reader :before_process
+    attr_accessor :capture_uncaught
     attr_accessor :code_version
     attr_accessor :custom_data_method
     attr_accessor :delayed_job_enabled
@@ -72,6 +73,7 @@ module Rollbar
     def initialize
       @async_handler = nil
       @before_process = []
+      @capture_uncaught = nil
       @code_version = nil
       @custom_data_method = nil
       @default_logger = lambda { ::Logger.new(STDERR) }

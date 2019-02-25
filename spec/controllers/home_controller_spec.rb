@@ -292,6 +292,18 @@ describe HomeController do
       expect { get '/cause_exception' }.to raise_exception(NameError)
     end
 
+    context 'with capture_uncaught == false' do
+      it 'should not report the exception' do
+        Rollbar.configure do |config|
+          config.capture_uncaught = false
+        end
+
+        expect(Rollbar).to_not receive(:log)
+
+        expect { get '/cause_exception' }.to raise_exception(NameError)
+      end
+    end
+
     context 'show_exceptions' do
       before(:each) do
         if Dummy::Application.respond_to? :env_config
@@ -441,10 +453,10 @@ describe HomeController do
 
       expect(session_data['some_value']).to be_eql('this-is-a-cool-value')
     end
-    
+
     it 'scrubs session id by default from the request' do
       expect { get '/use_session_data' }.to raise_exception(NoMethodError)
-      
+
       expect(Rollbar.last_report[:request][:session]['session_id']).to match('\*{3,8}')
     end
   end

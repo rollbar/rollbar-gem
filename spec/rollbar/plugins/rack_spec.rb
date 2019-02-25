@@ -31,6 +31,20 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
     expect { request.get('/will_crash') }.to raise_error(exception)
   end
 
+  context 'with capture_uncaught == false' do
+    before do
+      Rollbar.configure do |config|
+        config.capture_uncaught = false
+      end
+    end
+
+    it 'should not report the exception' do
+      expect(Rollbar).to_not receive(:log)
+
+      expect { request.get('/will_crash') }.to raise_error(exception)
+    end
+  end
+
   context 'with GET parameters' do
     let(:params) do
       { 'key' => 'value' }

@@ -62,6 +62,20 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
             get '/foo'
           end.to raise_error(SinatraDummy::DummyError)
         end
+
+        context 'with capture_uncaught == false' do
+          before do
+            Rollbar.configure do |config|
+              config.capture_uncaught = false
+            end
+          end
+
+          it 'should not report the exception' do
+            expect(Rollbar).to_not receive(:log)
+
+            expect { get '/foo' }.to raise_error(SinatraDummy::DummyError)
+          end
+        end
       end
 
       context 'with raise_errors? == false' do
