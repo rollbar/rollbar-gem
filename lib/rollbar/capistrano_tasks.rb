@@ -123,6 +123,10 @@ module Rollbar
       end
 
       def info_request_response(logger, result)
+        # TODO: Is this logger output wanted or expected?
+        # Should there be a switch to disable?
+        return
+
         logger.info result[:request_info]
         logger.info result[:response_info] if result[:response_info]
       end
