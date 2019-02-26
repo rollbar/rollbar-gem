@@ -15,7 +15,7 @@ module Rollbar
           capistrano.set(:rollbar_deploy_id, 123) if dry_run
 
           skip_in_dry_run(logger, dry_run) do
-            if (deploy_id = result && result[:data] && result[:data][:deploy_id])
+            if (deploy_id = result[:data] && result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
               logger.error 'Unable to report deploy to Rollbar'
