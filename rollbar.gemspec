@@ -2,8 +2,6 @@
 require File.expand_path('../lib/rollbar/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
-
   gem.authors       = ['Rollbar, Inc.']
   gem.email         = ['support@rollbar.com']
   gem.description   = %q{Easy and powerful exception tracking for Ruby}
@@ -18,4 +16,6 @@ Gem::Specification.new do |gem|
   gem.version       = Rollbar::VERSION
 
   gem.add_runtime_dependency 'multi_json'
+
+  gem.metadata["source_code_uri"] = "https://github.com/rollbar/rollbar-gem"
 end
