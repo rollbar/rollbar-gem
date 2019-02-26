@@ -10,11 +10,11 @@ module Rollbar
       end
 
       def enable
-        trace_point.enable
+        trace_point.enable if defined?(TracePoint)
       end
 
       def disable
-        trace_point.disable
+        trace_point.disable if defined?(TracePoint)
       end
 
       def exception_signature(trace)
@@ -27,6 +27,8 @@ module Rollbar
       end
 
       def trace_point
+        return unless defined?(TracePoint)
+
         @trace_point ||= TracePoint.new(:call, :return, :b_call, :b_return, :c_call, :c_return, :raise) do |tp|
           case tp.event
           when :call, :b_call, :c_call, :class
