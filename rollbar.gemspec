@@ -19,11 +19,11 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'multi_json'
 
-  if s.respond_to?(:metadata)
-    s.metadata['changelog_uri'] = 'https://github.com/rollbar/rollbar-gem/releases'
-    s.metadata['source_code_uri'] = 'https://github.com/rollbar/rollbar-gem'
-    s.metadata['bug_tracker_uri'] = 'https://github.com/rollbar/rollbar-gem/issues'
-    s.metadata['homepage_uri'] = 'https://rollbar.com/'
-    s.metadata['documentation_uri'] = 'https://docs.rollbar.com/docs/ruby'
+  if gem.respond_to?(:metadata)
+    gem.metadata['changelog_uri'] = 'https://github.com/rollbar/rollbar-gem/releases'
+    gem.metadata['source_code_uri'] = 'https://github.com/rollbar/rollbar-gem'
+    gem.metadata['bug_tracker_uri'] = 'https://github.com/rollbar/rollbar-gem/issues'
+    gem.metadata['homepage_uri'] = 'https://rollbar.com/'
+    gem.metadata['documentation_uri'] = 'https://docs.rollbar.com/docs/ruby'
   end
 end
