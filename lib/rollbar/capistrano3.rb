@@ -10,21 +10,21 @@ namespace :rollbar do
   desc 'Send deployment started notification to Rollbar.'
   task :deploy_started do
     on primary fetch(:rollbar_role) do
-      ::Rollbar::CapistranoTasks.deploy_started(self, self, dry_run?)
+      ::Rollbar::CapistranoTasks.deploy_started(self, self, false)
     end
   end
 
   desc 'Send deployment succeeded notification to Rollbar.'
   task :deploy_succeeded do
     on primary fetch(:rollbar_role) do
-      ::Rollbar::CapistranoTasks.deploy_succeeded(self, self, dry_run?)
+      ::Rollbar::CapistranoTasks.deploy_succeeded(self, self, false)
     end
   end
 
   desc 'Send deployment failed notification to Rollbar.'
   task :deploy_failed do
     on primary fetch(:rollbar_role) do
-      ::Rollbar::CapistranoTasks.deploy_failed(self, self, dry_run?)
+      ::Rollbar::CapistranoTasks.deploy_failed(self, self, false)
     end
   end
 
