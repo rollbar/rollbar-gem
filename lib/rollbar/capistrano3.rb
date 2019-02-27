@@ -7,24 +7,27 @@ require 'rollbar/deploy'
 require 'rollbar/capistrano_tasks'
 
 namespace :rollbar do
+  # dry_run? wasn't introduced till Capistrano 3.5.0; use the old fetch(:sshkit_backed)
+  set :dry_run, (proc { ::Capistrano::Configuration.env.fetch(:sshkit_backend) == ::SSHKit::Backend::Printer })
+
   desc 'Send deployment started notification to Rollbar.'
   task :deploy_started do
     on primary fetch(:rollbar_role) do
-      ::Rollbar::CapistranoTasks.deploy_started(self, self, false)
+      ::Rollbar::CapistranoTasks.deploy_started(self, self, fetch(:dry_run))
     end
   end
 
   desc 'Send deployment succeeded notification to Rollbar.'
   task :deploy_succeeded do
     on primary fetch(:rollbar_role) do
-      ::Rollbar::CapistranoTasks.deploy_succeeded(self, self, false)
+      ::Rollbar::CapistranoTasks.deploy_succeeded(self, self, fetch(:dry_run))
     end
   end
 
   desc 'Send deployment failed notification to Rollbar.'
   task :deploy_failed do
     on primary fetch(:rollbar_role) do
-      ::Rollbar::CapistranoTasks.deploy_failed(self, self, false)
+      ::Rollbar::CapistranoTasks.deploy_failed(self, self, fetch(:dry_run))
     end
   end
 
