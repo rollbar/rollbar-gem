@@ -24,11 +24,6 @@ class RollbarAPI
   end
 
   def bad_request(json)
-    # We don't have for now any test doing bad requests
-    # so raise here in order to detect that scenario
-    raise
-
-
     [400, response_headers, [bad_request_body]]
   end
 

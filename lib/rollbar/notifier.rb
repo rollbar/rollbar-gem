@@ -126,7 +126,7 @@ module Rollbar
     #   Rollbar.log(e, 'This is a description of the exception')
     #
     def log(level, *args)
-      return 'disabled' unless configuration.enabled
+      return 'disabled' unless enabled?
 
       message, exception, extra, context = extract_arguments(args)
       use_exception_level_filters = use_exception_level_filters?(extra)
@@ -183,6 +183,11 @@ module Rollbar
     # See log() above
     def critical(*args)
       log('critical', *args)
+    end
+
+    def enabled?
+      # Require access_token so we don't try to send events when unconfigured.
+      configuration.enabled && configuration.access_token && !configuration.access_token.empty?
     end
 
     def process_item(item)
