@@ -18,4 +18,12 @@ Gem::Specification.new do |gem|
   gem.version       = Rollbar::VERSION
 
   gem.add_runtime_dependency 'multi_json'
+
+  if gem.respond_to?(:metadata)
+    gem.metadata['changelog_uri'] = 'https://github.com/rollbar/rollbar-gem/releases'
+    gem.metadata['source_code_uri'] = 'https://github.com/rollbar/rollbar-gem'
+    gem.metadata['bug_tracker_uri'] = 'https://github.com/rollbar/rollbar-gem/issues'
+    gem.metadata['homepage_uri'] = 'https://rollbar.com/'
+    gem.metadata['documentation_uri'] = 'https://docs.rollbar.com/docs/ruby'
+  end
 end
