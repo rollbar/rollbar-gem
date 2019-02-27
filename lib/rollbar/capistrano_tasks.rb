@@ -10,7 +10,7 @@ module Rollbar
         deploy_task(logger, :desc => 'Notifying Rollbar of deployment start') do
           result = report_deploy_started(capistrano, dry_run)
 
-          info_request_response(logger, result)
+          debug_request_response(logger, result)
 
           capistrano.set(:rollbar_deploy_id, 123) if dry_run
 
@@ -49,7 +49,7 @@ module Rollbar
           depend_on_deploy_id(capistrano, logger) do
             result = yield
 
-            info_request_response(logger, result)
+            debug_request_response(logger, result)
 
             skip_in_dry_run(logger, dry_run) do
               if result[:response].is_a?(Net::HTTPSuccess)
@@ -122,13 +122,10 @@ module Rollbar
         end
       end
 
-      def info_request_response(logger, result)
-        # TODO: Is this logger output wanted or expected?
-        # Should there be a switch to disable?
-        return
-
-        logger.info result[:request_info]
-        logger.info result[:response_info] if result[:response_info]
+      def debug_request_response(logger, result)
+        # NOTE: in Capistrano debug messages go to log/capistrano.log but not to stdout even if log_level == :debug
+        logger.debug result[:request_info]
+        logger.debug result[:response_info] if result[:response_info]
       end
     end
   end
