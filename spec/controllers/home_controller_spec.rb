@@ -285,17 +285,48 @@ describe HomeController do
     end
   end
 
-  describe "'cause_exception_with_locals'", :type => "request" do
-    before do
-      Rollbar.configure do |config|
-        config.send_extra_frame_data = :app
+  describe 'configuration.locals', :type => 'request' do
+    context 'when locals is enabled' do
+      before do
+        Rollbar.configure do |config|
+          config.send_extra_frame_data = :app
+          config.locals = { :enabled => true }
+        end
+      end
+
+      let(:locals) do
+        [
+          {
+            :obj => 'Post',
+            :bar => "\"bar\"", # rubocop:disable Style/StringLiterals
+            :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
+            :foo => 'Post',
+            :_index => '0'
+          }
+        ]
+      end
+
+      it 'should include locals in extra data' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+        expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+        expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql(locals[0])
       end
     end
 
-    it "should raise an uncaught exception and report a message" do
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+    context 'when locals is not enabled' do
+      before do
+        Rollbar.configure do |config|
+          config.send_extra_frame_data = :app
+        end
+      end
 
-      expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+      it 'should not include locals in extra data' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+        expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+        expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql({})
+      end
     end
   end
 

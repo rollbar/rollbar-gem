@@ -26,6 +26,7 @@ module Rollbar
     attr_accessor :framework
     attr_accessor :ignored_person_ids
     attr_accessor :host
+    attr_accessor :locals
     attr_writer :logger
     attr_accessor :payload_options
     attr_accessor :person_method
@@ -105,6 +106,7 @@ module Rollbar
       @net_retries = 3
       @js_enabled = false
       @js_options = {}
+      @locals = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
                        :api_key, :access_token, :session_id]

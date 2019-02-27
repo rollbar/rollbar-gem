@@ -313,12 +313,16 @@ module Rollbar
       trace_with_bindings.frames
     end
 
+    def enable_locals?
+      configuration.locals[:enabled] && [:app, :all].include?(configuration.send_extra_frame_data)
+    end
+
     def enable_locals
-      trace_with_bindings.enable if configuration.send_extra_frame_data
+      trace_with_bindings.enable if enable_locals?
     end
 
     def disable_locals
-      trace_with_bindings.disable if configuration.send_extra_frame_data
+      trace_with_bindings.disable if enable_locals?
     end
 
     private
