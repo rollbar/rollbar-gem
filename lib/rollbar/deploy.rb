@@ -10,9 +10,9 @@ module Rollbar
 
       opts[:status] ||= :started
 
-      uri = URI.parse(::Rollbar::Deploy::ENDPOINT)
+      uri = ::URI.parse(::Rollbar::Deploy::ENDPOINT)
 
-      request = Net::HTTP::Post.new(uri.request_uri)
+      request = ::Net::HTTP::Post.new(uri.request_uri)
       request.body = ::JSON.dump({
         :access_token => access_token,
         :environment => environment,
@@ -25,13 +25,13 @@ module Rollbar
     def self.update(opts = {}, deploy_id:, access_token:, status:)
       return {} unless access_token && !access_token.empty?
 
-      uri = URI.parse(
+      uri = ::URI.parse(
         ::Rollbar::Deploy::ENDPOINT +
         deploy_id.to_s +
         '?access_token=' + access_token
       )
 
-      request = Net::HTTP::Patch.new(uri.request_uri)
+      request = ::Net::HTTP::Patch.new(uri.request_uri)
       request.body = ::JSON.dump(:status => status.to_s, :comment => opts[:comment])
 
       send_request(opts, :uri => uri, :request => request)
@@ -41,7 +41,7 @@ module Rollbar
       private
 
       def send_request(opts = {}, uri:, request:)
-        Net::HTTP.start(uri.host, uri.port, opts[:proxy], :use_ssl => true) do |http|
+        ::Net::HTTP.start(uri.host, uri.port, opts[:proxy], :use_ssl => true) do |http|
           build_result(
             :uri => uri,
             :request => request,
@@ -58,9 +58,13 @@ module Rollbar
         }
 
         unless result[:response].nil?
-          result.merge!(JSON.parse(result[:response].body, :symbolize_names => true))
+          result.merge!(::JSON.parse(result[:response].body, :symbolize_names => true))
           result[:response_info] = build_response_info(result[:response])
         end
+
+        result[:success] = result[:response].is_a?(::Net::HTTPSuccess) &&
+                            result[:response].code === "200" &&
+                            (result.has_key?(:err) ? result[:err] === 0 : true)
 
         result
       end
