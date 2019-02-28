@@ -80,6 +80,7 @@ RSpec.configure do |config|
     Rollbar.clear_notifier!
 
     stub_request(:any, /api.rollbar.com/).to_rack(RollbarAPI.new) if defined?(WebMock)
+    stub_request(:any, /api.rollbar.com\/api\/[0-9]\/deploy\/$/).to_rack(DeployAPI::Report.new) if defined?(WebMock)
   end
 
   config.after do
