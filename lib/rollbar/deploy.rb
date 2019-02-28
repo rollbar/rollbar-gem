@@ -1,5 +1,3 @@
-require 'capistrano'
-
 module Rollbar
   # Deploy Tracking API wrapper module
   module Deploy
