@@ -5,12 +5,12 @@ class RollbarAPI
     request = Rack::Request.new(env)
     json = JSON.parse(request.body.read)
 
-    return bad_request(json) unless access_token?(json)
+    return bad_request(json) unless invalid_data?(json)
 
     success(json)
   end
 
-  private
+  protected
 
   def response_headers
     {
@@ -18,8 +18,7 @@ class RollbarAPI
     }
   end
 
-  def access_token?(json)
-
+  def invalid_data?(json)
     !!json['access_token']
   end
 
