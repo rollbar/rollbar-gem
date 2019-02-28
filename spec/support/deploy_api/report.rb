@@ -2,7 +2,7 @@ require 'rack/request'
 
 module DeployAPI
   class Report < ::RollbarAPI
-    private
+    protected
     
     def invalid_data?(json)
       !!json['environment'] && !!json['revision'] && super(json)
