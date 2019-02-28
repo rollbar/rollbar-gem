@@ -15,10 +15,10 @@ module Rollbar
           capistrano.set(:rollbar_deploy_id, 123) if dry_run
 
           skip_in_dry_run(logger, dry_run) do
-            if (deploy_id = result[:data] && result[:data][:deploy_id])
+            if result[:success] && (deploy_id = result[:data] && result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
-              logger.error 'Unable to report deploy to Rollbar'
+              logger.error 'Unable to report deploy to Rollbar' + (result[:message] ? ' :' + result[:message] : '')
             end
           end
         end
@@ -52,10 +52,10 @@ module Rollbar
             debug_request_response(logger, result)
 
             skip_in_dry_run(logger, dry_run) do
-              if result[:response].is_a?(Net::HTTPSuccess)
+              if result[:success]
                 logger.info 'Updated deploy status in Rollbar'
               else
-                logger.error 'Unable to update deploy status in Rollbar'
+                logger.error 'Unable to update deploy status in Rollbar' + (result[:message] ? ' :' + result[:message] : '')
               end
             end
           end
