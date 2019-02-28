@@ -9,13 +9,17 @@ module Rollbar
       opts[:status] ||= :started
 
       uri = ::URI.parse(::Rollbar::Deploy::ENDPOINT)
-
-      request = ::Net::HTTP::Post.new(uri.request_uri)
-      request.body = ::JSON.dump({
+      
+      request_data = {
         :access_token => access_token,
         :environment => environment,
         :revision => revision
-      }.merge(opts))
+      }.merge(opts)
+      request_data.delete(:proxy)
+      request_data.delete(:dry_run)
+
+      request = ::Net::HTTP::Post.new(uri.request_uri)
+      request.body = ::JSON.dump(request_data)
 
       send_request(opts, :uri => uri, :request => request)
     end
