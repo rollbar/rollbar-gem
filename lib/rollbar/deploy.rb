@@ -68,7 +68,7 @@ module Rollbar
       end
 
       def build_response_info(response)
-        response.code + '; ' + response.message + '; ' + response.body.delete!("\n")
+        response.code + '; ' + response.message + '; ' + response.body.delete("\n")
       end
     end
   end
