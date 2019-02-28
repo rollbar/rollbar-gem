@@ -47,12 +47,13 @@ module Rollbar
           build_result(
             :uri => uri,
             :request => request,
-            :response => opts[:dry_run] ? nil : http.request(request)
+            :response => opts[:dry_run] ? nil : http.request(request),
+            :dry_run => opts[:dry_run]
           )
         end
       end
 
-      def build_result(uri:, request:, response: nil)
+      def build_result(uri:, request:, response: nil, dry_run: false)
         result = {
           :request_info => uri.inspect + ': ' + request.body,
           :request => request,
@@ -64,9 +65,13 @@ module Rollbar
           result[:response_info] = build_response_info(result[:response])
         end
 
-        result[:success] = result[:response].is_a?(::Net::HTTPSuccess) &&
-                            result[:response].code === "200" &&
-                            (result.has_key?(:err) ? result[:err] === 0 : true)
+        if dry_run
+          result[:success] =  true
+        else
+          result[:success] = result[:response].is_a?(::Net::HTTPSuccess) &&
+                              result[:response].code === "200" &&
+                              (result.has_key?(:err) ? result[:err] === 0 : true)
+        end
 
         result
       end
