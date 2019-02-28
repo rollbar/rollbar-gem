@@ -285,7 +285,9 @@ describe HomeController do
     end
   end
 
-  describe 'configuration.locals', :type => 'request' do
+  describe 'configuration.locals', :type => 'request',
+                                   :if => RUBY_VERSION >= '2.3.0' &&
+                                          !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
     context 'when locals is enabled' do
       before do
         Rollbar.configure do |config|
@@ -302,6 +304,18 @@ describe HomeController do
             :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
             :foo => 'Post',
             :_index => '0'
+          },
+          {
+            :foo => 'Post', :_index => '0'
+          },
+          {
+            :foo => 'Post', :_index => '0'
+          },
+          {
+            :foo => 'Post', :index => '0'
+          },
+          {
+            :foo => 'Post'
           }
         ]
       end
@@ -310,7 +324,16 @@ describe HomeController do
         logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
         expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
-        expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql(locals[0])
+
+        frames = Rollbar.last_report[:body][:trace][:frames]
+
+        expect(frames[-1][:locals]).to be_eql(locals[0])
+        expect(frames[-2][:locals]).to be_eql(locals[1])
+        expect(frames[-3][:locals]).to be_eql(locals[2])
+        expect(frames[-4][:locals]).to be_eql(locals[3])
+        # Frames: -5, -6 are not app frames, and have different contents in
+        # different Ruby versions.
+        expect(frames[-7][:locals]).to be_eql(locals[4])
       end
     end
 
