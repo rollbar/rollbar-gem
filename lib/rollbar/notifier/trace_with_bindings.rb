@@ -4,12 +4,17 @@ module Rollbar
       attr_reader :frames, :exception_frames
 
       def initialize
+        reset
+      end
+
+      def reset
         @frames = []
         @exception_frames = []
         @exception_signature = nil
       end
 
       def enable
+        reset
         trace_point.enable if defined?(TracePoint)
       end
 
