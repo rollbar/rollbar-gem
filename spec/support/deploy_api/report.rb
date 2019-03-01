@@ -5,7 +5,7 @@ module DeployAPI
     protected
     
     def valid_data?(json, request)
-      !!json['environment'] && !!json['revision'] && super(json)
+      !!json['environment'] && !!json['revision'] && super(json, request)
     end
   
     def success_body(json)
