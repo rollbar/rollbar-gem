@@ -122,42 +122,42 @@ describe Rollbar::Item do
       payload['data'][:body][:message][:extra][:a].should == 1
       payload['data'][:body][:message][:extra][:b][2].should == 4
     end
-    
+
     context do
       let(:context) { { :controller => "ExampleController" } }
-    
+
       it 'should have access to the context in custom_data_method' do
         configuration.custom_data_method = lambda do |message, exception, context|
           { :result => "MyApp#" + context[:controller] }
         end
-  
+
         payload['data'][:body][:message][:extra].should_not be_nil
         payload['data'][:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
       end
-      
+
       it 'should not include data passed in :context if there is no custom_data_method configured' do
         configuration.custom_data_method = nil
-  
+
         payload['data'][:body][:message][:extra].should be_nil
       end
-      
+
       it 'should have access to the message in custom_data_method' do
         configuration.custom_data_method = lambda do |message, exception, context|
           { :result => "Transformed in custom_data_method: " + message }
         end
-        
+
         payload['data'][:body][:message][:extra].should_not be_nil
         payload['data'][:body][:message][:extra][:result].should == "Transformed in custom_data_method: " + message
       end
-      
+
       context do
         let(:exception) { Exception.new "Exception to test custom_data_method" }
-        
+
         it 'should have access to the current exception in custom_data_method' do
           configuration.custom_data_method = lambda do |message, exception, context|
             { :result => "Transformed in custom_data_method: " + exception.message }
           end
-          
+
           payload['data'][:body][:trace][:extra].should_not be_nil
           payload['data'][:body][:trace][:extra][:result].should == "Transformed in custom_data_method: " + exception.message
         end
@@ -668,21 +668,36 @@ describe Rollbar::Item do
   end # end #build
 
   describe '#dump' do
-    context 'with Redis instance in payload and ActiveSupport is enabled' do
-      let(:redis) { ::Redis.new }
+    context 'with recursing instance in payload and ActiveSupport is enabled' do
+      class Recurse
+        # ActiveSupport also hijacks #to_json, but relies on #as_json to do its real work.
+        # The implementation is different earlier vs later than 4.0, but both can
+        # be made to fail in the same way with this construct.
+        def as_json(*)
+          { :self => self }
+        end
+      end
+
       let(:payload) do
         {
           :key => {
-            :value => redis
+            :value => Recurse.new
           }
         }
       end
       let(:item) { Rollbar::Item.build_with(payload) }
 
-      it 'dumps to JSON correctly' do
-        json = item.dump
+      it 'fails in ActiveSupport with stack too deep' do
+        begin
+          json = item.dump
+        rescue NoMemoryError, SystemStackError
+          # Item#dump fails with SystemStackError (ActiveSupport > 4.0)
+          # or NoMemoryError (ActiveSupport <= 4.0) which, as system exceptions
+          # not a StandardError, cannot be tested by `expect().to raise_error`
+          error = :SystemError
+        end
 
-        expect(json).to be_kind_of(String)
+        expect(error).to be_eql(:SystemError)
       end
     end
 
