@@ -16,7 +16,7 @@ module Rollbar
             if result[:success] && (deploy_id = result[:data] && result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
-              logger.error 'Unable to report deploy to Rollbar' + (result[:message] ? ' :' + result[:message] : '')
+              logger.error 'Unable to report deploy to Rollbar' + (result[:message] ? ': ' + result[:message] : '')
             end
           end
         end
@@ -53,7 +53,7 @@ module Rollbar
               if result[:success]
                 logger.info 'Updated deploy status in Rollbar'
               else
-                logger.error 'Unable to update deploy status in Rollbar' + (result[:message] ? ' :' + result[:message] : '')
+                logger.error 'Unable to update deploy status in Rollbar' + (result[:message] ? ': ' + result[:message] : '')
               end
             end
           end
