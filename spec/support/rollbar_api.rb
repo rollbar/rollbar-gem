@@ -10,7 +10,7 @@ class RollbarAPI
 
     return unauthorized unless authorized?(json)
 
-    return bad_request(json) unless valid_data?(json)
+    return bad_request(json) unless valid_data?(json, request)
 
     success(json)
   end
@@ -27,7 +27,7 @@ class RollbarAPI
     }
   end
 
-  def valid_data?(json)
+  def valid_data?(json, request)
     !!json['access_token']
   end
 
