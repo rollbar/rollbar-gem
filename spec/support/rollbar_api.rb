@@ -8,16 +8,16 @@ class RollbarAPI
     request = Rack::Request.new(env)
     json = JSON.parse(request.body.read)
 
-    return unauthorized unless authorized?(json)
+    return unauthorized unless authorized?(json, request)
 
     return bad_request(json) unless valid_data?(json, request)
 
-    success(json)
+    success(json, request)
   end
 
   protected
 
-  def authorized?(json)
+  def authorized?(json, request)
     json['access_token'] != UNAUTHORIZED_ACCESS_TOKEN
   end
 
@@ -39,8 +39,8 @@ class RollbarAPI
     [400, response_headers, [bad_request_body]]
   end
 
-  def success(json)
-    [200, response_headers, [success_body(json)]]
+  def success(json, request)
+    [200, response_headers, [success_body(json, request)]]
   end
 
   def unauthorized_body
@@ -51,7 +51,7 @@ class RollbarAPI
     result(1, nil, 'bad request')
   end
 
-  def success_body(json)
+  def success_body(json, request)
     result(0, {
       :id => rand(1_000_000),
       :uuid => json['data']['uuid']
