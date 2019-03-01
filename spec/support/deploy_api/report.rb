@@ -4,7 +4,7 @@ module DeployAPI
   class Report < ::RollbarAPI
     protected
     
-    def invalid_data?(json)
+    def valid_data?(json)
       !!json['environment'] && !!json['revision'] && super(json)
     end
   
