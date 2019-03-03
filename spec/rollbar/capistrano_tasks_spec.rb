@@ -4,7 +4,6 @@ require 'capistrano/all'
 require 'sshkit'
 
 describe ::Rollbar::CapistranoTasks do
-
   let(:capistrano) { ::Capistrano::Configuration.new }
   let(:logger) { instance_double(::SSHKit::Backend::Printer) } # this needs to be different for Capistrano 2.x
 
