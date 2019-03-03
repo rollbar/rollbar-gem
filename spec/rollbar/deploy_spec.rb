@@ -60,7 +60,7 @@ describe ::Rollbar::Deploy do
     # depends on let(:expected_request_info_url)
     it 'builds the request info string' do
       expect(@result[:request_info]).to match(
-        %r{#{Regexp.escape(expected_request_info_url)}.*#{Regexp.escape(::JSON.dump(expected_request_data))}}
+        /#{Regexp.escape(expected_request_info_url)}.*#{Regexp.escape(::JSON.dump(expected_request_data))}/
       )
     end
 
@@ -126,9 +126,9 @@ describe ::Rollbar::Deploy do
           :proxy => proxy,
           :dry_run => dry_run
         },
-        :access_token => access_token,
-        :environment => environment,
-        :revision => revision
+        access_token,
+        environment,
+        revision
       )
     end
 
@@ -178,9 +178,9 @@ describe ::Rollbar::Deploy do
           :proxy => proxy,
           :dry_run => dry_run
         },
-        :access_token => access_token,
-        :deploy_id => deploy_id,
-        :status => status
+        access_token,
+        deploy_id,
+        status
       )
     end
 

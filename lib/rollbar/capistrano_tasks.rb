@@ -74,9 +74,9 @@ module Rollbar
             :proxy => :ENV,
             :dry_run => dry_run
           },
-          :access_token => capistrano.fetch(:rollbar_token),
-          :environment => capistrano.fetch(:rollbar_env),
-          :revision => capistrano.fetch(:rollbar_revision)
+          capistrano.fetch(:rollbar_token),
+          capistrano.fetch(:rollbar_env),
+          capistrano.fetch(:rollbar_revision)
         )
       end
 
@@ -86,9 +86,9 @@ module Rollbar
             :proxy => :ENV,
             :dry_run => dry_run
           },
-          :access_token => capistrano.fetch(:rollbar_token),
-          :deploy_id => capistrano.fetch(:rollbar_deploy_id),
-          :status => :succeeded
+          capistrano.fetch(:rollbar_token),
+          capistrano.fetch(:rollbar_deploy_id),
+          :succeeded
         )
       end
 
@@ -98,9 +98,9 @@ module Rollbar
             :proxy => :ENV,
             :dry_run => dry_run
           },
-          :access_token => capistrano.fetch(:rollbar_token),
-          :deploy_id => capistrano.fetch(:rollbar_deploy_id),
-          :status => :failed
+          capistrano.fetch(:rollbar_token),
+          capistrano.fetch(:rollbar_deploy_id),
+          :failed
         )
       end
 

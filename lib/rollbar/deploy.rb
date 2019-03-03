@@ -3,7 +3,7 @@ module Rollbar
   module Deploy
     ENDPOINT = 'https://api.rollbar.com/api/1/deploy/'.freeze
 
-    def self.report(opts = {}, access_token:, environment:, revision:)
+    def self.report(opts = {}, access_token, environment, revision)
       return {} unless access_token && !access_token.empty?
 
       opts[:status] ||= :started
@@ -21,10 +21,10 @@ module Rollbar
       request = ::Net::HTTP::Post.new(uri.request_uri)
       request.body = ::JSON.dump(request_data)
 
-      send_request(opts, :uri => uri, :request => request)
+      send_request(opts, uri, request)
     end
 
-    def self.update(opts = {}, deploy_id:, access_token:, status:)
+    def self.update(opts = {}, access_token, deploy_id, status)
       return {} unless access_token && !access_token.empty?
 
       uri = ::URI.parse(
@@ -36,32 +36,32 @@ module Rollbar
       request = ::Net::HTTP::Patch.new(uri.request_uri)
       request.body = ::JSON.dump(:status => status.to_s, :comment => opts[:comment])
 
-      send_request(opts, :uri => uri, :request => request)
+      send_request(opts, uri, request)
     end
 
     class << self
       private
 
-      def send_request(opts = {}, uri:, request:)
+      def send_request(opts = {}, uri, request)
         ::Net::HTTP.start(uri.host, uri.port, opts[:proxy], :use_ssl => true) do |http|
           build_result(
-            :uri => uri,
-            :request => request,
-            :response => opts[:dry_run] ? nil : http.request(request),
-            :dry_run => opts[:dry_run]
+            uri,
+            request,
+            opts[:dry_run] ? nil : http.request(request),
+            opts[:dry_run]
           )
         end
       end
 
-      def build_result(uri:, request:, response: nil, dry_run: false)
+      def build_result(uri, request, response = nil, dry_run = false)
         result = {}
         result.merge!(request_result(uri, request))
         result.merge!(response_result(response)) unless response.nil?
-        result[:success] = success?(result, :dry_run => dry_run)
+        result[:success] = success?(result, dry_run)
         result
       end
 
-      def success?(result, dry_run: false)
+      def success?(result, dry_run = false)
         return true if dry_run
 
         result[:response] &&
