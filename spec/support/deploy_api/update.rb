@@ -35,20 +35,24 @@ module DeployAPI
     def success_body(json, request)
       {
         :err => 0,
-        :result => {
-          :username => nil,
-          :comment => nil,
-          :user_id => nil,
-          :start_time => rand(1..1000),
-          :local_username => nil,
-          :environment => 'test',
-          :finish_time => rand(1000..2000),
-          :status => json['status'],
-          :project_id => rand(1..1000),
-          :id => deploy_id(request).to_i,
-          :revision => 'sha1'
-        }
+        :result => success_body_result(json, request)
       }.to_json
+    end
+
+    def success_body_result(json, request)
+      {
+        :username => nil,
+        :comment => nil,
+        :user_id => nil,
+        :start_time => rand(1..1000),
+        :local_username => nil,
+        :environment => 'test',
+        :finish_time => rand(1000..2000),
+        :status => json['status'],
+        :project_id => rand(1..1000),
+        :id => deploy_id(request).to_i,
+        :revision => 'sha1'
+      }
     end
   end
 end
