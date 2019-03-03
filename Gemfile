@@ -46,6 +46,7 @@ elsif RUBY_VERSION.start_with?('2')
 end
 
 gem 'aws-sdk-sqs'
+gem 'capistrano', :require => false
 gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
@@ -56,5 +57,4 @@ gem 'rspec-command'
 gem 'rubocop', :require => false
 gem 'sinatra'
 gem 'webmock', :require => false
-gem 'capistrano', :require => false
 gemspec

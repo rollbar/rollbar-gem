@@ -9,7 +9,7 @@ module Rollbar
       opts[:status] ||= :started
 
       uri = ::URI.parse(::Rollbar::Deploy::ENDPOINT)
-      
+
       request_data = {
         :access_token => access_token,
         :environment => environment,
@@ -54,30 +54,36 @@ module Rollbar
       end
 
       def build_result(uri:, request:, response: nil, dry_run: false)
-        result = {
-          :request_info => uri.inspect + ': ' + request.body,
-          :request => request,
-          :response => response
-        }
-
-        unless result[:response].nil?
-          result.merge!(::JSON.parse(result[:response].body, :symbolize_names => true))
-          result[:response_info] = build_response_info(result[:response])
-        end
-
-        if dry_run
-          result[:success] =  true
-        else
-          result[:success] = result[:response].is_a?(::Net::HTTPSuccess) &&
-                              result[:response].code === "200" &&
-                              (result.has_key?(:err) ? result[:err] === 0 : true)
-        end
-
+        result = {}
+        result.merge!(request_result(uri, request))
+        result.merge!(response_result(response)) unless response.nil?
+        result[:success] = success?(result, :dry_run => dry_run)
         result
       end
 
-      def build_response_info(response)
-        response.code + '; ' + response.message + '; ' + response.body.delete("\n")
+      def success?(result, dry_run: false)
+        return true if dry_run
+
+        result[:response] &&
+          result[:response].is_a?(::Net::HTTPSuccess) &&
+          result[:response].code == '200' &&
+          (result.key?('err') ? result['err'].to_i.zero? : true)
+      end
+
+      def request_result(uri, request)
+        {
+          :request_info => uri.inspect + ': ' + request.body,
+          :request => request
+        }
+      end
+
+      def response_result(response)
+        {
+          :response => response,
+          :response_info => response.code + '; ' +
+            response.message + '; ' +
+            response.body.delete("\n")
+        }.merge(::JSON.parse(response.body, :symbolize_names => true))
       end
     end
   end
