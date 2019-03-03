@@ -114,12 +114,11 @@ describe ::Rollbar::CapistranoTasks do
                   ),
                   rollbar_token,
                   deploy_id,
-                  :succeeded
-            ).and_return(
-              :request_info => 'dummy request content',
-              :response_info => 'dummy response info',
-              :success => true
-            )
+                  :succeeded).and_return(
+                    :request_info => 'dummy request content',
+                    :response_info => 'dummy response info',
+                    :success => true
+                  )
 
           expect(logger).to receive(:debug).with('dummy request content')
           expect(logger).to receive(:debug).with('dummy response info')
@@ -136,10 +135,9 @@ describe ::Rollbar::CapistranoTasks do
                     :proxy => :ENV,
                     :dry_run => dry_run
                   ),
-                       rollbar_token,
-                       deploy_id,
-                       :succeeded
-            )
+                  rollbar_token,
+                  deploy_id,
+                  :succeeded)
             .and_return(
               :request_info => 'dummy request content',
               :response_info => 'dummy response info',
@@ -164,10 +162,9 @@ describe ::Rollbar::CapistranoTasks do
             .with(hash_including(
                     :dry_run => dry_run
                   ),
-                        rollbar_token,
-                       deploy_id,
-                       :succeeded
-                     )
+                  rollbar_token,
+                  deploy_id,
+                  :succeeded)
             .and_return(
               :request_info => 'dummy request content'
             )
@@ -210,10 +207,9 @@ describe ::Rollbar::CapistranoTasks do
                     :proxy => :ENV,
                     :dry_run => dry_run
                   ),
-                       rollbar_token,
-                       deploy_id,
-                       :failed
-                     )
+                  rollbar_token,
+                  deploy_id,
+                  :failed)
             .and_return(
               :request_info => 'dummy request content',
               :response_info => 'dummy response info',
@@ -235,10 +231,9 @@ describe ::Rollbar::CapistranoTasks do
                     :proxy => :ENV,
                     :dry_run => dry_run
                   ),
-                       rollbar_token,
-                       deploy_id,
-                       :failed
-                     )
+                  rollbar_token,
+                  deploy_id,
+                  :failed)
             .and_return(
               :request_info => 'dummy request content',
               :response_info => 'dummy response info',
@@ -268,9 +263,8 @@ describe ::Rollbar::CapistranoTasks do
                     :dry_run => dry_run
                   ),
                   rollbar_token,
-                       deploy_id,
-                       :failed
-                     )
+                  deploy_id,
+                  :failed)
             .and_return(
               :request_info => 'dummy request content'
             )
