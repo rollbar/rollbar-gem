@@ -46,4 +46,6 @@ if Gem::Version.new(ruby_version) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'
 end
 
+gem 'capistrano', :require => false
+
 gemspec :path => '../'

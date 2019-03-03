@@ -56,4 +56,5 @@ gem 'rspec-command'
 gem 'rubocop', :require => false
 gem 'sinatra'
 gem 'webmock', :require => false
+gem 'capistrano', :require => false
 gemspec

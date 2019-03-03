@@ -65,4 +65,6 @@ end
 gem 'resque', '< 2.0.0'
 gem 'aws-sdk-sqs'
 
+gem 'capistrano', :require => false
+
 gemspec :path => '../'

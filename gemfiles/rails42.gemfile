@@ -67,4 +67,6 @@ end
 
 gem 'aws-sdk-sqs'
 
+gem 'capistrano', :require => false
+
 gemspec :path => '../'
