@@ -3,7 +3,7 @@ module Rollbar
   module Deploy
     ENDPOINT = 'https://api.rollbar.com/api/1/deploy/'.freeze
 
-    def self.report(opts = {}, access_token:, environment:, revision:)
+    def self.report(opts = {}, access_token, environment, revision)
       return {} unless access_token && !access_token.empty?
 
       opts[:status] ||= :started
