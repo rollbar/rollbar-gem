@@ -3,7 +3,7 @@ module Rollbar
   module Deploy
     ENDPOINT = 'https://api.rollbar.com/api/1/deploy/'.freeze
 
-    def self.report(opts = {}, access_token, environment, revision)
+    def self.report(opts, access_token, environment, revision)
       return {} unless access_token && !access_token.empty?
 
       opts[:status] ||= :started
@@ -24,7 +24,7 @@ module Rollbar
       send_request(opts, uri, request)
     end
 
-    def self.update(opts = {}, access_token, deploy_id, status)
+    def self.update(opts, access_token, deploy_id, status)
       return {} unless access_token && !access_token.empty?
 
       uri = ::URI.parse(
@@ -42,7 +42,7 @@ module Rollbar
     class << self
       private
 
-      def send_request(opts = {}, uri, request)
+      def send_request(opts, uri, request)
         ::Net::HTTP.start(uri.host, uri.port, opts[:proxy], :use_ssl => true) do |http|
           build_result(
             uri,
