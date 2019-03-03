@@ -1,8 +1,7 @@
 require 'rack/request'
 
 class RollbarAPI
-
-  UNAUTHORIZED_ACCESS_TOKEN = 'unauthorized'
+  UNAUTHORIZED_ACCESS_TOKEN = 'unauthorized'.freeze
 
   def call(env)
     request = Rack::Request.new(env)
@@ -17,7 +16,7 @@ class RollbarAPI
 
   protected
 
-  def authorized?(json, request)
+  def authorized?(json, _request)
     json['access_token'] != UNAUTHORIZED_ACCESS_TOKEN
   end
 
@@ -27,15 +26,15 @@ class RollbarAPI
     }
   end
 
-  def valid_data?(json, request)
+  def valid_data?(json, _request)
     !!json['access_token']
   end
 
-  def unauthorized()
+  def unauthorized
     [401, response_headers, [unauthorized_body]]
   end
 
-  def bad_request(json)
+  def bad_request(_json)
     [400, response_headers, [bad_request_body]]
   end
 
@@ -51,11 +50,11 @@ class RollbarAPI
     result(1, nil, 'bad request')
   end
 
-  def success_body(json, request)
+  def success_body(json, _request)
     result(0, {
-      :id => rand(1_000_000),
-      :uuid => json['data']['uuid']
-    }, nil)
+             :id => rand(1_000_000),
+             :uuid => json['data']['uuid']
+           }, nil)
   end
 
   def result(err, body, message)
