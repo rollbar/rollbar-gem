@@ -36,9 +36,11 @@ platforms :rbx do
 end
 
 if RUBY_VERSION.start_with?('1.9')
+  gem 'capistrano', '<= 3.4.1', :require => false
   gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
   gem 'sucker_punch', '~> 1.0'
 elsif RUBY_VERSION.start_with?('2')
+  gem 'capistrano', :require => false
   gem 'codacy-coverage'
   gem 'shoryuken' # rubocop:disable Bundler/DuplicatedGem
   gem 'simplecov'
@@ -46,7 +48,6 @@ elsif RUBY_VERSION.start_with?('2')
 end
 
 gem 'aws-sdk-sqs'
-gem 'capistrano', '<= 3.4.1', :require => false
 gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
