@@ -70,6 +70,4 @@ end
 
 gem 'aws-sdk-sqs'
 
-gem 'capistrano', '<= 3.4.1', :require => false
-
 gemspec :path => '../'
