@@ -689,8 +689,8 @@ describe Rollbar::Item do
 
       it 'fails in ActiveSupport with stack too deep' do
         begin
-          json = item.dump
-        rescue NoMemoryError, SystemStackError
+          _json = item.dump
+        rescue NoMemoryError, SystemStackError, Java::JavaLang::StackOverflowError
           # Item#dump fails with SystemStackError (ActiveSupport > 4.0)
           # or NoMemoryError (ActiveSupport <= 4.0) which, as system exceptions
           # not a StandardError, cannot be tested by `expect().to raise_error`
