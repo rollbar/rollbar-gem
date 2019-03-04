@@ -701,6 +701,40 @@ describe Rollbar::Item do
       end
     end
 
+    context 'with Redis::Connection payload and ActiveSupport is enabled' do
+      # This tests an issue in ActiveSupport 4.1.x - 5.1.x, where the JSON serializer
+      # calls `to_a` on a TCPSocket object and hangs because of a bug in BasicSocket.
+      #
+      # See lib/rollbar/plugins/basic_socket.rb for the relevant patch.
+      #
+      # The test has been refactored here to not require a full redis client and
+      # dependency on redis-server. Trying to instantiate just a TCPSocket (or similar)
+      # didn't exercise the failure condition.
+      #
+      let(:redis_connection) do
+        ::Redis::Connection::Ruby.connect(:host => '127.0.0.1', :port => 6370) # try to pick a polite port
+      end
+
+      let(:payload) do
+        {
+          :key => {
+            :value => redis_connection
+          }
+        }
+      end
+      let(:item) { Rollbar::Item.build_with(payload) }
+
+      it 'serializes Redis::Connection without crash or hang' do
+        json = nil
+
+        ::TCPServer.open('127.0.0.1', 6370) do |_serv|
+          json = item.dump
+        end
+
+        expect(json).to be_kind_of(String)
+      end
+    end
+
     context 'with too large payload', :fixture => :payload do
       let(:payload_fixture) { 'payloads/sample.trace.json' }
       let(:item) do
