@@ -22,6 +22,8 @@ module Rollbar
         trace_point.disable if defined?(TracePoint)
       end
 
+      private
+
       def exception_signature(trace)
         # use the exception backtrace to detect reraised exception.
         trace.raised_exception.backtrace.first

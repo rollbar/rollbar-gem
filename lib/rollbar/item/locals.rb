@@ -28,6 +28,8 @@ module Rollbar
           nil
         end
 
+        private
+
         def matching_frame?(frame, filename, lineno)
           frame[:path] == filename && frame[:lineno].to_i <= lineno.to_i
         end
