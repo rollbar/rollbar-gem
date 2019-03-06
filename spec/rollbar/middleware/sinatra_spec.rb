@@ -16,8 +16,30 @@ class SinatraDummy < Sinatra::Base
     'this will not crash'
   end
 
+  get '/cause_exception_with_locals' do
+    cause_exception_with_locals
+  end
+
   post '/crash_post' do
     raise DummyError.new
+  end
+
+  def cause_exception_with_locals
+    foo = false
+
+    (0..2).each do |index|
+      foo = Post
+
+      build_hash_with_locals(foo, index)
+    end
+  end
+
+  def build_hash_with_locals(foo, _index)
+    foo.tap do |obj|
+      bar = 'bar'
+      hash = { :foo => obj, :bar => bar }
+      hash.invalid_method
+    end
   end
 end
 
@@ -191,6 +213,74 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
         end.to raise_error(exception)
 
         expect(Rollbar.last_report[:person]).to be_eql({})
+      end
+    end
+
+    describe 'configuration.locals', :type => 'request',
+                                    :if => RUBY_VERSION >= '2.3.0' &&
+                                            !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
+      context 'when locals is enabled' do
+        before do
+          Rollbar.configure do |config|
+            config.send_extra_frame_data = :app
+            config.locals = { :enabled => true }
+          end
+        end
+
+        let(:locals) do
+          [
+            {
+              :obj => 'Post',
+              :bar => "\"bar\"", # rubocop:disable Style/StringLiterals
+              :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
+              :foo => 'Post',
+              :_index => '0'
+            },
+            {
+              :foo => 'Post', :_index => '0'
+            },
+            {
+              :foo => 'Post', :_index => '0'
+            },
+            {
+              :foo => 'Post', :index => '0'
+            },
+            {
+              :foo => 'Post'
+            }
+          ]
+        end
+
+        it 'should include locals in extra data' do
+          logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+          expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+
+          frames = Rollbar.last_report[:body][:trace][:frames]
+
+          expect(frames[-1][:locals]).to be_eql(locals[0])
+          expect(frames[-2][:locals]).to be_eql(locals[1])
+          expect(frames[-3][:locals]).to be_eql(locals[2])
+          expect(frames[-4][:locals]).to be_eql(locals[3])
+          # Frames: -5, -6 are not app frames, and have different contents in
+          # different Ruby versions.
+          expect(frames[-7][:locals]).to be_eql(locals[4])
+        end
+      end
+
+      context 'when locals is not enabled' do
+        before do
+          Rollbar.configure do |config|
+            config.send_extra_frame_data = :app
+          end
+        end
+
+        it 'should not include locals in extra data' do
+          logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+          expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+          expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql({})
+        end
       end
     end
   end
