@@ -32,7 +32,7 @@ module Rollbar
 
     def load_scoped!(transparent = false)
       if transparent
-        load! unless load?
+        load! if load?
 
         result = yield
 

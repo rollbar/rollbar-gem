@@ -32,6 +32,18 @@ describe Rollbar::Plugin do
       end
     end
 
+    context 'when called as transparent' do
+      it 'loads the plugin and executes the block' do
+        expect(dummy_object).to receive(:upcase).ordered
+        expect(dummy_object).to receive(:reverse!).ordered
+        expect(dummy_object).to receive(:downcase).ordered
+
+        subject.load_scoped!(true) do
+          dummy_object.reverse!
+        end
+      end
+    end
+
     context 'with false dependencies' do
       let(:dummy_object) { '' }
       let(:plugin_proc) do
