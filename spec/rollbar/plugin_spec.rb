@@ -2,12 +2,111 @@ require 'spec_helper'
 require 'rollbar/plugin'
 
 describe Rollbar::Plugin do
+  subject { described_class.new(:plugin) }
+
+  before { subject.instance_eval(&plugin_proc) }
+
+  describe '#load_scoped!' do
+    let(:dummy_object) { 'foo' }
+    let(:plugin_proc) do
+      dummy = dummy_object
+
+      proc do
+        execute do
+          dummy.upcase
+        end
+
+        revert do
+          dummy.downcase
+        end
+      end
+    end
+
+    it 'executes provided block in the scope of the plugin' do
+      expect(dummy_object).to receive(:upcase).ordered
+      expect(dummy_object).to receive(:reverse!).ordered
+      expect(dummy_object).to receive(:downcase).ordered
+
+      subject.load_scoped! do
+        dummy_object.reverse!
+      end
+    end
+
+    context 'with false dependencies' do
+      let(:dummy_object) { '' }
+      let(:plugin_proc) do
+        dummy = dummy_object
+
+        proc do
+          dependency do
+            true
+          end
+
+          dependency do
+            1 == 2.0
+          end
+
+          execute do
+            dummy.upcase
+          end
+
+          execute do
+            dummy.downcase
+          end
+        end
+      end
+
+      it 'doesn\'t execute the provided block' do
+        expect(dummy_object).to_not receive(:upcase)
+        expect(dummy_object).to_not receive(:reverse!)
+        expect(dummy_object).to_not receive(:downcase)
+
+        subject.load_scoped! do
+          dummy_object.reverse!
+        end
+      end
+
+      context 'when called as transparent' do
+        it "executes provided block and doesn't load the plugin" do
+          expect(dummy_object).to_not receive(:upcase)
+          expect(dummy_object).to receive(:reverse!)
+          expect(dummy_object).to_not receive(:downcase)
+
+          subject.load_scoped!(true) do
+            dummy_object.reverse!
+          end
+        end
+      end
+    end
+  end
+
+  describe '#unload!' do
+    context 'with reversal callables' do
+      let(:dummy_object) { '' }
+      let(:plugin_proc) do
+        dummy = dummy_object
+
+        proc do
+          revert do
+            dummy.upcase
+          end
+        end
+      end
+
+      before { subject.load! }
+
+      it 'unloads the plugin' do
+        expect(dummy_object).to receive(:upcase)
+
+        subject.unload!
+
+        expect(subject.loaded).to be_eql(false)
+      end
+    end
+  end
+
   describe '#load!' do
-    subject { described_class.new(:plugin) }
-
-    before { subject.instance_eval(&plugin_proc) }
-
-    context 'with requires not passing' do
+    context 'with requires passing' do
       let(:dummy_object) { '' }
       let(:plugin_proc) do
         dummy = dummy_object
@@ -28,7 +127,7 @@ describe Rollbar::Plugin do
         end
       end
 
-      it 'doesnt finish loading the plugin' do
+      it 'loads the plugin' do
         expect(dummy_object).to receive(:upcase)
         expect(dummy_object).to receive(:downcase)
 
@@ -114,7 +213,7 @@ describe Rollbar::Plugin do
           end
 
           dependency do
-            raise StandardError.new('the-error')
+            raise StandardError, 'the-error'
           end
 
           execute do
@@ -153,7 +252,7 @@ describe Rollbar::Plugin do
           end
 
           execute do
-            raise StandardError.new('the-error')
+            raise StandardError, 'the-error'
           end
 
           execute do

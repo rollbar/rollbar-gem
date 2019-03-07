@@ -64,5 +64,31 @@ describe Rollbar::Plugins do
 
       subject.load!
     end
+
+    context 'with on demand plugins' do
+      before do
+        subject.define(:on_demand_plugin) do
+          load_on_demand
+        end
+      end
+
+      it 'it doesn\'t load on demand plugins by default' do
+        expect(subject.get(:on_demand_plugin)).to_not receive(:load!)
+
+        subject.load!
+      end
+    end
+  end
+
+  describe '#get' do
+    context 'with a defined plugin' do
+      before do
+        subject.define('#get_plugin', &plugin1_proc)
+      end
+
+      it 'finds the plugin' do
+        expect(subject.get('#get_plugin')).to be_kind_of(Rollbar::Plugin)
+      end
+    end
   end
 end
