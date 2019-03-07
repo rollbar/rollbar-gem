@@ -46,6 +46,18 @@ describe Rollbar::JSON do
 
       described_class.dump(payload)
     end
+
+    context 'with basic_socket plugin unloadable' do
+      before do
+        Rollbar.configuration.disable_core_monkey_patch = true
+      end
+
+      it 'still calls MultiJson.dump' do
+        expect(::MultiJson).to receive(:dump).once.with(payload, adapter_options)
+
+        described_class.dump(payload)
+      end
+    end
   end
 
   describe '.load' do
