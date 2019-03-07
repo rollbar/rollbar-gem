@@ -1,4 +1,5 @@
 require 'rollbar/notifier'
+require 'rollbar/scrubbers/params'
 
 module Rollbar
   class Item
@@ -9,10 +10,8 @@ module Rollbar
         end
 
         def locals_for_location(filename, lineno)
-          puts "Location: #{filename}:#{lineno}"
           if (frame = frame_for_location(filename, lineno))
-            puts "Frame: #{frame[:path]}:#{frame[:lineno]}"
-            locals_for(frame[:binding]).tap { |locals| puts locals.inspect }
+            scrub(locals_for(frame[:binding]))
           else
             {}
           end
@@ -22,8 +21,6 @@ module Rollbar
           while (frame = exception_frames.pop)
             return nil unless frame
             return frame if matching_frame?(frame, filename, lineno)
-
-            puts "Skipped Frame: #{frame[:path]}:#{frame[:lineno]}"
           end
           nil
         end
@@ -43,7 +40,15 @@ module Rollbar
         end
 
         def prepare_value(value)
-          value.inspect
+          value.to_s
+        end
+
+        def scrub(hash)
+          Rollbar::Scrubbers::Params.call(
+            :params => hash,
+            :config => Rollbar.configuration.scrub_fields,
+            :whitelist => Rollbar.configuration.scrub_whitelist
+          )
         end
       end
     end

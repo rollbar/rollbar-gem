@@ -40,8 +40,8 @@ class HomeController < ApplicationController
 
   def build_hash_with_locals(foo, _index)
     foo.tap do |obj|
-      bar = 'bar'
-      hash = { :foo => obj, :bar => bar }
+      password = '123456'
+      hash = { :foo => obj, :bar => 'bar' }
       hash.invalid_method
     end
   end

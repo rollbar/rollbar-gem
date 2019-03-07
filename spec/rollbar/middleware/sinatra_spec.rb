@@ -216,13 +216,12 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
       end
     end
 
-    describe 'configuration.locals', :type => 'request',
-                                    :if => RUBY_VERSION >= '2.3.0' &&
+    describe 'configuration.locals', :if => RUBY_VERSION >= '2.3.0' &&
                                             !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
       context 'when locals is enabled' do
         before do
           Rollbar.configure do |config|
-            config.send_extra_frame_data = :app
+            config.send_extra_frame_data = :all
             config.locals = { :enabled => true }
           end
         end
@@ -231,7 +230,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           [
             {
               :obj => 'Post',
-              :bar => "\"bar\"", # rubocop:disable Style/StringLiterals
+              :bar => 'bar',
               :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
               :foo => 'Post',
               :_index => '0'
@@ -271,7 +270,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
       context 'when locals is not enabled' do
         before do
           Rollbar.configure do |config|
-            config.send_extra_frame_data = :app
+            config.send_extra_frame_data = :all
           end
         end
 

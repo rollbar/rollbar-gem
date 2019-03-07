@@ -291,8 +291,9 @@ describe HomeController do
     context 'when locals is enabled' do
       before do
         Rollbar.configure do |config|
-          config.send_extra_frame_data = :app
+          config.send_extra_frame_data = :all
           config.locals = { :enabled => true }
+          config.randomize_scrub_length = false
         end
       end
 
@@ -300,7 +301,7 @@ describe HomeController do
         [
           {
             :obj => 'Post',
-            :bar => "\"bar\"", # rubocop:disable Style/StringLiterals
+            :password => '******',
             :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
             :foo => 'Post',
             :_index => '0'
