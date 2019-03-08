@@ -21,6 +21,7 @@ module Rollbar
 
           Rollbar.scoped(scope) do
             begin
+              Rollbar.notifier.enable_locals
               response = @app.call(env)
 
               if (framework_exception = env['action_dispatch.exception'])
@@ -31,6 +32,8 @@ module Rollbar
             rescue Exception => exception
               report_exception_to_rollbar(env, exception)
               raise
+            ensure
+              Rollbar.notifier.disable_locals
             end
           end
         end

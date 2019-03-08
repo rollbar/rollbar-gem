@@ -1,5 +1,6 @@
 # We want to use Gem.path
 require 'rubygems'
+require 'rollbar/item/locals'
 
 module Rollbar
   class Item
@@ -47,7 +48,8 @@ module Rollbar
 
         {
           :code => code_data(file_lines, lineno),
-          :context => context_data(file_lines, lineno)
+          :context => context_data(file_lines, lineno),
+          :locals => locals_data(filename, lineno)
         }
       end
 
@@ -92,6 +94,10 @@ module Rollbar
           :pre => pre_data(file_lines, lineno),
           :post => post_data(file_lines, lineno)
         }
+      end
+
+      def locals_data(filename, lineno)
+        ::Rollbar::Item::Locals.locals_for_location(filename, lineno)
       end
 
       def post_data(file_lines, lineno)

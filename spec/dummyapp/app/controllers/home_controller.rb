@@ -28,6 +28,24 @@ class HomeController < ApplicationController
     foo = bar
   end
 
+  def cause_exception_with_locals
+    foo = false
+
+    (0..2).each do |index|
+      foo = Post
+
+      build_hash_with_locals(foo, index)
+    end
+  end
+
+  def build_hash_with_locals(foo, _index)
+    foo.tap do |obj|
+      password = '123456'
+      hash = { :foo => obj, :bar => 'bar' }
+      hash.invalid_method
+    end
+  end
+
   def test_rollbar_js
     render 'js/test', :layout => 'simple'
   end

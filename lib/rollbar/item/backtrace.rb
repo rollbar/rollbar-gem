@@ -74,10 +74,10 @@ module Rollbar
       end
 
       def map_frames(current_exception)
-        exception_backtrace(current_exception).reverse.map do |frame|
+        exception_backtrace(current_exception).map do |frame|
           Rollbar::Item::Frame.new(self, frame,
                                    :configuration => configuration).to_h
-        end
+        end.reverse
       end
 
       # Returns the backtrace to be sent to our API. There are 3 options:

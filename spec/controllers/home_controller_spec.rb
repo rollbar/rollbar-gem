@@ -285,6 +285,75 @@ describe HomeController do
     end
   end
 
+  describe 'configuration.locals', :type => 'request',
+                                   :if => RUBY_VERSION >= '2.3.0' &&
+                                          !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
+    context 'when locals is enabled' do
+      before do
+        Rollbar.configure do |config|
+          config.send_extra_frame_data = :all
+          config.locals = { :enabled => true }
+          config.randomize_scrub_length = false
+        end
+      end
+
+      let(:locals) do
+        [
+          {
+            :obj => 'Post',
+            :password => '******',
+            :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
+            :foo => 'Post',
+            :_index => '0'
+          },
+          {
+            :foo => 'Post', :_index => '0'
+          },
+          {
+            :foo => 'Post', :_index => '0'
+          },
+          {
+            :foo => 'Post', :index => '0'
+          },
+          {
+            :foo => 'Post'
+          }
+        ]
+      end
+
+      it 'should include locals in extra data' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+        expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+
+        frames = Rollbar.last_report[:body][:trace][:frames]
+
+        expect(frames[-1][:locals]).to be_eql(locals[0])
+        expect(frames[-2][:locals]).to be_eql(locals[1])
+        expect(frames[-3][:locals]).to be_eql(locals[2])
+        expect(frames[-4][:locals]).to be_eql(locals[3])
+        # Frames: -5, -6 are not app frames, and have different contents in
+        # different Ruby versions.
+        expect(frames[-7][:locals]).to be_eql(locals[4])
+      end
+    end
+
+    context 'when locals is not enabled' do
+      before do
+        Rollbar.configure do |config|
+          config.send_extra_frame_data = :app
+        end
+      end
+
+      it 'should not include locals in extra data' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+        expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+        expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql({})
+      end
+    end
+  end
+
   describe "'cause_exception'", :type => "request" do
     it "should raise an uncaught exception and report a message" do
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
