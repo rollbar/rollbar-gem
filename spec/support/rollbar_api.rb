@@ -19,11 +19,10 @@ class RollbarAPI
   end
 
   def access_token?(json)
-
     !!json['access_token']
   end
 
-  def bad_request(json)
+  def bad_request(_json)
     [400, response_headers, [bad_request_body]]
   end
 
@@ -37,9 +36,9 @@ class RollbarAPI
 
   def success_body(json)
     result(0, {
-      :id => rand(1_000_000),
-      :uuid => json['data']['uuid']
-    }, nil)
+             :id => rand(1_000_000),
+             :uuid => json['data']['uuid']
+           }, nil)
   end
 
   def result(err, body, message)

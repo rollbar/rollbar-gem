@@ -2,23 +2,21 @@ class HomeController < ApplicationController
   def index
     @users = User.all
 
-    Rollbar.debug("Test message from controller with no data")
-    Rollbar.debug("Test message from controller with extra data",
-                  :foo => "bar", :num_users => @users.length)
+    Rollbar.debug('Test message from controller with no data')
+    Rollbar.debug('Test message from controller with extra data',
+                  :foo => 'bar', :num_users => @users.length)
   end
 
   def report_exception
-    begin
-      foo = bar
-    rescue => e
-      Rollbar.error(e)
-    end
+    foo = bar
+  rescue StandardError => e
+    Rollbar.error(e)
   end
 
   def deprecated_report_exception
     begin
       foo = bar
-    rescue => e
+    rescue StandardError => e
       Rollbar.error(e)
     end
     render :json => {}

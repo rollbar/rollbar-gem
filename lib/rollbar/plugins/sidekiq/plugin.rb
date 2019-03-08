@@ -2,10 +2,10 @@ require 'rollbar/scrubbers/params'
 
 module Rollbar
   class Sidekiq
-    PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class]
+    PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class].freeze
 
     class ClearScope
-      def call(worker, msg, queue)
+      def call(_worker, _msg, _queue)
         Rollbar.reset_notifier!
 
         yield
@@ -38,15 +38,16 @@ module Rollbar
       Rollbar::Scrubbers::Params.call(options)
     end
 
-    def self.skip_report?(job_hash, e)
+    def self.skip_report?(job_hash, _e)
       return false if job_hash.nil?
+
       # when rollbar middleware catches, sidekiq's retry_job processor hasn't set
       # the retry_count for the current job yet, so adding 1 gives the actual retry count
       actual_retry_count = job_hash.fetch('retry_count', -1) + 1
       job_hash['retry'] && actual_retry_count < ::Rollbar.configuration.sidekiq_threshold
     end
 
-    def call(worker, msg, queue)
+    def call(_worker, msg, _queue)
       Rollbar.reset_notifier!
 
       yield

@@ -19,8 +19,8 @@ describe Rollbar::LoggerProxy do
     end
   end
 
-  %w(info error warn debug).each do |level|
-    describe "#{level}" do
+  %w[info error warn debug].each do |level|
+    describe level.to_s do
       it_should_behave_like 'delegate to logger' do
         let(:level) { level }
       end

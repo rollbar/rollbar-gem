@@ -10,15 +10,19 @@ require 'rollbar/json'
 
 module Rollbar
   module RequestDataExtractor
-    ALLOWED_HEADERS_REGEX = /^HTTP_|^CONTENT_TYPE$|^CONTENT_LENGTH$/
-    ALLOWED_BODY_PARSEABLE_METHODS = %w(POST PUT PATCH DELETE).freeze
+    ALLOWED_HEADERS_REGEX = /^HTTP_|^CONTENT_TYPE$|^CONTENT_LENGTH$/.freeze
+    ALLOWED_BODY_PARSEABLE_METHODS = %w[POST PUT PATCH DELETE].freeze
 
     def extract_person_data_from_controller(env)
-      if env.has_key?('rollbar.person_data')
+      if env.key?('rollbar.person_data')
         person_data = env['rollbar.person_data'] || {}
       else
         controller = env['action_controller.instance']
-        person_data = controller.rollbar_person_data rescue {}
+        person_data = begin
+                        controller.rollbar_person_data
+                      rescue StandardError
+                        {}
+                      end
       end
 
       person_data
@@ -50,9 +54,7 @@ module Rollbar
         :method => rollbar_request_method(env)
       }
 
-      if env['action_dispatch.request_id']
-        data[:request_id] = env['action_dispatch.request_id']
-      end
+      data[:request_id] = env['action_dispatch.request_id'] if env['action_dispatch.request_id']
 
       data
     end
@@ -108,7 +110,7 @@ module Rollbar
         elsif name == 'X-Forwarded-For' && !Rollbar.configuration.collect_user_ip
           {}
         elsif name == 'X-Forwarded-For' && Rollbar.configuration.collect_user_ip && Rollbar.configuration.anonymize_user_ip
-          ips = env[header].sub(" ", "").split(',')
+          ips = env[header].sub(' ', '').split(',')
           ips = ips.map { |ip| Rollbar::Util::IPAnonymizer.anonymize_ip(ip) }
           { name => ips.join(', ') }
         elsif name == 'X-Real-Ip' && !Rollbar.configuration.collect_user_ip
@@ -134,8 +136,8 @@ module Rollbar
       end
 
       port = env['HTTP_X_FORWARDED_PORT']
-      if port && !(!scheme.nil? && scheme.downcase == 'http' && port.to_i == 80) && \
-         !(!scheme.nil? && scheme.downcase == 'https' && port.to_i == 443) && \
+      if port && !(!scheme.nil? && scheme.casecmp('http').zero? && port.to_i == 80) && \
+         !(!scheme.nil? && scheme.casecmp('https').zero? && port.to_i == 443) && \
          !(host.include? ':')
         host = host + ':' + port
       end
@@ -145,12 +147,13 @@ module Rollbar
 
     def rollbar_user_ip(env)
       return nil unless Rollbar.configuration.collect_user_ip
+
       user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || x_forwarded_for_client(env['HTTP_X_FORWARDED_FOR']) || env['REMOTE_ADDR']).to_s
 
       user_ip_string = Rollbar::Util::IPAnonymizer.anonymize_ip(user_ip_string)
 
       Rollbar::Util::IPObfuscator.obfuscate_ip(user_ip_string)
-    rescue
+    rescue StandardError
       nil
     end
 
@@ -176,13 +179,13 @@ module Rollbar
 
     def rollbar_get_params(rack_req)
       rack_req.GET
-    rescue
+    rescue StandardError
       {}
     end
 
     def rollbar_post_params(rack_req)
       rack_req.POST
-    rescue
+    rescue StandardError
       {}
     end
 
@@ -195,10 +198,10 @@ module Rollbar
       raw_body = rack_req.body.read
       begin
         Rollbar::JSON.load(raw_body)
-      rescue
+      rescue StandardError
         raw_body
       end
-    rescue
+    rescue StandardError
       {}
     ensure
       rack_req.body.rewind
@@ -219,7 +222,7 @@ module Rollbar
         # route params (if any)and format (if defined)
         ::Rails.application.routes.recognize_path(env['PATH_INFO'],
                                                   environment)
-      rescue
+      rescue StandardError
         {}
       end
     end
@@ -228,13 +231,13 @@ module Rollbar
       session = env.fetch('rack.session', {})
 
       session.to_hash
-    rescue
+    rescue StandardError
       {}
     end
 
     def rollbar_request_cookies(rack_req)
       rack_req.cookies
-    rescue
+    rescue StandardError
       {}
     end
 

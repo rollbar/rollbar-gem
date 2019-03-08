@@ -1,5 +1,5 @@
 module SecureHeadersMocks
-  NONCE = 'lorem-ipsum-nonce'
+  NONCE = 'lorem-ipsum-nonce'.freeze
 
   module CSP
     class << self
@@ -21,7 +21,7 @@ module SecureHeadersMocks
   module SecureHeaders30
     OPT_OUT = :opt_out
     class << self
-      def content_security_policy_script_nonce(req)
+      def content_security_policy_script_nonce(_req)
         NONCE
       end
     end
@@ -43,7 +43,7 @@ module SecureHeadersMocks
 
   module SecureHeaders35
     class << self
-      def content_security_policy_script_nonce(req)
+      def content_security_policy_script_nonce(_req)
         NONCE
       end
     end
@@ -63,7 +63,7 @@ module SecureHeadersMocks
 
   module SecureHeaders60
     class << self
-      def content_security_policy_script_nonce(req)
+      def content_security_policy_script_nonce(_req)
         NONCE
       end
     end

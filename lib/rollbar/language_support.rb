@@ -1,6 +1,6 @@
 module Rollbar
   module LanguageSupport
-    extend self
+    module_function
 
     def const_defined?(mod, target, inherit = true)
       if ruby_18?

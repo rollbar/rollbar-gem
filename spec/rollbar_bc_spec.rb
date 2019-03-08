@@ -1,5 +1,3 @@
-# encoding: UTF-8
-
 require 'logger'
 require 'spec_helper'
 
@@ -42,7 +40,7 @@ describe Rollbar do
     it 'should report messages with extra data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.report_message('Test message with extra data', 'debug', :foo => 'bar',
-                               :hash => { :a => 123, :b => 'xyz' })
+                                                                      :hash => { :a => 123, :b => 'xyz' })
     end
 
     it 'should not crash with circular extra_data' do
@@ -106,7 +104,7 @@ describe Rollbar do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       request_data = {
-        :params => {:foo => 'bar'}
+        :params => { :foo => 'bar' }
       }
 
       person_data = {
@@ -135,7 +133,7 @@ describe Rollbar do
 
       begin
         foo = bar
-      rescue => e
+      rescue StandardError => e
         @exception = e
       end
     end
@@ -181,7 +179,7 @@ describe Rollbar do
       end
 
       # now configure again (perhaps to change some other values)
-      Rollbar.configure do |config| end
+      Rollbar.configure { |config| }
 
       Rollbar.configuration.enabled.should == false
       Rollbar.report_exception(@exception).should == 'disabled'
@@ -196,7 +194,7 @@ describe Rollbar do
         :headers => {},
         :GET => { 'baz' => 'boz' },
         :session => { :user_id => 123 },
-        :method => 'GET',
+        :method => 'GET'
       }
       person_data = {
         :id => 1,
@@ -207,7 +205,7 @@ describe Rollbar do
     end
 
     # Skip jruby 1.9+ (https://github.com/jruby/jruby/issues/2373)
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (not RUBY_VERSION =~ /^1\.9/)
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (RUBY_VERSION !~ /^1\.9/)
       it 'should work with an IO object as rack.errors' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
@@ -219,7 +217,7 @@ describe Rollbar do
           :GET => { 'baz' => 'boz' },
           :session => { :user_id => 123 },
           :method => 'GET',
-          :env => { :'rack.errors' => IO.new(2, File::WRONLY) },
+          :env => { :'rack.errors' => IO.new(2, File::WRONLY) }
         }
 
         person_data = {
@@ -305,7 +303,7 @@ describe Rollbar do
           test_var = 2
           raise
         end
-      rescue => e
+      rescue StandardError => e
         Rollbar.report_exception(e)
       end
 
@@ -329,8 +327,8 @@ describe Rollbar do
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
-      if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-        notifier.stub(:schedule_payload) do |*args| end
+      if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
+        notifier.stub(:schedule_payload) { |*args| }
 
         exception_data = Rollbar.report_exception(StandardError.new('oops'))
         exception_data[:uuid].should_not be_nil

@@ -12,9 +12,7 @@ describe Rollbar::Scrubbers::URL do
       :randomize_scrub_length => true
     }
 
-    if defined? whitelist
-      options[:whitelist] = whitelist
-    end
+    options[:whitelist] = whitelist if defined? whitelist
 
     options
   end
@@ -62,7 +60,7 @@ describe Rollbar::Scrubbers::URL do
         let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
         it 'returns the URL without any change' do
-          expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
+          expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting\-path#fragment}
 
           expect(subject.call(options)).to match(expected_url)
         end
@@ -72,7 +70,7 @@ describe Rollbar::Scrubbers::URL do
         let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue#fragment' }
 
         it 'returns the URL with some params filtered' do
-          expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{3,8}&secret=\*{3,8}#fragment/
+          expected_url = %r{http://foo.com/some-interesting-path\?foo=bar&password=\*{3,8}&secret=\*{3,8}#fragment}
 
           expect(subject.call(options)).to match(expected_url)
         end
@@ -81,7 +79,7 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue#fragment' }
 
           it 'returns the URL with some params filtered' do
-            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}#fragment/
+            expected_url = %r{http://foo.com/some-interesting-path\?foo=bar&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}#fragment}
 
             expect(subject.call(options)).to match(expected_url)
           end
@@ -102,7 +100,7 @@ describe Rollbar::Scrubbers::URL do
         let(:url) { "http://foo.com/some-interesting-path?foo=bar&password=#{password}#fragment" }
 
         it 'scrubs with same length than the scrubbed param' do
-          expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=bar&password=\*{#{password.length}}#fragment/
+          expected_url = %r{http://foo.com/some-interesting-path\?foo=bar&password=\*{#{password.length}}#fragment}
 
           expect(subject.call(options)).to match(expected_url)
         end
@@ -140,14 +138,12 @@ describe Rollbar::Scrubbers::URL do
     end
 
     context 'in whitelist mode' do
-
       let(:whitelist) { [:user, :secret] }
 
       context 'with ruby different from 1.8' do
         next unless Rollbar::LanguageSupport.can_scrub_url?
 
         context 'cannot scrub URLs' do
-
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
           it 'returns the URL without any change' do
@@ -156,7 +152,6 @@ describe Rollbar::Scrubbers::URL do
         end
 
         context 'scrubbing user and password' do
-
           let(:options) do
             {
               :url => url,
@@ -170,7 +165,7 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
           it 'returns the URL without any change' do
-            expected_url = /http:\/\/\*{3,8}:\*{3,8}@foo.com\/some-interesting\-path#fragment/
+            expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting\-path#fragment}
 
             expect(subject.call(options)).to match(expected_url)
           end
@@ -189,7 +184,7 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
 
           it 'returns the URL with some params filtered' do
-            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment/
+            expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
 
             expect(subject.call(options)).to match(expected_url)
           end
@@ -198,7 +193,7 @@ describe Rollbar::Scrubbers::URL do
             let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
 
             it 'returns the URL with some params filtered' do
-              expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment/
+              expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
 
               expect(subject.call(options)).to match(expected_url)
             end
@@ -219,7 +214,7 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
 
           it 'returns the URL with some params filtered' do
-            expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment/
+            expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
 
             expect(subject.call(options)).to match(expected_url)
           end
@@ -228,7 +223,7 @@ describe Rollbar::Scrubbers::URL do
             let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
 
             it 'returns the URL with some params filtered' do
-              expected_url = /http:\/\/foo.com\/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment/
+              expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
 
               expect(subject.call(options)).to match(expected_url)
             end

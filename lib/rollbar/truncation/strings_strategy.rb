@@ -6,7 +6,7 @@ module Rollbar
     class StringsStrategy
       include ::Rollbar::Truncation::Mixin
 
-      STRING_THRESHOLDS = [1024, 512, 256]
+      STRING_THRESHOLDS = [1024, 512, 256].freeze
 
       def self.call(payload)
         new.call(payload)

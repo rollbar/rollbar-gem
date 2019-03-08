@@ -7,10 +7,10 @@ require 'rollbar'
 Rollbar.plugins.load!
 
 describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
-  class RackMockError < Exception; end
+  class RackMockError < RuntimeError; end
 
   let(:action) do
-    proc { fail(RackMockError, 'the-error') }
+    proc { raise(RackMockError, 'the-error') }
   end
 
   let(:app) do
@@ -75,7 +75,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
 
   context 'with array POST parameters' do
     let(:params) do
-      [{ :key => 'value'}, 'string', 10]
+      [{ :key => 'value' }, 'string', 10]
     end
 
     it 'sends a body.multi key in params' do
@@ -84,7 +84,7 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
       end.to raise_error(exception)
 
       reported_body = Rollbar.last_report[:request][:body]
-      expect(reported_body).to be_eql({ 'body.multi' => [{'key' => 'value'}, 'string', 10] }.to_json)
+      expect(reported_body).to be_eql({ 'body.multi' => [{ 'key' => 'value' }, 'string', 10] }.to_json)
     end
   end
 

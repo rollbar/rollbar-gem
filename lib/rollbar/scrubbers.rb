@@ -1,17 +1,21 @@
 module Rollbar
   module Scrubbers
-    extend self
+    module_function
 
     def scrub_value(value)
       if Rollbar.configuration.randomize_scrub_length
         random_filtered_value
       else
-        '*' * (value.length rescue 8)
+        '*' * (begin
+                 value.length
+               rescue StandardError
+                 8
+               end)
       end
     end
 
     def random_filtered_value
-      '*' * (rand(5) + 3)
+      '*' * rand(3..7)
     end
   end
 end

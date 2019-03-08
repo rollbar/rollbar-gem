@@ -60,7 +60,7 @@ module Rails
 
     def rollbar_managed
       yield
-    rescue => e
+    rescue StandardError => e
       Rollbar.scope(:custom => { :command => command }).error(e)
       raise
     end

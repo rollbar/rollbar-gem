@@ -39,7 +39,7 @@ end
 
 if ENV['TRAVIS_JDK_VERSION'] == 'oraclejdk7'
   require 'rollbar/configuration'
-  Rollbar::Configuration::DEFAULT_ENDPOINT = 'https://api-alt.rollbar.com/api/1/item/'
+  Rollbar::Configuration::DEFAULT_ENDPOINT = 'https://api-alt.rollbar.com/api/1/item/'.freeze
 end
 
 if Gem::Version.new(Rails.version) < Gem::Version.new('5.0')
@@ -47,7 +47,6 @@ if Gem::Version.new(Rails.version) < Gem::Version.new('5.0')
 else
   Rake::Task['dummy:db:test:prepare'].invoke
 end
-
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
@@ -87,7 +86,7 @@ RSpec.configure do |config|
   end
 
   config.infer_spec_type_from_file_location! if config.respond_to?(:infer_spec_type_from_file_location!)
-  config.backtrace_exclusion_patterns = [/gems\/rspec-.*/]
+  config.backtrace_exclusion_patterns = [%r{gems/rspec-.*}]
 
   config.include RSpecCommand if defined?(RSpecCommand)
 end

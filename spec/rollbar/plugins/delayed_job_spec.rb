@@ -7,9 +7,9 @@ Rollbar.plugins.load!
 
 describe Rollbar::Delayed, :reconfigure_notifier => true do
   class FailingJob
-    class TestException < Exception; end
+    class TestException < RuntimeError; end
 
-    def do_job_please!(a, b)
+    def do_job_please!(_a, _b)
       this = will_crash_again!
     end
   end
@@ -36,7 +36,7 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
   context 'with failed deserialization' do
     let(:expected_args) do
-      [/Delayed::DeserializationError/, {:use_exception_level_filters=>true}]
+      [/Delayed::DeserializationError/, { :use_exception_level_filters => true }]
     end
 
     it 'sends the exception' do
@@ -46,19 +46,19 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
     end
-    
+
     context 'with dj_threshold > 0' do
       before do
         Rollbar.configure do |config|
           config.dj_threshold = 1
         end
       end
-      
+
       it 'sends the exception' do
         expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
         allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
         expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*expected_args)
-  
+
         FailingJob.new.delay.do_job_please!(:foo, :bar)
       end
     end

@@ -42,7 +42,7 @@ describe Rollbar::Item do
     let(:payload) { subject.build }
 
     context 'a basic payload' do
-      let(:extra) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
+      let(:extra) { { :key => 'value', :hash => { :inner_key => 'inner_value' } } }
 
       it 'calls Rollbar::Util.enforce_valid_utf8' do
         expect(Rollbar::Util).to receive(:enforce_valid_utf8).with(kind_of(Hash))
@@ -51,7 +51,7 @@ describe Rollbar::Item do
       end
 
       it 'should have the correct root-level keys' do
-        payload.keys.should match_array(['access_token', 'data'])
+        payload.keys.should match_array(%w[access_token data])
       end
 
       it 'should have the correct data keys' do
@@ -116,57 +116,57 @@ describe Rollbar::Item do
     end
 
     it 'should have custom message data when custom_data_method is configured' do
-      configuration.custom_data_method = lambda { {:a => 1, :b => [2, 3, 4]} }
+      configuration.custom_data_method = lambda { { :a => 1, :b => [2, 3, 4] } }
 
       payload['data'][:body][:message][:extra].should_not be_nil
       payload['data'][:body][:message][:extra][:a].should == 1
       payload['data'][:body][:message][:extra][:b][2].should == 4
     end
-    
+
     context do
-      let(:context) { { :controller => "ExampleController" } }
-    
+      let(:context) { { :controller => 'ExampleController' } }
+
       it 'should have access to the context in custom_data_method' do
-        configuration.custom_data_method = lambda do |message, exception, context|
-          { :result => "MyApp#" + context[:controller] }
+        configuration.custom_data_method = lambda do |_message, _exception, context|
+          { :result => 'MyApp#' + context[:controller] }
         end
-  
+
         payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:result].should == "MyApp#"+context[:controller]
+        payload['data'][:body][:message][:extra][:result].should == 'MyApp#' + context[:controller]
       end
-      
+
       it 'should not include data passed in :context if there is no custom_data_method configured' do
         configuration.custom_data_method = nil
-  
+
         payload['data'][:body][:message][:extra].should be_nil
       end
-      
+
       it 'should have access to the message in custom_data_method' do
-        configuration.custom_data_method = lambda do |message, exception, context|
-          { :result => "Transformed in custom_data_method: " + message }
+        configuration.custom_data_method = lambda do |message, _exception, _context|
+          { :result => 'Transformed in custom_data_method: ' + message }
         end
-        
+
         payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:result].should == "Transformed in custom_data_method: " + message
+        payload['data'][:body][:message][:extra][:result].should == 'Transformed in custom_data_method: ' + message
       end
-      
+
       context do
-        let(:exception) { Exception.new "Exception to test custom_data_method" }
-        
+        let(:exception) { Exception.new 'Exception to test custom_data_method' }
+
         it 'should have access to the current exception in custom_data_method' do
-          configuration.custom_data_method = lambda do |message, exception, context|
-            { :result => "Transformed in custom_data_method: " + exception.message }
+          configuration.custom_data_method = lambda do |_message, exception, _context|
+            { :result => 'Transformed in custom_data_method: ' + exception.message }
           end
-          
+
           payload['data'][:body][:trace][:extra].should_not be_nil
-          payload['data'][:body][:trace][:extra][:result].should == "Transformed in custom_data_method: " + exception.message
+          payload['data'][:body][:trace][:extra][:result].should == 'Transformed in custom_data_method: ' + exception.message
         end
       end
     end
 
     context do
       let(:extra) do
-        { :c => {:e => 'g' }, :f => 'f' }
+        { :c => { :e => 'g' }, :f => 'f' }
       end
 
       it 'should merge extra data into custom message data' do
@@ -174,8 +174,7 @@ describe Rollbar::Item do
           { :a => 1,
             :b => [2, 3, 4],
             :c => { :d => 'd', :e => 'e' },
-            :f => ['1', '2']
-          }
+            :f => %w[1 2] }
         end
         configuration.custom_data_method = custom_method
 
@@ -251,7 +250,7 @@ describe Rollbar::Item do
       let(:exception) do
         begin
           foo = bar
-        rescue => e
+        rescue StandardError => e
           e
         end
       end
@@ -267,12 +266,12 @@ describe Rollbar::Item do
 
         context 'and extra data' do
           let(:extra) do
-            {:a => 'b'}
+            { :a => 'b' }
           end
 
           it 'should build a message body when no exception and extra data is passed in' do
             payload['data'][:body][:message][:body].should == 'message'
-            payload['data'][:body][:message][:extra].should == {:a => 'b'}
+            payload['data'][:body][:message][:extra].should == { :a => 'b' }
             payload['data'][:body][:trace].should be_nil
           end
         end
@@ -292,7 +291,7 @@ describe Rollbar::Item do
 
       context 'with extra data' do
         let(:extra) do
-          {:a => 'b'}
+          { :a => 'b' }
         end
 
         it 'should build an exception body when one is passed in along with extra data' do
@@ -304,7 +303,7 @@ describe Rollbar::Item do
 
           trace[:exception][:class].should_not be_nil
           trace[:exception][:message].should_not be_nil
-          trace[:extra].should == {:a => 'b'}
+          trace[:extra].should == { :a => 'b' }
         end
       end
     end
@@ -313,7 +312,7 @@ describe Rollbar::Item do
       let(:exception) do
         begin
           foo = bar
-        rescue => e
+        rescue StandardError => e
           e
         end
       end
@@ -328,10 +327,8 @@ describe Rollbar::Item do
         frames.should be_a_kind_of(Array)
         frames.each do |frame|
           frame[:filename].should be_a_kind_of(String)
-          frame[:lineno].should be_a_kind_of(Fixnum)
-          if frame[:method]
-            frame[:method].should be_a_kind_of(String)
-          end
+          frame[:lineno].should be_a_kind_of(Integer)
+          frame[:method].should be_a_kind_of(String) if frame[:method]
         end
 
         # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
@@ -354,7 +351,7 @@ describe Rollbar::Item do
 
         context 'and extra data' do
           let(:extra) do
-            {:key => 'value', :hash => {:inner_key => 'inner_value'}}
+            { :key => 'value', :hash => { :inner_key => 'inner_value' } }
           end
 
           it 'should build exception data with a description and extra data' do
@@ -364,14 +361,14 @@ describe Rollbar::Item do
             trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
             trace[:exception][:description].should == 'exception description'
             trace[:extra][:key].should == 'value'
-            trace[:extra][:hash].should == {:inner_key => 'inner_value'}
+            trace[:extra][:hash].should == { :inner_key => 'inner_value' }
           end
         end
       end
 
       context 'with extra data' do
         let(:extra) do
-          {:key => 'value', :hash => {:inner_key => 'inner_value'}}
+          { :key => 'value', :hash => { :inner_key => 'inner_value' } }
         end
         it 'should build exception data with a extra data' do
           body = payload['data'][:body]
@@ -379,7 +376,7 @@ describe Rollbar::Item do
 
           trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
           trace[:extra][:key].should == 'value'
-          trace[:extra][:hash].should == {:inner_key => 'inner_value'}
+          trace[:extra][:hash].should == { :inner_key => 'inner_value' }
         end
       end
 
@@ -388,11 +385,11 @@ describe Rollbar::Item do
           proc do
             begin
               begin
-                fail CauseException.new('the cause')
-              rescue
-                fail StandardError.new('the error')
+                raise CauseException, 'the cause'
+              rescue StandardError
+                raise StandardError, 'the error'
               end
-            rescue => e
+            rescue StandardError => e
               e
             end
           end
@@ -423,7 +420,7 @@ describe Rollbar::Item do
             let(:exception) { Exception.new('custom cause') }
 
             it 'ignores the cause when it is not an Exception' do
-              allow(exception).to receive(:cause) { "Foo" }
+              allow(exception).to receive(:cause) { 'Foo' }
 
               payload['data'][:body][:trace].should_not be_nil
             end
@@ -472,32 +469,32 @@ describe Rollbar::Item do
 
       context 'with extra data' do
         let(:extra) do
-          {:key => 'value', :hash => {:inner_key => 'inner_value'}}
+          { :key => 'value', :hash => { :inner_key => 'inner_value' } }
         end
 
         it 'should build a message with extra data' do
           payload['data'][:body][:message][:body].should == 'message'
           payload['data'][:body][:message][:extra][:key].should == 'value'
-          payload['data'][:body][:message][:extra][:hash].should == {:inner_key => 'inner_value'}
+          payload['data'][:body][:message][:extra][:hash].should == { :inner_key => 'inner_value' }
         end
       end
 
       context 'with empty message and extra data' do
         let(:message) { nil }
         let(:extra) do
-          {:key => 'value', :hash => {:inner_key => 'inner_value'}}
+          { :key => 'value', :hash => { :inner_key => 'inner_value' } }
         end
 
         it 'should build an empty message with extra data' do
           payload['data'][:body][:message][:body].should == 'Empty message'
           payload['data'][:body][:message][:extra][:key].should == 'value'
-          payload['data'][:body][:message][:extra][:hash].should == {:inner_key => 'inner_value'}
+          payload['data'][:body][:message][:extra][:hash].should == { :inner_key => 'inner_value' }
         end
       end
     end
 
     context 'with transform handlers in configuration' do
-      let(:scope) { Rollbar::LazyStore.new({ :bar => :foo }) }
+      let(:scope) { Rollbar::LazyStore.new(:bar => :foo) }
       let(:message) { 'message' }
       let(:exception) { Exception.new }
       let(:extra) { { :foo => :bar } }
@@ -506,7 +503,6 @@ describe Rollbar::Item do
       context 'without mutation in payload' do
         let(:handler) do
           proc do |options|
-
           end
         end
 
@@ -565,8 +561,8 @@ describe Rollbar::Item do
       end
 
       context 'with two handlers' do
-        let(:handler1) { proc { |options|} }
-        let(:handler2) { proc { |options|} }
+        let(:handler1) { proc { |options| } }
+        let(:handler2) { proc { |options| } }
 
         before do
           configuration.transform << handler1
@@ -576,7 +572,7 @@ describe Rollbar::Item do
         context 'and the first one fails' do
           let(:exception) { StandardError.new('foo') }
           let(:handler1) do
-            proc { |options|  raise exception }
+            proc { |_options| raise exception }
           end
 
           it 'doesnt call the second handler and logs the error' do
@@ -597,7 +593,7 @@ describe Rollbar::Item do
       end
 
       context 'with uuid in reported data' do
-        next unless defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
+        next unless defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
         let(:report_data) { { :uuid => SecureRandom.uuid } }
         let(:expected_url) { "https://rollbar.com/instance/uuid?uuid=#{report_data[:uuid]}" }
@@ -643,13 +639,12 @@ describe Rollbar::Item do
     end
 
     context 'with ignored person ids' do
-      let(:ignored_ids) { [1,2,4] }
+      let(:ignored_ids) { [1, 2, 4] }
       let(:person_data) do
         { :person => {
-            :id => 2,
-            :username => 'foo'
-          }
-        }
+          :id => 2,
+          :username => 'foo'
+        } }
       end
       let(:scope) { Rollbar::LazyStore.new(person_data) }
 
@@ -664,7 +659,6 @@ describe Rollbar::Item do
         expect(subject).to be_ignored
       end
     end
-
   end # end #build
 
   describe '#dump' do

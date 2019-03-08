@@ -10,7 +10,7 @@ module Rollbar
       def to_hash
         job_data = extract_job_data
 
-        handler_parent = job_data['job'] ? job_data['job'] : job_data
+        handler_parent = job_data['job'] || job_data
         handler_parent['handler'] = handler_data
 
         job_data
@@ -32,7 +32,7 @@ module Rollbar
         return payload_object unless payload_object.respond_to?(:object)
 
         object_data(payload_object.object)
-      rescue
+      rescue StandardError
         {}
       end
 
@@ -42,7 +42,7 @@ module Rollbar
           :args => job.payload_object.args,
           :object => object.is_a?(Class) ? object.name : object.to_s
         }
-      rescue
+      rescue StandardError
         {}
       end
     end

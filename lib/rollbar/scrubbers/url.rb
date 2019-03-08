@@ -23,7 +23,7 @@ module Rollbar
                options.fetch(:randomize_scrub_length, true),
                options[:scrub_fields].include?(SCRUB_ALL),
                build_whitelist_regex(options[:whitelist] || []))
-      rescue => e
+      rescue StandardError => e
         Rollbar.logger.error("[Rollbar] There was an error scrubbing the url: #{e}, options: #{options.inspect}")
         url
       end
@@ -33,6 +33,7 @@ module Rollbar
       def build_whitelist_regex(whitelist)
         fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
         return unless fields.any?
+
         Regexp.new(fields.map { |val| /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
       end
 
@@ -95,12 +96,16 @@ module Rollbar
         if randomize_scrub_length
           random_filtered_value
         else
-          '*' * (value.length rescue 8)
+          '*' * (begin
+                   value.length
+                 rescue StandardError
+                   8
+                 end)
         end
       end
 
       def random_filtered_value
-        '*' * (rand(5) + 3)
+        '*' * rand(3..7)
       end
     end
   end

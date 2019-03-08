@@ -27,7 +27,7 @@ module Rollbar
 
       begin
         callables.each(&:call)
-      rescue => e
+      rescue StandardError => e
         log_loading_error(e)
       ensure
         self.loaded = true
@@ -38,8 +38,8 @@ module Rollbar
       callables << block
     end
 
-    def execute!(&block)
-      block.call if load?
+    def execute!
+      yield if load?
     end
 
     private
@@ -61,7 +61,7 @@ module Rollbar
 
     def load?
       !loaded && dependencies_satisfy?
-    rescue => e
+    rescue StandardError => e
       log_loading_error(e)
 
       false

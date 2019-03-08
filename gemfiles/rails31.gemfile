@@ -2,15 +2,15 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
-gem 'jruby-openssl', :platform => :jruby
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal', '= 1.0.2'
+gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '3.1.12'
-gem 'rspec-rails', '~> 3.4'
 gem 'rake'
+gem 'rspec-rails', '~> 3.4'
+gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
 unless is_jruby
   if RUBY_VERSION >= '2.4.0'
@@ -35,22 +35,22 @@ platforms :rbx do
 end
 
 if RUBY_VERSION.start_with?('1.9')
-  gem 'sucker_punch'
   gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
-elsif RUBY_VERSION.start_with?('2')
   gem 'sucker_punch'
-  gem 'shoryuken'
+elsif RUBY_VERSION.start_with?('2')
   gem 'codacy-coverage'
+  gem 'shoryuken'
   gem 'simplecov'
+  gem 'sucker_punch'
 end
 
-gem 'sinatra'
-gem 'delayed_job', :require => false
-gem 'redis'
 gem 'database_cleaner'
-gem 'girl_friday'
+gem 'delayed_job', :require => false
 gem 'generator_spec'
+gem 'girl_friday'
+gem 'redis'
 gem 'rspec-command'
+gem 'sinatra'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'
@@ -60,7 +60,7 @@ else
   gem 'webmock', :require => false
 end
 
-gem 'resque', '< 2.0.0'
 gem 'aws-sdk-sqs'
+gem 'resque', '< 2.0.0'
 
 gemspec :path => '../'

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'spec_helper'
 
 require 'rollbar/util'
@@ -130,7 +128,7 @@ describe Rollbar::Util do
       payload = {
         :bad_value => force_to_ascii("bad value 1\255"),
         :bad_value_2 => force_to_ascii("bad\255 value 2"),
-        force_to_ascii("bad\255 key") => "good value",
+        force_to_ascii("bad\255 key") => 'good value',
         :hash => {
           :inner_bad_value => force_to_ascii("\255\255bad value 3"),
           bad_key.to_sym => 'inner good value',
@@ -144,17 +142,16 @@ describe Rollbar::Util do
         }
       }
 
-
       payload_copy = payload.clone
       described_class.enforce_valid_utf8(payload_copy)
 
-      payload_copy[:bad_value].should == "bad value 1"
-      payload_copy[:bad_value_2].should == "bad value 2"
-      payload_copy["bad key"].should == "good value"
+      payload_copy[:bad_value].should == 'bad value 1'
+      payload_copy[:bad_value_2].should == 'bad value 2'
+      payload_copy['bad key'].should == 'good value'
       payload_copy.keys.should_not include("bad\456 key")
-      payload_copy[:hash][:inner_bad_value].should == "bad value 3"
+      payload_copy[:hash][:inner_bad_value].should == 'bad value 3'
       payload_copy[:hash][:"inner bad key"].should == 'inner good value'
-      payload_copy[:hash]["bad array key"].should == [
+      payload_copy[:hash]['bad array key'].should == [
         'good array value 1',
         'bad array value 1',
         {

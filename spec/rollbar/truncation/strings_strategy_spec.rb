@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'spec_helper'
 require 'rollbar/truncation/frames_strategy'
 
@@ -31,7 +29,7 @@ describe Rollbar::Truncation::StringsStrategy do
       let(:payload) do
         {
           'truncated' => long_message,
-          'not_truncated' => '123456',
+          'not_truncated' => '123456'
         }
       end
 

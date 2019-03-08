@@ -10,7 +10,7 @@ end
 
 module Rollbar
   module JSON
-    extend self
+    module_function
 
     attr_writer :options_module
 

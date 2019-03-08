@@ -2,7 +2,6 @@ require 'spec_helper'
 
 require 'rollbar/lazy_store'
 
-
 describe Rollbar::LazyStore do
   subject { Rollbar::LazyStore.new(data) }
   let(:lazy_value) do

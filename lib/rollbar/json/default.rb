@@ -1,7 +1,7 @@
 module Rollbar
   module JSON
     module Default
-      extend self
+      module_function
 
       def options
         {}
