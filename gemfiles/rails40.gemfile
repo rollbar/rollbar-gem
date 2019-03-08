@@ -2,10 +2,10 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
-gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
+gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '4.0.13'
 gem 'rake'
@@ -37,15 +37,15 @@ platforms :rbx do
 end
 
 if RUBY_VERSION.start_with?('1.9')
+  gem 'sucker_punch', '~> 1.0'
   gem 'json', '~> 1.8'
   gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
-  gem 'sucker_punch', '~> 1.0'
 elsif RUBY_VERSION.start_with?('2')
-  gem 'codacy-coverage'
+  gem 'sucker_punch', '~> 2.0'
   gem 'json', '~> 2.0'
   gem 'shoryuken'
+  gem 'codacy-coverage'
   gem 'simplecov'
-  gem 'sucker_punch', '~> 2.0'
 end
 
 gem 'delayed_job', :require => false

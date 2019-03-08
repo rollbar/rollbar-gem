@@ -114,7 +114,7 @@ describe Rollbar::Plugin do
           end
 
           dependency do
-            raise StandardError, 'the-error'
+            raise StandardError.new('the-error')
           end
 
           execute do
@@ -153,7 +153,7 @@ describe Rollbar::Plugin do
           end
 
           execute do
-            raise StandardError, 'the-error'
+            raise StandardError.new('the-error')
           end
 
           execute do

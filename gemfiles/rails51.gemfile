@@ -2,19 +2,19 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
-gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
+gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '~> 5.1.0'
 gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
 gem 'rspec-core', '~> 3.5.0.beta3'
-gem 'rspec-expectations', '~> 3.5.0.beta3'
-gem 'rspec-mocks', '~> 3.5.0.beta3'
 gem 'rspec-rails', '~> 3.5.0.beta3'
 gem 'rspec-support', '~> 3.5.0.beta3'
+gem 'rspec-expectations', '~> 3.5.0.beta3'
+gem 'rspec-mocks', '~> 3.5.0.beta3'
 
 gem 'rake'
 
@@ -40,9 +40,9 @@ end
 if RUBY_VERSION.start_with?('1.9')
   gem 'sucker_punch', '~> 1.0'
 elsif RUBY_VERSION.start_with?('2')
+  gem 'sucker_punch', '~> 2.0'
   gem 'codacy-coverage'
   gem 'simplecov'
-  gem 'sucker_punch', '~> 2.0'
 end
 
 # We need last sinatra that uses rack 2.x
@@ -52,11 +52,13 @@ gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
+gem 'rspec-command'
 gem 'redis'
 gem 'resque'
-gem 'rspec-command'
 
-gem 'mime-types', '< 3.0' if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
+if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
+  gem 'mime-types', '< 3.0'
+end
 
 gem 'webmock', :require => false
 

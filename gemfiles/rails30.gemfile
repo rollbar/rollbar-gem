@@ -2,17 +2,17 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
+gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
+gem 'jruby-openssl', :platform => :jruby
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal', '= 1.0.2'
-gem 'celluloid', '< 0.17.0' if RUBY_VERSION == '1.9.2'
-gem 'hitimes', '< 1.2.2'
-gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '3.0.20'
+gem 'hitimes', '< 1.2.2'
 gem 'rake', '< 11'
 gem 'rspec-rails', '>= 2.14.0'
-gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
+gem 'celluloid', '< 0.17.0' if RUBY_VERSION == '1.9.2'
 
 unless is_jruby
   if RUBY_VERSION >= '2.4.0'
@@ -37,32 +37,32 @@ platforms :rbx do
 end
 
 if RUBY_VERSION.start_with?('1.9')
-  gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
   gem 'sucker_punch', '~> 1.0'
+  gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
 elsif RUBY_VERSION.start_with?('2')
-  gem 'codacy-coverage'
-  gem 'shoryuken'
-  gem 'simplecov'
   gem 'sucker_punch', '~> 2.0'
+  gem 'shoryuken'
+  gem 'codacy-coverage'
+  gem 'simplecov'
 end
 
-gem 'database_cleaner', '~> 1.0.0'
+gem 'sinatra'
 gem 'delayed_job', :require => false
+gem 'redis'
+gem 'database_cleaner', '~> 1.0.0'
 gem 'genspec', '>= 0.2.8'
 gem 'girl_friday', '>= 0.11.1'
-gem 'redis'
 gem 'rspec-command'
-gem 'sinatra'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
-  gem 'mime-types', '< 3.0'
   gem 'public_suffix', '< 1.5'
+  gem 'mime-types', '< 3.0'
   gem 'webmock', '< 2.3.0', :require => false
 else
   gem 'webmock', :require => false
 end
 
-gem 'aws-sdk-sqs'
 gem 'resque', '< 2.0.0'
+gem 'aws-sdk-sqs'
 
 gemspec :path => '../'
