@@ -34,3 +34,6 @@ Style/ExpandPathArguments:
 
 Gemspec/RequiredRubyVersion:
   Enabled: false # rubocop compares to gemspec, yet won't allow 1.9 as minimum version
+
+Style/Encoding:
+  Enabled: false # Ruby 1.9.3 needs these magic comments, e.g. # encoding: UTF-8

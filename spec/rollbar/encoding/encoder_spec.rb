@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'spec_helper'
 
 unless RUBY_VERSION.start_with?('1.8')

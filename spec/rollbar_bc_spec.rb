@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'logger'
 require 'spec_helper'
 

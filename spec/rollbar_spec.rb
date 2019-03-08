@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'logger'
 require 'socket'
 require 'girl_friday'

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../lib/rollbar/version', __FILE__)
 
 Gem::Specification.new do |gem|
