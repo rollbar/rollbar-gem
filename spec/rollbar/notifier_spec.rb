@@ -49,16 +49,16 @@ describe Rollbar::Notifier do
         begin
           raise java.lang.Exception, 'Hello'
         rescue StandardError => e
-          message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
+          _message, exception, _extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
           expect(exception).to eq(e)
         end
       end
 
       it 'extracts java.lang.Error' do
         begin
-          raise java.lang.AssertionError, 'Hello'
+          raise java.lang.AssertionError.new('Hello') # rubocop:disable Style/RaiseArgs
         rescue java.lang.Error => e
-          message, exception, extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
+          _message, exception, _extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
           expect(exception).to eq(e)
         end
       end
