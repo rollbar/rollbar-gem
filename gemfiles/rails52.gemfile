@@ -59,4 +59,6 @@ gem 'webmock', :require => false
 gem 'aws-sdk-sqs'
 gem 'shoryuken'
 
+gem 'capistrano', :require => false
+
 gemspec :path => '../'

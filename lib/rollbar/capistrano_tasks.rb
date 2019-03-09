@@ -1,5 +1,3 @@
-require 'capistrano'
-require 'capistrano/version'
 require 'rollbar/deploy'
 
 module Rollbar
@@ -15,10 +13,10 @@ module Rollbar
           capistrano.set(:rollbar_deploy_id, 123) if dry_run
 
           skip_in_dry_run(logger, dry_run) do
-            if (deploy_id = result[:data] && result[:data][:deploy_id])
+            if result[:success] && (deploy_id = result[:data] && result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
-              logger.error 'Unable to report deploy to Rollbar'
+              logger.error 'Unable to report deploy to Rollbar' + (result[:message] ? ': ' + result[:message] : '')
             end
           end
         end
@@ -52,10 +50,10 @@ module Rollbar
             debug_request_response(logger, result)
 
             skip_in_dry_run(logger, dry_run) do
-              if result[:response].is_a?(Net::HTTPSuccess)
+              if result[:success]
                 logger.info 'Updated deploy status in Rollbar'
               else
-                logger.error 'Unable to update deploy status in Rollbar'
+                logger.error 'Unable to update deploy status in Rollbar' + (result[:message] ? ': ' + result[:message] : '')
               end
             end
           end
@@ -76,9 +74,9 @@ module Rollbar
             :proxy => :ENV,
             :dry_run => dry_run
           },
-          :access_token => capistrano.fetch(:rollbar_token),
-          :environment => capistrano.fetch(:rollbar_env),
-          :revision => capistrano.fetch(:rollbar_revision)
+          capistrano.fetch(:rollbar_token),
+          capistrano.fetch(:rollbar_env),
+          capistrano.fetch(:rollbar_revision)
         )
       end
 
@@ -88,9 +86,9 @@ module Rollbar
             :proxy => :ENV,
             :dry_run => dry_run
           },
-          :access_token => capistrano.fetch(:rollbar_token),
-          :deploy_id => capistrano.fetch(:rollbar_deploy_id),
-          :status => :succeeded
+          capistrano.fetch(:rollbar_token),
+          capistrano.fetch(:rollbar_deploy_id),
+          :succeeded
         )
       end
 
@@ -100,9 +98,9 @@ module Rollbar
             :proxy => :ENV,
             :dry_run => dry_run
           },
-          :access_token => capistrano.fetch(:rollbar_token),
-          :deploy_id => capistrano.fetch(:rollbar_deploy_id),
-          :status => :failed
+          capistrano.fetch(:rollbar_token),
+          capistrano.fetch(:rollbar_deploy_id),
+          :failed
         )
       end
 
