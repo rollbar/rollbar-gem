@@ -24,6 +24,6 @@ Rollbar.plugins.define('basic_socket') do
   end
 
   revert do
-    ::BasicSocket.define_method(:as_json, @original_as_json)
+    ::BasicSocket.send(:define_method, :as_json, @original_as_json)
   end
 end
