@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'rollbar'
+require 'socket'
 
 Rollbar.plugins.load!
 
@@ -32,7 +33,9 @@ describe 'basic_socket plugin' do
       if Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('5.2.0')
         context 'using active_support < 5.2' do
           it 'changes implementation of ::BasicSocket#as_json temporarily' do
-            original_implementation = BasicSocket.public_instance_method(:as_json)
+            original_implementation = BasicSocket.
+              public_instance_method(:as_json).
+              source_location
 
             subject.load_scoped! do
               socket = TCPSocket.new 'example.com', 80
@@ -40,13 +43,14 @@ describe 'basic_socket plugin' do
               expect(JSON.parse(socket.as_json)['value']).to match(/TCPSocket/)
             end
 
-            expect(BasicSocket.public_instance_method(:as_json)).to eq(original_implementation)
+            expect(BasicSocket.public_instance_method(:as_json).source_location).
+              to(eq(original_implementation))
           end
         end
       else
         context 'using active_support >= 5.2' do
           context 'when called as transparent' do
-            it 'executes provided block even when depencies are unmet' do
+            it 'executes provided block even when dependencies are unmet' do
               result = false
               subject.load_scoped!(true) do
                 result = true
