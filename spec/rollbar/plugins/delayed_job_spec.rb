@@ -10,7 +10,7 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     class TestException < RuntimeError; end
 
     def do_job_please!(_a, _b)
-      this = will_crash_again!
+      _this = will_crash_again!
     end
   end
 

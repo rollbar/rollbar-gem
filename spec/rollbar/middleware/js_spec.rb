@@ -20,7 +20,7 @@ shared_examples 'secure_headers' do
   it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
     SecureHeadersMocks::CSP.config = {
       :opt_out? => false,
-      :script_src => %w('unsafe-inline') # rubocop:disable Style/PercentLiteralDelimiters, Lint/PercentStringArray
+      :script_src => %w['unsafe-inline'] # rubocop:disable Lint/PercentStringArray
     }
 
     _, _, response = subject.call(env)

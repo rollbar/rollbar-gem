@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
+
 require File.expand_path('../lib/rollbar/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
+  _is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
   gem.authors       = ['Rollbar, Inc.']
   gem.email         = ['support@rollbar.com']

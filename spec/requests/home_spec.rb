@@ -17,8 +17,8 @@ describe HomeController do
         Rollbar.last_report.should_not be_nil
 
         exception_info = Rollbar.last_report[:body][:trace][:exception]
-        exception_info[:class].should == 'ArgumentError'
-        exception_info[:message].should == 'invalid %-encoding (8%B)'
+        exception_info[:class].should eq('ArgumentError')
+        exception_info[:message].should eq('invalid %-encoding (8%B)')
       end
     end
   end
@@ -42,7 +42,7 @@ describe HomeController do
       body = Rollbar.last_report[:body]
       trace = body[:trace] && body[:trace] || body[:trace_chain][0]
 
-      trace[:exception][:class].should == 'NoMethodError'
+      trace[:exception][:class].should eq('NoMethodError')
       trace[:exception][:message].should =~ /^undefined method `-'/
     end
   end

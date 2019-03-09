@@ -147,19 +147,21 @@ describe Rollbar::Util do
       payload_copy = payload.clone
       described_class.enforce_valid_utf8(payload_copy)
 
-      payload_copy[:bad_value].should == 'bad value 1'
-      payload_copy[:bad_value_2].should == 'bad value 2'
-      payload_copy['bad key'].should == 'good value'
+      payload_copy[:bad_value].should eq('bad value 1')
+      payload_copy[:bad_value_2].should eq('bad value 2')
+      payload_copy['bad key'].should eq('good value')
       payload_copy.keys.should_not include("bad\456 key")
-      payload_copy[:hash][:inner_bad_value].should == 'bad value 3'
-      payload_copy[:hash][:"inner bad key"].should == 'inner good value'
-      payload_copy[:hash]['bad array key'].should == [
-        'good array value 1',
-        'bad array value 1',
-        {
-          :inner_inner_bad => 'bad inner inner value'
-        }
-      ]
+      payload_copy[:hash][:inner_bad_value].should eq('bad value 3')
+      payload_copy[:hash][:"inner bad key"].should eq('inner good value')
+      payload_copy[:hash]['bad array key'].should eq(
+        [
+          'good array value 1',
+          'bad array value 1',
+          {
+            :inner_inner_bad => 'bad inner inner value'
+          }
+        ]
+      )
     end
   end
 end

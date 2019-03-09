@@ -683,7 +683,7 @@ module Rollbar
 
           exception_info = exception.class.name
           # #to_s and #message defaults to class.to_s. Add message only if add valuable info.
-          exception_info += %(: "#{exception.message}") if exception.message != exception.class.to_s
+          exception_info += %[: "#{exception.message}"] if exception.message != exception.class.to_s
           exception_info += " in #{nearest_frame}" if nearest_frame
 
           body += "#{exception_info}: #{message}"

@@ -335,7 +335,7 @@ describe Rollbar::Scrubbers::Params do
       end
 
       context 'and with :whitelist option' do
-        let (:whitelist) { [:foo, :buzz] }
+        let(:whitelist) { [:foo, :buzz] }
 
         context 'with simple hash' do
           let(:params) do

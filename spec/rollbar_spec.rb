@@ -15,18 +15,18 @@ require 'spec_helper'
 begin
   require 'rollbar/delay/sidekiq'
   require 'rollbar/delay/sucker_punch'
-rescue LoadError
+rescue LoadError # rubocop:disable HandleExceptions
 end
 
 begin
   require 'sucker_punch'
   require 'sucker_punch/testing/inline'
-rescue LoadError
+rescue LoadError # rubocop:disable HandleExceptions
 end
 
 begin
   require 'rollbar/delay/shoryuken'
-rescue LoadError
+rescue LoadError # rubocop:disable HandleExceptions
 end
 
 describe Rollbar do
@@ -111,7 +111,7 @@ describe Rollbar do
     describe '#log' do
       let(:exception) do
         begin
-          foo = bar
+          _foo = bar
         rescue StandardError => e
           e
         end
@@ -270,7 +270,7 @@ describe Rollbar do
             result = notifier.log('error', 'Custom message', :custom_data_method_context => context)
 
             result[:body][:message][:extra].should_not be_nil
-            result[:body][:message][:extra][:result].should == 'MyApp#' + context[:controller]
+            result[:body][:message][:extra][:result].should eq('MyApp#' + context[:controller])
             result[:body][:message][:extra][:custom_data_method_context].should be_nil
           end
         end
@@ -455,7 +455,7 @@ describe Rollbar do
     context 'debug/info/warning/error/critical' do
       let(:exception) do
         begin
-          foo = bar
+          _foo = bar
         rescue StandardError => e
           e
         end
@@ -538,14 +538,12 @@ describe Rollbar do
 
         notifier2 = notifier.scope
 
-        notifier2.configuration.code_version.should == '123'
+        notifier2.configuration.code_version.should eq('123')
         notifier2.configuration.should_not equal(notifier.configuration)
         notifier2.configuration.payload_options.should_not equal(notifier.configuration.payload_options)
-        notifier2.configuration.payload_options.should == notifier.configuration.payload_options
-        notifier2.configuration.payload_options.should == {
-          :a => 'a',
-          :b => { :c => 'c' }
-        }
+        notifier2.configuration.payload_options.should eq(notifier.configuration.payload_options)
+        notifier2.configuration.payload_options.should eq(:a => 'a',
+                                                          :b => { :c => 'c' })
       end
 
       it 'should not modify any parent notifier configuration' do
@@ -579,23 +577,17 @@ describe Rollbar do
           config.code_version = '456'
         end
 
-        notifier.configuration.code_version.should == '123'
-        notifier.configuration.payload_options.should == {
-          :a => 'a',
-          :b => { :c => 'c' }
-        }
-        notifier2.configuration.code_version.should == '123'
-        notifier2.configuration.payload_options.should == {
-          :a => 'a',
-          :b => { :c => 'c' },
-          :c => 'c'
-        }
-        notifier3.configuration.code_version.should == '456'
-        notifier3.configuration.payload_options.should == {
-          :a => 'a',
-          :b => { :c => 'c' },
-          :c => 'c'
-        }
+        notifier.configuration.code_version.should eq('123')
+        notifier.configuration.payload_options.should eq(:a => 'a',
+                                                         :b => { :c => 'c' })
+        notifier2.configuration.code_version.should eq('123')
+        notifier2.configuration.payload_options.should eq(:a => 'a',
+                                                          :b => { :c => 'c' },
+                                                          :c => 'c')
+        notifier3.configuration.code_version.should eq('456')
+        notifier3.configuration.payload_options.should eq(:a => 'a',
+                                                          :b => { :c => 'c' },
+                                                          :c => 'c')
 
         Rollbar.configuration.code_version.should be_nil
         Rollbar.configuration.payload_options.should be_empty
@@ -647,7 +639,7 @@ describe Rollbar do
   context 'reporting' do
     let(:exception) do
       begin
-        foo = bar
+        _foo = bar
       rescue StandardError => e
         e
       end
@@ -705,8 +697,8 @@ describe Rollbar do
       # now configure again (perhaps to change some other values)
       Rollbar.configure { |_| }
 
-      Rollbar.configuration.enabled.should == false
-      Rollbar.error(exception).should == 'disabled'
+      Rollbar.configuration.enabled.should eq(false)
+      Rollbar.error(exception).should eq('disabled')
     end
 
     context 'using configuration.use_exception_level_filters_default' do
@@ -902,7 +894,7 @@ describe Rollbar do
 
     it 'should allow callables to set exception filtered level' do
       callable_mock = double
-      saved_filters = Rollbar.configuration.exception_level_filters
+      _saved_filters = Rollbar.configuration.exception_level_filters
 
       Rollbar.configure do |config|
         config.exception_level_filters = { 'NameError' => callable_mock }
@@ -941,9 +933,9 @@ describe Rollbar do
 
       Rollbar.error(StandardError.new('oops'))
 
-      payload['data'][:body][:trace][:frames].should == []
-      payload['data'][:body][:trace][:exception][:class].should == 'StandardError'
-      payload['data'][:body][:trace][:exception][:message].should == 'oops'
+      payload['data'][:body][:trace][:frames].should eq([])
+      payload['data'][:body][:trace][:exception][:class].should eq('StandardError')
+      payload['data'][:body][:trace][:exception][:message].should eq('oops')
     end
 
     it 'gets the backtrace from the caller' do
@@ -1001,11 +993,11 @@ describe Rollbar do
 
       Rollbar.error(exception)
 
-      payload['data'][:level].should == 'error'
+      payload['data'][:level].should eq('error')
 
       Rollbar.log('debug', exception)
 
-      payload['data'][:level].should == 'debug'
+      payload['data'][:level].should eq('debug')
     end
 
     context 'with invalid utf8 encoding' do
@@ -1068,7 +1060,7 @@ describe Rollbar do
       a[:c] = c
 
       array1 = %w[a b]
-      array2 = ['c', 'd', array1]
+      _array2 = ['c', 'd', array1]
       a[:array] = array1
 
       # The line below will introduce a cycle in the array, which the rollbar code can handle.
@@ -1135,9 +1127,9 @@ describe Rollbar do
 
       Rollbar.info('Test message', extra_data)
 
-      Rollbar.last_report[:request].should == request_data
-      Rollbar.last_report[:person].should == person_data
-      Rollbar.last_report[:body][:message][:extra][:extra_foo].should == 'extra_bar'
+      Rollbar.last_report[:request].should eq(request_data)
+      Rollbar.last_report[:person].should eq(person_data)
+      Rollbar.last_report[:body][:message][:extra][:extra_foo].should eq('extra_bar')
     end
   end
 
@@ -1165,7 +1157,7 @@ describe Rollbar do
 
     let(:exception) do
       begin
-        foo = bar
+        _foo = bar
       rescue StandardError => e
         e
       end
@@ -1194,7 +1186,7 @@ describe Rollbar do
 
       Rollbar.error(exception)
 
-      File.exist?(filepath).should == true
+      File.exist?(filepath).should eq(true)
       File.read(filepath).should include test_access_token
       File.delete(filepath)
 
@@ -1286,7 +1278,7 @@ describe Rollbar do
 
     let(:exception) do
       begin
-        foo = bar
+        _foo = bar
       rescue StandardError => e
         e
       end
@@ -1518,35 +1510,34 @@ describe Rollbar do
       end.compact
 
       data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
-      data[:project_package_paths].is_a?(Array).should == true
-      data[:project_package_paths].length.should == gem_paths.length
+      data[:project_package_paths].is_a?(Array).should eq(true)
+      data[:project_package_paths].length.should eq(gem_paths.length)
 
-      data[:project_package_paths].each_with_index  do |path, index|
+      data[:project_package_paths].each_with_index do |path, index|
         path.should == gem_paths[index]
       end
     end
 
     it 'should handle regex gem patterns' do
       gems = ['rack', /rspec/, /roll/]
-      gem_paths = []
 
       Rollbar.configure do |config|
         config.project_gems = gems
       end
 
       gem_paths = gems.map do |name|
-        Gem::Specification.each.select { |spec| name === spec.name }
+        Gem::Specification.each.select { |spec| name === spec.name } # rubocop:disable CaseEquality
       end.flatten.uniq.map(&:gem_dir)
 
-      gem_paths.length.should > 1
+      gem_paths.length.should be > 1
 
-      gem_paths.any? { |path| path.include? 'rollbar-gem' }.should == true
-      gem_paths.any? { |path| path.include? 'rspec-rails' }.should == true
+      gem_paths.any? { |path| path.include? 'rollbar-gem' }.should eq(true)
+      gem_paths.any? { |path| path.include? 'rspec-rails' }.should eq(true)
 
       data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
-      data[:project_package_paths].is_a?(Array).should == true
-      data[:project_package_paths].length.should == gem_paths.length
-      (data[:project_package_paths] - gem_paths).length.should == 0
+      data[:project_package_paths].is_a?(Array).should eq(true)
+      data[:project_package_paths].length.should eq(gem_paths.length)
+      (data[:project_package_paths] - gem_paths).length.should eq(0)
     end
 
     it 'should not break on non-existent gems' do
@@ -1557,8 +1548,8 @@ describe Rollbar do
       end
 
       data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
-      data[:project_package_paths].is_a?(Array).should == true
-      data[:project_package_paths].length.should == 1
+      data[:project_package_paths].is_a?(Array).should eq(true)
+      data[:project_package_paths].length.should eq(1)
     end
   end
 

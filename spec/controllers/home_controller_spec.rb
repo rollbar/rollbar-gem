@@ -28,7 +28,7 @@ describe HomeController do
   context 'rollbar base_data' do
     it 'should have the Rails environment' do
       data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
-      data['data'][:environment].should == ::Rails.env
+      data['data'][:environment].should eq(::Rails.env)
     end
 
     it 'should have an overridden environment' do
@@ -37,7 +37,7 @@ describe HomeController do
       end
 
       data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
-      data['data'][:environment].should == 'dev'
+      data['data'][:environment].should eq('dev')
     end
 
     it 'should use the default "unspecified" environment if rails env ends up being empty' do
@@ -46,7 +46,7 @@ describe HomeController do
       preconfigure_rails_notifier
 
       data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
-      data['data'][:environment].should == 'unspecified'
+      data['data'][:environment].should eq('unspecified')
 
       ::Rails.env = old_env
     end
@@ -105,7 +105,7 @@ describe HomeController do
         req = controller.request
         req.host = 'rollbar.com'
 
-        controller.send(:rollbar_request_data)[:url].should == 'http://rollbar.com'
+        controller.send(:rollbar_request_data)[:url].should eq('http://rollbar.com')
       end
 
       it 'should respect forwarded host' do
@@ -113,7 +113,7 @@ describe HomeController do
         req.host = '127.0.0.1:8080'
         req.env['HTTP_X_FORWARDED_HOST'] = 'test.com'
 
-        controller.send(:rollbar_request_data)[:url].should == 'http://test.com'
+        controller.send(:rollbar_request_data)[:url].should eq('http://test.com')
       end
 
       it 'should respect forwarded proto' do
@@ -121,7 +121,7 @@ describe HomeController do
         req.host = 'rollbar.com'
         req.env['HTTP_X_FORWARDED_PROTO'] = 'https'
 
-        controller.send(:rollbar_request_data)[:url].should == 'https://rollbar.com'
+        controller.send(:rollbar_request_data)[:url].should eq('https://rollbar.com')
       end
 
       it 'should respect forwarded port' do
@@ -130,10 +130,10 @@ describe HomeController do
         req.env['HTTP_X_FORWARDED_HOST'] = 'test.com'
         req.env['HTTP_X_FORWARDED_PORT'] = '80'
 
-        controller.send(:rollbar_request_data)[:url].should == 'http://test.com'
+        controller.send(:rollbar_request_data)[:url].should eq('http://test.com')
 
         req.env['HTTP_X_FORWARDED_PORT'] = '81'
-        controller.send(:rollbar_request_data)[:url].should == 'http://test.com:81'
+        controller.send(:rollbar_request_data)[:url].should eq('http://test.com:81')
       end
     end
 
@@ -141,16 +141,16 @@ describe HomeController do
       it 'should use X-Real-Ip when set' do
         controller.request.env['HTTP_X_REAL_IP'] = '1.1.1.1'
         controller.request.env['HTTP_X_FORWARDED_FOR'] = '1.2.3.4'
-        controller.send(:rollbar_request_data)[:user_ip].should == '1.1.1.1'
+        controller.send(:rollbar_request_data)[:user_ip].should eq('1.1.1.1')
       end
 
       it 'should use X-Forwarded-For when set' do
         controller.request.env['HTTP_X_FORWARDED_FOR'] = '1.2.3.4'
-        controller.send(:rollbar_request_data)[:user_ip].should == '1.2.3.4'
+        controller.send(:rollbar_request_data)[:user_ip].should eq('1.2.3.4')
       end
 
       it 'should use the remote_addr when neither is set' do
-        controller.send(:rollbar_request_data)[:user_ip].should == '0.0.0.0'
+        controller.send(:rollbar_request_data)[:user_ip].should eq('0.0.0.0')
       end
 
       context 'rollbar_user_ip obfuscator' do
@@ -164,7 +164,7 @@ describe HomeController do
           real_ip = '1.1.1.1'
           obfuscated_ip = '95.191.35.149'
           controller.request.env['HTTP_X_REAL_IP'] = real_ip
-          controller.send(:rollbar_request_data)[:user_ip].should == obfuscated_ip
+          controller.send(:rollbar_request_data)[:user_ip].should eq(obfuscated_ip)
         end
 
         it 'should clear the ip field when an invalid ip is provided' do
@@ -181,11 +181,11 @@ describe HomeController do
 
         route = controller.send(:rollbar_request_data)[:params]
 
-        route[:controller].should == 'home'
-        route[:action].should == 'report_exception'
+        route[:controller].should eq('home')
+        route[:action].should eq('report_exception')
 
         Rollbar.last_report.should_not be_nil
-        Rollbar.last_report[:context].should == 'home#report_exception'
+        Rollbar.last_report[:context].should eq('home#report_exception')
       end
     end
   end
@@ -227,7 +227,7 @@ describe HomeController do
 
       filtered = Rollbar.last_report[:request][:POST]
 
-      filtered['passwd'].should == 'visible'
+      filtered['passwd'].should eq('visible')
       # config.filter_parameters is set to [:password] in
       # spec/dummyapp/config/application.rb
       expect(filtered['password']).to match(/\**/)

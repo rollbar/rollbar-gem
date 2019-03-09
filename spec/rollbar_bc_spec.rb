@@ -120,9 +120,9 @@ describe Rollbar do
 
       Rollbar.report_message_with_request('Test message', 'info', request_data, person_data, extra_data)
 
-      Rollbar.last_report[:request].should == request_data
-      Rollbar.last_report[:person].should == person_data
-      Rollbar.last_report[:body][:message][:extra][:extra_foo].should == 'extra_bar'
+      Rollbar.last_report[:request].should eq(request_data)
+      Rollbar.last_report[:person].should eq(person_data)
+      Rollbar.last_report[:body][:message][:extra][:extra_foo].should eq('extra_bar')
     end
   end
 
@@ -134,7 +134,7 @@ describe Rollbar do
       end
 
       begin
-        foo = bar
+        _foo = bar
       rescue StandardError => e
         @exception = e
       end
@@ -183,8 +183,8 @@ describe Rollbar do
       # now configure again (perhaps to change some other values)
       Rollbar.configure { |config| }
 
-      Rollbar.configuration.enabled.should == false
-      Rollbar.report_exception(@exception).should == 'disabled'
+      Rollbar.configuration.enabled.should eq(false)
+      Rollbar.report_exception(@exception).should eq('disabled')
     end
 
     it 'should report exceptions with request and person data' do
@@ -323,9 +323,9 @@ describe Rollbar do
 
       Rollbar.report_exception(StandardError.new('oops'))
 
-      payload['data'][:body][:trace][:frames].should == []
-      payload['data'][:body][:trace][:exception][:class].should == 'StandardError'
-      payload['data'][:body][:trace][:exception][:message].should == 'oops'
+      payload['data'][:body][:trace][:frames].should eq([])
+      payload['data'][:body][:trace][:exception][:class].should eq('StandardError')
+      payload['data'][:body][:trace][:exception][:message].should eq('oops')
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
@@ -356,7 +356,7 @@ describe Rollbar do
 
       Rollbar.report_exception(exception)
 
-      payload['data'][:body][:trace][:frames][0][:method].should == 'custom backtrace line'
+      payload['data'][:body][:trace][:frames][0][:method].should eq('custom backtrace line')
     end
 
     it 'should report exceptions with a custom level' do
@@ -369,11 +369,11 @@ describe Rollbar do
 
       Rollbar.report_exception(@exception)
 
-      payload['data'][:level].should == 'error'
+      payload['data'][:level].should eq('error')
 
       Rollbar.report_exception(@exception, nil, nil, 'debug')
 
-      payload['data'][:level].should == 'debug'
+      payload['data'][:level].should eq('debug')
     end
   end
 
