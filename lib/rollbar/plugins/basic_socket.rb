@@ -18,7 +18,7 @@ Rollbar.plugins.define('basic_socket') do
       def as_json(_options = nil)
         {
           :value => inspect
-        }.to_json
+        }
       end
     end
   end

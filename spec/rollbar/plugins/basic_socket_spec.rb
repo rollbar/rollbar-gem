@@ -39,8 +39,8 @@ describe 'basic_socket plugin' do
 
             subject.load_scoped! do
               socket = TCPSocket.new 'example.com', 80
-              expect(JSON.parse(socket.as_json)).to include('value')
-              expect(JSON.parse(socket.as_json)['value']).to match(/TCPSocket/)
+              expect(socket.as_json).to include(:value)
+              expect(socket.as_json[:value]).to match(/TCPSocket/)
             end
 
             expect(BasicSocket.public_instance_method(:as_json).source_location).
@@ -77,8 +77,8 @@ describe 'basic_socket plugin' do
           it 'changes implementation of ::BasicSocket#as_json' do
             subject.load!
             socket = TCPSocket.new 'example.com', 80
-            expect(JSON.parse(socket.as_json)).to include('value')
-            expect(JSON.parse(socket.as_json)['value']).to match(/TCPSocket/)
+            expect(socket.as_json).to include(:value)
+            expect(socket.as_json[:value]).to match(/TCPSocket/)
           end
         end
 
