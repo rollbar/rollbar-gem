@@ -1,4 +1,5 @@
 Rollbar.plugins.define('basic_socket') do
+  
   load_on_demand
 
   dependency { !configuration.disable_core_monkey_patch }
@@ -9,11 +10,8 @@ Rollbar.plugins.define('basic_socket') do
       Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('5.2.0')
   end
 
-  @original_as_json = ::BasicSocket.public_instance_method(:as_json)
-
   execute do
-    require 'socket'
-
+    @original_as_json = ::BasicSocket.public_instance_method(:as_json)
     class BasicSocket # :nodoc:
       def as_json(_options = nil)
         {
