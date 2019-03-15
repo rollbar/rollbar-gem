@@ -458,6 +458,16 @@ describe HomeController do
             end
           end
         end
+
+        context 'when ActiveRecord times out' do
+          it 'succeeds with empty person object' do
+            allow_any_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
+              .to receive(:with_connection)
+              .and_raise(ActiveRecord::ConnectionTimeoutError)
+
+            expect(person_data).to eq({})
+          end
+        end
       end
     end
   end
