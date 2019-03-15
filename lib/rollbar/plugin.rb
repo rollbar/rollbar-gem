@@ -68,7 +68,7 @@ module Rollbar
       begin
         revert_callables.each(&:call)
       rescue StandardError => e
-        log_loading_error(e)
+        log_unloading_error(e)
       ensure
         self.loaded = false
       end
@@ -117,6 +117,10 @@ module Rollbar
 
     def log_loading_error(error)
       Rollbar.log_error("Error trying to load plugin '#{name}': #{error.class}, #{error.message}")
+    end
+
+    def log_unloading_error(error)
+      Rollbar.log_error("Error trying to unload plugin '#{name}': #{error.class}, #{error.message}")
     end
   end
 end

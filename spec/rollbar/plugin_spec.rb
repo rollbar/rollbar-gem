@@ -114,6 +114,22 @@ describe Rollbar::Plugin do
 
         expect(subject.loaded).to be_eql(false)
       end
+
+      context 'with exceptions thrown in the reversals' do
+        let(:plugin_proc) do
+          proc do
+            revert do
+              raise StandardError
+            end
+          end
+        end
+
+        it 'it logs a plugin unload error message' do
+          expect(::Rollbar).to receive(:log_error).with(/Error trying to unload plugin/)
+
+          subject.unload!
+        end
+      end
     end
   end
 
