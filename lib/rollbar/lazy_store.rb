@@ -21,11 +21,11 @@ module Rollbar
     end
 
     def ==(other)
-      if other.is_a?(self.class)
-        raw == other.raw
-      else
-        raw == other
-      end
+      raw == if other.is_a?(self.class)
+               other.raw
+             else
+               other
+             end
     end
 
     # With this version of clone we ensure that the loaded_data is empty

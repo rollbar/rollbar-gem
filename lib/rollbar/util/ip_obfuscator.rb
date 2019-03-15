@@ -13,7 +13,7 @@ module Rollbar
         obfuscated_ip_int32 = ip_int32 ^ secret_int32 % (2 << 31)
 
         IPAddr.new(obfuscated_ip_int32, Socket::AF_INET).to_s
-      rescue
+      rescue StandardError
         nil
       end
     end

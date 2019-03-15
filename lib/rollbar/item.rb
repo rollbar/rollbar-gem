@@ -180,14 +180,14 @@ module Rollbar
     end
 
     def custom_data
-      if configuration.custom_data_method.arity == 3
-        data = configuration.custom_data_method.call(message, exception, context)
-      else
-        data = configuration.custom_data_method.call
-      end
+      data = if configuration.custom_data_method.arity == 3
+               configuration.custom_data_method.call(message, exception, context)
+             else
+               configuration.custom_data_method.call
+             end
 
       Rollbar::Util.deep_copy(data)
-    rescue => e
+    rescue StandardError => e
       return {} if configuration.safely?
 
       report_custom_data_error(e)
@@ -232,7 +232,7 @@ module Rollbar
       handlers.each do |handler|
         begin
           handler.call(transform_options)
-        rescue => e
+        rescue StandardError => e
           logger.error("[Rollbar] Error calling the `transform` hook: #{e}")
 
           break

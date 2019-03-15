@@ -42,7 +42,7 @@ describe Rollbar do
     it 'should report messages with extra data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
       Rollbar.report_message('Test message with extra data', 'debug', :foo => 'bar',
-                               :hash => { :a => 123, :b => 'xyz' })
+                                                                      :hash => { :a => 123, :b => 'xyz' })
     end
 
     it 'should not crash with circular extra_data' do
@@ -106,7 +106,7 @@ describe Rollbar do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       request_data = {
-        :params => {:foo => 'bar'}
+        :params => { :foo => 'bar' }
       }
 
       person_data = {
@@ -120,9 +120,9 @@ describe Rollbar do
 
       Rollbar.report_message_with_request('Test message', 'info', request_data, person_data, extra_data)
 
-      Rollbar.last_report[:request].should == request_data
-      Rollbar.last_report[:person].should == person_data
-      Rollbar.last_report[:body][:message][:extra][:extra_foo].should == 'extra_bar'
+      Rollbar.last_report[:request].should eq(request_data)
+      Rollbar.last_report[:person].should eq(person_data)
+      Rollbar.last_report[:body][:message][:extra][:extra_foo].should eq('extra_bar')
     end
   end
 
@@ -134,8 +134,8 @@ describe Rollbar do
       end
 
       begin
-        foo = bar
-      rescue => e
+        _foo = bar
+      rescue StandardError => e
         @exception = e
       end
     end
@@ -181,10 +181,10 @@ describe Rollbar do
       end
 
       # now configure again (perhaps to change some other values)
-      Rollbar.configure do |config| end
+      Rollbar.configure { |config| }
 
-      Rollbar.configuration.enabled.should == false
-      Rollbar.report_exception(@exception).should == 'disabled'
+      Rollbar.configuration.enabled.should eq(false)
+      Rollbar.report_exception(@exception).should eq('disabled')
     end
 
     it 'should report exceptions with request and person data' do
@@ -196,7 +196,7 @@ describe Rollbar do
         :headers => {},
         :GET => { 'baz' => 'boz' },
         :session => { :user_id => 123 },
-        :method => 'GET',
+        :method => 'GET'
       }
       person_data = {
         :id => 1,
@@ -207,7 +207,7 @@ describe Rollbar do
     end
 
     # Skip jruby 1.9+ (https://github.com/jruby/jruby/issues/2373)
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (not RUBY_VERSION =~ /^1\.9/)
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (RUBY_VERSION !~ /^1\.9/)
       it 'should work with an IO object as rack.errors' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
@@ -219,7 +219,7 @@ describe Rollbar do
           :GET => { 'baz' => 'boz' },
           :session => { :user_id => 123 },
           :method => 'GET',
-          :env => { :'rack.errors' => IO.new(2, File::WRONLY) },
+          :env => { :'rack.errors' => IO.new(2, File::WRONLY) }
         }
 
         person_data = {
@@ -305,7 +305,7 @@ describe Rollbar do
           test_var = 2
           raise
         end
-      rescue => e
+      rescue StandardError => e
         Rollbar.report_exception(e)
       end
 
@@ -323,14 +323,14 @@ describe Rollbar do
 
       Rollbar.report_exception(StandardError.new('oops'))
 
-      payload['data'][:body][:trace][:frames].should == []
-      payload['data'][:body][:trace][:exception][:class].should == 'StandardError'
-      payload['data'][:body][:trace][:exception][:message].should == 'oops'
+      payload['data'][:body][:trace][:frames].should eq([])
+      payload['data'][:body][:trace][:exception][:class].should eq('StandardError')
+      payload['data'][:body][:trace][:exception][:message].should eq('oops')
     end
 
     it 'should return the exception data with a uuid, on platforms with SecureRandom' do
-      if defined?(SecureRandom) and SecureRandom.respond_to?(:uuid)
-        notifier.stub(:schedule_payload) do |*args| end
+      if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
+        notifier.stub(:schedule_payload) { |*args| }
 
         exception_data = Rollbar.report_exception(StandardError.new('oops'))
         exception_data[:uuid].should_not be_nil
@@ -356,7 +356,7 @@ describe Rollbar do
 
       Rollbar.report_exception(exception)
 
-      payload['data'][:body][:trace][:frames][0][:method].should == 'custom backtrace line'
+      payload['data'][:body][:trace][:frames][0][:method].should eq('custom backtrace line')
     end
 
     it 'should report exceptions with a custom level' do
@@ -369,11 +369,11 @@ describe Rollbar do
 
       Rollbar.report_exception(@exception)
 
-      payload['data'][:level].should == 'error'
+      payload['data'][:level].should eq('error')
 
       Rollbar.report_exception(@exception, nil, nil, 'debug')
 
-      payload['data'][:level].should == 'debug'
+      payload['data'][:level].should eq('debug')
     end
   end
 

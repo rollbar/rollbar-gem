@@ -32,7 +32,7 @@ module Rollbar
         end
       end
 
-      alias_method :build, :to_h
+      alias build to_h
 
       def get_file_lines(filename)
         files[filename] ||= read_file(filename)
@@ -44,7 +44,7 @@ module Rollbar
         return unless File.exist?(filename)
 
         File.read(filename).split("\n")
-      rescue
+      rescue StandardError
         nil
       end
 

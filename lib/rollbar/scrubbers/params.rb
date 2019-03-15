@@ -9,8 +9,8 @@ module Rollbar
     # received parameters. It will not scrub anything that is in the scrub_whitelist
     # configuration array even if :scrub_all is true.
     class Params
-      SKIPPED_CLASSES = [::Tempfile]
-      ATTACHMENT_CLASSES = %w(ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile).freeze
+      SKIPPED_CLASSES = [::Tempfile].freeze
+      ATTACHMENT_CLASSES = %w[ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile].freeze
       SCRUB_ALL = :scrub_all
 
       def self.call(*args)
@@ -54,6 +54,7 @@ module Rollbar
       def build_whitelist_regex(whitelist)
         fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
         return unless fields.any?
+
         Regexp.new(fields.map { |val| /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
       end
 
@@ -70,19 +71,19 @@ module Rollbar
 
         params.to_hash.inject({}) do |result, (key, value)|
           encoded_key = Rollbar::Encoding.encode(key).to_s
-          if (fields_regex === encoded_key) && !(whitelist_regex === encoded_key)
-            result[key] = scrub_value(value)
-          elsif value.is_a?(Hash)
-            result[key] = scrub(value, options)
-          elsif scrub_all && !(whitelist_regex === encoded_key)
-            result[key] = scrub_value(value)
-          elsif value.is_a?(Array)
-            result[key] = scrub_array(value, options)
-          elsif skip_value?(value)
-            result[key] = "Skipped value of class '#{value.class.name}'"
-          else
-            result[key] = rollbar_filtered_param_value(value)
-          end
+          result[key] = if (fields_regex === encoded_key) && !(whitelist_regex === encoded_key)
+                          scrub_value(value)
+                        elsif value.is_a?(Hash)
+                          scrub(value, options)
+                        elsif scrub_all && !(whitelist_regex === encoded_key)
+                          scrub_value(value)
+                        elsif value.is_a?(Array)
+                          scrub_array(value, options)
+                        elsif skip_value?(value)
+                          "Skipped value of class '#{value.class.name}'"
+                        else
+                          rollbar_filtered_param_value(value)
+                        end
 
           result
         end
@@ -102,7 +103,7 @@ module Rollbar
         if ATTACHMENT_CLASSES.include?(value.class.name)
           begin
             attachment_value(value)
-          rescue
+          rescue StandardError
             'Uploaded file'
           end
         else

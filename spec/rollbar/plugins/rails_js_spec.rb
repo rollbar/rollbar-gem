@@ -25,7 +25,6 @@ describe ApplicationController, :type => 'request' do
 
   context 'using rails5 content_security_policy',
           :if => (Gem::Version.new(Rails.version) >= Gem::Version.new('5.2.0')) do
-
     def configure_csp(mode)
       Rails.application.config.content_security_policy_nonce_generator = lambda { |_| SecureRandom.base64(16) }
       if mode == :nonce_present
@@ -101,7 +100,7 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response without nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %(<script type="text/javascript" nonce="#{nonce(response)}">)
+        expect(response.body).to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to include '<script type="text/javascript">'
       end
 
@@ -114,7 +113,7 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %(<script type="text/javascript" nonce="#{nonce(response)}">)
+        expect(response.body).to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to include '<script type="text/javascript">'
       end
 
@@ -127,7 +126,7 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to include %(<script type="text/javascript" nonce="#{nonce(response)}">)
+        expect(response.body).to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to_not include '<script type="text/javascript">'
       end
 

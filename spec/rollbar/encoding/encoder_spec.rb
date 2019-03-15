@@ -1,4 +1,5 @@
-# encoding: utf-8
+# encoding: UTF-8
+
 require 'spec_helper'
 
 unless RUBY_VERSION.start_with?('1.8')
@@ -40,7 +41,7 @@ unless RUBY_VERSION.start_with?('1.8')
       context '0xa0 char in exception object' do
         it_behaves_like 'encoding' do
           let(:object) { "foo \xa0".force_encoding(::Encoding::ISO_8859_1) }
-          let(:expected) { "foo " }
+          let(:expected) { 'foo ' }
         end
       end
 

@@ -66,10 +66,10 @@ module Rollbar
 
     attr_reader :project_gem_paths
 
-    alias_method :safely?, :safely
+    alias safely? safely
 
-    DEFAULT_ENDPOINT = 'https://api.rollbar.com/api/1/item/'
-    DEFAULT_WEB_BASE = 'https://rollbar.com'
+    DEFAULT_ENDPOINT = 'https://api.rollbar.com/api/1/item/'.freeze
+    DEFAULT_WEB_BASE = 'https://rollbar.com'.freeze
 
     def initialize
       @async_handler = nil
@@ -134,7 +134,7 @@ module Rollbar
       @anonymize_user_ip = false
       @hooks = {
         :on_error_response => nil, # params: response
-        :on_report_internal_error => nil, # params: exception
+        :on_report_internal_error => nil # params: exception
       }
     end
 
@@ -143,7 +143,7 @@ module Rollbar
 
       instance_variables.each do |var|
         instance_var = instance_variable_get(var)
-        instance_variable_set(var, Rollbar::Util::deep_copy(instance_var))
+        instance_variable_set(var, Rollbar::Util.deep_copy(instance_var))
       end
     end
 
@@ -226,7 +226,7 @@ module Rollbar
       @async_handler  = Rollbar::Delay::SuckerPunch
     end
 
-    def use_sucker_punch=(value)
+    def use_sucker_punch=(_value)
       deprecation_message = '#use_sucker_punch=(value) has been deprecated in favor of #use_sucker_punch. Please update your rollbar configuration.'
       defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
 
@@ -278,14 +278,14 @@ module Rollbar
     end
 
     def hook(symbol, &block)
-      if @hooks.has_key?(symbol)
+      if @hooks.key?(symbol)
         if block_given?
           @hooks[symbol] = block
         else
           @hooks[symbol]
         end
       else
-        raise StandardError.new "Hook :" + symbol.to_s + " is not supported by Rollbar SDK."
+        raise StandardError, 'Hook :' + symbol.to_s + ' is not supported by Rollbar SDK.'
       end
     end
 

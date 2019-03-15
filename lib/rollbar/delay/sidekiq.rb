@@ -10,21 +10,17 @@ module Rollbar
       end
 
       def call(payload)
-        if ::Sidekiq::Client.push(@options.merge('args' => [payload])) == nil
-          raise StandardError.new "Unable to push the job to Sidekiq"
-        end
+        raise StandardError, 'Unable to push the job to Sidekiq' if ::Sidekiq::Client.push(@options.merge('args' => [payload])).nil?
       end
 
       include ::Sidekiq::Worker
 
       def perform(*args)
-        begin
-          Rollbar.process_from_async_handler(*args)
-        rescue
-          # Raise the exception so Sidekiq can track the errored job
-          # and retry it
-          raise
-        end
+        Rollbar.process_from_async_handler(*args)
+      rescue StandardError
+        # Raise the exception so Sidekiq can track the errored job
+        # and retry it
+        raise
       end
     end
   end

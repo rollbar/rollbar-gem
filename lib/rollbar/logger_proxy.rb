@@ -26,7 +26,7 @@ module Rollbar
       return unless Rollbar.configuration.enabled && acceptable_levels.include?(level.to_sym)
 
       @object.send(level, message)
-    rescue
+    rescue StandardError
       puts "[Rollbar] Error logging #{level}:"
       puts "[Rollbar] #{message}"
     end

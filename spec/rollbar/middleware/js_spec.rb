@@ -2,7 +2,6 @@ require 'spec_helper'
 require 'rollbar/middleware/js'
 require 'rollbar/middleware/js/json_value'
 
-
 shared_examples 'secure_headers' do
   it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
     SecureHeadersMocks::CSP.config = {
@@ -21,7 +20,7 @@ shared_examples 'secure_headers' do
   it 'renders the snippet in the response without nonce if SecureHeaders script_src includes \'unsafe-inline\'' do
     SecureHeadersMocks::CSP.config = {
       :opt_out? => false,
-      :script_src => %w('unsafe-inline')
+      :script_src => %w['unsafe-inline'] # rubocop:disable Lint/PercentStringArray
     }
 
     _, _, response = subject.call(env)
@@ -67,12 +66,12 @@ describe Rollbar::Middleware::Js do
     <h1>Testing the middleware</h1>
   </body>
 </html>
-END
+    END
   end
   let(:minified_html) do
     <<-END
 <html><head><link rel="stylesheet" href="url" type="text/css" media="screen" /><script type="text/javascript" src="foo"></script></head><body><h1>Testing the middleware</h1></body></html>
-END
+    END
   end
   let(:meta_charset_html) do
     <<-END
@@ -86,7 +85,7 @@ END
     <h1>Testing the middleware</h1>
   </body>
 </html>
-END
+    END
   end
   let(:meta_content_html) do
     <<-END
@@ -101,7 +100,7 @@ END
     <h1>Testing the middleware</h1>
   </body>
 </html>
-END
+    END
   end
   let(:snippet) { 'THIS IS THE SNIPPET' }
   let(:content_type) { 'text/html' }
@@ -233,19 +232,19 @@ END
         end
 
         context 'with secure headers 3.0.x-3.4.x' do
-          let(:secure_headers_mock) {  SecureHeadersMocks::SecureHeaders30 }
+          let(:secure_headers_mock) { SecureHeadersMocks::SecureHeaders30 }
 
           include_examples 'secure_headers'
         end
 
         context 'with secure headers 3.5' do
-          let(:secure_headers_mock) {  SecureHeadersMocks::SecureHeaders35 }
+          let(:secure_headers_mock) { SecureHeadersMocks::SecureHeaders35 }
 
           include_examples 'secure_headers'
         end
 
         context 'with secure headers 6.0' do
-          let(:secure_headers_mock) {  SecureHeadersMocks::SecureHeaders60 }
+          let(:secure_headers_mock) { SecureHeadersMocks::SecureHeaders60 }
 
           include_examples 'secure_headers'
         end
@@ -313,8 +312,7 @@ END
         let(:status) { 200 }
         let(:headers) do
           { 'Content-Disposition' => 'attachment',
-            'Content-Type' => content_type
-          }
+            'Content-Type' => content_type }
         end
       end
 
@@ -369,8 +367,8 @@ END
           _, _, response = subject.call(env)
           new_body = response.body.join
 
-          rollbar_config = new_body[/var _rollbarConfig = (.*);<\/script>/, 1]
-          rollbar_config = JSON.parse(rollbar_config, { :symbolize_names => true})
+          rollbar_config = new_body[%r{var _rollbarConfig = (.*);</script>}, 1]
+          rollbar_config = JSON.parse(rollbar_config, :symbolize_names => true)
 
           expect(rollbar_config).to eql(expected_js_options)
         end
@@ -390,13 +388,13 @@ END
           end
 
           it 'doesnt include old data when called a second time' do
-            _, _, _ = subject.call({
-                'rollbar.person_data' => {
-                  :id => 100,
-                  :username => 'foo',
-                  :email => 'foo@bar.com'
-                }
-            })
+            subject.call(
+              'rollbar.person_data' => {
+                :id => 100,
+                :username => 'foo',
+                :email => 'foo@bar.com'
+              }
+            )
             _, _, response = subject.call(env)
             new_body = response.body.join
 

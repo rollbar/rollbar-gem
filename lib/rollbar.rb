@@ -1,7 +1,6 @@
 require 'net/protocol'
 require 'net/https'
 require 'socket'
-require 'thread'
 require 'uri'
 require 'open-uri'
 require 'forwardable'
@@ -22,10 +21,10 @@ require 'rollbar/notifier'
 # The Rollbar module. It stores a Rollbar::Notifier per thread and
 # provides some module methods in order to use the current thread notifier.
 module Rollbar
-  PUBLIC_NOTIFIER_METHODS = %w(debug info warn warning error critical log logger
+  PUBLIC_NOTIFIER_METHODS = %w[debug info warn warning error critical log logger
                                process_item process_from_async_handler scope
                                send_failsafe log_info log_debug log_warning
-                               log_error silenced scope_object).freeze
+                               log_error silenced scope_object].freeze
 
   class << self
     extend Forwardable

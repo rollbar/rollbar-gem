@@ -1,4 +1,3 @@
-require 'thread'
 require 'timeout'
 
 module Rollbar
@@ -29,6 +28,7 @@ module Rollbar
 
         def spawn_threads_reaper
           return if @spawned
+
           @spawned = true
 
           @reaper ||= build_reaper_thread
@@ -65,7 +65,7 @@ module Rollbar
         ::Thread.new do
           begin
             Rollbar.process_from_async_handler(payload)
-          rescue
+          rescue StandardError
             # Here we swallow the exception:
             # 1. The original report wasn't sent.
             # 2. An internal error was sent and logged

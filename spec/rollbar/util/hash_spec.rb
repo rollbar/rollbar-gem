@@ -7,8 +7,8 @@ describe Rollbar::Util::Hash do
       :foo => 'bar',
       :bar => {
         :foo => 'bar',
-        :bar => [{:foo => 'bar'}]
-      },
+        :bar => [{ :foo => 'bar' }]
+      }
     }
   end
 

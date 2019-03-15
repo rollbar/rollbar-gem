@@ -11,9 +11,21 @@ module Rollbar
         # include id, username, email if non-empty
         if user
           {
-            :id => (user.send(Rollbar.configuration.person_id_method) rescue nil),
-            :username => (user.send(Rollbar.configuration.person_username_method) rescue nil),
-            :email => (user.send(Rollbar.configuration.person_email_method) rescue nil)
+            :id => (begin
+                      user.send(Rollbar.configuration.person_id_method)
+                    rescue StandardError
+                      nil
+                    end),
+            :username => (begin
+                            user.send(Rollbar.configuration.person_username_method)
+                          rescue StandardError
+                            nil
+                          end),
+            :email => (begin
+                         user.send(Rollbar.configuration.person_email_method)
+                       rescue StandardError
+                         nil
+                       end)
           }
         else
           {}

@@ -1,9 +1,9 @@
 require File.expand_path('../boot', __FILE__)
 
-require "rails/all"
+require 'rails/all'
 
 Bundler.require
-require "rollbar"
+require 'rollbar'
 
 module Dummy
   class Application < Rails::Application
@@ -30,7 +30,7 @@ module Dummy
     # config.i18n.default_locale = :de
 
     # Configure the default encoding used in templates for Ruby 1.9.
-    config.encoding = "utf-8"
+    config.encoding = 'utf-8'
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
@@ -47,15 +47,14 @@ module Dummy
     # This will create an empty whitelist of attributes available for mass-assignment for all models
     # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
     # parameters by using an attr_accessible or attr_protected declaration.
-    #config.active_record.whitelist_attributes = true
+    # config.active_record.whitelist_attributes = true
 
     # Enable the asset pipeline
-    #config.assets.enabled = true
+    # config.assets.enabled = true
 
     # Version of your assets, change this if you want to expire all your assets
-    #config.assets.version = '1.0'
+    # config.assets.version = '1.0'
 
     config.active_job.queue_adapter = :inline if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
   end
 end
-

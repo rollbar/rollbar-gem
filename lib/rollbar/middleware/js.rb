@@ -13,7 +13,7 @@ module Rollbar
       attr_reader :app
       attr_reader :config
 
-      JS_IS_INJECTED_KEY = 'rollbar.js_is_injected'
+      JS_IS_INJECTED_KEY = 'rollbar.js_is_injected'.freeze
       SNIPPET = File.read(File.expand_path('../../../../data/rollbar.snippet.js', __FILE__))
 
       def initialize(app, config)
@@ -29,7 +29,7 @@ module Rollbar
 
           response_string = add_js(env, app_result[2])
           build_response(env, app_result, response_string)
-        rescue => e
+        rescue StandardError => e
           Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
 
           app_result
@@ -71,7 +71,7 @@ module Rollbar
         return nil unless insert_after_idx
 
         build_body_with_js(env, body, insert_after_idx)
-      rescue => e
+      rescue StandardError => e
         Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
         nil
       end
@@ -189,17 +189,17 @@ module Rollbar
 
         secure_headers_cls = nil
 
-        if !::SecureHeaders::respond_to?(:content_security_policy_script_nonce)
-          secure_headers_cls = SecureHeadersFalse
-        elsif config.respond_to?(:get)
-          secure_headers_cls = SecureHeaders3To5
-        elsif config.dup.respond_to?(:csp)
-          secure_headers_cls = SecureHeaders6
-        else
-          secure_headers_cls = SecureHeadersFalse
-        end
+        secure_headers_cls = if !::SecureHeaders.respond_to?(:content_security_policy_script_nonce)
+                               SecureHeadersFalse
+                             elsif config.respond_to?(:get)
+                               SecureHeaders3To5
+                             elsif config.dup.respond_to?(:csp)
+                               SecureHeaders6
+                             else
+                               SecureHeadersFalse
+                             end
 
-          secure_headers_cls.new
+        secure_headers_cls.new
       end
 
       class SecureHeadersResolver
@@ -217,7 +217,7 @@ module Rollbar
           !opt_out?(csp) && !unsafe_inline?(csp)
         end
 
-        def opt_out?(csp)
+        def opt_out?(_csp)
           raise NotImplementedError
         end
 

@@ -34,3 +34,30 @@ Style/ExpandPathArguments:
 
 Gemspec/RequiredRubyVersion:
   Enabled: false # rubocop compares to gemspec, yet won't allow 1.9 as minimum version
+
+Style/Encoding:
+  Enabled: false # Ruby 1.9.3 needs these magic comments, e.g. # encoding: UTF-8
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    # rubocop switched from () to [] at some past version.
+    # Make sure we are consistent across all bundles/builds.
+    default: '[]'
+
+Style/Documentation:
+  # We can enabled this if/when we want to start doing consistent class documentation.
+  # As is, we currently add :nodoc: if anything at all.
+  Enabled: false
+
+Naming/UncommunicativeMethodParamName:
+  # It's possible to configure this cop to allow just about anything, but what's the point.
+  # The default min length of a param name is 3, but the the default whitelist includes things
+  # like `db` and `io`. So, short names really can be useful.
+  Enabled: false
+
+Style/CaseEquality:
+  # The code uses `===` a lot to compare a regex to a string, but it's not clear that
+  # switching to `=~` is always safe, because in some cases the value could be a regex
+  # or a string and `str1 =~ str2` isn't valid. Whoever enables this cop should carefully
+  # review and test each of these.
+  Enabled: false

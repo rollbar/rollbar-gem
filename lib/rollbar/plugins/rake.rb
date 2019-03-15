@@ -58,9 +58,9 @@ Rollbar.plugins.define('rake') do
 
       def self.rake_version
         if Object.const_defined?('RAKEVERSION')
-          return RAKEVERSION
+          RAKEVERSION
         elsif ::Rake.const_defined?('VERSION')
-          return ::Rake::VERSION
+          ::Rake::VERSION
         end
       end
     end

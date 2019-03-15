@@ -96,7 +96,7 @@ module Rollbar
     # @yield Block which exceptions won't be reported.
     def silenced
       yield
-    rescue => e
+    rescue StandardError => e
       e.instance_variable_set(:@_rollbar_do_not_report, true)
       raise
     end
@@ -203,7 +203,7 @@ module Rollbar
       else
         send_item(item)
       end
-    rescue => e
+    rescue StandardError => e
       log_error("[Rollbar] Error processing the item: #{e.class}, #{e.message}. Item: #{item.payload.inspect}")
       raise e
     end
@@ -242,7 +242,7 @@ module Rollbar
       Rollbar.silenced do
         begin
           process_item(item)
-        rescue => e
+        rescue StandardError => e
           report_internal_error(e)
 
           raise
@@ -288,7 +288,7 @@ module Rollbar
                                :configuration => configuration,
                                :logger => logger)
         schedule_item(item)
-      rescue => e
+      rescue StandardError => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
 
@@ -296,7 +296,7 @@ module Rollbar
     end
 
     ## Logging
-    %w(debug info warn error).each do |level|
+    %w[debug info warn error].each do |level|
       define_method(:"log_#{level}") do |message|
         logger.send(level, message)
       end
@@ -356,7 +356,7 @@ module Rollbar
           return 'ignored' if status == 'ignored'
         rescue Rollbar::Ignore
           raise
-        rescue => e
+        rescue StandardError => e
           log_error("[Rollbar] Error calling the `before_process` hook: #{e}")
 
           break
@@ -448,7 +448,7 @@ module Rollbar
 
       begin
         item = build_item('error', nil, exception, { :internal => true }, nil)
-      rescue => e
+      rescue StandardError => e
         send_failsafe('build_item in exception_data', e)
         log_error "[Rollbar] Exception: #{exception}"
         return
@@ -456,7 +456,7 @@ module Rollbar
 
       begin
         process_item(item)
-      rescue => e
+      rescue StandardError => e
         send_failsafe('error in process_item', e)
         log_error "[Rollbar] Item: #{item}"
         return
@@ -464,7 +464,7 @@ module Rollbar
 
       begin
         log_instance_link(item['data'])
-      rescue => e
+      rescue StandardError => e
         send_failsafe('error logging instance link', e)
         log_error "[Rollbar] Item: #{item}"
         return
@@ -683,17 +683,17 @@ module Rollbar
 
           exception_info = exception.class.name
           # #to_s and #message defaults to class.to_s. Add message only if add valuable info.
-          exception_info += %(: "#{exception.message}") if exception.message != exception.class.to_s
+          exception_info += %[: "#{exception.message}"] if exception.message != exception.class.to_s
           exception_info += " in #{nearest_frame}" if nearest_frame
 
           body += "#{exception_info}: #{message}"
-        rescue
+        rescue StandardError
           log_error('[Rollbar] Error building failsafe exception message')
         end
       else
         begin
           body += message.to_s
-        rescue
+        rescue StandardError
           log_error('[Rollbar] Error building failsafe message')
         end
       end
@@ -726,7 +726,7 @@ module Rollbar
     def process_async_item(item)
       configuration.async_handler ||= default_async_handler
       configuration.async_handler.call(item.payload)
-    rescue
+    rescue StandardError
       if configuration.failover_handlers.empty?
         log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
         return
@@ -743,7 +743,7 @@ module Rollbar
       failover_handlers.each do |handler|
         begin
           handler.call(item.payload)
-        rescue
+        rescue StandardError
           next unless handler == failover_handlers.last
 
           log_error "[Rollbar] All failover handlers failed while processing item: #{Rollbar::JSON.dump(item.payload)}"
@@ -751,7 +751,7 @@ module Rollbar
       end
     end
 
-    alias_method :log_warning, :log_warn
+    alias log_warning log_warn
 
     def log_instance_link(data)
       return unless data[:uuid]

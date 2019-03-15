@@ -52,7 +52,7 @@ module Rollbar
       end
 
       def access_token_configured?
-        File.exists?('config/initializers/rollbar.rb')
+        File.exist?('config/initializers/rollbar.rb')
       end
     end
   end

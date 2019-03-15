@@ -1,9 +1,9 @@
 module Rollbar
   module Encoding
     class Encoder
-      ALL_ENCODINGS = [::Encoding::UTF_8, ::Encoding::ISO_8859_1, ::Encoding::ASCII_8BIT, ::Encoding::US_ASCII]
-      ASCII_ENCODINGS = [::Encoding::US_ASCII, ::Encoding::ASCII_8BIT, ::Encoding::ISO_8859_1]
-      ENCODING_OPTIONS = { :invalid => :replace, :undef => :replace, :replace => '' }
+      ALL_ENCODINGS = [::Encoding::UTF_8, ::Encoding::ISO_8859_1, ::Encoding::ASCII_8BIT, ::Encoding::US_ASCII].freeze
+      ASCII_ENCODINGS = [::Encoding::US_ASCII, ::Encoding::ASCII_8BIT, ::Encoding::ISO_8859_1].freeze
+      ENCODING_OPTIONS = { :invalid => :replace, :undef => :replace, :replace => '' }.freeze
       UTF8 = 'UTF-8'.freeze
       BINARY = 'binary'.freeze
 
@@ -18,11 +18,11 @@ module Rollbar
         encoding = value.encoding
 
         # This will be most of cases so avoid force anything for them
-        if encoding == ::Encoding::UTF_8 && value.valid_encoding?
-          encoded_value = value
-        else
-          encoded_value = force_encoding(value).encode(*encoding_args(value))
-        end
+        encoded_value = if encoding == ::Encoding::UTF_8 && value.valid_encoding?
+                          value
+                        else
+                          force_encoding(value).encode(*encoding_args(value))
+                        end
 
         object.is_a?(Symbol) ? encoded_value.to_sym : encoded_value
       end
@@ -45,7 +45,7 @@ module Rollbar
             # Seems #codepoints is faster than #valid_encoding?
             value.force_encoding(encoding).encode(::Encoding::UTF_8).codepoints
             true
-          rescue
+          rescue StandardError
             false
           end
         end

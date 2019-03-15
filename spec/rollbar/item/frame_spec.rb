@@ -89,8 +89,8 @@ foo13
             :method => 'send_action',
             :code => 'foo7',
             :context => {
-              :pre => %w(foo3 foo4 foo5 foo6),
-              :post => %w(foo8 foo9 foo10 foo11)
+              :pre => %w[foo3 foo4 foo5 foo6],
+              :post => %w[foo8 foo9 foo10 foo11]
             },
             :locals => {}
           }
@@ -165,8 +165,8 @@ foo13
               :method => 'send_action',
               :code => 'foo7',
               :context => {
-                :pre => %w(foo3 foo4 foo5 foo6),
-                :post => %w(foo8 foo9 foo10 foo11)
+                :pre => %w[foo3 foo4 foo5 foo6],
+                :post => %w[foo8 foo9 foo10 foo11]
               },
               :locals => {}
             }
@@ -190,8 +190,8 @@ foo13
               :method => 'send_action',
               :code => 'foo7',
               :context => {
-                :pre => %w(foo3 foo4 foo5 foo6),
-                :post => %w(foo8 foo9 foo10 foo11)
+                :pre => %w[foo3 foo4 foo5 foo6],
+                :post => %w[foo8 foo9 foo10 foo11]
               },
               :locals => {}
             }
@@ -234,8 +234,8 @@ foo13
                 :method => 'send_action',
                 :code => 'foo3',
                 :context => {
-                  :pre => %w(foo1 foo2),
-                  :post => %w(foo4 foo5 foo6 foo7)
+                  :pre => %w[foo1 foo2],
+                  :post => %w[foo4 foo5 foo6 foo7]
                 },
                 :locals => {}
               }
@@ -256,8 +256,8 @@ foo13
                 :method => 'send_action',
                 :code => 'foo11',
                 :context => {
-                  :pre => %w(foo7 foo8 foo9 foo10),
-                  :post => %w(foo12 foo13)
+                  :pre => %w[foo7 foo8 foo9 foo10],
+                  :post => %w[foo12 foo13]
                 },
                 :locals => {}
               }

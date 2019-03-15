@@ -9,7 +9,7 @@ class SinatraDummy < Sinatra::Base
   use Rollbar::Middleware::Sinatra
 
   get '/foo' do
-    raise DummyError.new
+    raise DummyError
   end
 
   get '/bar' do
@@ -21,7 +21,7 @@ class SinatraDummy < Sinatra::Base
   end
 
   post '/crash_post' do
-    raise DummyError.new
+    raise DummyError
   end
 
   def cause_exception_with_locals
@@ -182,7 +182,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
 
       it 'appears in the sent payload when application/json is the content type' do
         expect do
-          post '/crash_post', params.to_json, { 'CONTENT_TYPE' => 'application/json' }
+          post '/crash_post', params.to_json, 'CONTENT_TYPE' => 'application/json'
         end.to raise_error(exception)
 
         expect(Rollbar.last_report[:request][:body]).to be_eql(params.to_json)
@@ -190,7 +190,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
 
       it 'appears in the sent payload when the accepts header contains json' do
         expect do
-          post '/crash_post', params, { 'ACCEPT' => 'application/vnd.github.v3+json' }
+          post '/crash_post', params, 'ACCEPT' => 'application/vnd.github.v3+json'
         end.to raise_error(exception)
 
         expect(Rollbar.last_report[:request][:POST]).to be_eql(params)

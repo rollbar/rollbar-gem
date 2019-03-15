@@ -67,6 +67,7 @@ module Rollbar
 
     def blank?(message)
       return message.blank? if message.respond_to?(:blank?)
+
       message.respond_to?(:empty?) ? !!message.empty? : !message
     end
 

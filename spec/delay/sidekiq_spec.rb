@@ -15,17 +15,16 @@ end
 describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
   let(:payload) { anything }
 
-  describe "#perform" do
-    it "performs payload" do
+  describe '#perform' do
+    it 'performs payload' do
       Rollbar.should_receive(:process_from_async_handler).with(payload)
       subject.perform payload
     end
   end
 
-  describe "#call" do
-    shared_examples "a Rollbar processor" do
-
-      it "processes payload" do
+  describe '#call' do
+    shared_examples 'a Rollbar processor' do
+      it 'processes payload' do
         Rollbar.should_receive(:process_from_async_handler).with(payload)
 
         subject.call payload
@@ -33,29 +32,29 @@ describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
       end
     end
 
-    context "with default options" do
-      it "enqueues to default queue" do
+    context 'with default options' do
+      it 'enqueues to default queue' do
         options = Rollbar::Delay::Sidekiq::OPTIONS.merge('args' => [payload])
-        ::Sidekiq::Client.should_receive(:push).with(options){ true }
+        ::Sidekiq::Client.should_receive(:push).with(options) { true }
 
         subject.call payload
       end
 
-      it_behaves_like "a Rollbar processor"
+      it_behaves_like 'a Rollbar processor'
     end
 
-    context "with custom options" do
+    context 'with custom options' do
       let(:custom_config) { { 'queue' => 'custom_queue' } }
       subject { Rollbar::Delay::Sidekiq.new custom_config }
 
-      it "enqueues to custom queue" do
+      it 'enqueues to custom queue' do
         options = Rollbar::Delay::Sidekiq::OPTIONS.merge(custom_config.merge('args' => [payload]))
-        ::Sidekiq::Client.should_receive(:push).with(options){ true }
+        ::Sidekiq::Client.should_receive(:push).with(options) { true }
 
         subject.call payload
       end
 
-      it_behaves_like "a Rollbar processor"
+      it_behaves_like 'a Rollbar processor'
     end
   end
 end

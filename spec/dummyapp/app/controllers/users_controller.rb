@@ -13,5 +13,4 @@ class UsersController < ApplicationController
     @user = User.find(params[:id])
     cookies[:session_id] = @user.encrypted_password
   end
-
 end

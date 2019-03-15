@@ -20,11 +20,9 @@ describe Rollbar::Scrubbers::Params do
         :params => params,
         :config => scrub_config
       }
-      
-      if defined? whitelist
-        options[:whitelist] = whitelist
-      end
-      
+
+      options[:whitelist] = whitelist if defined? whitelist
+
       options
     end
 
@@ -277,7 +275,7 @@ describe Rollbar::Scrubbers::Params do
 
     context 'with :scrub_all option' do
       let(:scrub_config) { :scrub_all }
-      
+
       context 'with simple hash' do
         let(:params) do
           {
@@ -327,7 +325,7 @@ describe Rollbar::Scrubbers::Params do
             :foo => /\*+/,
             :password => /\*+/,
             :bar => /\*+/,
-            :extra => /\*+/,
+            :extra => /\*+/
           }
         end
 
@@ -337,7 +335,7 @@ describe Rollbar::Scrubbers::Params do
       end
 
       context 'and with :whitelist option' do
-        let (:whitelist) { [:foo, :buzz] }
+        let(:whitelist) { [:foo, :buzz] }
 
         context 'with simple hash' do
           let(:params) do
@@ -414,12 +412,12 @@ describe Rollbar::Scrubbers::Params do
         end
       end
     end
-    
+
     context 'with :whitelist option' do
       let(:scrub_config) do
         [:secret, :password]
       end
-      
+
       let(:whitelist) { [:password] }
 
       context 'with Array object' do
@@ -587,7 +585,7 @@ end
 
 describe Rollbar::Scrubbers::Params::ATTACHMENT_CLASSES do
   it 'has the correct values' do
-    expect(described_class).to be_eql(%w(ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile).freeze)
+    expect(described_class).to be_eql(%w[ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile].freeze)
   end
 end
 
