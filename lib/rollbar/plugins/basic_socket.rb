@@ -1,5 +1,4 @@
 Rollbar.plugins.define('basic_socket') do
-  
   load_on_demand
 
   dependency { !configuration.disable_core_monkey_patch }
