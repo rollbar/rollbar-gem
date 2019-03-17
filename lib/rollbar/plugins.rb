@@ -29,7 +29,13 @@ module Rollbar
     end
 
     def load!
-      collection.each(&:load!)
+      collection.each do |plugin|
+        plugin.load! unless plugin.on_demand
+      end
+    end
+
+    def get(name)
+      collection.find { |plugin| plugin.name == name }
     end
 
     private

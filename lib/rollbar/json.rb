@@ -9,13 +9,16 @@ rescue LoadError
 end
 
 module Rollbar
-  module JSON
+  module JSON # :nodoc:
     extend self
 
     attr_writer :options_module
 
     def dump(object)
-      with_adapter { MultiJson.dump(object, adapter_options) }
+      # `basic_socket` plugin addresses the following issue: https://github.com/rollbar/rollbar-gem/issues/845
+      Rollbar.plugins.get('basic_socket').load_scoped!(true) do
+        with_adapter { MultiJson.dump(object, adapter_options) }
+      end
     end
 
     def load(string)

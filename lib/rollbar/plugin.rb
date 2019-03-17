@@ -7,6 +7,8 @@ module Rollbar
     attr_reader :name
     attr_reader :dependencies
     attr_reader :callables
+    attr_reader :revert_callables
+    attr_accessor :on_demand
     attr_accessor :loaded
 
     private :loaded=
@@ -15,11 +17,37 @@ module Rollbar
       @name = name
       @dependencies = []
       @callables = []
+      @revert_callables = []
       @loaded = false
+      @on_demand = false
+    end
+
+    def load_on_demand
+      @on_demand = true
     end
 
     def configuration
       Rollbar.configuration
+    end
+
+    def load_scoped!(transparent = false)
+      if transparent
+        load! if load?
+
+        result = yield
+
+        unload! if loaded
+      else
+        return unless load?
+
+        load!
+
+        result = yield
+
+        unload!
+      end
+
+      result
     end
 
     def load!
@@ -27,10 +55,22 @@ module Rollbar
 
       begin
         callables.each(&:call)
-      rescue => e
+      rescue StandardError => e
         log_loading_error(e)
       ensure
         self.loaded = true
+      end
+    end
+
+    def unload!
+      return unless loaded
+
+      begin
+        revert_callables.each(&:call)
+      rescue StandardError => e
+        log_unloading_error(e)
+      ensure
+        self.loaded = false
       end
     end
 
@@ -38,8 +78,12 @@ module Rollbar
       callables << block
     end
 
-    def execute!(&block)
-      block.call if load?
+    def execute!
+      yield if load?
+    end
+
+    def revert(&block)
+      revert_callables << block
     end
 
     private
@@ -61,7 +105,7 @@ module Rollbar
 
     def load?
       !loaded && dependencies_satisfy?
-    rescue => e
+    rescue StandardError => e
       log_loading_error(e)
 
       false
@@ -71,8 +115,12 @@ module Rollbar
       dependencies.all?(&:call)
     end
 
-    def log_loading_error(e)
-      Rollbar.log_error("Error trying to load plugin '#{name}': #{e.class}, #{e.message}")
+    def log_loading_error(error)
+      Rollbar.log_error("Error trying to load plugin '#{name}': #{error.class}, #{error.message}")
+    end
+
+    def log_unloading_error(error)
+      Rollbar.log_error("Error trying to unload plugin '#{name}': #{error.class}, #{error.message}")
     end
   end
 end
