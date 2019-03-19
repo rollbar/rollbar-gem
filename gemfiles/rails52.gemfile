@@ -52,10 +52,14 @@ gem 'codacy-coverage'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
-gem 'rspec-command'
 gem 'redis'
 gem 'resque'
 gem 'simplecov'
+
+unless is_jruby
+  # JRuby doesn't support fork, which is required for this test helper.
+  gem 'rspec-command'
+end
 
 gem 'mime-types'
 

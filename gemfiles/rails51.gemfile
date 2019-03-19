@@ -59,9 +59,13 @@ gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
-gem 'rspec-command'
 gem 'redis'
 gem 'resque'
+
+unless is_jruby
+  # JRuby doesn't support fork, which is required for this test helper.
+  gem 'rspec-command'
+end
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'
