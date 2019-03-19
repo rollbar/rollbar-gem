@@ -10,17 +10,22 @@ Rollbar.plugins.define('basic_socket') do
   end
 
   execute do
-    @original_as_json = ::BasicSocket.public_instance_method(:as_json)
     class BasicSocket # :nodoc:
-      def as_json(_options = nil)
+      def new_as_json(_options = nil)
         {
           :value => inspect
         }
       end
+      # alias_method is recommended over alias when aliasing at runtime.
+      # https://github.com/rubocop-hq/ruby-style-guide#alias-method
+      alias_method :original_as_json, :as_json # rubocop:disable Style/Alias
+      alias_method :as_json, :new_as_json # rubocop:disable Style/Alias
     end
   end
 
   revert do
-    ::BasicSocket.send(:define_method, :as_json, @original_as_json)
+    class BasicSocket # :nodoc:
+      alias_method :as_json, :original_as_json # rubocop:disable Style/Alias
+    end
   end
 end
