@@ -2,6 +2,13 @@
 
 source 'https://rubygems.org'
 
+# Used by spec/commands/rollbar_rails_runner_spec, and can be used whenever a
+# new process is created during tests. (Testing rake tasks, for example.)
+# This is a workaround for ENV['BUNDLE_GEMFILE'] not working as expected on Travis.
+# We use the ||= assignment because Travis loads the gemfile twice, the second time
+# with the wrong gemfile path.
+ENV['CURRENT_GEMFILE'] ||= __FILE__
+
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
@@ -47,6 +54,11 @@ elsif RUBY_VERSION.start_with?('2')
   gem 'sucker_punch', '~> 2.0' # rubocop:disable Bundler/DuplicatedGem
 end
 
+unless is_jruby
+  # JRuby doesn't support fork, which is required for this test helper.
+  gem 'rspec-command'
+end
+
 gem 'aws-sdk-sqs'
 gem 'database_cleaner'
 gem 'delayed_job', :require => false
@@ -54,7 +66,6 @@ gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque', '< 2.0.0'
-gem 'rspec-command'
 gem 'rubocop', :require => false
 gem 'sinatra'
 gem 'webmock', :require => false

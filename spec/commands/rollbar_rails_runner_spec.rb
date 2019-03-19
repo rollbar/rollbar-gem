@@ -4,15 +4,11 @@ if defined?(RSpecCommand)
   require 'rails/rollbar_runner'
 
   describe 'rollbar-rails-runner' do
-    # This example works locally, but Travis tries to run the runner process with
-    # the wrong Gemfile. Also, neither `echo $BUNDLE_GEMFILE` nor ENV['BUNDLE_GEMFILE']
-    # show the correct value when read from within this example.
-    puts "ENV['CURRENT_GEMFILE']: #{ENV['CURRENT_GEMFILE']}"
-    puts "ENV['BUNDLE_GEMFILE']: #{ENV['BUNDLE_GEMFILE']}"
+    # We set ENV['CURRENT_GEMFILE'] in the gemfile because Travis doesn't set
+    # ENV['BUNDLE_GEMFILE'] correctly.
     command %q[rollbar-rails-runner "puts 'hello'"]
     environment :BUNDLE_GEMFILE => ENV['CURRENT_GEMFILE']
     its(:stdout) do
-      #skip 'Travis tries to run the runner process with the wrong Gemfile.'
       is_expected.to include('hello')
     end
   end
