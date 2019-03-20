@@ -2,6 +2,13 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
+# Used by spec/commands/rollbar_rails_runner_spec, and can be used whenever a
+# new process is created during tests. (Testing rake tasks, for example.)
+# This is a workaround for ENV['BUNDLE_GEMFILE'] not working as expected on Travis.
+# We use the ||= assignment because Travis loads the gemfile twice, the second time
+# with the wrong gemfile path.
+ENV['CURRENT_GEMFILE'] ||= __FILE__
+
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
 gem 'appraisal'
@@ -54,9 +61,13 @@ gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
-gem 'rspec-command'
 gem 'redis'
 gem 'resque'
+
+unless is_jruby
+  # JRuby doesn't support fork, which is required for this test helper.
+  gem 'rspec-command'
+end
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
   gem 'mime-types', '< 3.0'

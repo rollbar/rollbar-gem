@@ -39,7 +39,7 @@ module Rails
     end
 
     def eval_runner
-      if Rails.version >= '5.0.0'
+      if Rails.version >= '5.1.0'
         rails5_runner
       else
         legacy_runner
