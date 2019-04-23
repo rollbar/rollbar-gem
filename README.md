@@ -45,11 +45,32 @@ For bug reports, please [open an issue on GitHub](https://github.com/rollbar/rol
 
 1. Fork it
 2. Create your feature branch (```git checkout -b my-new-feature```).
-3. Commit your changes (```git commit -am 'Added some feature'```)
+3. Commit your changes (See Conventional Commits below)
 4. Push to the branch (```git push origin my-new-feature```)
 5. Create new Pull Request
 
 We're using RSpec for testing. Run the test suite with ```rake spec```. Tests for pull requests are appreciated but not required. (If you don't include a test, we'll write one before merging.)
+
+### Conventional Commits
+This repository follows the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) guidelines.
+Commit messages should include a prefix describing the commit before the short description.
+Recognized prefixes include: feat, fix, doc, style, refactor, perf, test, build, chore, revert.
+Breaking changes should include 'BREAKING CHANGE'.
+
+Example:
+```
+git commit -m 'feat: add foo support for all bars'
+```
+
+Optionally, you can use commitizen to format your commit messages.
+```
+npm install -g commitizen
+npm install -g cz-conventional-changelog
+echo '{ "path": "cz-conventional-changelog" }' > ~/.czrc
+```
+
+And then commit using `git cz`. You'll be prompted for information describing your commit.
+
 
 ## License
 Rollbar-gem is free software released under the MIT License. See [LICENSE](LICENSE) for details.
