@@ -106,23 +106,35 @@ module Rollbar
       # Ensure all keys are strings since we can receive the payload inline or
       # from an async handler job, which can be serialized.
       stringified_payload = Util::Hash.deep_stringify_keys(payload)
-      result = Truncation.truncate(stringified_payload)
+      attempts = []
+      result = Truncation.truncate(stringified_payload, attempts)
 
       return result unless Truncation.truncate?(result)
 
-      handle_too_large_payload(stringified_payload, result)
+      handle_too_large_payload(stringified_payload, result, attempts)
 
       nil
     end
 
-    def handle_too_large_payload(stringified_payload, final_payload)
-      original_size = Rollbar::JSON.dump(stringified_payload).bytesize
-      final_size = final_payload.bytesize
+    def handle_too_large_payload(stringified_payload, final_payload, attempts)
       uuid = stringified_payload['data']['uuid']
       host = stringified_payload['data'].fetch('server', {})['host']
 
-      notifier.send_failsafe("Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Final size: #{final_size}", nil, uuid, host)
+      notifier.send_failsafe(
+        too_large_payload_string(stringified_payload, final_payload, attempts),
+        nil,
+        uuid,
+        host
+      )
       logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")
+    end
+
+    def too_large_payload_string(stringified_payload, final_payload, attempts)
+      original_size = Rollbar::JSON.dump(stringified_payload).bytesize
+      final_size = final_payload.bytesize
+
+      'Could not send payload due to it being too large after truncating attempts. ' \
+        "Original size: #{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
     end
 
     def ignored?

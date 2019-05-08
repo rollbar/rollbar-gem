@@ -15,11 +15,12 @@ module Rollbar
                   StringsStrategy,
                   MinBodyStrategy].freeze
 
-    def self.truncate(payload)
+    def self.truncate(payload, attempts = [])
       result = nil
 
       STRATEGIES.each do |strategy|
         result = strategy.call(payload)
+        attempts << result.bytesize
         break unless truncate?(result)
       end
 
