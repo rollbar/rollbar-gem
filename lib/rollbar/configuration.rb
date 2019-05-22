@@ -63,6 +63,7 @@ module Rollbar
     attr_reader :send_extra_frame_data
     attr_accessor :use_exception_level_filters_default
     attr_accessor :proxy
+    attr_accessor :raise_on_error
 
     attr_reader :project_gem_paths
 
@@ -130,6 +131,7 @@ module Rollbar
       @project_gem_paths = []
       @use_exception_level_filters_default = false
       @proxy = nil
+      @raise_on_error = false
       @collect_user_ip = true
       @anonymize_user_ip = false
       @hooks = {

@@ -147,13 +147,17 @@ module Rollbar
       level = lookup_exception_level(level, exception,
                                      use_exception_level_filters)
 
-      begin
+      ret = begin
         report(level, message, exception, extra, context)
       rescue StandardError, SystemStackError => e
         report_internal_error(e)
 
         'error'
       end
+
+      raise(exception) if configuration.raise_on_error && exception
+
+      ret
     end
 
     # See log() above

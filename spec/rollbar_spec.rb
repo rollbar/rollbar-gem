@@ -290,6 +290,32 @@ describe Rollbar do
           notifier.log('error', 'Call to Rollbar with custom_data_method')
         end
       end
+
+      context 'when raise_on_error is set' do
+        before do
+          Rollbar.configure do |config|
+            config.raise_on_error = true
+          end
+        end
+
+        let(:exception) { StandardError.new('error') }
+
+        it 'should raise on an exception event' do
+          expect(Rollbar.notifier).to receive(:report).and_return(nil)
+
+          expect do
+            Rollbar.notifier.log('error', exception)
+          end.to raise_error(exception)
+        end
+
+        it 'should not raise on a non-exception event' do
+          expect(Rollbar.notifier).to receive(:report).and_return(nil)
+
+          expect do
+            Rollbar.notifier.log('error', 'message')
+          end.not_to raise_error
+        end
+      end
     end
 
     context 'with before_process handlers in configuration' do
