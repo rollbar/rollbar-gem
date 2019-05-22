@@ -276,7 +276,11 @@ module Rollbar
     end
 
     def logger_level=(level)
-      @logger_level = level.to_sym
+      @logger_level = if level
+                        level.to_sym
+                      else
+                        level
+                      end
     end
 
     def logger
