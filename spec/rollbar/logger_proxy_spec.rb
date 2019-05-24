@@ -65,5 +65,23 @@ describe Rollbar::LoggerProxy do
         subject.log('error', 'foo')
       end
     end
+
+    context 'if logger_level is false' do
+      before do
+        allow(Rollbar.configuration).to receive(:logger_level).and_return(false)
+      end
+
+      it 'doesnt call the logger (debug)' do
+        expect(logger).to_not receive(:debug)
+
+        subject.log('debug', 'foo')
+      end
+
+      it 'doesnt call the logger (error)' do
+        expect(logger).to_not receive(:error)
+
+        subject.log('error', 'foo')
+      end
+    end
   end
 end

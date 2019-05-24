@@ -63,6 +63,9 @@ module Rollbar
     attr_reader :send_extra_frame_data
     attr_accessor :use_exception_level_filters_default
     attr_accessor :proxy
+    attr_accessor :raise_on_error
+    attr_accessor :transmit
+    attr_accessor :log_payload
 
     attr_reader :project_gem_paths
 
@@ -130,6 +133,9 @@ module Rollbar
       @project_gem_paths = []
       @use_exception_level_filters_default = false
       @proxy = nil
+      @raise_on_error = false
+      @transmit = true
+      @log_payload = false
       @collect_user_ip = true
       @anonymize_user_ip = false
       @hooks = {
@@ -270,7 +276,11 @@ module Rollbar
     end
 
     def logger_level=(level)
-      @logger_level = level.to_sym
+      @logger_level = if level
+                        level.to_sym
+                      else
+                        level
+                      end
     end
 
     def logger

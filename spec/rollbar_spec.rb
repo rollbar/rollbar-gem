@@ -290,6 +290,77 @@ describe Rollbar do
           notifier.log('error', 'Call to Rollbar with custom_data_method')
         end
       end
+
+      context 'when raise_on_error is set' do
+        before do
+          Rollbar.configure do |config|
+            config.raise_on_error = true
+          end
+        end
+
+        let(:exception) { StandardError.new('error') }
+
+        it 'should raise on an exception event' do
+          expect(Rollbar.notifier).to receive(:report).and_return(nil)
+
+          expect do
+            Rollbar.notifier.log('error', exception)
+          end.to raise_error(exception)
+        end
+
+        it 'should not raise on a non-exception event' do
+          expect(Rollbar.notifier).to receive(:report).and_return(nil)
+
+          expect do
+            Rollbar.notifier.log('error', 'message')
+          end.not_to raise_error
+        end
+      end
+
+      context 'when transmit is not set' do
+        before do
+          Rollbar.configure do |config|
+            config.transmit = false
+          end
+        end
+
+        it 'should not transmit the payload' do
+          expect(Rollbar.notifier).to_not receive(:do_post)
+
+          Rollbar.notifier.log('error', exception)
+        end
+      end
+
+      context 'when log_payload is set' do
+        before do
+          Rollbar.configure do |config|
+            config.log_payload = true
+          end
+        end
+
+        it 'should log the payload' do
+          data = nil
+          allow(Rollbar.notifier).to receive(:log_info) { |arg| data = arg }
+
+          Rollbar.notifier.log('info', 'message')
+
+          expect(data).to eql("[Rollbar] Data: #{Rollbar.last_report}")
+        end
+      end
+
+      context 'when log_payload is not set' do
+        before do
+          Rollbar.configure do |config|
+            config.log_payload = false
+          end
+        end
+
+        it 'should log the payload' do
+          expect(Rollbar.notifier).to_not receive(:log_data)
+
+          Rollbar.notifier.log('info', 'message')
+        end
+      end
     end
 
     context 'with before_process handlers in configuration' do

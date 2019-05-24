@@ -36,7 +36,11 @@ module Rollbar
     def acceptable_levels
       @acceptable_levels ||= begin
         levels = [:debug, :info, :warn, :error]
-        levels[levels.find_index(Rollbar.configuration.logger_level)..-1]
+        if Rollbar.configuration.logger_level
+          levels[levels.find_index(Rollbar.configuration.logger_level)..-1]
+        else
+          []
+        end
       end
     end
   end

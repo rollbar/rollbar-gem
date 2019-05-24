@@ -147,13 +147,19 @@ module Rollbar
       level = lookup_exception_level(level, exception,
                                      use_exception_level_filters)
 
-      begin
-        report(level, message, exception, extra, context)
-      rescue StandardError, SystemStackError => e
-        report_internal_error(e)
+      ret = report_with_rescue(level, message, exception, extra, context)
 
-        'error'
-      end
+      raise(exception) if configuration.raise_on_error && exception
+
+      ret
+    end
+
+    def report_with_rescue(level, message, exception, extra, context)
+      report(level, message, exception, extra, context)
+    rescue StandardError, SystemStackError => e
+      report_internal_error(e)
+
+      'error'
     end
 
     # See log() above
@@ -429,13 +435,22 @@ module Rollbar
 
       return 'ignored' if item.ignored?
 
-      schedule_item(item)
+      schedule_item(item) if configuration.transmit
 
+      log_and_return_item_data(item)
+    end
+
+    def log_and_return_item_data(item)
       data = item['data']
       log_instance_link(data)
       Rollbar.last_report = data
+      log_data(data) if configuration.log_payload
 
       data
+    end
+
+    def log_data(data)
+      log_info "[Rollbar] Data: #{data}"
     end
 
     # Reports an internal error in the Rollbar library. This will be reported within the configured
