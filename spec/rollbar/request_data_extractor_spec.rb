@@ -238,7 +238,19 @@ describe Rollbar::RequestDataExtractor do
                                   :method => 'POST')
       end
 
-      it 'extracts the correct user IP' do
+      it 'extracts the correct body' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql(body)
+      end
+
+      it 'extracts the correct body for JSONAPI' do
+        env['CONTENT_TYPE'] = 'application/vnd.api+json'
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql(body)
+      end
+
+      it 'extracts the correct body for any JSON compatible MIME type' do
+        env['CONTENT_TYPE'] = 'application/ld+json'
         result = subject.extract_request_data_from_rack(env)
         expect(result[:body]).to be_eql(body)
       end
@@ -254,7 +266,7 @@ describe Rollbar::RequestDataExtractor do
                                   :method => 'DELETE')
       end
 
-      it 'extracts the correct user IP' do
+      it 'extracts the correct body' do
         result = subject.extract_request_data_from_rack(env)
         expect(result[:body]).to be_eql(body)
       end
@@ -270,7 +282,7 @@ describe Rollbar::RequestDataExtractor do
                                   :method => 'PUT')
       end
 
-      it 'extracts the correct user IP' do
+      it 'extracts the correct body' do
         result = subject.extract_request_data_from_rack(env)
         expect(result[:body]).to be_eql(body)
       end
