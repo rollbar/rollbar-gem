@@ -52,10 +52,10 @@ module Rollbar
       end
 
       def build_whitelist_regex(whitelist)
-        fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
+        fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) || f.is_a?(Regexp) }
         return unless fields.any?
 
-        Regexp.new(fields.map { |val| /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
+        Regexp.new(fields.map { |val| val.is_a?(Regexp) ? val : /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
       end
 
       def scrub(params, options)
