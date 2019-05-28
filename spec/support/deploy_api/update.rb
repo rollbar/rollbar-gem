@@ -1,4 +1,5 @@
 require 'rack/request'
+require "#{File.dirname(__FILE__)}/../rollbar_api.rb"
 
 module DeployAPI
   class Update < ::RollbarAPI
