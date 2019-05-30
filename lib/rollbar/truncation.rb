@@ -4,6 +4,8 @@ require 'rollbar/truncation/raw_strategy'
 require 'rollbar/truncation/frames_strategy'
 require 'rollbar/truncation/strings_strategy'
 require 'rollbar/truncation/min_body_strategy'
+require 'rollbar/truncation/remove_request_strategy'
+require 'rollbar/truncation/remove_extra_strategy'
 
 module Rollbar
   module Truncation
@@ -13,7 +15,9 @@ module Rollbar
     STRATEGIES = [RawStrategy,
                   FramesStrategy,
                   StringsStrategy,
-                  MinBodyStrategy].freeze
+                  MinBodyStrategy,
+                  RemoveRequestStrategy,
+                  RemoveExtraStrategy].freeze
 
     def self.truncate(payload, attempts = [])
       result = nil

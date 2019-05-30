@@ -121,7 +121,7 @@ module Rollbar
       host = stringified_payload['data'].fetch('server', {})['host']
 
       notifier.send_failsafe(
-        too_large_payload_string(stringified_payload, final_payload, attempts),
+        too_large_payload_string(attempts),
         nil,
         uuid,
         host
@@ -129,12 +129,9 @@ module Rollbar
       logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")
     end
 
-    def too_large_payload_string(stringified_payload, final_payload, attempts)
-      original_size = Rollbar::JSON.dump(stringified_payload).bytesize
-      final_size = final_payload.bytesize
-
+    def too_large_payload_string(attempts)
       'Could not send payload due to it being too large after truncating attempts. ' \
-        "Original size: #{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
+        "Original size: #{attempts.first} Attempts: #{attempts.join(', ')} Final size: #{attempts.last}"
     end
 
     def ignored?
