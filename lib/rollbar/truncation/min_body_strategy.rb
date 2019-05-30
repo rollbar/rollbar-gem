@@ -11,8 +11,7 @@ module Rollbar
       end
 
       def call(payload)
-        new_payload = Rollbar::Util.deep_copy(payload)
-        body = new_payload['data']['body']
+        body = payload['data']['body']
 
         if body['trace_chain']
           body['trace_chain'] = body['trace_chain'].map do |trace_data|
@@ -22,7 +21,7 @@ module Rollbar
           body['trace'] = truncate_trace_data(body['trace'])
         end
 
-        dump(new_payload)
+        dump(payload)
       end
 
       def truncate_trace_data(trace_data)

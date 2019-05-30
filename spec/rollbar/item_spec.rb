@@ -751,7 +751,7 @@ describe Rollbar::Item do
       it 'calls Notifier#send_failsafe and logs the error' do
         original_size = Rollbar::JSON.dump(payload).bytesize
         attempts = []
-        final_size = Rollbar::Truncation.truncate(payload.clone, attempts).bytesize
+        final_size = Rollbar::Truncation.truncate(Rollbar::Util.deep_copy(payload), attempts).bytesize
         # final_size = original_size
         rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
         uuid = payload['data']['uuid']
@@ -769,7 +769,7 @@ describe Rollbar::Item do
           payload['data'].delete('server')
           original_size = Rollbar::JSON.dump(payload).bytesize
           attempts = []
-          final_size = Rollbar::Truncation.truncate(payload.clone, attempts).bytesize
+          final_size = Rollbar::Truncation.truncate(Rollbar::Util.deep_copy(payload), attempts).bytesize
           # final_size = original_size
           rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
           uuid = payload['data']['uuid']
