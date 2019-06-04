@@ -552,8 +552,6 @@ describe HomeController do
   end
 
   context 'with params to be scrubed from URL', :type => :request do
-    next unless Rollbar::LanguageSupport.can_scrub_url?
-
     before do
       Rollbar.configure do |config|
         config.scrub_fields = [:password]

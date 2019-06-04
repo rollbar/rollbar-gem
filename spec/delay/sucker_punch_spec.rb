@@ -12,7 +12,7 @@ rescue LoadError
   end
 end
 
-describe Rollbar::Delay::SuckerPunch, :if => RUBY_VERSION != '1.8.7' do
+describe Rollbar::Delay::SuckerPunch do
   describe '.call' do
     let(:payload) { 'anything' }
 

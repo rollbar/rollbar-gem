@@ -53,8 +53,6 @@ jdk:
   - openjdk8
   - oraclejdk8
   - oraclejdk9
-env:
-  - ROLLBAR_SSL_CERT_FILE=/home/travis/build/rollbar/rollbar-gem/spec/cacert.pem
 gemfile:
   - gemfiles/rails30.gemfile
   - gemfiles/rails31.gemfile

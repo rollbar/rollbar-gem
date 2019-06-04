@@ -12,7 +12,7 @@ rescue LoadError
   end
 end
 
-describe Rollbar::Delay::Sidekiq, :if => RUBY_VERSION != '1.8.7' do
+describe Rollbar::Delay::Sidekiq do
   let(:payload) { anything }
 
   describe '#perform' do

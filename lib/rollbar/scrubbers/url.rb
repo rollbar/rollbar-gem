@@ -14,7 +14,6 @@ module Rollbar
 
       def call(options = {})
         url = options[:url]
-        return url unless Rollbar::LanguageSupport.can_scrub_url?
 
         filter(url,
                build_regex(options[:scrub_fields]),

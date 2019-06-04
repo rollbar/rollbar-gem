@@ -3,27 +3,11 @@ module Rollbar
     module_function
 
     def const_defined?(mod, target, inherit = true)
-      if ruby_18?
-        mod.const_defined?(target)
-      else
-        mod.const_defined?(target, inherit)
-      end
+      mod.const_defined?(target, inherit)
     end
 
     def const_get(mod, target, inherit = true)
-      if ruby_18?
-        mod.const_get(target)
-      else
-        mod.const_get(target, inherit)
-      end
-    end
-
-    def can_scrub_url?
-      !version?('1.8')
-    end
-
-    def ruby_18?
-      version?('1.8')
+      mod.const_get(target, inherit)
     end
 
     def ruby_19?
@@ -37,7 +21,7 @@ module Rollbar
     end
 
     def timeout_exceptions
-      return [] if ruby_18? || ruby_19?
+      return [] if ruby_19?
 
       [Net::ReadTimeout, Net::OpenTimeout]
     end

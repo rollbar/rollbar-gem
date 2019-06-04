@@ -557,8 +557,6 @@ module Rollbar
 
       if uri.scheme == 'https'
         http.use_ssl = true
-        # This is needed to have 1.8.7 passing tests
-        http.ca_file = ENV['ROLLBAR_SSL_CERT_FILE'] if ENV.key?('ROLLBAR_SSL_CERT_FILE')
         http.verify_mode = ssl_verify_mode
       end
 
@@ -639,7 +637,7 @@ module Rollbar
     end
 
     def skip_retries?
-      Rollbar::LanguageSupport.ruby_18? || Rollbar::LanguageSupport.ruby_19?
+      Rollbar::LanguageSupport.ruby_19?
     end
 
     def handle_response(response)
