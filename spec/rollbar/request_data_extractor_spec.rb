@@ -84,7 +84,7 @@ describe Rollbar::RequestDataExtractor do
       expect(result).to be_kind_of(Hash)
     end
 
-    context 'with invalid utf8 sequence in key', :if => RUBY_VERSION != '1.8.7' do
+    context 'with invalid utf8 sequence in key' do
       let(:data) do
         File.read(File.expand_path('../../support/encodings/iso_8859_9', __FILE__)).force_encoding(Encoding::ISO_8859_9)
       end

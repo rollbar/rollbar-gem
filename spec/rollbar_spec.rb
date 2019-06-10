@@ -1871,7 +1871,7 @@ describe Rollbar do
 
   context 'having timeout issues (for ruby > 1.9.3)' do
     before do
-      skip if Rollbar::LanguageSupport.ruby_18? || Rollbar::LanguageSupport.ruby_19?
+      skip if Rollbar::LanguageSupport.ruby_19?
     end
 
     let(:exception_class) do

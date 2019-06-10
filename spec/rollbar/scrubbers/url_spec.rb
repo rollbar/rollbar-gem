@@ -19,8 +19,6 @@ describe Rollbar::Scrubbers::URL do
 
   describe '#call' do
     context 'cannot scrub URLs' do
-      next if Rollbar::LanguageSupport.can_scrub_url?
-
       let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
       it 'returns the URL without any change' do
@@ -29,8 +27,6 @@ describe Rollbar::Scrubbers::URL do
     end
 
     context 'with ruby different from 1.8' do
-      next unless Rollbar::LanguageSupport.can_scrub_url?
-
       context 'without data to be scrubbed' do
         let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
@@ -141,8 +137,6 @@ describe Rollbar::Scrubbers::URL do
       let(:whitelist) { [:user, :secret] }
 
       context 'with ruby different from 1.8' do
-        next unless Rollbar::LanguageSupport.can_scrub_url?
-
         context 'cannot scrub URLs' do
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 

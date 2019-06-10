@@ -10,7 +10,7 @@ rescue LoadError
   end
 end
 
-describe Rollbar::Delay::Shoryuken, :if => RUBY_VERSION != '1.8.7' && RUBY_VERSION != '1.9.2' do
+describe Rollbar::Delay::Shoryuken do
   describe '.call' do
     let(:payload) do
       { :key => 'value' }

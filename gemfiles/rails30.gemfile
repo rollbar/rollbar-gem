@@ -19,7 +19,6 @@ gem 'rails', '3.0.20'
 gem 'hitimes', '< 1.2.2'
 gem 'rake', '< 11'
 gem 'rspec-rails', '>= 2.14.0'
-gem 'celluloid', '< 0.17.0' if RUBY_VERSION == '1.9.2'
 
 unless is_jruby
   if RUBY_VERSION >= '2.4.0'
@@ -29,7 +28,7 @@ unless is_jruby
   end
 end
 
-if RUBY_VERSION > '1.8.7' && RUBY_VERSION < '2.2.2'
+if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
 else
   gem 'sidekiq', '>= 2.13.0'

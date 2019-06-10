@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'rollbar/rake_tasks'
 
-describe RollbarTest, :if => RUBY_VERSION >= '1.9.3' do
+describe RollbarTest do
   describe '#run' do
     context 'when rollbar is configured' do
       before do
