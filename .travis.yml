@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 services:
   - redis-server
 language: ruby
