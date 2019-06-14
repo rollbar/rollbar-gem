@@ -228,6 +228,22 @@ describe Rollbar::RequestDataExtractor do
       end
     end
 
+    context 'with form POST body (non-json)' do
+      let(:body) { 'foo=1&bar=2' }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+                                  'HTTP_ACCEPT' => 'application/json',
+                                  :input => body,
+                                  :method => 'POST')
+      end
+
+      it 'skips extracting the body' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql('{}')
+      end
+    end
+
     context 'with JSON POST body' do
       let(:params) { { 'key' => 'value' } }
       let(:body) { params.to_json }
@@ -254,6 +270,8 @@ describe Rollbar::RequestDataExtractor do
         result = subject.extract_request_data_from_rack(env)
         expect(result[:body]).to be_eql(body)
       end
+
+
     end
 
     context 'with JSON DELETE body' do
