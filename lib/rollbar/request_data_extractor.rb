@@ -210,8 +210,7 @@ module Rollbar
     def json_request?(rack_req)
       json_regex = /\bjson\b/
 
-      !!(rack_req.env['CONTENT_TYPE'] =~ json_regex ||
-         rack_req.env['HTTP_ACCEPT'] =~ json_regex)
+      !!(rack_req.env['CONTENT_TYPE'] =~ json_regex)
     end
 
     def rollbar_route_params(env)
