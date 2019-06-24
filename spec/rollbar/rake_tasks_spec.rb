@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'rollbar/rake_tasks'
+require 'rollbar/verify_setup'
 
 describe RollbarTest do
   describe '#run' do
