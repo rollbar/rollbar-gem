@@ -61,3 +61,8 @@ Style/CaseEquality:
   # or a string and `str1 =~ str2` isn't valid. Whoever enables this cop should carefully
   # review and test each of these.
   Enabled: false
+
+Style/FrozenStringLiteralComment:
+  # If we do this, it will be in its own PR. It requires adding these magic comments
+  # throughout the project, in order to prepare for a future Ruby 3.x.
+  Enabled: false
