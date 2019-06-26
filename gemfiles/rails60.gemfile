@@ -1,0 +1,77 @@
+
+require 'rubygems/version'
+
+source 'https://rubygems.org'
+
+# Used by spec/commands/rollbar_rails_runner_spec, and can be used whenever a
+# new process is created during tests. (Testing rake tasks, for example.)
+# This is a workaround for ENV['BUNDLE_GEMFILE'] not working as expected on Travis.
+# We use the ||= assignment because Travis loads the gemfile twice, the second time
+# with the wrong gemfile path.
+ENV['CURRENT_GEMFILE'] ||= __FILE__
+
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
+
+gem 'appraisal'
+gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
+gem 'jruby-openssl', :platform => :jruby
+gem 'rails', '6.0.0.rc1'
+gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
+
+gem 'rspec-core', '~> 3.8.0'
+gem 'rspec-support', '~> 3.8.0'
+gem 'rspec-expectations', '~> 3.8.0'
+gem 'rspec-mocks', '~> 3.8.0'
+# TODO: update this when 4.x becomes available on Rubygems
+gem 'rspec-rails', :git => 'https://github.com/rspec/rspec-rails', :ref => 'v4.0.0.beta2' # rubocop:disable Bundler/DuplicatedGem
+
+gem 'rake'
+
+unless is_jruby
+  if RUBY_VERSION >= '2.5'
+    gem 'oj'
+  elsif RUBY_VERSION >= '2.4.0'
+    gem 'oj', '~> 2.16.1'
+  else
+    gem 'oj', '~> 2.12.14'
+  end
+end
+
+gem 'sidekiq', '>= 2.13.0'
+
+platforms :rbx do
+  gem 'minitest'
+  gem 'racc'
+  gem 'rubinius-developer_tools'
+  gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
+end
+
+gem 'sucker_punch', '~> 2.0'
+
+# We need last sinatra that uses rack 2.x
+gem 'sinatra', :git => 'https://github.com/sinatra/sinatra'
+
+gem 'database_cleaner'
+gem 'codacy-coverage'
+gem 'delayed_job', '4.1.8.beta1', :require => false
+gem 'generator_spec'
+gem 'girl_friday', '>= 0.11.1'
+gem 'redis'
+gem 'resque'
+gem 'simplecov'
+
+unless is_jruby
+  # JRuby doesn't support fork, which is required for this test helper.
+  gem 'rspec-command'
+end
+
+gem 'mime-types'
+
+gem 'webmock', :require => false
+
+gem 'aws-sdk-sqs'
+gem 'shoryuken'
+
+gem 'capistrano', :require => false
+
+gemspec :path => '../'
