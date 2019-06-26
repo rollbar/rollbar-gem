@@ -240,7 +240,7 @@ describe HomeController do
     it 'should be successful and report two messages' do
       logger_mock.should_receive(:info).with('[Rollbar] Success').twice
       get 'index'
-      response.should be_success
+      expect(response.status).to eq(200)
     end
   end
 
@@ -249,7 +249,7 @@ describe HomeController do
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
       get '/report_exception'
-      response.should be_success
+      expect(response.status).to eq(200)
     end
 
     it 'should raise a NameError and have PUT params in the reported exception' do
