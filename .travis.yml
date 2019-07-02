@@ -21,8 +21,7 @@ rvm:
   - 2.6.0
   - 2.6.3
   - rbx
-  # Travis's own rvm installer is failing on JRuby builds, TODO: reenable when fixed.
-  # - jruby-9.1.9.0
+  - jruby-9.1.9.0
 
   #
   # # About legacy JRuby
