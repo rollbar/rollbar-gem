@@ -63,9 +63,9 @@ module Rollbar
 
     def self.clone_obj(obj)
       if obj.is_a?(::Hash)
-        obj.clone
+        obj.dup
       elsif obj.is_a?(Array)
-        obj.clone.clear
+        obj.dup.clear
       else
         obj
       end

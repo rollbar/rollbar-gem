@@ -97,6 +97,21 @@ describe Rollbar::Util do
         expect(result).to be_eql(data)
       end
     end
+
+    context 'with frozen data' do
+      let(:data) do
+        {
+          :foo => ['bar', 'baz', 'buzz'].freeze,
+          :baz => 'buzz'.freeze
+        }
+      end
+
+      it "doesn't raise FrozenError" do
+        result = Rollbar::Util.deep_copy(data)
+
+        expect(result).to be_eql(data)
+      end
+    end
   end
 
   describe '.enforce_valid_utf8' do
