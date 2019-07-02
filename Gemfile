@@ -11,13 +11,25 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
+GEMFILE_RAILS_VERSION = '6.0.0rc1'.freeze
+
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
 gem 'jruby-openssl', :platform => :jruby
-gem 'rails', '4.2.8'
+gem 'rails', GEMFILE_RAILS_VERSION
 gem 'rake'
-gem 'rspec-rails', '~> 3.4'
-gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
+if GEMFILE_RAILS_VERSION < '6.0'
+  gem 'rspec-rails', '~> 3.4'
+else
+  # TODO: update this when 4.x becomes available on Rubygems
+  gem 'rspec-rails', :git => 'https://github.com/rspec/rspec-rails', :ref => 'v4.0.0.beta2' # rubocop:disable Bundler/DuplicatedGem
+end
+
+if GEMFILE_RAILS_VERSION < '6.0'
+  gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
+else
+  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw] # rubocop:disable Bundler/DuplicatedGem
+end
 
 unless is_jruby
   if RUBY_VERSION >= '2.5'
@@ -61,7 +73,11 @@ end
 
 gem 'aws-sdk-sqs'
 gem 'database_cleaner'
-gem 'delayed_job', :require => false
+if GEMFILE_RAILS_VERSION < '6.0'
+  gem 'delayed_job', :require => false
+else
+  gem 'delayed_job', '~> 4.1', :require => false # rubocop:disable Bundler/DuplicatedGem
+end
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
