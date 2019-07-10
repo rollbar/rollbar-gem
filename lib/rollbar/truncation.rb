@@ -6,6 +6,7 @@ require 'rollbar/truncation/strings_strategy'
 require 'rollbar/truncation/min_body_strategy'
 require 'rollbar/truncation/remove_request_strategy'
 require 'rollbar/truncation/remove_extra_strategy'
+require 'rollbar/truncation/remove_any_key_strategy'
 
 module Rollbar
   module Truncation
@@ -17,7 +18,8 @@ module Rollbar
                   StringsStrategy,
                   MinBodyStrategy,
                   RemoveRequestStrategy,
-                  RemoveExtraStrategy].freeze
+                  RemoveExtraStrategy,
+                  RemoveAnyKeyStrategy].freeze
 
     def self.truncate(payload, attempts = [])
       result = nil
