@@ -21,14 +21,6 @@ gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 # Please see https://github.com/rspec/rspec-rails/issues/1273
 gem 'test-unit'
 
-unless is_jruby
-  if RUBY_VERSION >= '2.4.0'
-    gem 'oj', '~> 2.16.1'
-  else
-    gem 'oj', '~> 2.12.14'
-  end
-end
-
 if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
 else

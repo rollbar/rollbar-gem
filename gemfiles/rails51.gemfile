@@ -27,16 +27,6 @@ gem 'rake'
 
 gem 'sidekiq', '>= 2.13.0'
 
-unless is_jruby
-  if RUBY_VERSION >= '2.5'
-    gem 'oj'
-  elsif RUBY_VERSION >= '2.4.0'
-    gem 'oj', '~> 2.16.1'
-  else
-    gem 'oj', '~> 2.12.14'
-  end
-end
-
 platforms :rbx do
   gem 'minitest'
   gem 'racc'

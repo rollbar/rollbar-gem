@@ -27,16 +27,6 @@ platforms :rbx do
   gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
 end
 
-unless is_jruby
-  if RUBY_VERSION >= '2.5'
-    gem 'oj'
-  elsif RUBY_VERSION >= '2.4.0'
-    gem 'oj', '~> 2.16.1'
-  else
-    gem 'oj', '~> 2.12.14'
-  end
-end
-
 if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
 else

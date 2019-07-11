@@ -89,11 +89,11 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
   end
 
   context 'with not array or hash POST parameters' do
-    let(:params) { 1000 }
+    let(:params) { 'test string' }
 
     it 'sends a body.multi key in params' do
       expect do
-        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        request.post('/will_crash', :input => params, 'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
       reported_body = Rollbar.last_report[:request][:body]

@@ -687,17 +687,34 @@ describe Rollbar::Item do
       end
       let(:item) { Rollbar::Item.build_with(payload) }
 
-      it 'fails in ActiveSupport with stack too deep' do
+      it "doesn't fail in ActiveSupport >= 4.1" do
         begin
           _json = item.dump
-        rescue NoMemoryError, SystemStackError, Java::JavaLang::StackOverflowError
+
+        # If you get an uninitialized constant "Java" error, it just means an unexpected exception
+        # occurred (i.e. one not in the below list) and caused Java::JavaLang::StackOverflowError.
+        # If the test case is working correctly, this shouldn't happen ang the Java error type
+        # will only be evaluated on JRuby builds.
+        rescue NoMemoryError,
+               SystemStackError,
+               ActiveSupport::JSON::Encoding::CircularReferenceError,
+               Java::JavaLang::StackOverflowError
+
+          # If ActiveSupport is invoked, we'll end up here.
           # Item#dump fails with SystemStackError (ActiveSupport > 4.0)
           # or NoMemoryError (ActiveSupport <= 4.0) which, as system exceptions
           # not a StandardError, cannot be tested by `expect().to raise_error`
           error = :SystemError
         end
 
-        expect(error).to be_eql(:SystemError)
+        if Gem::Version.new(ActiveSupport::VERSION::STRING) >= Gem::Version.new('4.1.0')
+          expect(error).not_to be_eql(:SystemError)
+        else
+          # This ActiveSupport is vulnerable to circular reference errors, and is
+          # virtually impossible to correct, because these versions of AS even hook into
+          # core Ruby JSON.
+          expect(error).to be_eql(:SystemError)
+        end
       end
     end
 

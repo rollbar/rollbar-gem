@@ -6,7 +6,7 @@ Rollbar.plugins.define('basic_socket') do
   # Needed to avoid active_support (< 4.1.0) bug serializing JSONs
   dependency do
     defined?(ActiveSupport::VERSION::STRING) &&
-      Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('5.2.0')
+      Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('4.1.0')
   end
 
   execute do
