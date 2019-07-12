@@ -103,10 +103,20 @@ module Rollbar
       def data_keys
         @data_keys ||= {}.tap do |hash|
           data.keys.reject { |key| skip_keys.include?(key) }.each do |key|
-            size = dump(data[key]).bytesize
-            hash[key] = size
+            set_key_size(key, hash)
           end
         end
+      end
+
+      def set_key_size(key, hash)
+        size = dump(data[key]).bytesize
+        hash[key] = size
+      rescue ::JSON::GeneratorError
+        hash[key] = 0 # don't try to truncate non JSON object
+
+        # Log it
+        truncation_key['non_json_keys'] ||= {}
+        truncation_key['non_json_keys'][key] = data[key].class
       end
     end
   end
