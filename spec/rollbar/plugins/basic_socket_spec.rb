@@ -34,8 +34,8 @@ describe 'basic_socket plugin' do
     context 'with core monkey patching enabled' do
       before { subject.configuration.disable_core_monkey_patch = false }
 
-      if Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('5.2.0')
-        context 'using active_support < 5.2' do
+      if Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('4.1.0')
+        context 'using active_support < 4.1' do
           it 'changes implementation of ::BasicSocket#as_json temporarily' do
             original_implementation = BasicSocket.
               public_instance_method(:as_json).
@@ -54,7 +54,7 @@ describe 'basic_socket plugin' do
           end
         end
       else
-        context 'using active_support >= 5.2' do
+        context 'using active_support >= 4.1' do
           context 'when called as transparent' do
             it 'executes provided block even when dependencies are unmet' do
               result = false
@@ -72,8 +72,8 @@ describe 'basic_socket plugin' do
   end
 
   describe '#load!' do
-    if Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('5.2.0')
-      context 'using active_support < 5.2' do
+    if Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('4.1.0')
+      context 'using active_support < 4.1' do
         context 'with core monkey patching enabled' do
           before { subject.configuration.disable_core_monkey_patch = false }
 
@@ -103,7 +103,7 @@ describe 'basic_socket plugin' do
         end
       end
     else
-      context 'using active_support >= 5.2' do
+      context 'using active_support >= 4.1' do
         it_should_behave_like 'unloadable'
       end
     end

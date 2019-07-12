@@ -1128,22 +1128,13 @@ describe Rollbar do
       a = { :foo => 'bar' }
       b = { :a => a }
       c = { :b => b }
-      a[:c] = c
+      a[:c] = c # Introduces a cycle
 
       array1 = %w[a b]
-      _array2 = ['c', 'd', array1]
+      array2 = ['c', 'd', array1]
       a[:array] = array1
 
-      # The line below will introduce a cycle in the array, which the rollbar code can handle.
-      # However, both OJ and ActiveSupport `as_json` crash on this when serializing the payload.
-      # We could do without OJ, but it's a moot point because of the ActiveSupport issue.
-      # The gemspec currently uses multi_json to give the user as much control as possible over
-      # choice of JSON serializer. We should continue to allow this flexibility unless it is
-      # determined that cycles of arrays directly referencing arrays (without other objects
-      # in between) must be supported. Then in that case, an appropriate serializer should
-      # be added to the gemspec.
-      #
-      # array1 << array2
+      array1 << array2 # Introduces a cycle
 
       expect(logger_mock).to_not receive(:error).with(
         /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./

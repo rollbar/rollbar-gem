@@ -31,16 +31,6 @@ else
   gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw] # rubocop:disable Bundler/DuplicatedGem
 end
 
-unless is_jruby
-  if RUBY_VERSION >= '2.5'
-    gem 'oj'
-  elsif RUBY_VERSION >= '2.4.0'
-    gem 'oj', '~> 2.16.1' # rubocop:disable Bundler/DuplicatedGem
-  else
-    gem 'oj', '~> 2.12.14' # rubocop:disable Bundler/DuplicatedGem
-  end
-end
-
 if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
 else

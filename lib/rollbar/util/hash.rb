@@ -5,6 +5,7 @@ module Rollbar
         return if seen[hash.object_id]
 
         seen[hash.object_id] = true
+        replace_seen_children(hash, seen)
 
         hash.reduce({}) do |h, (key, value)|
           h[key.to_s] = map_value(value, :deep_stringify_keys, seen)
@@ -22,10 +23,24 @@ module Rollbar
             thing
           else
             seen[thing.object_id] = true
+            replace_seen_children(thing, seen)
             thing.map { |v| map_value(v, meth, seen) }
           end
         else
           thing
+        end
+      end
+
+      def self.replace_seen_children(thing, seen)
+        case thing
+        when ::Hash
+          thing.keys.each do |key|
+            thing[key] = "removed circular reference: #{thing[key]}" if seen[thing[key].object_id]
+          end
+        when Array
+          thing.each_with_index do |_, i|
+            thing[i] = "removed circular reference: #{thing[i]}" if seen[thing[i].object_id]
+          end
         end
       end
     end

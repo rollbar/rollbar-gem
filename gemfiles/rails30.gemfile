@@ -20,14 +20,6 @@ gem 'hitimes', '< 1.2.2'
 gem 'rake', '< 11'
 gem 'rspec-rails', '>= 2.14.0'
 
-unless is_jruby
-  if RUBY_VERSION >= '2.4.0'
-    gem 'oj', '~> 2.16.1'
-  else
-    gem 'oj', '~> 2.12.14'
-  end
-end
-
 if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
 else

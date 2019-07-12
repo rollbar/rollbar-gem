@@ -18,8 +18,6 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = '>= 1.9.3'
   gem.version = Rollbar::VERSION
 
-  gem.add_runtime_dependency 'multi_json'
-
   if gem.respond_to?(:metadata)
     gem.metadata['changelog_uri'] = 'https://github.com/rollbar/rollbar-gem/releases'
     gem.metadata['source_code_uri'] = 'https://github.com/rollbar/rollbar-gem'
