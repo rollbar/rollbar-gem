@@ -42,21 +42,21 @@ module Rollbar
     # Similar to configure below, but used only internally within the gem
     # to configure it without initializing any of the third party hooks
     def preconfigure
-      yield(configuration)
+      yield(configuration.configured_options)
     end
 
     # Configures the notifier instance
     def configure
       configuration.enabled = true if configuration.enabled.nil?
 
-      yield(configuration)
+      yield(configuration.configured_options)
     end
 
     def reconfigure
       self.configuration = Configuration.new
       configuration.enabled = true
 
-      yield(configuration)
+      yield(configuration.configured_options)
     end
 
     def unconfigure

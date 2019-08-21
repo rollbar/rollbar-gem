@@ -84,7 +84,8 @@ module Rollbar
         :server => server_data,
         :notifier => {
           :name => 'rollbar-gem',
-          :version => VERSION
+          :version => VERSION,
+          :configured_options => scrub(configuration.configured_options.configured)
         },
         :body => build_body
       }

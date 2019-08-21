@@ -8,12 +8,14 @@ describe Rollbar::Item do
   let(:safely_notifier) { double('safely_notifier') }
   let(:logger) { double }
   let(:configuration) do
-    c = Rollbar::Configuration.new
-    c.enabled = true
-    c.access_token = 'footoken'
-    c.root = '/foo/'
-    c.framework = 'Rails'
-    c
+    Rollbar.configure do |c|
+      c.enabled = true
+      c.access_token = 'footoken'
+      c.randomize_scrub_length = false
+      c.root = '/foo/'
+      c.framework = 'Rails'
+    end
+    Rollbar.configuration
   end
   let(:level) { 'info' }
   let(:message) { 'message' }
@@ -121,6 +123,12 @@ describe Rollbar::Item do
       payload['data'][:body][:message][:extra].should_not be_nil
       payload['data'][:body][:message][:extra][:a].should == 1
       payload['data'][:body][:message][:extra][:b][2].should == 4
+    end
+
+    it 'should have correct configured_options object' do
+      payload['data'][:notifier][:configured_options][:access_token].should == '********'
+      payload['data'][:notifier][:configured_options][:root].should == '/foo/'
+      payload['data'][:notifier][:configured_options][:framework].should == 'Rails'
     end
 
     context do
