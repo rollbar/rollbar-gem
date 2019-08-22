@@ -84,7 +84,8 @@ module Rollbar
         :server => server_data,
         :notifier => {
           :name => 'rollbar-gem',
-          :version => VERSION
+          :version => VERSION,
+          :configured_options => configured_options
         },
         :body => build_body
       }
@@ -100,6 +101,17 @@ module Rollbar
       data.delete(:context) unless data[:context]
 
       data
+    end
+
+    def configured_options
+      if Gem.loaded_specs['activesupport'] && Gem.loaded_specs['activesupport'].version < Gem::Version.new('4.1')
+        # There are too many types that crash ActiveSupport JSON serialization, and not worth
+        # the risk just to send this diagnostic object. In versions < 4.1, ActiveSupport hooks
+        # Ruby's JSON.generate so deeply there's no workaround.
+        'not serialized in ActiveSupport < 4.1'
+      else
+        scrub(configuration.configured_options.configured)
+      end
     end
 
     def dump

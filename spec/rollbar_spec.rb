@@ -63,9 +63,22 @@ describe Rollbar do
       expect(Rollbar.notifier).to_not receive(:report)
       expect(Rollbar.error('error message')).to be_eql('disabled')
     end
+
+    it 'should have empty configured options' do
+      expect(Rollbar.configuration.configured_options.configured).to be_eql({})
+    end
   end
 
   shared_examples 'stores the root notifier' do
+  end
+
+  shared_examples 'configured options' do
+    it 'tracks the configured options' do
+      Rollbar.reconfigure do |c|
+        c.environment = 'staging'
+      end
+      expect(Rollbar.configuration.configured_options.configured[:environment]).to be_eql('staging')
+    end
   end
 
   describe '.configure' do
@@ -75,6 +88,8 @@ describe Rollbar do
       Rollbar.configure { |c| }
       expect(Rollbar.root_notifier).to be(Rollbar.notifier)
     end
+
+    it_behaves_like 'configured options'
   end
 
   describe '.preconfigure' do
@@ -84,6 +99,8 @@ describe Rollbar do
       Rollbar.preconfigure { |c| }
       expect(Rollbar.root_notifier).to be(Rollbar.notifier)
     end
+
+    it_behaves_like 'configured options'
   end
 
   describe '.reconfigure' do
@@ -93,6 +110,8 @@ describe Rollbar do
       Rollbar.reconfigure { |c| }
       expect(Rollbar.root_notifier).to be(Rollbar.notifier)
     end
+
+    it_behaves_like 'configured options'
   end
 
   describe '.unconfigure' do

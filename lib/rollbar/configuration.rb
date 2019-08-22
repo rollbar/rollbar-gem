@@ -68,6 +68,7 @@ module Rollbar
     attr_accessor :log_payload
 
     attr_reader :project_gem_paths
+    attr_accessor :configured_options
 
     alias safely? safely
 
@@ -114,7 +115,7 @@ module Rollbar
       @locals = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
-                       :api_key, :access_token, :session_id]
+                       :api_key, :access_token, :accessToken, :session_id]
       @scrub_user = true
       @scrub_password = true
       @randomize_scrub_length = true
@@ -142,6 +143,8 @@ module Rollbar
         :on_error_response => nil, # params: response
         :on_report_internal_error => nil # params: exception
       }
+
+      @configured_options = ConfiguredOptions.new(self)
     end
 
     def initialize_copy(orig)
@@ -152,6 +155,15 @@ module Rollbar
         instance_variable_set(var, Rollbar::Util.deep_copy(instance_var))
       end
     end
+
+    def wrapped_clone
+      original_clone.tap do |new_config|
+        new_config.configured_options = ConfiguredOptions.new(new_config)
+        new_config.configured_options.configured = configured_options.configured
+      end
+    end
+    alias original_clone clone
+    alias clone wrapped_clone
 
     def merge(options)
       new_configuration = clone
@@ -301,6 +313,28 @@ module Rollbar
 
     def execute_hook(symbol, *args)
       hook(symbol).call(*args) if hook(symbol).is_a?(Proc)
+    end
+  end
+
+  class ConfiguredOptions
+    attr_accessor :configuration, :configured
+
+    def initialize(configuration)
+      @configuration = configuration
+      @configured = {}
+    end
+
+    def method_missing(method, *args, &block)
+      return super unless configuration.respond_to?(method)
+
+      method_string = method.to_s
+      configured[method_string.chomp('=').to_sym] = args.first if method_string.end_with?('=')
+
+      configuration.send(method, *args, &block)
+    end
+
+    def respond_to_missing?(method)
+      configuration.respond_to?(method) || super
     end
   end
 end
