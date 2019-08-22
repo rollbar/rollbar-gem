@@ -125,10 +125,18 @@ describe Rollbar::Item do
       payload['data'][:body][:message][:extra][:b][2].should == 4
     end
 
-    it 'should have correct configured_options object' do
-      payload['data'][:notifier][:configured_options][:access_token].should == '********'
-      payload['data'][:notifier][:configured_options][:root].should == '/foo/'
-      payload['data'][:notifier][:configured_options][:framework].should == 'Rails'
+    context 'ActiveSupport >= 4.1', :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1') do
+      it 'should have correct configured_options object' do
+        payload['data'][:notifier][:configured_options][:access_token].should == '********'
+        payload['data'][:notifier][:configured_options][:root].should == '/foo/'
+        payload['data'][:notifier][:configured_options][:framework].should == 'Rails'
+      end
+    end
+
+    context 'ActiveSupport < 4.1', :if => Gem.loaded_specs['activesupport'].version < Gem::Version.new('4.1') do
+      it 'should have configured_options message' do
+        payload['data'][:notifier][:configured_options].class == 'String'
+      end
     end
 
     context do
