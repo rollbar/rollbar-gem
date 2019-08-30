@@ -1401,6 +1401,21 @@ describe Rollbar do
       Rollbar.error(exception)
     end
 
+    # Temporary. See comments at Item#configured_options
+    it 'should not send configured_options in payload', :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1') do
+      logger_mock.should_receive(:info).with('not serialized for async/delayed handlers')
+
+      Rollbar.configure do |config|
+        config.use_async = true
+        config.async_handler = proc { |payload|
+          logger_mock.info payload['data'][:notifier][:configured_options]
+          Rollbar.process_from_async_handler(payload)
+        }
+      end
+
+      Rollbar.error(exception)
+    end
+
     # We should be able to send String payloads, generated
     # by a previous version of the gem. This can happend just
     # after a deploy with an gem upgrade.
