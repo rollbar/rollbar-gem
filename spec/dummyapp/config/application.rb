@@ -56,5 +56,7 @@ module Dummy
     # config.assets.version = '1.0'
 
     config.active_job.queue_adapter = :inline if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
+
+    config.active_record.sqlite3.represent_boolean_as_integer = true
   end
 end
