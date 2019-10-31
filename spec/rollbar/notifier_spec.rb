@@ -1,5 +1,6 @@
 require 'rollbar'
 require 'rollbar/notifier'
+require 'spec_helper'
 
 describe Rollbar::Notifier do
   describe '#scope' do
@@ -38,6 +39,29 @@ describe Rollbar::Notifier do
       expect(subject.scope_object['foo']).to be_eql('bar')
       expect(subject.configuration).to be(subject.configuration)
       expect(subject.scope_object).to be(subject.scope_object)
+    end
+  end
+
+  describe '#process_item' do
+    subject(:process_item) { notifier.process_item(item) }
+    let(:notifier) { described_class.new }
+    let(:item) { double(Rollbar::Item).as_null_object }
+    let(:logger) { double(Logger).as_null_object }
+
+    before { notifier.configuration.logger = logger }
+
+    context 'when configured to write' do
+      before { notifier.configuration.write_to_file = true }
+
+      let(:dummy_file) { double(File).as_null_object }
+
+      it 'writes to the file' do
+        allow(File).to receive(:open).with(nil, 'a').and_return(dummy_file)
+
+        process_item
+
+        expect(dummy_file).to have_received(:puts).with(item)
+      end
     end
   end
 
