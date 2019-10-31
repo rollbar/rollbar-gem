@@ -2,7 +2,7 @@ begin
   require 'simplecov'
   require 'codacy-coverage'
 
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new [
+  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
     SimpleCov::Formatter::HTMLFormatter,
     Codacy::Formatter
   ]
