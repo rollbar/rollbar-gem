@@ -45,7 +45,8 @@ describe Rollbar::Notifier do
   describe '#process_item' do
     subject(:process_item) { notifier.process_item(item) }
     let(:notifier) { described_class.new }
-    let(:item) { double(Rollbar::Item).as_null_object }
+    let(:payload) { { :foo => :bar } }
+    let(:item) { Rollbar::Item.build_with(payload) }
     let(:logger) { double(Logger).as_null_object }
 
     before { notifier.configuration.logger = logger }
@@ -60,7 +61,49 @@ describe Rollbar::Notifier do
 
         process_item
 
-        expect(dummy_file).to have_received(:puts).with(item)
+        expect(dummy_file).to have_received(:puts).with(payload.to_json)
+      end
+    end
+
+    context 'when configured not to write' do
+      before do
+        notifier.configuration.write_to_file = false
+
+        allow(File).to receive(:open).with(nil, 'a').and_return(dummy_file)
+        allow(Net::HTTP).to receive(:new).and_return(dummy_http)
+        allow(::Rollbar).to receive(:log_error)
+      end
+
+      let(:dummy_file) { double(File).as_null_object }
+      let(:dummy_http) { double(Net::HTTP).as_null_object }
+
+      it 'does not write to the file' do
+        process_item
+
+        expect(dummy_file).not_to have_received(:puts).with(item)
+      end
+
+      it 'attempts to send via HTTP' do
+        process_item
+
+        expect(dummy_http).to have_received(:request)
+      end
+
+      context 'a socket error occurs' do
+        before { allow(dummy_http).to receive(:request).and_raise(SocketError) }
+
+        it 'passes the message on' do
+          expect {process_item}.to raise_error(SocketError)
+        end
+
+        context 'the item has come via failsafe' do
+          let(:exception) { SocketError.new('original exception') }
+          let(:payload) { notifier.send_failsafe('the failure', exception) }
+
+          it 'does not pass the message on' do
+            expect { process_item }.to_not raise_error
+          end
+        end
       end
     end
   end

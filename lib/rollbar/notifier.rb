@@ -211,7 +211,7 @@ module Rollbar
       end
     rescue StandardError => e
       log_error("[Rollbar] Error processing the item: #{e.class}, #{e.message}. Item: #{item.payload.inspect}")
-      raise e
+      raise e unless item.payload.fetch('data', {}).fetch(:failsafe, false)
     end
 
     # We will reraise exceptions in this method so async queues
