@@ -108,6 +108,16 @@ describe Rollbar::Notifier do
     end
   end
 
+  describe '#send_failsafe' do
+    subject(:send_failsafe) { described_class.new.send_failsafe(message, exception) }
+    let(:message) { 'testing failsafe' }
+    let(:exception) { StandardError.new }
+
+    it 'sets a flag on the payload so we know the payload has come through this way' do
+      expect(send_failsafe['data']).to include(:failsafe => true)
+    end
+  end
+
   if RUBY_PLATFORM == 'java'
     describe '#extract_arguments' do
       # See https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html

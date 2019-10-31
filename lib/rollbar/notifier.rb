@@ -211,7 +211,9 @@ module Rollbar
       end
     rescue StandardError => e
       log_error("[Rollbar] Error processing the item: #{e.class}, #{e.message}. Item: #{item.payload.inspect}")
-      raise e unless item.payload.fetch('data', {}).fetch(:failsafe, false)
+      raise e unless via_failsafe?(item)
+
+      log_error('[Rollbar] Item has already failed. Not re-raising')
     end
 
     # We will reraise exceptions in this method so async queues
@@ -771,6 +773,10 @@ module Rollbar
 
       uuid_url = Util.uuid_rollbar_url(data, configuration)
       log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
+    end
+
+    def via_failsafe?(item)
+      item.payload.fetch('data', {}).fetch(:failsafe, false)
     end
   end
 end
