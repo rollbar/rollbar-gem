@@ -1,3 +1,5 @@
+require: rubocop-performance
+
 AllCops:
   Exclude:
     - 'vendor/**/*'
@@ -66,3 +68,133 @@ Style/FrozenStringLiteralComment:
   # If we do this, it will be in its own PR. It requires adding these magic comments
   # throughout the project, in order to prepare for a future Ruby 3.x.
   Enabled: false
+
+#
+# Performance cops are opt in, and `Enabled: true` is always required.
+# Full list is here: https://github.com/rubocop-hq/rubocop-performance/tree/master/lib/rubocop/cop/performance
+# For travis builds, Codacy will see and use these directives.
+#
+Performance/Caller:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/CaseWhenSplat:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/Casecmp:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/ChainArrayAllocation:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/CompareWithBlock:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/Count:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/Detect:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/DoubleStartEndWith:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/EndWith:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/FixedSize:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/FlatMap:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/InefficientHashSearch:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/OpenStruct:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/RangeInclude:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/RedundantBlockCall:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/RedundantMatch:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/RedundantMerge:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/RegexpMatch:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/ReverseEach:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/Size:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/StartWith:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/StringReplacement:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/TimesMap:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/UnfreezeString:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Performance/UriDefaultParser:
+  Enabled: true
+  Exclude:
+    - spec/**/*
