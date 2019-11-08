@@ -261,7 +261,10 @@ module Rollbar
         found = Gem::Specification.each.select { |spec| name === spec.name }
         puts "[Rollbar] No gems found matching #{name.inspect}" if found.empty?
         found
-      end.flatten.uniq.map(&:gem_dir)
+      end
+      @project_gem_paths.flatten!
+      @project_gem_paths.uniq!
+      @project_gem_paths.map!(&:gem_dir)
     end
 
     def before_process=(*handler)
