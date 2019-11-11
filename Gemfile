@@ -73,6 +73,7 @@ gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque', '< 2.0.0'
 gem 'rubocop', :require => false
+gem 'rubocop-performance', :require => false
 gem 'sinatra'
 gem 'webmock', :require => false
 gemspec
