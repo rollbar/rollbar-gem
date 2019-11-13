@@ -74,11 +74,20 @@ module Rollbar
       end
 
       def map_frames(current_exception)
-        frames = exception_backtrace(current_exception).map do |frame|
+        frames = cleaned_backtrace(current_exception).map do |frame|
           Rollbar::Item::Frame.new(self, frame,
                                    :configuration => configuration).to_h
         end
         frames.reverse!
+      end
+
+      def cleaned_backtrace(current_exception)
+        normalized_backtrace = exception_backtrace(current_exception)
+        if configuration.backtrace_cleaner
+          configuration.backtrace_cleaner.clean(normalized_backtrace)
+        else
+          normalized_backtrace
+        end
       end
 
       # Returns the backtrace to be sent to our API. There are 3 options:

@@ -66,6 +66,7 @@ module Rollbar
     attr_accessor :raise_on_error
     attr_accessor :transmit
     attr_accessor :log_payload
+    attr_accessor :backtrace_cleaner
 
     attr_reader :project_gem_paths
     attr_accessor :configured_options
@@ -139,6 +140,7 @@ module Rollbar
       @log_payload = false
       @collect_user_ip = true
       @anonymize_user_ip = false
+      @backtrace_cleaner = nil
       @hooks = {
         :on_error_response => nil, # params: response
         :on_report_internal_error => nil # params: exception

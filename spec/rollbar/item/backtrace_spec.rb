@@ -23,4 +23,58 @@ describe Rollbar::Item::Backtrace do
       expect(lines[1]).to be_eql('bar')
     end
   end
+
+  describe '#map_frames' do
+    context 'when using backtrace_cleaner', :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('3.0') do
+      subject { described_class.new(exception, { :configuration => config }) }
+
+      let(:config) do
+        config = Rollbar::Configuration.new
+        config.backtrace_cleaner = backtrace_cleaner
+        config
+      end
+
+      let(:backtrace_cleaner) do
+        bc = ActiveSupport::BacktraceCleaner.new
+        bc.add_silencer { |line| line =~ /gems/ }
+        bc
+      end
+
+      let(:exception) do
+        begin
+          raise 'Test'
+        rescue StandardError => e
+          e
+        end
+      end
+
+      it 'filters the backtrace' do
+        original_length = exception.backtrace.length
+        backtrace = subject.send(:map_frames, exception)
+        expect(backtrace.length).to be < original_length
+      end
+    end
+
+    context 'when not using backtrace_cleaner' do
+      subject { described_class.new(exception, { :configuration => config }) }
+
+      let(:config) do
+        Rollbar::Configuration.new
+      end
+
+      let(:exception) do
+        begin
+          raise 'Test'
+        rescue StandardError => e
+          e
+        end
+      end
+
+      it "doesn't filter the backtrace" do
+        original_length = exception.backtrace.length
+        backtrace = subject.send(:map_frames, exception)
+        expect(backtrace.length).to be_eql(original_length)
+      end
+    end
+  end
 end
