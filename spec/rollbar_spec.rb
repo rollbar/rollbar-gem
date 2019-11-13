@@ -1559,6 +1559,43 @@ describe Rollbar do
         Rollbar.error(exception)
       end
     end
+
+    describe '#use_thread' do
+      let(:payload) { { :key => 'value' } }
+      let(:custom_priority) { 3 }
+
+      it 'should send with default priority' do
+        expect(Rollbar).to receive(:process_from_async_handler).with(payload)
+
+        # Reset state before Rollbar.configure
+        Rollbar::Delay::Thread.options = nil
+
+        Rollbar.configure do |config|
+          config.use_thread
+        end
+
+        thread = Rollbar::Delay::Thread.call(payload)
+        sleep(1) # More reliable than Thread.pass to let the thread set its priority.
+        expect(thread.priority).to eq(Rollbar::Delay::Thread::DEFAULT_PRIORITY)
+        thread.join
+      end
+
+      it 'should send with configured priority' do
+        expect(Rollbar).to receive(:process_from_async_handler).with(payload)
+
+        # Reset state before Rollbar.configure
+        Rollbar::Delay::Thread.options = nil
+
+        Rollbar.configure do |config|
+          config.use_thread({ :priority => custom_priority })
+        end
+
+        thread = Rollbar::Delay::Thread.call(payload)
+        sleep(1) # More reliable than Thread.pass to let the thread set its priority.
+        expect(thread.priority).to eq(custom_priority)
+        thread.join
+      end
+    end
   end
 
   context 'logger' do

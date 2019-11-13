@@ -232,9 +232,10 @@ module Rollbar
       value.is_a?(Hash) ? use_sidekiq(value) : use_sidekiq
     end
 
-    def use_thread
+    def use_thread(options = {})
       require 'rollbar/delay/thread'
       @use_async = true
+      Rollbar::Delay::Thread.options = options
       @async_handler = Rollbar::Delay::Thread
     end
 
