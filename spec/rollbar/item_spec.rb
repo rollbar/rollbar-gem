@@ -428,11 +428,12 @@ describe Rollbar::Item do
             body[:trace_chain].should be_kind_of(Array)
 
             chain = body[:trace_chain]
-            chain[0][:exception][:class].should match(/StandardError/)
-            chain[0][:exception][:message].should match(/the error/)
+            chain[0][:exception][:class].should match(/CauseException/)
+            chain[0][:exception][:message].should match(/the cause/)
 
-            chain[1][:exception][:class].should match(/CauseException/)
-            chain[1][:exception][:message].should match(/the cause/)
+            chain[1][:exception][:class].should match(/StandardError/)
+            chain[1][:exception][:message].should match(/the error/)
+
           end
 
           context 'when cause is not an Exception' do
@@ -458,8 +459,8 @@ describe Rollbar::Item do
             it 'doesnt loop for ever' do
               chain = payload['data'][:body][:trace_chain]
 
-              expect(chain[0][:exception][:message]).to be_eql('exception1')
-              expect(chain[1][:exception][:message]).to be_eql('exception2')
+              expect(chain[0][:exception][:message]).to be_eql('exception2')
+              expect(chain[1][:exception][:message]).to be_eql('exception1')
             end
           end
         end
