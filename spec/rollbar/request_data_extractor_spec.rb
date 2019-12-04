@@ -34,7 +34,7 @@ describe Rollbar::RequestDataExtractor do
         :scrub_fields => [:password, :secret, :param1, :param2],
         :scrub_user => true,
         :scrub_password => true,
-        :randomize_scrub_length => true,
+        :randomize_scrub_length => false,
         :whitelist => false
       }
 

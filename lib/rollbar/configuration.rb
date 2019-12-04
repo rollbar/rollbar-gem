@@ -119,7 +119,7 @@ module Rollbar
                        :api_key, :access_token, :accessToken, :session_id]
       @scrub_user = true
       @scrub_password = true
-      @randomize_scrub_length = true
+      @randomize_scrub_length = false
       @scrub_whitelist = []
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
