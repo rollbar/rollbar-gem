@@ -73,6 +73,20 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
     end
   end
 
+  context 'with sensitive body parameters' do
+    let(:params) do
+      { 'password' => 'value' }
+    end
+
+    it 'scrubs the body' do
+      expect do
+        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+      end.to raise_error(exception)
+
+      expect(Rollbar.last_report[:request][:body]).to be_eql("{\"password\":\"******\"}")
+    end
+  end
+
   context 'with array POST parameters' do
     let(:params) do
       [{ :key => 'value' }, 'string', 10]
