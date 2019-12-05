@@ -6,11 +6,7 @@ module Rollbar
       if Rollbar.configuration.randomize_scrub_length
         random_filtered_value
       else
-        '*' * (begin
-                 value.length
-               rescue StandardError
-                 8
-               end)
+        '*' * 6
       end
     end
 

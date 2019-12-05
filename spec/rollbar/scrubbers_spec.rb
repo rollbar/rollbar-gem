@@ -23,8 +23,8 @@ describe Rollbar::Scrubbers do
 
       let(:value) { 'herecomesaverylongvalue' }
 
-      it 'randomizes the scrubbed string' do
-        expect(described_class.scrub_value(value)).to match(/\*{#{value.length}}/)
+      it 'replaces scrubbed string' do
+        expect(described_class.scrub_value(value)).to match(/\*{6}/)
       end
     end
   end
