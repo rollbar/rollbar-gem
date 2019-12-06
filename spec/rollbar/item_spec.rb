@@ -399,6 +399,22 @@ describe Rollbar::Item do
         end
       end
 
+      context 'with error context' do
+        let(:context) do
+          {:key => 'value', :hash => {:inner_key => 'inner_value'}}
+        end
+        it 'should build exception data with a extra data' do
+          exception.rollbar_context = context
+
+          body = payload['data'][:body]
+          trace = body[:trace]
+
+          trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
+          trace[:extra][:key].should == 'value'
+          trace[:extra][:hash].should == {:inner_key => 'inner_value'}
+        end
+      end
+
       context 'with nested exceptions' do
         let(:crashing_code) do
           proc do

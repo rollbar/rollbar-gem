@@ -187,11 +187,17 @@ module Rollbar
     end
 
     def build_extra
+      merged_extra = Util.deep_merge(scrub(extra), scrub(error_context))
+
       if custom_data_method? && !Rollbar::Util.method_in_stack(:custom_data, __FILE__)
-        Util.deep_merge(scrub(custom_data), scrub(extra) || {})
+        Util.deep_merge(scrub(custom_data), merged_extra)
       else
-        scrub(extra)
+        merged_extra.empty? ? nil : merged_extra # avoid putting an empty {} in the payload.
       end
+    end
+
+    def error_context
+      exception.respond_to?(:rollbar_context) && exception.rollbar_context
     end
 
     def scrub(data)
