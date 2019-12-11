@@ -247,9 +247,9 @@ module Rollbar
             send_body(payload)
           else
             item = Item.build_with(payload,
-                                  :notifier => self,
-                                  :configuration => configuration,
-                                  :logger => logger)
+                                   :notifier => self,
+                                   :configuration => configuration,
+                                   :logger => logger)
 
             process_item(item)
           end
@@ -521,6 +521,11 @@ module Rollbar
       options = http_proxy_for_em(uri)
       req = EventMachine::HttpRequest.new(uri.to_s, options).post(:body => body, :head => headers)
 
+      eventmachine_callback(req)
+      eventmachine_errback(req)
+    end
+
+    def eventmachine_callback(req)
       req.callback do
         if req.response_header.status == 200
           log_info '[Rollbar] Success'
@@ -529,7 +534,9 @@ module Rollbar
           log_info "[Rollbar] Response: #{req.response}"
         end
       end
+    end
 
+    def eventmachine_errback(req)
       req.errback do
         log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
         log_info "[Rollbar] Error's response: #{req.response}"
