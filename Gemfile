@@ -46,6 +46,7 @@ end
 
 if RUBY_VERSION.start_with?('1.9')
   gem 'capistrano', '<= 3.4.1', :require => false
+  gem 'json', '1.8.6'
   gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
   gem 'sucker_punch', '~> 1.0'
 elsif RUBY_VERSION.start_with?('2')
