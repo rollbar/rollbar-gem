@@ -1370,6 +1370,7 @@ describe Rollbar do
     it 'should send the payload using the default asynchronous handler girl_friday' do
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
@@ -1388,6 +1389,7 @@ describe Rollbar do
     it 'should send the payload using a user-supplied asynchronous handler' do
       logger_mock.should_receive(:info).with('Custom async handler called')
       logger_mock.should_receive(:info).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
@@ -1401,19 +1403,54 @@ describe Rollbar do
       Rollbar.error(exception)
     end
 
-    # Temporary. See comments at Item#configured_options
-    it 'should not send configured_options in payload', :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1') do
-      logger_mock.should_receive(:info).with('not serialized for async/delayed handlers')
+    it 'should send the payload as a json string when async_object_payload is false' do
+      logger_mock.should_receive(:info).with('payload class: String')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+
+      Rollbar.configure do |config|
+        config.use_async = true
+        config.async_json_payload = true
+        config.async_handler = proc { |payload|
+          logger_mock.info "payload class: #{payload.class}"
+          Rollbar.process_from_async_handler(payload)
+        }
+      end
+
+      Rollbar.error(exception)
+
+      Rollbar.configure do |config|
+        config.use_async = false
+        config.async_json_payload = false
+      end
+    end
+
+    it 'should send without configured_options in payload when async_json_payload is not set',
+      :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1') do
+
+      # Verify no configured_options
+      logger_mock.should_receive(:info).with('not serialized when async_json_payload is not set')
+
+      # Verify payload is received as a hash and converted to json.
+      logger_mock.should_receive(:info).with('payload class: Hash')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
         config.use_async = true
         config.async_handler = proc { |payload|
+          logger_mock.info "payload class: #{payload.class}"
           logger_mock.info payload['data'][:notifier][:configured_options]
           Rollbar.process_from_async_handler(payload)
         }
       end
 
       Rollbar.error(exception)
+
+      Rollbar.configure do |config|
+        config.use_async = false
+      end
     end
 
     # We should be able to send String payloads, generated

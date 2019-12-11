@@ -109,15 +109,11 @@ module Rollbar
         # the risk just to send this diagnostic object. In versions < 4.1, ActiveSupport hooks
         # Ruby's JSON.generate so deeply there's no workaround.
         'not serialized in ActiveSupport < 4.1'
-      elsif configuration.use_async
-        # Currently serialization is performed by each handler, and this invariably
-        # means it is actually performed by ActiveSupport.
-        #
-        # TODO: Since serialization must be done prior to scheduling the job,
-        # it should at least be done by rollbar-gem itself. Much work has been done
-        # to avoid the bugs in ActiveSupport JSON. The async handlers are currently
-        # still subject to all those knnown issues.
-        'not serialized for async/delayed handlers'
+      elsif configuration.use_async && !configuration.async_json_payload
+        # The setting allows serialization to be performed by each handler,
+        # and this usually means it is actually performed by ActiveSupport,
+        # which cannot safely serialize this key.
+        'not serialized when async_json_payload is not set'
       else
         scrub(configuration.configured_options.configured)
       end
