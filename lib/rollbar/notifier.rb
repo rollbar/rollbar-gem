@@ -240,16 +240,19 @@ module Rollbar
     # Using Rollbar.silenced we avoid the above behavior but Sidekiq
     # will have a chance to retry the original job.
     def process_from_async_handler(payload)
-      payload = Rollbar::JSON.load(payload) if payload.is_a?(String)
-
-      item = Item.build_with(payload,
-                             :notifier => self,
-                             :configuration => configuration,
-                             :logger => logger)
-
       Rollbar.silenced do
         begin
-          process_item(item)
+          if payload.is_a?(String)
+            # The final payload has already been built.
+            send_body(payload)
+          else
+            item = Item.build_with(payload,
+                                   :notifier => self,
+                                   :configuration => configuration,
+                                   :logger => logger)
+
+            process_item(item)
+          end
         rescue StandardError => e
           report_internal_error(e)
 
@@ -511,14 +514,18 @@ module Rollbar
 
     ## Delivery functions
 
-    def send_item_using_eventmachine(item, uri)
-      body = item.dump
-      return unless body
+    def send_using_eventmachine(body)
+      uri = URI.parse(configuration.endpoint)
 
-      headers = { 'X-Rollbar-Access-Token' => item['access_token'] }
+      headers = { 'X-Rollbar-Access-Token' => configuration.access_token }
       options = http_proxy_for_em(uri)
       req = EventMachine::HttpRequest.new(uri.to_s, options).post(:body => body, :head => headers)
 
+      eventmachine_callback(req)
+      eventmachine_errback(req)
+    end
+
+    def eventmachine_callback(req)
       req.callback do
         if req.response_header.status == 200
           log_info '[Rollbar] Success'
@@ -527,7 +534,9 @@ module Rollbar
           log_info "[Rollbar] Response: #{req.response}"
         end
       end
+    end
 
+    def eventmachine_errback(req)
       req.errback do
         log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
         log_info "[Rollbar] Error's response: #{req.response}"
@@ -540,14 +549,20 @@ module Rollbar
       body = item.dump
       return unless body
 
-      uri = URI.parse(configuration.endpoint)
-
       if configuration.use_eventmachine
-        send_item_using_eventmachine(item, uri)
+        send_using_eventmachine(body)
         return
       end
 
-      handle_response(do_post(uri, body, item['access_token']))
+      send_body(body)
+    end
+
+    def send_body(body)
+      log_info '[Rollbar] Sending json'
+
+      uri = URI.parse(configuration.endpoint)
+
+      handle_response(do_post(uri, body, configuration.access_token))
     end
 
     def do_post(uri, body, access_token)
@@ -739,8 +754,11 @@ module Rollbar
     end
 
     def process_async_item(item)
+      # Send async payloads as JSON string when async_json_payload is set.
+      payload = configuration.async_json_payload ? item.dump : item.payload
+
       configuration.async_handler ||= default_async_handler
-      configuration.async_handler.call(item.payload)
+      configuration.async_handler.call(payload)
     rescue StandardError
       if configuration.failover_handlers.empty?
         log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'

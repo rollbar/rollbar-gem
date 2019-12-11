@@ -58,6 +58,7 @@ module Rollbar
     attr_reader :transform
     attr_accessor :verify_ssl_peer
     attr_accessor :use_async
+    attr_accessor :async_json_payload
     attr_reader :use_eventmachine
     attr_accessor :web_base
     attr_accessor :write_to_file
@@ -129,6 +130,7 @@ module Rollbar
       @safely = false
       @transform = []
       @use_async = false
+      @async_json_payload = false
       @use_eventmachine = false
       @verify_ssl_peer = true
       @web_base = DEFAULT_WEB_BASE
