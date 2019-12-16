@@ -15,12 +15,12 @@ describe Rollbar::Truncation::FramesStrategy do
         payload['data']['body']['trace']['frames'] = expand_frames(frames)
       end
 
-      it 'returns a new payload with 300 frames' do
+      it 'returns a new payload with 100 frames' do
         result = Rollbar::JSON.load(described_class.call(payload))
 
         new_frames = result['data']['body']['trace']['frames']
 
-        expect(new_frames.count).to be_eql(300)
+        expect(new_frames.count).to be_eql(100)
         expect(new_frames.first).to be_eql(frames.first)
         expect(new_frames.last).to be_eql(frames.last)
       end
@@ -37,17 +37,17 @@ describe Rollbar::Truncation::FramesStrategy do
         payload['data']['body']['trace_chain'][1]['frames'] = expand_frames(frames2)
       end
 
-      it 'returns a new payload with 300 frames for each chain item' do
+      it 'returns a new payload with 100 frames for each chain item' do
         result = Rollbar::JSON.load(described_class.call(payload))
 
         new_frames1 = result['data']['body']['trace_chain'][0]['frames']
         new_frames2 = result['data']['body']['trace_chain'][1]['frames']
 
-        expect(new_frames1.count).to be_eql(300)
+        expect(new_frames1.count).to be_eql(100)
         expect(new_frames1.first).to be_eql(frames1.first)
         expect(new_frames1.last).to be_eql(frames1.last)
 
-        expect(new_frames2.count).to be_eql(300)
+        expect(new_frames2.count).to be_eql(100)
         expect(new_frames2.first).to be_eql(frames2.first)
         expect(new_frames2.last).to be_eql(frames2.last)
       end

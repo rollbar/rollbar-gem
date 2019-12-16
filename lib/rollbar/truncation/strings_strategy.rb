@@ -6,7 +6,7 @@ module Rollbar
     class StringsStrategy
       include ::Rollbar::Truncation::Mixin
 
-      STRING_THRESHOLDS = [1024, 512, 256].freeze
+      STRING_THRESHOLDS = [1024, 512, 256, 128].freeze
 
       def self.call(payload)
         new.call(payload)
@@ -29,7 +29,9 @@ module Rollbar
 
       def truncate_strings_proc(threshold)
         proc do |value|
-          if value.is_a?(String) && value.bytesize > threshold
+          # Rollbar::Util.truncate will operate on characters, not bytes,
+          # so use value.length, not bytesize.
+          if value.is_a?(String) && value.length > threshold
             Rollbar::Util.truncate(value, threshold)
           else
             value
