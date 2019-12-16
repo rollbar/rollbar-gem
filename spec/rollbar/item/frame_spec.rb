@@ -61,6 +61,7 @@ foo13
         let(:configuration) do
           double('configuration',
                  :send_extra_frame_data => :none,
+                 :locals => {},
                  :root => '/var/www')
         end
 
@@ -79,6 +80,7 @@ foo13
         let(:configuration) do
           double('configuration',
                  :send_extra_frame_data => :all,
+                 :locals => {},
                  :root => '/var/www')
         end
 
@@ -92,7 +94,7 @@ foo13
               :pre => %w[foo3 foo4 foo5 foo6],
               :post => %w[foo8 foo9 foo10 foo11]
             },
-            :locals => {}
+            :locals => nil
           }
 
           expect(subject.to_h).to be_eql(expected_result)
@@ -135,6 +137,7 @@ foo13
           let(:configuration) do
             double('configuration',
                    :send_extra_frame_data => :app,
+                   :locals => {},
                    :root => '/outside/project',
                    :project_gem_paths => [])
           end
@@ -154,6 +157,7 @@ foo13
           let(:configuration) do
             double('configuration',
                    :send_extra_frame_data => :app,
+                   :locals => {},
                    :root => '/var/outside/',
                    :project_gem_paths => ['/var/www/'])
           end
@@ -168,7 +172,7 @@ foo13
                 :pre => %w[foo3 foo4 foo5 foo6],
                 :post => %w[foo8 foo9 foo10 foo11]
               },
-              :locals => {}
+              :locals => nil
             }
 
             expect(subject.to_h).to be_eql(expected_result)
@@ -179,6 +183,7 @@ foo13
           let(:configuration) do
             double('configuration',
                    :send_extra_frame_data => :app,
+                   :locals => {},
                    :root => '/var/www',
                    :project_gem_paths => [])
           end
@@ -193,7 +198,7 @@ foo13
                 :pre => %w[foo3 foo4 foo5 foo6],
                 :post => %w[foo8 foo9 foo10 foo11]
               },
-              :locals => {}
+              :locals => nil
             }
 
             expect(subject.to_h).to be_eql(expected_result)
@@ -203,6 +208,7 @@ foo13
             let(:configuration) do
               double('configuration',
                      :send_extra_frame_data => :app,
+                     :locals => {},
                      :root => '/var/www/',
                      :project_gem_paths => [])
             end
@@ -237,7 +243,7 @@ foo13
                   :pre => %w[foo1 foo2],
                   :post => %w[foo4 foo5 foo6 foo7]
                 },
-                :locals => {}
+                :locals => nil
               }
 
               expect(subject.to_h).to be_eql(expected_result)
@@ -259,7 +265,7 @@ foo13
                   :pre => %w[foo7 foo8 foo9 foo10],
                   :post => %w[foo12 foo13]
                 },
-                :locals => {}
+                :locals => nil
               }
 
               expect(subject.to_h).to be_eql(expected_result)

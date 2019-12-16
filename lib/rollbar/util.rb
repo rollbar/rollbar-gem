@@ -2,6 +2,10 @@ require 'rollbar/util/hash'
 
 module Rollbar
   module Util # :nodoc:
+    def self.iterate_and_update_with_block(obj, &block)
+      iterate_and_update(obj, block)
+    end
+
     def self.iterate_and_update(obj, block, seen = {})
       return if obj.frozen? || seen[obj.object_id]
 

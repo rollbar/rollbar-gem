@@ -245,18 +245,18 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
             {
               :obj => 'Post',
               :bar => 'bar',
-              :hash => "{:foo=>Post, :bar=>\"bar\"}", # rubocop:disable Style/StringLiterals
+              :hash => {:foo => 'Post', :bar => 'bar'},
               :foo => 'Post',
-              :_index => '0'
+              :_index => 0
             },
             {
-              :foo => 'Post', :_index => '0'
+              :foo => 'Post', :_index => 0
             },
             {
-              :foo => 'Post', :_index => '0'
+              :foo => 'Post', :_index => 0
             },
             {
-              :foo => 'Post', :index => '0'
+              :foo => 'Post', :index => 0
             },
             {
               :foo => 'Post'
@@ -292,7 +292,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
           expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
-          expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql({})
+          expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql(nil)
         end
       end
     end

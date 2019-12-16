@@ -97,6 +97,8 @@ module Rollbar
       end
 
       def locals_data(filename, lineno)
+        return unless configuration.locals[:enabled]
+
         ::Rollbar::Item::Locals.locals_for_location(filename, lineno)
       end
 
