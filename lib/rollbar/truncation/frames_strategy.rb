@@ -11,7 +11,7 @@ module Rollbar
       end
 
       def call(payload)
-        new_payload = Rollbar::Util.deep_copy(payload)
+        new_payload = payload
         body = new_payload['data']['body']
 
         if body['trace_chain']
