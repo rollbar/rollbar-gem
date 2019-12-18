@@ -184,11 +184,14 @@ matrix:
       gemfile: gemfiles/rails52.gemfile
     - rvm: 2.1.0
       gemfile: gemfiles/rails60.gemfile
-    # MRI 2.2.2 supports Rails 3.2.x and higher
+    # MRI 2.2.2 supports Rails 3.2.x and higher, except Rails 5.2.4 and higher*
+    # * ActionDispatch 5.2.4 uses Ruby 3.x safe navigation operator.
     - rvm: 2.2.2
       gemfile: gemfiles/rails30.gemfile
     - rvm: 2.2.2
       gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.2.2
+      gemfile: gemfiles/rails52.gemfile
     # MRI 2.3.x supports Rails 4.0.x and higher
     - rvm: 2.3.8
       gemfile: gemfiles/rails30.gemfile
