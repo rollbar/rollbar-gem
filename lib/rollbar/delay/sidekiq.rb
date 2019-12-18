@@ -17,10 +17,8 @@ module Rollbar
 
       def perform(*args)
         Rollbar.process_from_async_handler(*args)
-      rescue StandardError
-        # Raise the exception so Sidekiq can track the errored job
-        # and retry it
-        raise
+
+        # Do not rescue. Sidekiq will call the error handler.
       end
     end
   end
