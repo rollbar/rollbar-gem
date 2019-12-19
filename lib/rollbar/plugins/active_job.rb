@@ -14,7 +14,9 @@ module Rollbar
   end
 end
 
-ActiveSupport.on_load(:action_mailer) do
-  # Automatically add to ActionMailer::DeliveryJob
-  ActionMailer::DeliveryJob.send(:include, Rollbar::ActiveJob) if defined?(ActionMailer::DeliveryJob)
+if defined?(ActiveSupport)
+  ActiveSupport.on_load(:action_mailer) do
+    # Automatically add to ActionMailer::DeliveryJob
+    ActionMailer::DeliveryJob.send(:include, Rollbar::ActiveJob) if defined?(ActionMailer::DeliveryJob)
+  end
 end
