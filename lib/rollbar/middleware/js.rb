@@ -83,7 +83,12 @@ module Rollbar
         response = ::Rack::Response.new(response_string, app_result[0],
                                         app_result[1])
 
-        response.finish
+        finished = response.finish
+
+        # Rack < 2.x Response#finish returns self in array[2]. Rack >= 2.x returns self.body.
+        # Always return with the response object here regardless of rack version.
+        finished[2] = response
+        finished
       end
 
       def build_body_with_js(env, body, head_open_end)
