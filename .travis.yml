@@ -3,12 +3,6 @@ dist: trusty
 services:
   - redis-server
 language: ruby
-# Broken bundler on travis CI - https://github.com/bundler/bundler/issues/2784
-before_install:
-  - gem update --system 2.7.7
-  - gem --version
-  - gem install bundler -v 1.6.1
-  - bundle --version
 
 rvm:
   - 1.9.3
