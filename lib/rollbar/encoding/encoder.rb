@@ -3,7 +3,6 @@ module Rollbar
     class Encoder
       ALL_ENCODINGS = [::Encoding::UTF_8, ::Encoding::ISO_8859_1, ::Encoding::ASCII_8BIT, ::Encoding::US_ASCII].freeze
       ASCII_ENCODINGS = [::Encoding::US_ASCII, ::Encoding::ASCII_8BIT, ::Encoding::ISO_8859_1].freeze
-      ENCODING_OPTIONS = { :invalid => :replace, :undef => :replace, :replace => '' }.freeze
       UTF8 = 'UTF-8'.freeze
       BINARY = 'binary'.freeze
 
@@ -21,7 +20,13 @@ module Rollbar
         encoded_value = if encoding == ::Encoding::UTF_8 && value.valid_encoding?
                           value
                         else
-                          force_encoding(value).encode(*encoding_args(value))
+                          force_encoding(value).encode(
+                            *encoding_args(value),
+                            # Ruby 2.7 requires this to look like keyword args,
+                            # and Ruby 1.9.3 doesn't understand keyword args, so
+                            # don't use hash rockets here and both will be happy.
+                            invalid: :replace, undef: :replace, replace: '' # rubocop:disable Style/HashSyntax
+                          )
                         end
 
         object.is_a?(Symbol) ? encoded_value.to_sym : encoded_value
@@ -54,7 +59,6 @@ module Rollbar
       def encoding_args(value)
         args = [UTF8]
         args << BINARY if ASCII_ENCODINGS.include?(value.encoding)
-        args << ENCODING_OPTIONS
 
         args
       end
