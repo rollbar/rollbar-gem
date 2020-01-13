@@ -12,8 +12,7 @@ rvm:
   - 2.3.8
   - 2.4.5
   - 2.5.3
-  - 2.6.0
-  - 2.6.3
+  - 2.6.5
   - 2.7.0
   - rbx
   # Travis's own rvm installer is failing on JRuby builds, TODO: reenable when fixed.
@@ -68,9 +67,6 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
-    # Ruby 2.6.x is still being eveluated and may have test failures
-    - rvm: 2.6.0
-    - rvm: 2.6.3
     # oraclejdk9 has a dependency issue that needs to be investigated
     - jdk: oraclejdk9
 
@@ -119,17 +115,11 @@ matrix:
       jdk: oraclejdk8
     - rvm: 2.5.3
       jdk: oraclejdk9
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       jdk: openjdk8
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       jdk: oraclejdk8
-    - rvm: 2.6.0
-      jdk: oraclejdk9
-    - rvm: 2.6.3
-      jdk: openjdk8
-    - rvm: 2.6.3
-      jdk: oraclejdk8
-    - rvm: 2.6.3
+    - rvm: 2.6.5
       jdk: oraclejdk9
     - rvm: 2.7.0
       jdk: openjdk8
@@ -226,29 +216,17 @@ matrix:
       gemfile: gemfiles/rails40.gemfile
     - rvm: 2.5.3
       gemfile: gemfiles/rails41.gemfile
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       gemfile: gemfiles/rails30.gemfile
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       gemfile: gemfiles/rails31.gemfile
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       gemfile: gemfiles/rails32.gemfile
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       gemfile: gemfiles/rails40.gemfile
-    - rvm: 2.6.0
+    - rvm: 2.6.5
       gemfile: gemfiles/rails41.gemfile
-    - rvm: 2.6.0
-      gemfile: gemfiles/rails42.gemfile
-    - rvm: 2.6.3
-      gemfile: gemfiles/rails30.gemfile
-    - rvm: 2.6.3
-      gemfile: gemfiles/rails31.gemfile
-    - rvm: 2.6.3
-      gemfile: gemfiles/rails32.gemfile
-    - rvm: 2.6.3
-      gemfile: gemfiles/rails40.gemfile
-    - rvm: 2.6.3
-      gemfile: gemfiles/rails41.gemfile
-    - rvm: 2.6.3
+    - rvm: 2.6.5
       gemfile: gemfiles/rails42.gemfile
     # Rails 6.x tries to be compatible with Ruby 2.7, though
     # it still throws a lot of warnings. No point testing earlier
