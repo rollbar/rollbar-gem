@@ -35,14 +35,22 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
   end
 
   context 'with failed deserialization' do
-    let(:expected_args) do
+    let(:old_expected_args) do
       [/Delayed::DeserializationError/, { :use_exception_level_filters => true }]
     end
+    let(:new_expected_args) do
+      [instance_of(Delayed::DeserializationError), { :use_exception_level_filters => true }]
+    end
+
 
     it 'sends the exception' do
       expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
       allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
-      expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*expected_args)
+      if Delayed::Backend::Base.method_defined? :error
+        expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*new_expected_args)
+      else
+        expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*old_expected_args)
+      end
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
     end
@@ -57,7 +65,11 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       it 'sends the exception' do
         expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
         allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
-        expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*expected_args)
+        if Delayed::Backend::Base.method_defined? :error
+          expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*new_expected_args)
+        else
+          expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*old_expected_args)
+        end
 
         FailingJob.new.delay.do_job_please!(:foo, :bar)
       end
