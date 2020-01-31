@@ -39,7 +39,7 @@ module Rails
     end
 
     def eval_runner
-      if Rails.version >= '5.1.0'
+      if Gem::Version.new(Rails.version) >= Gem::Version.new('5.1.0')
         rails5_runner
       else
         legacy_runner
@@ -55,6 +55,8 @@ module Rails
     end
 
     def rails5_runner
+      require 'rails/command'
+
       Rails::Command.invoke 'runner', ARGV
     end
 
