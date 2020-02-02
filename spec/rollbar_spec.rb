@@ -1253,7 +1253,7 @@ describe Rollbar do
       Rollbar.error(exception)
     end
 
-    it 'should save the payload to a file if set' do
+    it 'should save the payload to a file if set without file for each pid' do
       logger_mock.should_not_receive(:info).with('[Rollbar] Sending item')
       logger_mock.should_receive(:info).with('[Rollbar] Writing item to file').once
       logger_mock.should_receive(:info).with('[Rollbar] Success').once
@@ -1273,6 +1273,32 @@ describe Rollbar do
 
       Rollbar.configure do |config|
         config.write_to_file = false
+      end
+    end
+
+    it 'should save the payload to a file if set with file for each pid' do
+      logger_mock.should_not_receive(:info).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:info).with('[Rollbar] Writing item to file').once
+      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+      filepath = ''
+
+      Rollbar.configure do |config|
+        config.write_to_file = true
+        config.files_with_pid_name_enabled = true
+
+        filepath = config.filepath.gsub(Rollbar::Notifier::EXTENSION_REGEXP, "_#{Process.pid}\\0")
+      end
+
+      Rollbar.error(exception)
+
+      File.exist?(filepath).should eq(true)
+      File.read(filepath).should include test_access_token
+      File.delete(filepath)
+
+      Rollbar.configure do |config|
+        config.write_to_file = false
+        config.files_with_pid_name_enabled = false
       end
     end
   end

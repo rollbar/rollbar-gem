@@ -24,7 +24,6 @@ module Rollbar
     attr_accessor :environment
     attr_accessor :exception_level_filters
     attr_accessor :failover_handlers
-    attr_accessor :filepath
     attr_accessor :framework
     attr_accessor :ignored_person_ids
     attr_accessor :host
@@ -61,7 +60,6 @@ module Rollbar
     attr_accessor :async_json_payload
     attr_reader :use_eventmachine
     attr_accessor :web_base
-    attr_accessor :write_to_file
     attr_reader :send_extra_frame_data
     attr_accessor :use_exception_level_filters_default
     attr_accessor :proxy
@@ -69,6 +67,13 @@ module Rollbar
     attr_accessor :transmit
     attr_accessor :log_payload
     attr_accessor :backtrace_cleaner
+
+    attr_accessor :write_to_file
+    attr_accessor :filepath
+    attr_accessor :files_with_pid_name_enabled
+    attr_accessor :files_processed_enabled
+    attr_accessor :files_processed_duration # seconds
+    attr_accessor :files_processed_size # bytes
 
     attr_reader :project_gem_paths
     attr_accessor :configured_options
@@ -134,7 +139,6 @@ module Rollbar
       @use_eventmachine = false
       @verify_ssl_peer = true
       @web_base = DEFAULT_WEB_BASE
-      @write_to_file = false
       @send_extra_frame_data = :none
       @project_gem_paths = []
       @use_exception_level_filters_default = false
@@ -149,6 +153,12 @@ module Rollbar
         :on_error_response => nil, # params: response
         :on_report_internal_error => nil # params: exception
       }
+
+      @write_to_file = false
+      @files_with_pid_name_enabled = false
+      @files_processed_enabled = false
+      @files_processed_duration = 60
+      @files_processed_size = 5 * 1000 * 1000
 
       @configured_options = ConfiguredOptions.new(self)
     end
