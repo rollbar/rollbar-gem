@@ -705,10 +705,10 @@ module Rollbar
       return unless configuration.files_processed_enabled
 
       time_now = Time.now
-      if time_now - file.birthtime > configuration.files_processed_duration || file.size > configuration.files_processed_size
-        new_file_name = file_name.gsub(EXTENSION_REGEXP, "_processed_#{time_now.to_i}\\0")
-        File.rename(file, new_file_name)
-      end
+      return if configuration.files_processed_duration > time_now - file.birthtime && file.size < configuration.files_processed_size
+
+      new_file_name = file_name.gsub(EXTENSION_REGEXP, "_processed_#{time_now.to_i}\\0")
+      File.rename(file, new_file_name)
     end
 
     def failsafe_reason(message, exception)
