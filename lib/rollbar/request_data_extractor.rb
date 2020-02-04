@@ -247,7 +247,12 @@ module Rollbar
     end
 
     def sensitive_headers_list
-      Rollbar.configuration.scrub_headers || []
+      return [] unless Rollbar.configuration.scrub_headers && Rollbar.configuration.scrub_headers.is_a?(Array)
+
+      # Normalize into the expected matching format
+      Rollbar.configuration.scrub_headers.map do |header|
+        header.split(/[-_]/).map(&:capitalize).join('-').gsub(/^Http-/, '')
+      end
     end
   end
 end

@@ -84,6 +84,30 @@ describe Rollbar::RequestDataExtractor do
       expect(result).to be_kind_of(Hash)
     end
 
+    context 'with scrub headers set' do
+      let(:scrub_headers) { ['HTTP_UPPER_CASE_HEADER', 'http-lower-case-header', 'Mixed-CASE-header'] }
+
+      let(:env) do
+        env = Rack::MockRequest.env_for('/',
+                                        'HTTP_UPPER_CASE_HEADER' => 'foo',
+                                        'HTTP_LOWER_CASE_HEADER' => 'bar',
+                                        'HTTP_MIXED_CASE_HEADER' => 'baz')
+      end
+
+      before do
+        allow(Rollbar.configuration).to receive(:scrub_headers).and_return(scrub_headers)
+      end
+
+      it 'returns scrubbed headers' do
+        result = subject.extract_request_data_from_rack(env)
+        headers = result[:headers]
+
+        expect(headers['Upper-Case-Header']).to match(/^\*+$/)
+        expect(headers['Lower-Case-Header']).to match(/^\*+$/)
+        expect(headers['Mixed-Case-Header']).to match(/^\*+$/)
+      end
+    end
+
     context 'with invalid utf8 sequence in key' do
       let(:data) do
         File.read(File.expand_path('../../support/encodings/iso_8859_9', __FILE__)).force_encoding(Encoding::ISO_8859_9)
