@@ -13,6 +13,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'https://rollbar.com'
   gem.license       = 'MIT'
   gem.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  gem.files        += ['spec/support/rollbar_api.rb'] # useful helper for app spec/tests.
   gem.name          = 'rollbar'
   gem.require_paths = ['lib']
   gem.required_ruby_version = '>= 1.9.3'
