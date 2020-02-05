@@ -19,7 +19,8 @@ module Rollbar
     attr_accessor :last_report
     attr_accessor :scope_object
 
-    @file_semaphore = Mutex.new
+    MUTEX = Mutex.new
+    EXTENSION_REGEXP = /.rollbar\z/.freeze
 
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
@@ -200,11 +201,11 @@ module Rollbar
     def process_item(item)
       if configuration.write_to_file
         if configuration.use_async
-          @file_semaphore.synchronize do
-            write_item(item)
+          MUTEX.synchronize do
+            do_write_item(item)
           end
         else
-          write_item(item)
+          do_write_item(item)
         end
       else
         send_item(item)
@@ -675,32 +676,39 @@ module Rollbar
       end
     end
 
-    def write_item(item)
-      if configuration.use_async
-        @file_semaphore.synchronize do
-          do_write_item(item)
-        end
-      else
-        do_write_item(item)
-      end
-    end
-
     def do_write_item(item)
       log_info '[Rollbar] Writing item to file'
 
       body = item.dump
       return unless body
 
+      file_name = if configuration.files_with_pid_name_enabled
+                    configuration.filepath.gsub(EXTENSION_REGEXP, "_#{Process.pid}\\0")
+                  else
+                    configuration.filepath
+                  end
+
       begin
-        @file ||= File.open(configuration.filepath, 'a')
+        @file ||= File.open(file_name, 'a')
 
         @file.puts(body)
         @file.flush
+        update_file(@file, file_name)
 
         log_info '[Rollbar] Success'
       rescue IOError => e
         log_error "[Rollbar] Error opening/writing to file: #{e}"
       end
+    end
+
+    def update_file(file, file_name)
+      return unless configuration.files_processed_enabled
+
+      time_now = Time.now
+      return if configuration.files_processed_duration > time_now - file.birthtime && file.size < configuration.files_processed_size
+
+      new_file_name = file_name.gsub(EXTENSION_REGEXP, "_processed_#{time_now.to_i}\\0")
+      File.rename(file, new_file_name)
     end
 
     def failsafe_reason(message, exception)

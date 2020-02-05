@@ -48,6 +48,7 @@ describe Rollbar::Notifier do
     let(:payload) { { :foo => :bar } }
     let(:item) { Rollbar::Item.build_with(payload) }
     let(:logger) { double(Logger).as_null_object }
+    let(:filepath) { 'test.rollbar' }
 
     before { notifier.configuration.logger = logger }
 
@@ -62,6 +63,71 @@ describe Rollbar::Notifier do
         process_item
 
         expect(dummy_file).to have_received(:puts).with(payload.to_json)
+      end
+    end
+
+    context 'when configured to write with process file without rename' do
+      before do
+        notifier.configuration.write_to_file = true
+        notifier.configuration.files_processed_enabled = true
+      end
+
+      let(:dummy_file) { double(File, birthtime: Time.now, size: 0).as_null_object }
+
+      it 'writes to the file' do
+        allow(File).to receive(:open).with(nil, 'a').and_return(dummy_file)
+        allow(File).to receive(:rename).with(dummy_file, String).and_return(0)
+
+        process_item
+
+        expect(dummy_file).to have_received(:puts).with(payload.to_json)
+        expect(File).not_to have_received(:rename).with(dummy_file, String)
+      end
+    end
+
+    context 'when configured to write with process file and file birthtime is already greater than default value' do
+      before do
+        notifier.configuration.write_to_file = true
+        notifier.configuration.files_processed_enabled = true
+        notifier.configuration.filepath = filepath
+      end
+
+      let(:dummy_file) do
+        double(
+          File, birthtime: Time.now - (notifier.configuration.files_processed_duration + 1).seconds, size: 0
+        ).as_null_object
+      end
+
+      it 'writes to the file and rename' do
+        allow(File).to receive(:open).with('test.rollbar', 'a').and_return(dummy_file)
+        allow(File).to receive(:rename).with(dummy_file, String).and_return(0)
+
+        process_item
+
+        expect(dummy_file).to have_received(:puts).with(payload.to_json)
+        expect(File).to have_received(:rename).with(dummy_file, String)
+      end
+    end
+
+    context 'when configured to write with process file and large file size' do
+      before do
+        notifier.configuration.write_to_file = true
+        notifier.configuration.files_processed_enabled = true
+        notifier.configuration.filepath = filepath
+      end
+
+      let(:dummy_file) do
+        double(File, birthtime: Time.now, size: notifier.configuration.files_processed_size + 1).as_null_object
+      end
+
+      it 'writes to the file and rename' do
+        allow(File).to receive(:open).with(filepath, 'a').and_return(dummy_file)
+        allow(File).to receive(:rename).with(dummy_file, String).and_return(0)
+
+        process_item
+
+        expect(dummy_file).to have_received(:puts).with(payload.to_json)
+        expect(File).to have_received(:rename).with(dummy_file, String)
       end
     end
 
