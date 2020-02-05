@@ -69,6 +69,10 @@ Style/FrozenStringLiteralComment:
   # throughout the project, in order to prepare for a future Ruby 3.x.
   Enabled: false
 
+Style/SafeNavigation:
+  # Not available in Ruby < 2.3.
+  Enabled: false
+
 #
 # Performance cops are opt in, and `Enabled: true` is always required.
 # Full list is here: https://github.com/rubocop-hq/rubocop-performance/tree/master/lib/rubocop/cop/performance
