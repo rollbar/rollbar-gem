@@ -709,6 +709,7 @@ module Rollbar
 
       new_file_name = file_name.gsub(EXTENSION_REGEXP, "_processed_#{time_now.to_i}\\0")
       File.rename(file, new_file_name)
+      @file = File.open(file_name, 'a')
     end
 
     def failsafe_reason(message, exception)
