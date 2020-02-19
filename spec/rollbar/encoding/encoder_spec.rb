@@ -57,5 +57,19 @@ describe Rollbar::Encoding::Encoder do
         let(:expected) { 'Изменение' }
       end
     end
+
+    context 'with unmappable encoding' do
+      # The Vietnamese encoding Windows-1258 has some character sequences
+      # that cannot map to UTF-8. Use this to cause Encoding::ConverterNotFoundError
+      # and test the behavior of unmappble encodings.
+      let(:object) { "\xE3\xEC".force_encoding(::Encoding::Windows_1258) }
+      let(:expected) { 'error encoding string: Encoding::ConverterNotFoundError' }
+
+      it 'replaces string with diagnostic error' do
+        value = subject.encode
+
+        expect(value).to include(expected)
+      end
+    end
   end
 end
