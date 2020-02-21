@@ -30,6 +30,9 @@ module Rollbar
                         end
 
         object.is_a?(Symbol) ? encoded_value.to_sym : encoded_value
+      rescue StandardError => e
+        # If encoding fails for any reason, replace the string with a diagnostic error.
+        "error encoding string: #{e.class}: #{e.message}"
       end
 
       private
