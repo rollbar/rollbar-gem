@@ -1,4 +1,5 @@
 require 'rollbar/language_support'
+require 'json'
 
 module Rollbar
   module JSON # :nodoc:

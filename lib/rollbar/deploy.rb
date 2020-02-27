@@ -1,3 +1,5 @@
+require 'json'
+
 module Rollbar
   # Deploy Tracking API wrapper module
   module Deploy
