@@ -32,6 +32,19 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
     end
+
+    it 'adds the job data' do
+      payload = nil
+
+      ::Rollbar::Item.any_instance.stub(:dump) do |item|
+        payload = item.payload
+        nil
+      end
+
+      FailingJob.new.delay.do_job_please!(:foo, :bar)
+
+      expect(payload['data'][:request]["handler"]).to include({:args=>[:foo, :bar], :method_name=>:do_job_please!})
+    end
   end
 
   context 'with failed deserialization' do
