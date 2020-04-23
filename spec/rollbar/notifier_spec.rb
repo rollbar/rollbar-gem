@@ -174,13 +174,61 @@ describe Rollbar::Notifier do
     end
   end
 
+  describe '#process_from_async_handler' do
+    subject(:process_from_async_handler) do
+      notifier.process_from_async_handler(payload)
+    end
+    let(:notifier) { described_class.new }
+    let(:payload) { { :foo => :bar } }
+    let(:logger) { double(Logger).as_null_object }
+    let(:filepath) { 'test.rollbar' }
+
+    before { notifier.configuration.logger = logger }
+
+    context 'when using async handler' do
+      before do
+        allow(File).to receive(:open).with(nil, 'a').and_return(dummy_file)
+        allow(Net::HTTP).to receive(:new).and_return(dummy_http)
+        allow(::Rollbar).to receive(:log_error)
+      end
+
+      let(:dummy_file) { double(File).as_null_object }
+      let(:dummy_http) { double(Net::HTTP).as_null_object }
+
+      it 'attempts to send via HTTP' do
+        process_from_async_handler
+
+        expect(dummy_http).to have_received(:request)
+      end
+
+      context 'a socket error occurs' do
+        before { allow(dummy_http).to receive(:request).and_raise(SocketError) }
+
+        it 'passes the message on' do
+          expect {process_from_async_handler}.to raise_error(SocketError)
+        end
+
+        context 'the item has come via failsafe' do
+          let(:payload) { { "data" => { "failsafe" => true } } }
+
+          it 'does not pass the message on' do
+            expect(notifier).to receive(:log_error).with("[Rollbar] Error processing the item: SocketError, SocketError. Item: #{payload.inspect}")
+            expect(notifier).to receive(:log_error).with('[Rollbar] Item has already failed. Not re-raising')
+
+            process_from_async_handler
+          end
+        end
+      end
+    end
+  end
+
   describe '#send_failsafe' do
     subject(:send_failsafe) { described_class.new.send_failsafe(message, exception) }
     let(:message) { 'testing failsafe' }
     let(:exception) { StandardError.new }
 
     it 'sets a flag on the payload so we know the payload has come through this way' do
-      expect(send_failsafe['data']).to include(:failsafe => true)
+      expect(send_failsafe['data']).to include('failsafe' => true)
     end
   end
 
