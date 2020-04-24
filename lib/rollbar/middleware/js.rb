@@ -121,6 +121,8 @@ module Rollbar
       end
 
       def config_js_tag(env)
+        require 'json'
+
         js_config = Rollbar::Util.deep_copy(config[:options])
 
         add_person_data(js_config, env)
