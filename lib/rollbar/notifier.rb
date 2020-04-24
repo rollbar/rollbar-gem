@@ -286,7 +286,7 @@ module Rollbar
           :orig_host => host
         },
         :internal => true,
-        :failsafe => true
+        'failsafe' => true
       }
 
       failsafe_payload = {
@@ -804,7 +804,7 @@ module Rollbar
     end
 
     def via_failsafe?(item)
-      item.payload.fetch('data', {}).fetch(:failsafe, false)
+      item.payload.fetch('data', {}).fetch('failsafe', false)
     end
   end
 end
