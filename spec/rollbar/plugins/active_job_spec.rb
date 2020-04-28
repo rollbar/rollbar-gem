@@ -73,5 +73,30 @@ describe Rollbar::ActiveJob do
         TestMailer.test_email(argument).deliver_later rescue nil # rubocop:disable Style/RescueModifier
       end
     end
+
+    it 'scrubs job arguments hash' do
+      Rollbar.configure do |config|
+        config.scrub_fields |= ['user_id']
+      end
+
+      perform_enqueued_jobs do
+        TestMailer.test_email(:user_id => '15').deliver_later rescue nil # rubocop:disable Style/RescueModifier
+      end
+      Rollbar.last_report[:body][:trace][:extra][:arguments][3][:user_id].should match(/^*+$/)
+    end
+
+    it 'scrubs job arguments HashWithIndifferentAccess' do
+      Rollbar.configure do |config|
+        config.scrub_fields |= ['user_id']
+      end
+
+      params = ActiveSupport::HashWithIndifferentAccess.new
+      params['user_id'] = '15'
+
+      perform_enqueued_jobs do
+        TestMailer.test_email(params).deliver_later rescue nil # rubocop:disable Style/RescueModifier
+      end
+      Rollbar.last_report[:body][:trace][:extra][:arguments][3]['user_id'].should match(/^*+$/)
+    end
   end
 end
