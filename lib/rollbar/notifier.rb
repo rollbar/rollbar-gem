@@ -22,6 +22,15 @@ module Rollbar
     MUTEX = Mutex.new
     EXTENSION_REGEXP = /.rollbar\z/.freeze
 
+    # helps cache the hierarchy of the rreport levels from low to high
+    # as both symbols and strings
+    REPORT_LEVELS =
+      begin
+        h = Hash.new(100) # configure with a default level of 100, so it allows unknown log levels
+        h.merge!([:debug, :info, :warning, :error, :critical].each_with_index.to_a.to_h)
+        h.merge!(h.transform_keys(&:to_s))
+      end.freeze
+
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
         self.configuration = parent_notifier.configuration.clone
@@ -129,6 +138,8 @@ module Rollbar
     #
     def log(level, *args)
       return 'disabled' unless enabled?
+
+      return 'not_reported' if REPORT_LEVELS[level] < REPORT_LEVELS[configuration.report_level]
 
       message, exception, extra, context = extract_arguments(args)
       use_exception_level_filters = use_exception_level_filters?(extra)
