@@ -179,7 +179,7 @@ describe Rollbar::Middleware::Js do
         end
       end
 
-      context 'having a html 200 resposne with meta charset tag' do
+      context 'having a html 200 response with meta charset tag' do
         let(:body) { [meta_charset_html] }
         let(:status) { 200 }
         let(:headers) do
@@ -199,7 +199,7 @@ describe Rollbar::Middleware::Js do
         end
       end
 
-      context 'having a html 200 resposne with meta content-type tag' do
+      context 'having a html 200 response with meta content-type tag' do
         let(:body) { [meta_content_html] }
         let(:status) { 200 }
         let(:headers) do
@@ -403,7 +403,7 @@ describe Rollbar::Middleware::Js do
         end
       end
 
-      describe 'json encoding config options' do
+      context 'json encoding config options' do
         let(:body) { [html] }
         let(:status) { 200 }
         let(:headers) do
@@ -428,6 +428,29 @@ describe Rollbar::Middleware::Js do
             expect(res_status).to be_eql(status)
             expect(res_headers['Content-Type']).to be_eql(content_type)
           end
+        end
+      end
+
+      context 'having Content-Length previously set' do
+        let(:body) { [html] }
+        let(:status) { 200 }
+        let(:headers) do
+          { 
+            'Content-Type' => content_type,
+            'Content-Length' => html.bytesize
+          }
+        end
+
+        it 'injects the js snippet and updates Content-Length header' do
+          res_status, res_headers, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to_not include('>>')
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+          expect(res_status).to be_eql(status)
+          expect(res_headers['Content-Type']).to be_eql(content_type)
+          expect(res_headers['Content-Length']).to be_eql(new_body.bytesize.to_s)
         end
       end
     end
