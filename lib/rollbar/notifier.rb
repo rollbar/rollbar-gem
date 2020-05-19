@@ -22,13 +22,18 @@ module Rollbar
     MUTEX = Mutex.new
     EXTENSION_REGEXP = /.rollbar\z/.freeze
 
-    # helps cache the hierarchy of the rreport levels from low to high
+    # helps cache the hierarchy of the report levels from low to high
     # as both symbols and strings
     REPORT_LEVELS =
       begin
-        h = Hash.new(100) # configure with a default level of 100, so it allows unknown log levels
-        h.merge!([:debug, :info, :warning, :error, :critical].each_with_index.to_a.to_h)
-        h.merge!(h.transform_keys(&:to_s))
+        h = Hash.new(100) # configure with default of 10
+
+        [:debug, :info, :warning, :error, :critical].each_with_index do |level, i|
+          h[level] = i
+          h[level.to_s] = i
+        end
+
+        h
       end.freeze
 
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)

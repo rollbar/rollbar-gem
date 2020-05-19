@@ -173,8 +173,6 @@ describe Rollbar do
     end
 
     it 'should not report when level is lower than report_level' do
-      Rollbar.debug('debug message').should == 'not_reported'
-
       Rollbar.configure do |config|
         config.enabled = true
         config.report_level = 'error'
