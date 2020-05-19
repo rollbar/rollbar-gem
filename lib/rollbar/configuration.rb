@@ -123,7 +123,7 @@ module Rollbar
       @js_enabled = false
       @js_options = {}
       @locals = {}
-      @report_level = :info
+      @report_level = :debug
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
                        :api_key, :access_token, :accessToken, :session_id]
