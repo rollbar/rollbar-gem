@@ -1,5 +1,5 @@
 # Rollbar-gem
-[![Build Status](https://api.travis-ci.org/rollbar/rollbar-gem.svg?branch=master)](https://travis-ci.org/rollbar/rollbar-gem/branches)
+[![Build Status](https://travis-ci.org/rollbar/rollbar-gem.svg?branch=master)](https://travis-ci.org/rollbar/rollbar-gem/branches)
 [![Gem Version](https://badge.fury.io/rb/rollbar.svg)](http://badge.fury.io/rb/rollbar)
 [![SemVer](https://api.dependabot.com/badges/compatibility_score?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&target-version=latest)](https://dependabot.com/compatibility-score.html?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&new-version=latest)
 
