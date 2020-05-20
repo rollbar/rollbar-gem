@@ -104,10 +104,10 @@ module Rollbar
 
     # Sends a report to Rollbar.
     #
-    # Accepts any number of arguments. The last String argument will become
-    # the message or description of the report. The last Exception argument
-    # will become the associated exception for the report. The last hash
-    # argument will be used as the extra data for the report.
+    # Accepts a level string plus any number of arguments. The last String
+    # argument will become the message or description of the report. The last
+    # Exception argument will become the associated exception for the report.
+    # The last hash argument will be used as the extra data for the report.
     #
     # If the extra hash contains a symbol key :custom_data_method_context
     # the value of the key will be used as the context for
@@ -118,14 +118,14 @@ module Rollbar
     #   begin
     #     foo = bar
     #   rescue => e
-    #     Rollbar.log(e)
+    #     Rollbar.log('error', e)
     #   end
     #
     # @example
-    #   Rollbar.log('This is a simple log message')
+    #   Rollbar.log('info', 'This is a simple log message')
     #
     # @example
-    #   Rollbar.log(e, 'This is a description of the exception')
+    #   Rollbar.log('error', e, 'This is a description of the exception')
     #
     def log(level, *args)
       return 'disabled' unless enabled?
