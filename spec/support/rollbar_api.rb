@@ -16,8 +16,8 @@ class RollbarAPI
 
   protected
 
-  def authorized?(json, _request)
-    json['access_token'] != UNAUTHORIZED_ACCESS_TOKEN
+  def authorized?(_json, request)
+    request.env['HTTP_X_ROLLBAR_ACCESS_TOKEN'] != UNAUTHORIZED_ACCESS_TOKEN
   end
 
   def response_headers
@@ -26,8 +26,8 @@ class RollbarAPI
     }
   end
 
-  def valid_data?(json, _request)
-    !!json['access_token']
+  def valid_data?(_json, request)
+    !!request.env['HTTP_X_ROLLBAR_ACCESS_TOKEN']
   end
 
   def unauthorized
