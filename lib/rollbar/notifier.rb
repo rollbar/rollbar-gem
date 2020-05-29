@@ -290,7 +290,6 @@ module Rollbar
       }
 
       failsafe_payload = {
-        'access_token' => configuration.access_token,
         'data' => failsafe_data
       }
 

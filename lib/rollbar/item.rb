@@ -65,7 +65,6 @@ module Rollbar
     def build
       data = build_data
       self.payload = {
-        'access_token' => configuration.access_token,
         'data' => data
       }
 

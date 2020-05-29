@@ -53,7 +53,7 @@ describe Rollbar::Item do
       end
 
       it 'should have the correct root-level keys' do
-        payload.keys.should match_array(['access_token', 'data'])
+        payload.keys.should match_array(['data'])
       end
 
       it 'should have the correct data keys' do
@@ -566,7 +566,6 @@ describe Rollbar::Item do
       context 'with mutation in payload' do
         let(:new_payload) do
           {
-            'access_token' => configuration.access_token,
             'data' => {
             }
           }
