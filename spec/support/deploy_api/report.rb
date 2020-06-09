@@ -5,8 +5,12 @@ module DeployAPI
   class Report < ::RollbarAPI
     protected
 
-    def valid_data?(json, request)
-      !!json['environment'] && !!json['revision'] && super(json, request)
+    def authorized?(json, _request)
+      json['access_token'] != UNAUTHORIZED_ACCESS_TOKEN
+    end
+
+    def valid_data?(json, _request)
+      !!json['environment'] && !!json['revision'] && !!json['access_token']
     end
 
     def success_body(_json, _request)

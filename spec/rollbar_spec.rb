@@ -1268,7 +1268,6 @@ describe Rollbar do
       Rollbar.error(exception)
 
       File.exist?(filepath).should eq(true)
-      File.read(filepath).should include test_access_token
       File.delete(filepath)
 
       Rollbar.configure do |config|
@@ -1293,7 +1292,6 @@ describe Rollbar do
       Rollbar.error(exception)
 
       File.exist?(filepath).should eq(true)
-      File.read(filepath).should include test_access_token
       File.delete(filepath)
 
       Rollbar.configure do |config|
