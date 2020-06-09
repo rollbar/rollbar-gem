@@ -190,6 +190,29 @@ describe Rollbar do
         notifier.log('error', exception, extra_data, 'exception description')
       end
 
+      context 'when the extra data is something that supports to_h' do
+        # This is faking ActiveModel::Errors, which is the use case this feature was
+        # originally added in order to support.
+        # Generated from a prod-app by doing the following, where `opn` is some Rails/ActiveRecord model
+        # irb(main):007:0> opn.errors
+        # => #<ActiveModel::Errors:0x000055b2d9bab440 @base=#<FooBarModel id: 6031, ..., @messages={:payload=>["can't be blank"]}>
+        # irb(main):008:0> opn.errors.to_h
+        # => {:payload=>"can't be blank"}
+        FakeActiveModelErrors = Struct.new(:messages) do
+          def to_h
+            messages.to_h[:messages]
+          end
+        end
+
+        let(:extra_data) { FakeActiveModelErrors.new(messages: { "payload": "can't be blank" }) }
+        let(:extra_data_hash) { { "payload": "can't be blank" } }
+
+        it 'should call serialise the hasable object as extra data' do
+          expect(notifier).to receive(:report).with('error', 'exception description', exception, extra_data_hash, nil)
+          notifier.log('error', exception, extra_data, 'exception description')
+        end
+      end
+
       # See Notifier#pack_ruby260_bytes for more information.
       context 'with multi-byte characters in the report' do
         extra_data = { :key => "\u3042", :hash => { :inner_key => 'あああ' } }

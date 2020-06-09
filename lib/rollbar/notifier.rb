@@ -389,8 +389,8 @@ module Rollbar
           exception = arg
         elsif RUBY_PLATFORM == 'java' && arg.is_a?(java.lang.Throwable)
           exception = arg
-        elsif arg.is_a?(Hash)
-          extra = arg
+        elsif arg.respond_to?(:to_h)
+          extra = arg.to_h
 
           context = extra[:custom_data_method_context]
           extra.delete :custom_data_method_context
