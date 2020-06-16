@@ -1102,6 +1102,40 @@ describe Rollbar do
         expect(extra_value).to be_eql('bad value 1')
       end
     end
+
+    context 'with failsafe error' do
+      let(:message) { 'original_error' }
+      let(:exception) { StandardError.new(message) }
+
+      it 'should report original error data' do
+        allow(Rollbar.notifier).to receive(:build_item).and_raise(StandardError.new('failsafe error'))
+        Rollbar.error(exception)
+
+        expect(Rollbar.last_report[:notifier][:diagnostic][:original_error][:message]).to be_eql(message)
+      end
+
+      it 'should report original error stack' do
+        allow(Rollbar.notifier).to receive(:build_item).and_raise(StandardError.new('failsafe error'))
+
+        exc_with_stack = nil
+        begin
+          raise exception
+        rescue => e
+          exc_with_stack = e
+        end
+        Rollbar.error(exc_with_stack)
+
+        expect(Rollbar.last_report[:notifier][:diagnostic][:original_error][:message]).to be_eql(message)
+        expect(Rollbar.last_report[:notifier][:diagnostic][:original_error][:stack].length).to be > 0
+      end
+
+      it 'should report original error data' do
+        allow(Rollbar.notifier).to receive(:build_item).and_raise(StandardError.new('failsafe error'))
+        Rollbar.error(message)
+
+        expect(Rollbar.last_report[:notifier][:diagnostic][:original_message]).to be_eql(message)
+      end
+    end
   end
 
   # Backwards
@@ -1814,11 +1848,16 @@ describe Rollbar do
       let(:host) { 'the-host' }
       let(:uuid) { 'the-uuid' }
       it 'sets the uuid and host in correct keys' do
-        sent_payload = notifier.send(:send_failsafe, 'testing uuid and host',
-                                     exception, uuid, host)
+        original_error = {
+          :uuid => uuid,
+          :host => host
+        }
 
-        expect(sent_payload['data'][:custom][:orig_uuid]).to be_eql('the-uuid')
-        expect(sent_payload['data'][:custom][:orig_host]).to be_eql('the-host')
+        sent_payload = notifier.send(:send_failsafe, 'testing uuid and host',
+                                     exception, original_error)
+
+        expect(sent_payload['data'][:notifier][:diagnostic][:original_uuid]).to be_eql('the-uuid')
+        expect(sent_payload['data'][:notifier][:diagnostic][:original_host]).to be_eql('the-host')
       end
     end
   end
@@ -2010,7 +2049,7 @@ describe Rollbar do
 
     it 'retries the request' do
       expect_any_instance_of(Net::HTTP).to receive(:request).exactly(3)
-      expect(Rollbar.notifier).to receive(:report_internal_error).with(net_exception)
+      expect(Rollbar.notifier).to receive(:report_internal_error).with(net_exception, anything)
 
       Rollbar.info('foo')
     end

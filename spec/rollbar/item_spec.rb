@@ -807,7 +807,7 @@ describe Rollbar::Item do
         host = payload['data']['server']['host']
         log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
 
-        expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, uuid, host)
+        expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, hash_including(:uuid => uuid, :host => host))
         expect(logger).to receive(:error).with(log_message)
 
         item.dump
@@ -824,7 +824,7 @@ describe Rollbar::Item do
           uuid = payload['data']['uuid']
           log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
 
-          expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, uuid, nil)
+          expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil, hash_including(:uuid => uuid))
           expect(logger).to receive(:error).with(log_message)
 
           item.dump

@@ -136,11 +136,18 @@ module Rollbar
       uuid = stringified_payload['data']['uuid']
       host = stringified_payload['data'].fetch('server', {})['host']
 
+      original_error = {
+        :message => message,
+        :exception => exception,
+        :configuration => configuration,
+        :uuid => uuid,
+        :host => host
+      }
+
       notifier.send_failsafe(
         too_large_payload_string(attempts),
         nil,
-        uuid,
-        host
+        original_error
       )
       logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")
     end

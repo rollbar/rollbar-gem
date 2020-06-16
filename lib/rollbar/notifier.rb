@@ -158,7 +158,13 @@ module Rollbar
     def report_with_rescue(level, message, exception, extra, context)
       report(level, message, exception, extra, context)
     rescue StandardError, SystemStackError => e
-      report_internal_error(e)
+      original_error = {
+        :message => message,
+        :exception => exception,
+        :configuration => configuration
+      }
+
+      report_internal_error(e, original_error)
 
       'error'
     end
@@ -262,32 +268,32 @@ module Rollbar
       end
     end
 
-    def send_failsafe(message, exception, uuid = nil, host = nil)
-      exception_reason = failsafe_reason(message, exception)
-
-      log_error "[Rollbar] Sending failsafe response due to #{exception_reason}"
-
-      body = failsafe_body(exception_reason)
-
-      failsafe_data = {
+    def failsafe_initial_data(exception_reason)
+      {
         :level => 'error',
         :environment => configuration.environment.to_s,
         :body => {
           :message => {
-            :body => body
+            :body => failsafe_body(exception_reason)
           }
         },
         :notifier => {
           :name => 'rollbar-gem',
           :version => VERSION
         },
-        :custom => {
-          :orig_uuid => uuid,
-          :orig_host => host
-        },
         :internal => true,
         'failsafe' => true
       }
+    end
+
+    def send_failsafe(message, exception, original_error = nil)
+      exception_reason = failsafe_reason(message, exception)
+
+      log_error "[Rollbar] Sending failsafe response due to #{exception_reason}"
+
+      failsafe_data = failsafe_initial_data(exception_reason)
+
+      failsafe_add_original_error_data(failsafe_data[:notifier], original_error)
 
       failsafe_payload = {
         'data' => failsafe_data
@@ -298,12 +304,59 @@ module Rollbar
                                :notifier => self,
                                :configuration => configuration,
                                :logger => logger)
-        schedule_item(item)
+
+        process_item(item)
+        log_and_return_item_data(item)
       rescue StandardError => e
         log_error "[Rollbar] Error sending failsafe : #{e}"
       end
 
       failsafe_payload
+    end
+
+    def failsafe_add_original_error_data(payload_notifier, original_error)
+      return unless original_error
+
+      payload_notifier[:diagnostic] ||= {}
+
+      add_original_host(payload_notifier[:diagnostic], original_error)
+      add_original_uuid(payload_notifier[:diagnostic], original_error)
+      add_original_message(payload_notifier[:diagnostic], original_error)
+      add_original_error(payload_notifier[:diagnostic], original_error)
+      add_configured_options(payload_notifier, original_error)
+    end
+
+    def add_original_message(diagnostic, original_error)
+        diagnostic[:original_message] = original_error[:message] if original_error[:message]
+    end
+
+    def add_original_error(diagnostic, original_error)
+      if original_error[:exception]
+        diagnostic[:original_error] = {
+          :message => original_error[:exception].message,
+          :stack => original_error[:exception].backtrace && original_error[:exception].backtrace.join(', ')
+        }
+      end
+
+    rescue StandardError => e
+      diagnostic[:original_error] = "Failed: #{e.message}"
+    end
+
+    def add_configured_options(payload_notifier, original_error)
+      if original_error[:configuration]
+        payload_notifier[:configured_options] = original_error[:configuration].configured_options.configured
+      end
+
+    rescue StandardError => e
+      payload_notifier[:configured_options] = "Failed: #{e.message}"
+    end
+
+    def add_original_host(diagnostic, original_error)
+      diagnostic[:original_host] = original_error[:host] if original_error[:host]
+    end
+
+    def add_original_uuid(diagnostic, original_error)
+      diagnostic[:original_uuid] = original_error[:uuid] if original_error[:uuid]
     end
 
     ## Logging
@@ -461,7 +514,7 @@ module Rollbar
     # Reports an internal error in the Rollbar library. This will be reported within the configured
     # Rollbar project. We'll first attempt to provide a report including the exception traceback.
     # If that fails, we'll fall back to a more static failsafe response.
-    def report_internal_error(exception)
+    def report_internal_error(exception, original_error = nil)
       log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
 
       configuration.execute_hook(:on_report_internal_error, exception)
@@ -469,7 +522,7 @@ module Rollbar
       begin
         item = build_item('error', nil, exception, { :internal => true }, nil)
       rescue StandardError => e
-        send_failsafe('build_item in exception_data', e)
+        send_failsafe('build_item in exception_data', e, original_error)
         log_error "[Rollbar] Exception: #{exception}"
         return
       end
@@ -477,7 +530,7 @@ module Rollbar
       begin
         process_item(item)
       rescue StandardError => e
-        send_failsafe('error in process_item', e)
+        send_failsafe('error in process_item', e, original_error)
         log_error "[Rollbar] Item: #{item}"
         return
       end
@@ -485,7 +538,7 @@ module Rollbar
       begin
         log_instance_link(item['data'])
       rescue StandardError => e
-        send_failsafe('error logging instance link', e)
+        send_failsafe('error logging instance link', e, original_error)
         log_error "[Rollbar] Item: #{item}"
         return
       end
