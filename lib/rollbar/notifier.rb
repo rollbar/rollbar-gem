@@ -21,6 +21,7 @@ module Rollbar
 
     MUTEX = Mutex.new
     EXTENSION_REGEXP = /.rollbar\z/.freeze
+    FAILSAFE_STRING_LENGTH = 10_000
 
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
@@ -327,14 +328,19 @@ module Rollbar
     end
 
     def add_original_message(diagnostic, original_error)
-        diagnostic[:original_message] = original_error[:message] if original_error[:message]
+        diagnostic[:original_message] = original_error[:message].truncate(FAILSAFE_STRING_LENGTH) if original_error[:message]
+
+    rescue StandardError => e
+      diagnostic[:original_message] = "Failed: #{e.message}"
     end
 
     def add_original_error(diagnostic, original_error)
       if original_error[:exception]
+        backtrace = original_error[:exception].backtrace
+        message = original_error[:exception].message
         diagnostic[:original_error] = {
-          :message => original_error[:exception].message,
-          :stack => original_error[:exception].backtrace && original_error[:exception].backtrace.join(', ')
+          :message => message && message.truncate(FAILSAFE_STRING_LENGTH),
+          :stack => backtrace && backtrace.join(', ').truncate(FAILSAFE_STRING_LENGTH)
         }
       end
 
@@ -344,7 +350,8 @@ module Rollbar
 
     def add_configured_options(payload_notifier, original_error)
       if original_error[:configuration]
-        payload_notifier[:configured_options] = original_error[:configuration].configured_options.configured
+        configured = original_error[:configuration].configured_options.configured
+        payload_notifier[:configured_options] = ::JSON.generate(configured).truncate(FAILSAFE_STRING_LENGTH)
       end
 
     rescue StandardError => e
