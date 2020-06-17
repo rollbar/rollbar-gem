@@ -55,7 +55,7 @@ module Rollbar
         current_exception = exception
 
         while current_exception.respond_to?(:cause) && (cause = current_exception.cause) && cause.is_a?(Exception) && !visited.include?(cause)
-          traces.unshift(trace_data(cause))
+          traces << trace_data(cause)
           visited << cause
           current_exception = cause
         end
