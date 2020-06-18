@@ -80,8 +80,11 @@ module Rollbar
         return app_result unless response_string
 
         env[JS_IS_INJECTED_KEY] = true
-        response = ::Rack::Response.new(response_string, app_result[0],
-                                        app_result[1])
+
+        status, headers, = app_result
+        headers['Content-Length'] = response_string.bytesize.to_s if headers.key?('Content-Length')
+
+        response = ::Rack::Response.new(response_string, status, headers)
 
         finished = response.finish
 
