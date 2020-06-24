@@ -35,7 +35,7 @@ module Rollbar
           _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
           _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
           _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
-          _cset(:rollbar_revision) { current_revision }
+          _cset(:rollbar_revision) { real_revision }
           _cset(:rollbar_comment) { nil }
         end
       end
