@@ -28,6 +28,10 @@ module RollbarTest # :nodoc:
 
     puts 'Processing...'
     env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify", 'REMOTE_ADDR' => '127.0.0.1')
+
+    # Needed for Rails 6.x ActionDispatch::HostAuthorization (DNS rebinding protection)
+    env['HTTP_HOST'] = 'localhost'
+
     status, = app.call(env)
 
     puts error_message unless status.to_i == 500
