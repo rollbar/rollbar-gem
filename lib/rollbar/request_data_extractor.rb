@@ -131,6 +131,7 @@ module Rollbar
       host = host.split(',').first.strip unless host.empty?
 
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
+      path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{"?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].to_s.empty?}"
       unless path.nil? || path.empty?
         path = '/' + path.to_s if path.to_s.slice(0, 1) != '/'
       end
