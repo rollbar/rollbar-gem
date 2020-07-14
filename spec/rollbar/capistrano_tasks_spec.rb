@@ -109,6 +109,7 @@ describe ::Rollbar::CapistranoTasks do
         it 'prints the API request, response and updates the appropriate deploy to succeeded' do
           expect(::Rollbar::Deploy).to receive(:update)
             .with(hash_including(
+                    :comment => rollbar_comment,
                     :proxy => :ENV,
                     :dry_run => dry_run
                   ),
@@ -204,6 +205,7 @@ describe ::Rollbar::CapistranoTasks do
         it 'prints the API request, response and updates the appropriate deploy to failed' do
           expect(::Rollbar::Deploy).to receive(:update)
             .with(hash_including(
+                    :comment => rollbar_comment,
                     :proxy => :ENV,
                     :dry_run => dry_run
                   ),

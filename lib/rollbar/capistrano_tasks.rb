@@ -83,6 +83,7 @@ module Rollbar
       def report_deploy_succeeded(capistrano, dry_run)
         ::Rollbar::Deploy.update(
           {
+            :comment => capistrano.fetch(:rollbar_comment),
             :proxy => :ENV,
             :dry_run => dry_run
           },
@@ -95,6 +96,7 @@ module Rollbar
       def report_deploy_failed(capistrano, dry_run)
         ::Rollbar::Deploy.update(
           {
+            :comment => capistrano.fetch(:rollbar_comment),
             :proxy => :ENV,
             :dry_run => dry_run
           },
