@@ -10,20 +10,26 @@ describe RollbarTest do
         reconfigure_notifier
       end
 
-      after do
-        # Rails <= 4.x needs this, since we modify the default RouteSet in RollbarTest#run.
-        Rails.application.reload_routes!
-      end
-
       it 'raises the test exception and exits with success message' do
-        expect { subject.run }.to raise_exception(RollbarTestingException) \
-          .with_message(Regexp.new(subject.success_message))
+        expect { subject.run }.to output(Regexp.new(subject.success_message)).to_stdout
       end
     end
 
     context 'when rollbar is not configured' do
-      it 'exits with error message' do
+      it 'exits with token error message' do
         expect { subject.run }.to output(Regexp.new(subject.token_error_message)).to_stdout
+      end
+    end
+
+    context 'when the occurrence fails' do
+      before do
+        reset_configuration
+        reconfigure_notifier
+        allow(Rollbar.notifier).to receive(:report).and_raise(StandardError)
+      end
+
+      it 'exits with error message' do
+        expect { subject.run }.to output(Regexp.new(subject.error_message)).to_stdout
       end
     end
   end
