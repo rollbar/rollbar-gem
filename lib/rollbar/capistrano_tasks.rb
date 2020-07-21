@@ -61,7 +61,11 @@ module Rollbar
       end
 
       def capistrano_300_warning(logger)
-        logger.warn("You need to upgrade capistrano to '>= 3.1' version in order to correctly report deploys to Rollbar. (On 3.0, the reported revision will be incorrect.)") if ::Capistrano::VERSION =~ /^3\.0/
+        return unless ::Capistrano.const_defined?('VERSION') && ::Capistrano::VERSION =~ /^3\.0/
+
+        logger.warn('You need to upgrade capistrano to >= 3.1 version in order'\
+          'to correctly report deploys to Rollbar. (On 3.0, the reported revision'\
+          'will be incorrect.)')
       end
 
       def report_deploy_started(capistrano, dry_run)
