@@ -79,6 +79,17 @@ describe ::Rollbar::CapistranoTasks do
       end
     end
 
+    context 'when an an exception is raised' do
+      it "logs the error to the logger" do
+        expect(::Rollbar::Deploy).to receive(:report)
+          .and_raise('an API exception')
+
+        expect(logger).to receive(:error).with(/an API exception/)
+
+        subject.deploy_started(capistrano, logger, dry_run)
+      end
+    end
+
     context 'with --dry-run provided' do
       let(:dry_run) { true }
 
@@ -149,6 +160,17 @@ describe ::Rollbar::CapistranoTasks do
           expect(logger).to receive(:debug).with('dummy request content')
           expect(logger).to receive(:debug).with('dummy response info')
           expect(logger).to receive(:error).with(/Unable(.*)error message from the api/)
+
+          subject.deploy_succeeded(capistrano, logger, dry_run)
+        end
+      end
+
+      context 'when an an exception is raised' do
+        it "logs the error to the logger" do
+          expect(::Rollbar::Deploy).to receive(:update)
+            .and_raise('an API exception')
+
+          expect(logger).to receive(:error).with(/an API exception/)
 
           subject.deploy_succeeded(capistrano, logger, dry_run)
         end
@@ -246,6 +268,17 @@ describe ::Rollbar::CapistranoTasks do
           expect(logger).to receive(:debug).with('dummy request content')
           expect(logger).to receive(:debug).with('dummy response info')
           expect(logger).to receive(:error).with(/Unable(.*)error message from the api/)
+
+          subject.deploy_failed(capistrano, logger, dry_run)
+        end
+      end
+
+      context 'when an an exception is raised' do
+        it "logs the error to the logger" do
+          expect(::Rollbar::Deploy).to receive(:update)
+            .and_raise('an API exception')
+
+          expect(logger).to receive(:error).with(/an API exception/)
 
           subject.deploy_failed(capistrano, logger, dry_run)
         end

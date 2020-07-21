@@ -40,6 +40,9 @@ module Rollbar
         capistrano_300_warning(logger)
         logger.info opts[:desc] if opts[:desc]
         yield
+
+      rescue StandardError => e
+        logger.error "Error reporting to Rollbar: #{e.inspect}"
       end
 
       def deploy_update(capistrano, logger, dry_run, opts = {})
