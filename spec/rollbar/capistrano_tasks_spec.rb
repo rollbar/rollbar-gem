@@ -326,4 +326,44 @@ describe ::Rollbar::CapistranoTasks do
       end
     end
   end
+
+  describe '.capistrano_300_warning' do
+    context 'when ::Capistrano::VERSION is defined' do
+      it 'does nothing' do
+        expect(logger).not_to receive(:warn)
+
+        subject.send(:capistrano_300_warning, logger)
+      end
+    end
+
+    context 'when ::Capistrano::VERSION is 3.0' do
+      it 'logs a warning' do
+        # The class is not reloaded between tests, so prepare to restore the constant.
+        original_version = ::Capistrano::VERSION
+        ::Capistrano.send(:remove_const, 'VERSION')
+        ::Capistrano.const_set('VERSION', '3.0.0')
+
+        expect(logger).to receive(:warn)
+
+        subject.send(:capistrano_300_warning, logger)
+
+        ::Capistrano.send(:remove_const, 'VERSION')
+        ::Capistrano.const_set('VERSION', original_version)
+      end
+    end
+
+    context 'when ::Capistrano::VERSION is undefined' do
+      it 'does nothing' do
+        # The class is not reloaded between tests, so prepare to restore the constant.
+        original_version = ::Capistrano::VERSION
+        ::Capistrano.send(:remove_const, 'VERSION')
+
+        expect(logger).not_to receive(:warn)
+
+        subject.send(:capistrano_300_warning, logger)
+
+        ::Capistrano.const_set('VERSION', original_version)
+      end
+    end
+  end
 end
