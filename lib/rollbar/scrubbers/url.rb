@@ -70,7 +70,7 @@ module Rollbar
         encoded_query = encode_www_form(filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist))
 
         # We want this to rebuild array params like foo[]=1&foo[]=2
-        URI.escape(CGI.unescape(encoded_query))
+        URI.encode_www_form_component(CGI.unescape(encoded_query)).gsub('+', '%20')
       end
 
       def decode_www_form(query)
