@@ -115,6 +115,7 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
   end
 
   describe '.skip_report' do
+    subject(:call_skip_report) { described_class.skip_report?(job) }
     let(:configuration) { Rollbar.configuration }
     let(:threshold) { 5 }
 
@@ -139,7 +140,7 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       end
 
       it 'returns true' do
-        expect(described_class.skip_report?(job)).to be(false)
+        expect(call_skip_report).to be(false)
       end
     end
 
@@ -147,7 +148,27 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       let(:job) { double(:attempts => 3) }
 
       it 'returns false' do
-        expect(described_class.skip_report?(job)).to be(true)
+        expect(call_skip_report).to be(true)
+      end
+    end
+
+    context 'with async_skip_report_handler set' do
+      let(:job) { double(:attempts => 3) }
+      let(:handler) { double('handler') }
+
+      before do
+        allow(configuration).to receive(:async_skip_report_handler).and_return(handler)
+        allow(handler).to receive(:respond_to).with(:call).and_return(true)
+      end
+
+      it 'when handler.call returns false' do
+        expect(handler).to receive(:call).with(job).and_return(false)
+        expect(call_skip_report).to be(false)
+      end
+
+      it 'when handler.call returns true' do
+        expect(handler).to receive(:call).with(job).and_return(true)
+        expect(call_skip_report).to be(true)
       end
     end
   end

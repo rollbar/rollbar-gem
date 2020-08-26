@@ -108,6 +108,13 @@ Rollbar notifier.
 
 The number of job failures before reporting the failure to Rollbar.
 
+### async_skip_report_handler
+
+**Default** `nil`
+**Example** `-> (job) { job.cron? }`
+
+A handler, should respond to `#call`, receives the job and returns a boolean. If true, reporting errors will be skipped. If provided, dj_threshold isn't checked.
+
 ### enabled
 
 **Default** `true`
