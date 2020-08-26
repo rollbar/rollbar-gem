@@ -37,13 +37,8 @@ else
   gem 'sidekiq', '>= 2.13.0'
 end
 
-if RUBY_VERSION.start_with?('1.9')
-  gem 'capistrano', '<= 3.4.1', :require => false
-  gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
-elsif RUBY_VERSION.start_with?('2')
-  gem 'capistrano', :require => false
-  gem 'shoryuken'
-end
+gem 'capistrano', :require => false
+gem 'shoryuken'
 
 gem 'database_cleaner', '~> 1.0.0'
 gem 'delayed_job', :require => false
@@ -56,17 +51,10 @@ gem 'sinatra'
 
 gem 'nokogiri', '~> 1.6.0' if Gem::Version.new(RUBY_VERSION) <= Gem::Version.new('2.0')
 
-if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
-  gem 'mime-types', '< 3.0'
-  gem 'public_suffix', '< 1.5'
-  gem 'sucker_punch', '~> 1.0'
-  gem 'webmock', '< 2.3.0', :require => false
-else
-  gem 'sucker_punch', '~> 2.0'
-  gem 'webmock', :require => false
-  gem 'codacy-coverage'
-  gem 'simplecov'
-end
+gem 'sucker_punch', '~> 2.0'
+gem 'webmock', :require => false
+gem 'codacy-coverage'
+gem 'simplecov'
 
 gem 'aws-sdk-sqs'
 

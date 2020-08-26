@@ -44,18 +44,11 @@ platforms :rbx do
   gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
 end
 
-if RUBY_VERSION.start_with?('1.9')
-  gem 'capistrano', '<= 3.4.1', :require => false
-  gem 'json', '1.8.6'
-  gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
-  gem 'sucker_punch', '~> 1.0'
-elsif RUBY_VERSION.start_with?('2')
-  gem 'capistrano', :require => false # rubocop:disable Bundler/DuplicatedGem
-  gem 'codacy-coverage'
-  gem 'shoryuken' # rubocop:disable Bundler/DuplicatedGem
-  gem 'simplecov'
-  gem 'sucker_punch', '~> 2.0' # rubocop:disable Bundler/DuplicatedGem
-end
+gem 'capistrano', :require => false
+gem 'codacy-coverage'
+gem 'shoryuken'
+gem 'simplecov'
+gem 'sucker_punch', '~> 2.0'
 
 unless is_jruby
   # JRuby doesn't support fork, which is required for this test helper.

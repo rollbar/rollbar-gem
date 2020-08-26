@@ -4,14 +4,6 @@
 [![SemVer](https://api.dependabot.com/badges/compatibility_score?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&target-version=latest)](https://dependabot.com/compatibility-score.html?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&new-version=latest)
 
 
-> WARNING: Ruby 2.6.0 introduced a new bug bug ([#15472 -
-Invalid JSON data being sent from Net::HTTP in some cases with Ruby 2.6.0](https://bugs.ruby-lang.org/issues/15472)) that may result in the Rollbar API returning an error when an exception is reported.  (See [rollbar-gem issue #797](https://github.com/rollbar/rollbar-gem/issues/797)).
-
-> UPDATE: This bug is fixed in Ruby 2.6.1, and rollbar-gem has a safe workaround in version >= 2.19.0.
-If you need to stay on Ruby 2.6.0 for any reason, make sure you have the latest rollbar-gem.
-
-
-
 [Rollbar](https://rollbar.com) is a real-time exception reporting service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
 
 Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, Sinatra, Rack, plain Ruby, and other frameworks.
@@ -27,9 +19,19 @@ For complete usage instructions and configuration reference, see our [Ruby SDK d
 
 ## Compatibility
 
+Version >= 3.0.0 is compatible with Ruby >= 2.0.0.
+
 Version >= 2.19.0 is compatible with Ruby >= 1.9.3.
 
 Version < 2.19.0 is compatible with Ruby >= 1.8.7.
+
+### Ruby 2.6.0
+
+> WARNING: Ruby 2.6.0 introduced a new bug bug ([#15472 -
+Invalid JSON data being sent from Net::HTTP in some cases with Ruby 2.6.0](https://bugs.ruby-lang.org/issues/15472)) that may result in the Rollbar API returning an error when an exception is reported.  (See [rollbar-gem issue #797](https://github.com/rollbar/rollbar-gem/issues/797)).
+
+> UPDATE: This bug is fixed in Ruby 2.6.1, and rollbar-gem has a safe workaround in version >= 2.19.0.
+If you need to stay on Ruby 2.6.0 for any reason, make sure you have the latest rollbar-gem.
 
 ## Release History & Changelog
 

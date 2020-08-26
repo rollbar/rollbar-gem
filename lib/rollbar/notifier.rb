@@ -698,8 +698,6 @@ module Rollbar
     end
 
     def handle_net_retries
-      return yield if skip_retries?
-
       retries = configuration.net_retries - 1
 
       begin
@@ -711,10 +709,6 @@ module Rollbar
 
         retry
       end
-    end
-
-    def skip_retries?
-      Rollbar::LanguageSupport.ruby_19?
     end
 
     def handle_response(response)
