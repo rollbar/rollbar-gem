@@ -152,12 +152,12 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       end
     end
 
-    context 'with dj_skip_report_handler set' do
+    context 'with async_skip_report_handler set' do
       let(:job) { double(:attempts => 3) }
       let(:handler) { double('handler') }
 
       before do
-        allow(configuration).to receive(:dj_skip_report_handler).and_return(handler)
+        allow(configuration).to receive(:async_skip_report_handler).and_return(handler)
         allow(handler).to receive(:respond_to).with(:call).and_return(true)
       end
 
