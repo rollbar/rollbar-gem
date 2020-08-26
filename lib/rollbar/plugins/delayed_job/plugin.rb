@@ -60,6 +60,10 @@ module Rollbar
     end
 
     def self.skip_report?(job)
+      handler = ::Rollbar.configuration.dj_skip_report_handler
+
+      return handler.call(job) if handler.respond_to?(:call)
+
       job.attempts < ::Rollbar.configuration.dj_threshold
     end
 
