@@ -67,10 +67,7 @@ module Rollbar
 
         params = decode_www_form(query)
 
-        encoded_query = encode_www_form(filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist))
-
-        # We want this to rebuild array params like foo[]=1&foo[]=2
-        URI.escape(CGI.unescape(encoded_query))
+        encode_www_form(filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist))
       end
 
       def decode_www_form(query)
@@ -78,7 +75,15 @@ module Rollbar
       end
 
       def encode_www_form(params)
-        URI.encode_www_form(params)
+        restore_square_brackets(URI.encode_www_form(params))
+      end
+
+      def restore_square_brackets(query)
+        # We want this to rebuild array params like foo[]=1&foo[]=2
+        #
+        # URI.encode_www_form follows the spec at https://url.spec.whatwg.org/#concept-urlencoded-serializer
+        # and percent encodes square brackets. Here we change them back.
+        query.gsub('%5B', '[').gsub('%5D', ']')
       end
 
       def filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist)
