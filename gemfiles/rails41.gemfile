@@ -32,17 +32,11 @@ platforms :rbx do
   gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
 end
 
-if RUBY_VERSION.start_with?('1.9')
-  gem 'capistrano', '<= 3.4.1', :require => false
-  gem 'sucker_punch', '~> 1.0'
-  gem 'shoryuken', '>= 4.0.0', '<= 4.0.2'
-elsif RUBY_VERSION.start_with?('2')
-  gem 'capistrano', :require => false
-  gem 'sucker_punch', '~> 2.0'
-  gem 'shoryuken'
-  gem 'codacy-coverage'
-  gem 'simplecov'
-end
+gem 'capistrano', :require => false
+gem 'sucker_punch', '~> 2.0'
+gem 'shoryuken'
+gem 'codacy-coverage'
+gem 'simplecov'
 
 gem 'delayed_job', :require => false
 gem 'redis'
@@ -54,13 +48,7 @@ gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'rspec-command'
 
-if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
-  gem 'mime-types', '< 3.0'
-  gem 'public_suffix', '< 1.5'
-  gem 'webmock', '< 2.3.0', :require => false
-else
-  gem 'webmock', :require => false
-end
+gem 'webmock', :require => false
 
 gem 'resque'
 gem 'aws-sdk-sqs'

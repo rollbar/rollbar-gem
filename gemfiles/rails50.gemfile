@@ -34,15 +34,10 @@ platforms :rbx do
   gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
 end
 
-if RUBY_VERSION.start_with?('1.9')
-  gem 'capistrano', '<= 3.4.1', :require => false
-  gem 'sucker_punch', '~> 1.0'
-elsif RUBY_VERSION.start_with?('2')
-  gem 'capistrano', :require => false
-  gem 'sucker_punch', '~> 2.0'
-  gem 'codacy-coverage'
-  gem 'simplecov'
-end
+gem 'capistrano', :require => false
+gem 'sucker_punch', '~> 2.0'
+gem 'codacy-coverage'
+gem 'simplecov'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3')
   gem 'rack', '2.1.2'
@@ -60,10 +55,6 @@ gem 'resque'
 unless is_jruby
   # JRuby doesn't support fork, which is required for this test helper.
   gem 'rspec-command'
-end
-
-if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.0')
-  gem 'mime-types', '< 3.0'
 end
 
 gem 'webmock', :require => false

@@ -194,8 +194,7 @@ describe Rollbar do
       context 'with multi-byte characters in the report' do
         extra_data = { :key => "\u3042", :hash => { :inner_key => 'あああ' } }
 
-        it 'should send as multi-byte on ruby != 2.6.0',
-           :if => RUBY_VERSION >= '2.0.0' && RUBY_VERSION != '2.6.0' do
+        it 'should send as multi-byte on ruby != 2.6.0', :if => RUBY_VERSION != '2.6.0' do
           expect_any_instance_of(Net::HTTP::Post).to receive(:body=).with(
             satisfy do |body|
               body.chars.length < body.bytes.length && body.include?('あああ')
@@ -2031,11 +2030,7 @@ describe Rollbar do
     end
   end
 
-  context 'having timeout issues (for ruby > 1.9.3)' do
-    before do
-      skip if Rollbar::LanguageSupport.ruby_19?
-    end
-
+  context 'having timeout issues' do
     let(:exception_class) do
       Rollbar::LanguageSupport.timeout_exceptions.first
     end

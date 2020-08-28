@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.files        += ['spec/support/rollbar_api.rb'] # useful helper for app spec/tests.
   gem.name          = 'rollbar'
   gem.require_paths = ['lib']
-  gem.required_ruby_version = '>= 1.9.3'
+  gem.required_ruby_version = '>= 2.0.0'
   gem.version = Rollbar::VERSION
 
   if gem.respond_to?(:metadata)

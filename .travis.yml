@@ -5,7 +5,6 @@ services:
 language: ruby
 
 rvm:
-  - 1.9.3
   - 2.0.0
   - 2.1.0
   - 2.2.2
@@ -73,12 +72,6 @@ matrix:
   exclude:
     # Don't run tests for non-jruby environments with the JDK.
     # NOTE: openjdk7 is missing from these exclusions so that Travis will run at least 1 build for the given rvm.
-    - rvm: 1.9.3
-      jdk: openjdk8
-    - rvm: 1.9.3
-      jdk: oraclejdk8
-    - rvm: 1.9.3
-      jdk: oraclejdk9
     - rvm: 2.0.0
       jdk: openjdk8
     - rvm: 2.0.0
@@ -147,15 +140,6 @@ matrix:
     - rvm: 2.3.8
       gemfile: gemfiles/rails60.gemfile
     - rvm: 2.4.5
-      gemfile: gemfiles/rails60.gemfile
-    # Rails 5.x requires Ruby 2.2.2 or higher
-    - rvm: 1.9.3
-      gemfile: gemfiles/rails50.gemfile
-    - rvm: 1.9.3
-      gemfile: gemfiles/rails51.gemfile
-    - rvm: 1.9.3
-      gemfile: gemfiles/rails52.gemfile
-    - rvm: 1.9.3
       gemfile: gemfiles/rails60.gemfile
     # Rails 5.x requires Ruby 2.2.2 or higher
     - rvm: 2.0.0
