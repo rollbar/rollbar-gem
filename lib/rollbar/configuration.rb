@@ -85,8 +85,10 @@ module Rollbar
     DEFAULT_WEB_BASE = 'https://rollbar.com'.freeze
 
     def initialize
+      @access_token = nil
       @async_handler = nil
       @before_process = []
+      @branch = nil
       @capture_uncaught = nil
       @code_version = nil
       @custom_data_method = nil
@@ -110,6 +112,7 @@ module Rollbar
       @failover_handlers = []
       @framework = 'Plain'
       @ignored_person_ids = []
+      @host = nil
       @payload_options = {}
       @person_method = 'current_user'
       @person_id_method = 'id'
@@ -121,6 +124,7 @@ module Rollbar
       @open_timeout = 3
       @request_timeout = 3
       @net_retries = 3
+      @root = nil
       @js_enabled = false
       @js_options = {}
       @locals = {}
@@ -150,6 +154,7 @@ module Rollbar
       @log_payload = false
       @collect_user_ip = true
       @anonymize_user_ip = false
+      @user_ip_obfuscator_secret = nil
       @backtrace_cleaner = nil
       @hooks = {
         :on_error_response => nil, # params: response
@@ -157,6 +162,7 @@ module Rollbar
       }
 
       @write_to_file = false
+      @filepath = nil
       @files_with_pid_name_enabled = false
       @files_processed_enabled = false
       @files_processed_duration = 60
