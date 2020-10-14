@@ -51,7 +51,7 @@ Style/Documentation:
   # As is, we currently add :nodoc: if anything at all.
   Enabled: false
 
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   # It's possible to configure this cop to allow just about anything, but what's the point.
   # The default min length of a param name is 3, but the the default whitelist includes things
   # like `db` and `io`. So, short names really can be useful.
