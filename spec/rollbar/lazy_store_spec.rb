@@ -95,4 +95,19 @@ describe Rollbar::LazyStore do
       expect(new_scope.raw).to be_eql(subject.raw)
     end
   end
+
+  describe '#respond_to_missing?' do
+    it 'forwards methods existing on :raw to :raw' do
+      expect(subject.respond_to?(:store)).to be(true)
+      expect { subject.method(:store) }.not_to raise_error
+
+      expect(data).to receive(:store).with(:foo, :bar)
+      subject.store(:foo, :bar)
+    end
+
+    it 'does not have methods that do not exist on raw' do
+      expect(subject.respond_to?(:baz)).to be(false)
+      expect { subject.baz }.to raise_error(NoMethodError)
+    end
+  end
 end

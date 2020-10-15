@@ -41,8 +41,6 @@ module Rollbar
       raw[key] = value
 
       loaded_data.delete(key)
-
-      value
     end
 
     def data
@@ -76,8 +74,8 @@ module Rollbar
       super
     end
 
-    def respond_to?(method_sym)
-      super || raw.respond_to?(method_sym)
+    def respond_to_missing?(method_sym, include_all)
+      raw.respond_to?(method_sym, include_all)
     end
   end
 end
