@@ -75,6 +75,7 @@ module Rollbar
     attr_accessor :files_processed_enabled
     attr_accessor :files_processed_duration # seconds
     attr_accessor :files_processed_size # bytes
+    attr_accessor :use_payload_access_token
 
     attr_reader :project_gem_paths
     attr_accessor :configured_options
@@ -167,6 +168,7 @@ module Rollbar
       @files_processed_enabled = false
       @files_processed_duration = 60
       @files_processed_size = 5 * 1000 * 1000
+      @use_payload_access_token = false
 
       @configured_options = ConfiguredOptions.new(self)
     end

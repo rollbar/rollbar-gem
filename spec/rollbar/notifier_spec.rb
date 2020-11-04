@@ -185,7 +185,10 @@ describe Rollbar::Notifier do
     let(:logger) { double(Logger).as_null_object }
     let(:filepath) { 'test.rollbar' }
 
-    before { notifier.configuration.logger = logger }
+    before do
+      notifier.configuration.access_token = '123456'
+      notifier.configuration.logger = logger
+    end
 
     context 'when using async handler' do
       before do
@@ -201,6 +204,29 @@ describe Rollbar::Notifier do
         process_from_async_handler
 
         expect(dummy_http).to have_received(:request)
+      end
+
+      RSpec::Matchers.define :access_token_header do |value|
+        match { |actual| (actual.fetch('X-Rollbar-Access-Token', 'undefined') == value) }
+      end
+
+      it 'sets the access token header' do
+        expect(dummy_http).to receive(:request).with(access_token_header('123456'))
+
+        process_from_async_handler
+      end
+
+      context 'when use_payload_access_token is set' do
+        before do
+          notifier.configuration.access_token = '123456'
+          notifier.configuration.use_payload_access_token = true
+        end
+
+        it 'omits the access token header' do
+          expect(dummy_http).to receive(:request).with(access_token_header('undefined'))
+
+          process_from_async_handler
+        end
       end
 
       context 'a socket error occurs' do
