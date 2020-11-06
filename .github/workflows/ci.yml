@@ -1,0 +1,101 @@
+name: Rollbar-gem CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        ruby-version: [2.2.10, 2.3.0, 2.3.8, 2.4.5, 2.5.3, 2.6.0]
+        gemfile:
+          - gemfiles/rails42.gemfile
+          - gemfiles/rails50.gemfile
+          - gemfiles/rails51.gemfile
+          - gemfiles/rails52.gemfile
+          - gemfiles/rails60.gemfile
+        exclude:
+          - gemfile: gemfiles/rails42.gemfile
+            ruby-version: 2.6.0
+          - gemfile: gemfiles/rails52.gemfile
+            ruby-version: 2.2.10
+          - gemfile: gemfiles/rails60.gemfile
+            ruby-version: 2.2.10
+          - gemfile: gemfiles/rails60.gemfile
+            ruby-version: 2.3.0
+          - gemfile: gemfiles/rails60.gemfile
+            ruby-version: 2.3.8
+          - gemfile: gemfiles/rails60.gemfile
+            ruby-version: 2.4.5
+        include:
+          - gemfile: gemfiles/rails41.gemfile
+            ruby-version: 2.3.0
+          - gemfile: gemfiles/rails41.gemfile
+            ruby-version: 2.2.10
+          - gemfile: gemfiles/rails41.gemfile
+            ruby-version: 2.1.9
+          - gemfile: gemfiles/rails40.gemfile
+            ruby-version: 2.3.0
+          - gemfile: gemfiles/rails40.gemfile
+            ruby-version: 2.2.10
+          - gemfile: gemfiles/rails40.gemfile
+            ruby-version: 2.1.9
+          - gemfile: gemfiles/rails32.gemfile
+            ruby-version: 2.2.10
+          - gemfile: gemfiles/rails32.gemfile
+            ruby-version: 2.1.9
+          - gemfile: gemfiles/rails31.gemfile
+            ruby-version: 2.0.0
+          - gemfile: gemfiles/rails30.gemfile
+            ruby-version: 2.0.0
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.1.0
+        with:
+          redis-version: 4
+
+      - name: Setup Ruby > 2.0
+        uses: ruby/setup-ruby@v1
+        if: ${{ matrix.ruby-version != '2.0.0' }}
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup Ruby 2.0.0
+        if: ${{ matrix.ruby-version == '2.0.0' }}
+        timeout-minutes: 15
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libssl1.0-dev
+          wget http://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p648.tar.gz
+          tar xvfz ruby-2.0.0-p648.tar.gz
+          cd ruby-2.0.0-p648
+          ./configure && make && sudo make install-nodoc
+
+      - name: Ruby 2.0.0, install bundler
+        if: ${{ matrix.ruby-version == '2.0.0' }}
+        run: sudo gem install bundler -v 1.17.3
+
+      - name: Rails 4.2 ensure bundler version
+        if: ${{ matrix.gemfile == 'gemfiles/rails42.gemfile' }}
+        run: |
+          gem uninstall bundler
+          gem install bundler -v '< 2.0.0'
+
+      - name: Bundle Install
+        run: |
+          export BUNDLE_GEMFILE=${{ matrix.gemfile }}
+          bundle config path vendor/bundle
+          bundle config gemfile ${{ matrix.gemfile }}
+          bundle install --jobs 4 --retry 3
+
+      - name: Rspec
+        run: bundle exec rspec
