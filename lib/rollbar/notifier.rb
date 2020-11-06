@@ -640,7 +640,11 @@ module Rollbar
       request = Net::HTTP::Post.new(uri.request_uri)
 
       request.body = pack_ruby260_bytes(body)
-      request.add_field('X-Rollbar-Access-Token', access_token)
+
+      # Ensure the payload token will be used if the option is set.
+      unless (configuration.use_payload_access_token)
+        request.add_field('X-Rollbar-Access-Token', access_token)
+      end
 
       handle_net_retries { http.request(request) }
     end

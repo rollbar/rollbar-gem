@@ -40,7 +40,7 @@ module Rollbar
     class << self
       def build_with(payload, options = {})
         new(options).tap do |item|
-          item.payload = payload
+          item.payload = item.add_access_token_to_payload(payload)
         end
       end
     end
@@ -64,9 +64,7 @@ module Rollbar
 
     def build
       data = build_data
-      self.payload = {
-        'data' => data
-      }
+      self.payload = add_access_token_to_payload({'data' => data})
 
       enforce_valid_utf8
       transform
@@ -164,6 +162,21 @@ module Rollbar
 
       person_id = data[:person][configuration.person_id_method.to_sym]
       configuration.ignored_person_ids.include?(person_id)
+    end
+
+    def add_access_token_to_payload(payload)
+      # Some use cases remain where the token is needed in the payload. For example:
+      #
+      # When using async senders, if the access token is changed dynamically in
+      # the main process config, the sender process won't see that change.
+      #
+      # Until the delayed sender interface is changed to allow passing dynamic config options,
+      # this workaround allows the main process to set the token by adding it to the payload.
+      if (configuration && configuration.use_payload_access_token)
+        payload['access_token'] = configuration.access_token
+      end
+
+      payload
     end
 
     private

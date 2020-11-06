@@ -43,6 +43,21 @@ describe Rollbar::Item do
   describe '#build' do
     let(:payload) { subject.build }
 
+    context 'when use_payload_access_token is set' do
+      let(:configuration) do
+        Rollbar.configure do |c|
+          c.enabled = true
+          c.access_token = 'footoken'
+          c.use_payload_access_token = true
+        end
+        Rollbar.configuration
+      end
+
+      it 'adds token to payload' do
+        payload['access_token'].should == 'footoken'
+      end
+    end
+
     context 'a basic payload' do
       let(:extra) { {:key => 'value', :hash => {:inner_key => 'inner_value'}} }
 
