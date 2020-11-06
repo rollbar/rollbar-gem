@@ -2,18 +2,12 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-# Used by spec/commands/rollbar_rails_runner_spec, and can be used whenever a
-# new process is created during tests. (Testing rake tasks, for example.)
-# This is a workaround for ENV['BUNDLE_GEMFILE'] not working as expected on Travis.
-# We use the ||= assignment because Travis loads the gemfile twice, the second time
-# with the wrong gemfile path.
-ENV['CURRENT_GEMFILE'] ||= __FILE__
-
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
-gem 'appraisal'
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
+gem 'net-ssh', '<= 3.1.1'
+gem 'public_suffix', '<= 3.1.1'
 gem 'rails', '~> 5.1.7'
 gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
@@ -37,7 +31,7 @@ end
 gem 'capistrano', :require => false
 gem 'sucker_punch', '~> 2.0'
 gem 'codacy-coverage'
-gem 'simplecov'
+gem 'simplecov', '<= 0.17.1'
 
 if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3')
   gem 'rack', '2.1.2'
@@ -50,7 +44,7 @@ gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
-gem 'redis'
+gem 'redis', '<= 3.3.5'
 gem 'resque'
 
 unless is_jruby

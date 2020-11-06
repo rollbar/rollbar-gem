@@ -2,19 +2,13 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-# Used by spec/commands/rollbar_rails_runner_spec, and can be used whenever a
-# new process is created during tests. (Testing rake tasks, for example.)
-# This is a workaround for ENV['BUNDLE_GEMFILE'] not working as expected on Travis.
-# We use the ||= assignment because Travis loads the gemfile twice, the second time
-# with the wrong gemfile path.
-ENV['CURRENT_GEMFILE'] ||= __FILE__
-
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 is_not_jruby = !is_jruby
 
-gem 'appraisal'
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
+gem 'net-ssh', '<= 3.1.1'
+gem 'public_suffix', '<= 2.0.5'
 gem 'rails', '4.2.8'
 gem 'rake'
 gem 'rspec-rails', '~> 3.4'
@@ -45,7 +39,7 @@ gem 'delayed_job', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'rspec-command'
-gem 'redis'
+gem 'redis', '<= 3.3.5'
 gem 'resque'
 gem 'sinatra'
 
@@ -54,7 +48,7 @@ gem 'nokogiri', '~> 1.6.0' if Gem::Version.new(RUBY_VERSION) <= Gem::Version.new
 gem 'sucker_punch', '~> 2.0'
 gem 'webmock', :require => false
 gem 'codacy-coverage'
-gem 'simplecov'
+gem 'simplecov', '<= 0.17.1'
 
 gem 'aws-sdk-sqs'
 
