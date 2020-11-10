@@ -31,8 +31,6 @@ describe ApplicationController, :type => 'request' do
         nonce_present
       elsif mode == :script_src_not_present
         script_src_not_present
-      elsif mode == :unsafe_inline
-        unsafe_inline
       else
         raise 'Unknown CSP mode'
       end
@@ -50,14 +48,6 @@ describe ApplicationController, :type => 'request' do
       Rails.application.config.content_security_policy do |policy|
         policy.default_src :self, :https
         policy.script_src nil
-      end
-    end
-
-    def unsafe_inline
-      # Browser behavior is undefined when unsafe_inline and the nonce are both present.
-      # The app should never set both, but if they do, our best behavior is to not use the nonce.
-      Rails.application.config.content_security_policy do |policy|
-        policy.script_src :self, :unsafe_inline
       end
     end
 
@@ -107,20 +97,7 @@ describe ApplicationController, :type => 'request' do
       include_examples 'adds the snippet'
     end
 
-    context 'when unsafe_inline is present' do
-      let(:nonce_mode) { :unsafe_inline }
-
-      it 'renders the snippet and config in the response with nonce in script tag' do
-        get '/test_rollbar_js'
-
-        expect(response.body).to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
-        expect(response.body).to include '<script type="text/javascript">'
-      end
-
-      include_examples 'adds the snippet'
-    end
-
-    context 'when scp nonce is present' do
+    context 'when CSP nonce is present' do
       let(:nonce_mode) { :nonce_present }
 
       it 'renders the snippet and config in the response with nonce in script tag' do
