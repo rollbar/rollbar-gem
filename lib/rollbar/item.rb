@@ -173,7 +173,7 @@ module Rollbar
       # Until the delayed sender interface is changed to allow passing dynamic config options,
       # this workaround allows the main process to set the token by adding it to the payload.
       if (configuration && configuration.use_payload_access_token)
-        payload['access_token'] = configuration.access_token
+        payload['access_token'] ||= configuration.access_token
       end
 
       payload

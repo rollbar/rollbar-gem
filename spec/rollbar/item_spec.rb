@@ -713,6 +713,43 @@ describe Rollbar::Item do
 
   end # end #build
 
+  describe '#build_with' do
+    context 'when use_payload_access_token is set' do
+      let(:configuration) do
+        Rollbar.configure do |c|
+          c.enabled = true
+          c.access_token = 'new-token'
+          c.use_payload_access_token = true
+        end
+        Rollbar.configuration
+      end
+
+      context 'when no token is in payload' do
+        it 'adds token to payload' do
+          item = described_class.build_with(
+            { 'foo' => 'bar' },
+            { :configuration => configuration }
+          )
+          payload = item.payload
+
+          expect(payload['access_token']).to be_eql('new-token')
+        end
+      end
+
+      context 'when token is in payload' do
+        it 'preserves original token' do
+          item = described_class.build_with(
+            { 'foo' => 'bar', 'access_token' => 'original-token' },
+            { :configuration => configuration }
+          )
+          payload = item.payload
+
+          expect(payload['access_token']).to be_eql('original-token')
+        end
+      end
+    end
+  end
+
   describe '#dump' do
     context 'with recursing instance in payload and ActiveSupport is enabled' do
       class Recurse
