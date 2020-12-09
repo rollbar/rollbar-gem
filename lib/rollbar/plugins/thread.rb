@@ -1,13 +1,14 @@
 Rollbar.plugins.define('thread') do
-  execute do
-    Thread.class_eval do
-      def initialize_with_rollbar(*args, &block)
+  module Rollbar
+    module ThreadPlugin
+      def initialize(*args)
         self[:_rollbar_notifier] ||= Rollbar.notifier.scope
-        initialize_without_rollbar(*args, &block)
+        super
       end
-
-      alias_method :initialize_without_rollbar, :initialize
-      alias_method :initialize, :initialize_with_rollbar
     end
+  end
+
+  execute do
+    Thread.send(:prepend, Rollbar::ThreadPlugin) # rubocop:disable Lint/SendWithMixinArgument
   end
 end
