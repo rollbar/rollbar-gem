@@ -183,7 +183,6 @@ module Rollbar
         req.respond_to?(:content_security_policy) &&
           req.content_security_policy &&
           req.content_security_policy.directives['script-src'] &&
-          !req.content_security_policy.directives['script-src'].include?("'unsafe-inline'") &&
           req.content_security_policy_nonce
       end
 
@@ -224,15 +223,11 @@ module Rollbar
         end
 
         def csp_needs_nonce?(csp)
-          !opt_out?(csp) && !unsafe_inline?(csp)
+          !opt_out?(csp)
         end
 
         def opt_out?(_csp)
           raise NotImplementedError
-        end
-
-        def unsafe_inline?(csp)
-          csp[:script_src].to_a.include?("'unsafe-inline'")
         end
       end
 
