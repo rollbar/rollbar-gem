@@ -854,6 +854,20 @@ describe Rollbar do
         Rollbar.error(exception, :use_exception_level_filters => true)
       end
 
+      it 'sets error level using lambda' do
+        Rollbar.configure do |config|
+          config.exception_level_filters = {
+            'NameError' => lambda { |error| 'info' }
+          }
+        end
+
+        logger_mock.should_receive(:info)
+        logger_mock.should_not_receive(:warn)
+        logger_mock.should_not_receive(:error)
+
+        Rollbar.error(exception, :use_exception_level_filters => true)
+      end
+
       context 'using :use_exception_level_filters option as false' do
         it 'sends the correct filtered level' do
           Rollbar.configure do |config|
