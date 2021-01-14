@@ -112,6 +112,26 @@ describe Rollbar::Scrubbers::URL do
         end
       end
 
+      context 'with non-ASCII UTF-8 encoded URL' do
+        let(:url) { 'http://foo.com/some-path?foo=あああ'.force_encoding(Encoding::UTF_8) }
+        before { reconfigure_notifier }
+
+        it 'returns the URI encoded url' do
+          expected_url = 'http://foo.com/some-path?foo=%E3%81%82%E3%81%82%E3%81%82'
+          expect(subject.call(options)).to match(expected_url)
+        end
+      end
+
+      context 'with non-ASCII ASCII-8BIT encoded URL' do
+        let(:url) { 'http://foo.com/some-path?foo=あああ'.force_encoding(Encoding::ASCII_8BIT) }
+        before { reconfigure_notifier }
+
+        it 'returns the URI encoded url' do
+          expected_url = 'http://foo.com/some-path?foo=%E3%81%82%E3%81%82%E3%81%82'
+          expect(subject.call(options)).to match(expected_url)
+        end
+      end
+
       context 'with URL with spaces and arrays' do
         let(:url) do
           'https://server.com/api/v1/assignments/4430038?user_id=1&assignable_id=2&starts_at=Wed%20Jul%2013%202016%2000%3A00%3A00%20GMT-0700%20(PDT)&ends_at=Fri%20Jul%2029%202016%2000%3A00%3A00%20GMT-0700%20(PDT)&allocation_mode=hours_per_day&percent=&fixed_hours=&hours_per_day=0&auth=REMOVED&___uidh=2228207862&password[]=mypassword'
