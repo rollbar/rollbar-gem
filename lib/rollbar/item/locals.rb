@@ -1,4 +1,3 @@
-require 'rollbar/notifier'
 require 'rollbar/scrubbers/params'
 require 'rollbar/util'
 
