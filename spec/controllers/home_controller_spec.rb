@@ -2,9 +2,19 @@ require 'spec_helper'
 
 def wrap_process_args(*args)
   if ::Gem::Version.new(::Rails.version) >= ::Gem::Version.new('5.0')
-    [{ :params => args[0], :headers => args[1] }]
+    { :params => args[0], :headers => args[1] }
   else
     args
+  end
+end
+
+def send_req(meth, path, args)
+  if args.is_a?(Array)
+    # Rails < 5.x will pass an array, which will splat into separate objects
+    send(meth, path, *args)
+  else
+    # Rails 5+ will send a hash, which will splat into keyword arguments
+    send(meth, path, **args)
   end
 end
 
@@ -200,7 +210,7 @@ describe HomeController do
         :secret_token => 'f6805fea1cae0fb79c5e63bbdcd12bc6'
       }
 
-      post '/report_exception', *wrap_process_args(params)
+      send_req(:post, '/report_exception', wrap_process_args(params))
 
       filtered = Rollbar.last_report[:request][:POST]
 
@@ -223,7 +233,7 @@ describe HomeController do
         :notpass => 'hidden'
       }
 
-      post '/report_exception', *wrap_process_args(params)
+      send_req(:post, '/report_exception', wrap_process_args(params))
 
       filtered = Rollbar.last_report[:request][:POST]
 
@@ -255,7 +265,7 @@ describe HomeController do
     it 'should raise a NameError and have PUT params in the reported exception' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-      put '/report_exception', *wrap_process_args(:putparam => 'putval')
+      send_req(:put, '/report_exception', wrap_process_args(:putparam => 'putval'))
 
       Rollbar.last_report.should_not be_nil
       Rollbar.last_report[:request][:POST]['putparam'].should == 'putval'
@@ -265,7 +275,7 @@ describe HomeController do
       it 'reports the errors successfully' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-        put '/deprecated_report_exception', *wrap_process_args(:putparam => 'putval')
+        send_req(:put, '/deprecated_report_exception', wrap_process_args(:putparam => 'putval'))
 
         Rollbar.last_report.should_not be_nil
         Rollbar.last_report[:request][:POST]['putparam'].should == 'putval'
@@ -277,7 +287,7 @@ describe HomeController do
       @request.env['HTTP_ACCEPT'] = 'application/json'
 
       params = { :jsonparam => 'jsonval' }.to_json
-      post '/report_exception', *wrap_process_args(params, 'CONTENT_TYPE' => 'application/json')
+      send_req(:post, '/report_exception', wrap_process_args(params, 'CONTENT_TYPE' => 'application/json'))
 
       Rollbar.last_report.should_not be_nil
       expect(Rollbar.last_report[:request][:body]).to be_eql(params)
@@ -424,7 +434,7 @@ describe HomeController do
         before { cookies[:session_id] = user.id }
 
         subject(:person_data) do
-          put '/report_exception', *wrap_process_args('foo' => 'bar')
+          send_req(:put, '/report_exception', wrap_process_args('foo' => 'bar'))
 
           Rollbar.last_report[:person]
         end
@@ -474,7 +484,9 @@ describe HomeController do
 
   context 'with routing errors', :type => :request do
     it 'raises a RoutingError exception' do
-      expect { get '/foo/bar', *wrap_process_args(:foo => :bar) }.to raise_exception(ActionController::RoutingError)
+      expect do
+        send_req(:get, '/foo/bar', wrap_process_args(:foo => :bar))
+      end.to raise_exception(ActionController::RoutingError)
 
       report = Rollbar.last_report
       expect(report[:request][:GET]['foo']).to be_eql('bar')
@@ -497,7 +509,9 @@ describe HomeController do
 
     context 'with a single upload' do
       it 'saves attachment data' do
-        expect { post '/file_upload', *wrap_process_args(:upload => file1) }.to raise_exception(NameError)
+        expect do
+          send_req(:post, '/file_upload', wrap_process_args(:upload => file1))
+        end.to raise_exception(NameError)
 
         upload_param = Rollbar.last_report[:request][:POST]['upload']
 
@@ -512,7 +526,9 @@ describe HomeController do
 
     context 'with multiple uploads', :type => :request do
       it 'saves attachment data for all uploads' do
-        expect { post '/file_upload', *wrap_process_args(:upload => [file1, file2]) }.to raise_exception(NameError)
+        expect do
+          send_req(:post, '/file_upload', wrap_process_args(:upload => [file1, file2]))
+        end.to raise_exception(NameError)
         sent_params = Rollbar.last_report[:request][:POST]['upload']
 
         expect(sent_params).to be_kind_of(Array)
@@ -544,7 +560,7 @@ describe HomeController do
 
     it 'parses the correct headers' do
       expect do
-        post '/cause_exception', *wrap_process_args(params, 'ACCEPT' => 'application/vnd.github.v3+json')
+        send_req(:post, '/cause_exception', wrap_process_args(params, 'ACCEPT' => 'application/vnd.github.v3+json'))
       end.to raise_exception(NameError)
 
       expect(Rollbar.last_report[:request][:POST]['foo']).to be_eql('bar')
@@ -565,7 +581,9 @@ describe HomeController do
     end
 
     it 'scrubs sensible data from URL' do
-      expect { get '/cause_exception', *wrap_process_args({ :password => 'my-secret-password' }, headers) }.to raise_exception(NameError)
+      expect do
+        send_req(:get, '/cause_exception', wrap_process_args({ :password => 'my-secret-password' }, headers))
+      end.to raise_exception(NameError)
 
       request_data = Rollbar.last_report[:request]
 
