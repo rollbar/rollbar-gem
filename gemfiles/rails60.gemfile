@@ -10,12 +10,7 @@ gem 'jruby-openssl', :platform => :jruby
 gem 'rails', '6.0.2.1'
 gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
 
-gem 'rspec-core', '~> 3.8.0'
-gem 'rspec-support', '~> 3.8.0'
-gem 'rspec-expectations', '~> 3.8.0'
-gem 'rspec-mocks', '~> 3.8.0'
-# TODO: update this when 4.x becomes available on Rubygems
-gem 'rspec-rails', :git => 'https://github.com/rspec/rspec-rails', :ref => 'v4.0.0.beta2' # rubocop:disable Bundler/DuplicatedGem
+gem 'rspec-rails', '~> 4.0.2'
 
 gem 'rake'
 
@@ -25,7 +20,7 @@ platforms :rbx do
   gem 'minitest'
   gem 'racc'
   gem 'rubinius-developer_tools'
-  gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
+  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2') # rubysl doesn't yet support Ruby 3.x
 end
 
 gem 'sucker_punch', '~> 2.0'
@@ -35,7 +30,7 @@ gem 'sinatra', :git => 'https://github.com/sinatra/sinatra'
 
 gem 'database_cleaner'
 gem 'codacy-coverage'
-gem 'delayed_job', '4.1.8.beta1', :require => false
+gem 'delayed_job', '4.1.9', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
