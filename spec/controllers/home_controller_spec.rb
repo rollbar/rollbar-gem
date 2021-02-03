@@ -338,7 +338,15 @@ describe HomeController do
         frames = Rollbar.last_report[:body][:trace][:frames]
 
         expect(frames[-1][:locals]).to be_eql(locals[0])
-        expect(frames[-2][:locals]).to be_eql(locals[1])
+
+        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.0.0')
+          expect(frames[-2][:method]).to be_eql('tap')
+          expect(frames[-2][:locals]).to be_eql(locals[1])
+        else
+          expect(frames[-2][:method]).to be_eql('tap')
+          expect(frames[-2][:locals]).to be_nil
+        end
+
         expect(frames[-3][:locals]).to be_eql(locals[2])
         expect(frames[-4][:locals]).to be_eql(locals[3])
         # Frames: -5, -6 are not app frames, and have different contents in
