@@ -54,7 +54,15 @@ unless is_jruby
 end
 
 gem 'aws-sdk-sqs'
-gem 'database_cleaner'
+
+if GEMFILE_RAILS_VERSION < '5.2'
+  gem 'database_cleaner', '~> 1.8.4'
+elsif GEMFILE_RAILS_VERSION < '5.0'
+  gem 'database_cleaner', '~> 1.0.0' # rubocop:disable Bundler/DuplicatedGem
+else
+  gem 'database_cleaner' # rubocop:disable Bundler/DuplicatedGem
+end
+
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'delayed_job', :require => false
 else
