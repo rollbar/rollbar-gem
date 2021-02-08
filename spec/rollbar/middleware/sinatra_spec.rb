@@ -273,12 +273,11 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
 
           expect(frames[-1][:locals]).to be_eql(locals[0])
 
-          if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.0.0')
-            expect(frames[-2][:method]).to be_eql('tap')
-            expect(frames[-2][:locals]).to be_eql(locals[1])
-          else
-            expect(frames[-2][:method]).to be_eql('tap')
+          expect(frames[-2][:method]).to be_eql('tap')
+          if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0')
             expect(frames[-2][:locals]).to be_nil
+          else
+            expect(frames[-2][:locals]).to be_eql(locals[1])
           end
 
           expect(frames[-3][:locals]).to be_eql(locals[2])

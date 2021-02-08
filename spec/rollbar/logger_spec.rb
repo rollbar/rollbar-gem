@@ -118,12 +118,12 @@ describe Rollbar::Logger do
       logger = notifier.configuration.logger
       logdev = logger.instance_eval { @logdev }
 
-      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.0')
-        expect(logdev.filename).to be_eql('/dev/null')
-      else
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0')
         # The Logger class no longer creates a LogDevice when the device is `File::NULL`
-        # https://github.com/ruby/ruby/commit/f3e12caa088cc893a54bc2810ff511e4c89b322b#diff-f19218661d07876c8e4201ff03633b36edfdb4b57dd396f87db7cfd992b3f676
+        # See: ruby/ruby@f3e12caa088cc893a54bc2810ff511e4c89b322b
         expect(logdev).to be_nil
+      else
+        expect(logdev.filename).to be_eql('/dev/null')
       end
     end
   end
