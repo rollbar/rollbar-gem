@@ -55,12 +55,12 @@ end
 
 gem 'aws-sdk-sqs'
 
-if GEMFILE_RAILS_VERSION < '5.2'
-  gem 'database_cleaner', '~> 1.8.4'
+if GEMFILE_RAILS_VERSION >= '5.2'
+  gem 'database_cleaner'
+elsif GEMFILE_RAILS_VERSION.between?('5.0', '5.2')
+  gem 'database_cleaner', '~> 1.8.4' # rubocop:disable Bundler/DuplicatedGem
 elsif GEMFILE_RAILS_VERSION < '5.0'
   gem 'database_cleaner', '~> 1.0.0' # rubocop:disable Bundler/DuplicatedGem
-else
-  gem 'database_cleaner' # rubocop:disable Bundler/DuplicatedGem
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
