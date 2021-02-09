@@ -11,8 +11,7 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-GEMFILE_RAILS_VERSION = '5.2.2'.freeze
-
+GEMFILE_RAILS_VERSION = '6.1.1'.freeze
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
 gem 'jruby-openssl', :platform => :jruby
@@ -21,8 +20,7 @@ gem 'rake'
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'rspec-rails', '~> 3.4'
 else
-  # TODO: update this when 4.x becomes available on Rubygems
-  gem 'rspec-rails', :git => 'https://github.com/rspec/rspec-rails', :ref => 'v4.0.0.beta2' # rubocop:disable Bundler/DuplicatedGem
+  gem 'rspec-rails', '~> 4.0.2' # rubocop:disable Bundler/DuplicatedGem
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
@@ -41,7 +39,7 @@ platforms :rbx do
   gem 'minitest'
   gem 'racc'
   gem 'rubinius-developer_tools'
-  gem 'rubysl', '~> 2.0' unless RUBY_VERSION.start_with?('1')
+  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2') # rubysl doesn't yet support Ruby 3.x
 end
 
 gem 'capistrano', :require => false
@@ -56,7 +54,15 @@ unless is_jruby
 end
 
 gem 'aws-sdk-sqs'
-gem 'database_cleaner'
+
+if GEMFILE_RAILS_VERSION >= '5.2'
+  gem 'database_cleaner'
+elsif GEMFILE_RAILS_VERSION.between?('5.0', '5.2')
+  gem 'database_cleaner', '~> 1.8.4' # rubocop:disable Bundler/DuplicatedGem
+elsif GEMFILE_RAILS_VERSION < '5.0'
+  gem 'database_cleaner', '~> 1.0.0' # rubocop:disable Bundler/DuplicatedGem
+end
+
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'delayed_job', :require => false
 else

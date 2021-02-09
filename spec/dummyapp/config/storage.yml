@@ -1,0 +1,4 @@
+# This isn't used, but is expected to be present for Rails 6.x
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>

@@ -11,18 +11,23 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        ruby-version: [2.2.10, 2.3.0, 2.3.8, 2.4.5, 2.5.3, 2.6.0, 2.7.2]
+        ruby-version: [2.2.10, 2.3.0, 2.3.8, 2.4.5, 2.5.3, 2.6.0, 2.6.6, 2.7.2]
         gemfile:
           - gemfiles/rails42.gemfile
           - gemfiles/rails50.gemfile
           - gemfiles/rails51.gemfile
           - gemfiles/rails52.gemfile
           - gemfiles/rails60.gemfile
+          - gemfiles/rails61.gemfile
         exclude:
           - gemfile: gemfiles/rails42.gemfile
             ruby-version: 2.7.2
           - gemfile: gemfiles/rails42.gemfile
             ruby-version: 2.6.0
+          - gemfile: gemfiles/rails42.gemfile
+            ruby-version: 2.6.6
+          - gemfile: gemfiles/rails42.gemfile
+            ruby-version: 2.7.2
           - gemfile: gemfiles/rails52.gemfile
             ruby-version: 2.2.10
           - gemfile: gemfiles/rails60.gemfile
@@ -32,6 +37,14 @@ jobs:
           - gemfile: gemfiles/rails60.gemfile
             ruby-version: 2.3.8
           - gemfile: gemfiles/rails60.gemfile
+            ruby-version: 2.4.5
+          - gemfile: gemfiles/rails61.gemfile
+            ruby-version: 2.2.10
+          - gemfile: gemfiles/rails61.gemfile
+            ruby-version: 2.3.0
+          - gemfile: gemfiles/rails61.gemfile
+            ruby-version: 2.3.8
+          - gemfile: gemfiles/rails61.gemfile
             ruby-version: 2.4.5
         include:
           - gemfile: gemfiles/rails41.gemfile
@@ -54,6 +67,8 @@ jobs:
             ruby-version: 2.0.0
           - gemfile: gemfiles/rails30.gemfile
             ruby-version: 2.0.0
+          - gemfile: gemfiles/rails61.gemfile
+            ruby-version: 3.0.0
 
     steps:
       - uses: actions/checkout@v2

@@ -6,14 +6,10 @@ is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_
 
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
-gem 'rails', '~> 5.2.3'
-gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
+gem 'rails', '6.1.1'
+gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
 
-gem 'rspec-core', '~> 3.8.0'
-gem 'rspec-rails', '~> 3.8.0'
-gem 'rspec-support', '~> 3.8.0'
-gem 'rspec-expectations', '~> 3.8.0'
-gem 'rspec-mocks', '~> 3.8.0'
+gem 'rspec-rails', '~> 4.0.2'
 
 gem 'rake'
 
@@ -33,12 +29,12 @@ gem 'sinatra', :git => 'https://github.com/sinatra/sinatra'
 
 gem 'database_cleaner'
 gem 'codacy-coverage'
-gem 'delayed_job', :require => false
+gem 'delayed_job', '4.1.9', :require => false
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque'
-gem 'simplecov', '<= 0.17.1'
+gem 'simplecov'
 
 unless is_jruby
   # JRuby doesn't support fork, which is required for this test helper.
