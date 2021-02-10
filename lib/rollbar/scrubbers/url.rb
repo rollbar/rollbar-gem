@@ -13,7 +13,7 @@ module Rollbar
       end
 
       def call(options = {})
-        url = options[:url]
+        url = ascii_encode(options[:url])
 
         filter(url,
                build_regex(options[:scrub_fields]),
@@ -28,6 +28,20 @@ module Rollbar
       end
 
       private
+
+      def ascii_encode(url)
+        # In some cases non-ascii characters won't be properly encoded, so we do it here.
+        #
+        # The standard encoders (the CGI and URI methods) are not reliable when the query string
+        # is already embedded in the full URL, but the inconsistencies are limited to issues
+        # with characters in the ascii range. (For example, the '#' if it appears in an unexpected place.)
+        # For escaping non-ascii, they are all OK, so we'll take care to skip the ascii chars.
+
+        return url if url.ascii_only?
+
+        # Iterate each char and only escape non-ascii characters.
+        url.each_char.map { |c| c.ascii_only? ? c : CGI.escape(c) }.join
+      end
 
       def build_whitelist_regex(whitelist)
         fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
