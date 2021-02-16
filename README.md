@@ -1,5 +1,5 @@
 # Rollbar-gem
-![Build Status](https://github.com/rollbar/rollbar-gem/workflows/Rollbar-gem%20CI/badge.svg?branch=master)
+![Build Status](https://github.com/rollbar/rollbar-gem/workflows/Rollbar-gem%20CI/badge.svg?tag=latest)
 [![Gem Version](https://badge.fury.io/rb/rollbar.svg)](http://badge.fury.io/rb/rollbar)
 [![SemVer](https://api.dependabot.com/badges/compatibility_score?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&target-version=latest)](https://dependabot.com/compatibility-score.html?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&new-version=latest)
 
