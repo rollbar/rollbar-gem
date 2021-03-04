@@ -7,8 +7,7 @@ require 'rollbar/delay/girl_friday'
 
 describe Rollbar::Delay::GirlFriday do
   before do
-    queue_class = ::GirlFriday::WorkQueue.immediate!
-    allow(::Rollbar::Delay::GirlFriday).to receive(:queue_class).and_return(queue_class)
+    ::GirlFriday::WorkQueue.immediate!
   end
 
   describe '.call' do
