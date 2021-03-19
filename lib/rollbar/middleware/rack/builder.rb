@@ -9,13 +9,11 @@ module Rollbar
         include RequestDataExtractor
 
         def call_with_rollbar(env)
-          Rollbar.reset_notifier!
-
           Rollbar.scoped(fetch_scope(env)) do
             begin
               call_without_rollbar(env)
-            rescue ::Exception => exception
-              report_exception_to_rollbar(env, exception)
+            rescue ::Exception => e
+              report_exception_to_rollbar(env, e)
               raise
             end
           end
