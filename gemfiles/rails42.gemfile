@@ -9,7 +9,7 @@ gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
 gem 'net-ssh', '<= 3.1.1'
 gem 'public_suffix', '<= 2.0.5'
-gem 'rails', '4.2.8'
+gem 'rails', '~> 4.2.11'
 gem 'rake'
 gem 'rspec-rails', '~> 3.4'
 gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]

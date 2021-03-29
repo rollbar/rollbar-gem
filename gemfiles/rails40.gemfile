@@ -9,7 +9,7 @@ gem 'jruby-openssl', :platform => :jruby
 gem 'mixlib-shellout', '<= 2.0.0'
 gem 'net-ssh', '<= 3.1.1'
 gem 'public_suffix', '<= 2.0.5'
-gem 'rails', '4.0.13'
+gem 'rails', '~> 4.0.13'
 gem 'rake'
 gem 'rspec-rails', '~> 3.4'
 gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
