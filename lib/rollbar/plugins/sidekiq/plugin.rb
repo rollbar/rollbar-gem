@@ -16,6 +16,10 @@ module Rollbar
       job_hash = ctx_hash && (ctx_hash[:job] || ctx_hash)
       return if skip_report?(job_hash, e)
 
+      Rollbar.scope(job_scope(job_hash)).error(e, :use_exception_level_filters => true)
+    end
+
+    def self.job_scope(job_hash)
       scope = {
         :framework => "Sidekiq: #{::Sidekiq::VERSION}"
       }
@@ -26,7 +30,7 @@ module Rollbar
         scope[:queue] = params['queue']
       end
 
-      Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
+      scope
     end
 
     def self.scrub_params(params)
