@@ -9,7 +9,7 @@ Rollbar.plugins.define('sidekiq >= 3') do
 
     Sidekiq.configure_server do |config|
       config.server_middleware do |chain|
-        chain.add Rollbar::Sidekiq::ClearScope
+        chain.add Rollbar::Sidekiq::ResetScope
       end
 
       config.error_handlers << proc do |e, context|

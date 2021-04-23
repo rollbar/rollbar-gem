@@ -4,11 +4,13 @@ module Rollbar
   class Sidekiq
     PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class].freeze
 
-    class ClearScope
-      def call(_worker, _msg, _queue)
-        Rollbar.reset_notifier!
+    class ResetScope
+      def call(_worker, msg, _queue)
+        Rollbar.reset_notifier! # clears scope
 
-        yield
+        return yield unless Rollbar.configuration.sidekiq_use_scoped_block
+
+        Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg)) { yield }
       end
     end
 
@@ -56,7 +58,7 @@ module Rollbar
 
     # see https://github.com/mperham/sidekiq/wiki/Middleware#server-middleware
     def call(_worker, msg, _queue)
-      Rollbar.reset_notifier!
+      Rollbar.reset_notifier! # clears scope
 
       return yield unless Rollbar.configuration.sidekiq_use_scoped_block
 
