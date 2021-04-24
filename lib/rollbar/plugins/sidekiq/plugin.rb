@@ -68,10 +68,9 @@ module Rollbar
       raise
     end
 
-    private
-
     def self.job_hash_from_msg(msg)
       msg && (msg[:job] || msg)
     end
+    private_class_method :job_hash_from_msg
   end
 end
