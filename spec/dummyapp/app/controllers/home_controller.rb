@@ -48,6 +48,13 @@ class HomeController < ApplicationController
     render 'js/test', :layout => 'simple'
   end
 
+  def test_rollbar_js_with_nonce
+    # Cause a secure_headers nonce to be added to script_src
+    ::SecureHeaders.content_security_policy_script_nonce(request)
+
+    render 'js/test', :layout => 'simple'
+  end
+
   def file_upload
     _this = will_crash
   end

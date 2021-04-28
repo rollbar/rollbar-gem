@@ -34,6 +34,7 @@ gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque'
+gem 'secure_headers', '~> 6.3.2', :require => false
 gem 'simplecov'
 
 unless is_jruby

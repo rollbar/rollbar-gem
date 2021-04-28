@@ -34,7 +34,7 @@ end
 describe Rollbar::Middleware::Js do
   subject { described_class.new(app, config) }
 
-  let(:env) { {} }
+  let(:env) { { SecureHeadersMocks::NONCE_KEY => SecureHeadersMocks::NONCE } }
   let(:config) { {} }
   let(:app) do
     proc do |_|
@@ -421,7 +421,7 @@ describe Rollbar::Middleware::Js do
         let(:body) { [html] }
         let(:status) { 200 }
         let(:headers) do
-          { 
+          {
             'Content-Type' => content_type,
             'Content-Length' => html.bytesize
           }

@@ -1,5 +1,6 @@
 module SecureHeadersMocks
   NONCE = 'lorem-ipsum-nonce'.freeze
+  NONCE_KEY = 'secure_headers_content_security_policy_nonce'.freeze
 
   module CSP
     class << self
@@ -19,6 +20,7 @@ module SecureHeadersMocks
   end
 
   module SecureHeaders30
+    NONCE_KEY = SecureHeadersMocks::NONCE_KEY
     OPT_OUT = :opt_out
     class << self
       def content_security_policy_script_nonce(_req)
@@ -42,6 +44,7 @@ module SecureHeadersMocks
   end
 
   module SecureHeaders35
+    NONCE_KEY = SecureHeadersMocks::NONCE_KEY
     class << self
       def content_security_policy_script_nonce(_req)
         NONCE
@@ -62,6 +65,7 @@ module SecureHeadersMocks
   end
 
   module SecureHeaders60
+    NONCE_KEY = SecureHeadersMocks::NONCE_KEY
     class << self
       def content_security_policy_script_nonce(_req)
         NONCE
