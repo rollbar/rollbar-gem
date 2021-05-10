@@ -16,7 +16,7 @@ module Rollbar
             if result[:success] && (deploy_id = result[:data] && result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
-              logger.error 'Unable to report deploy to Rollbar' + (result[:message] ? ': ' + result[:message] : '')
+              log_error logger, 'Unable to report deploy to Rollbar' + (result[:message] ? ': ' + result[:message] : '')
             end
           end
         end
@@ -42,7 +42,7 @@ module Rollbar
         yield
 
       rescue StandardError => e
-        logger.error "Error reporting to Rollbar: #{e.inspect}"
+        log_error logger, "Error reporting to Rollbar: #{e.inspect}"
       end
 
       def deploy_update(capistrano, logger, dry_run, opts = {})
@@ -56,7 +56,7 @@ module Rollbar
               if result[:success]
                 logger.info 'Updated deploy status in Rollbar'
               else
-                logger.error 'Unable to update deploy status in Rollbar' + (result[:message] ? ': ' + result[:message] : '')
+                log_error logger, 'Unable to update deploy status in Rollbar' + (result[:message] ? ': ' + result[:message] : '')
               end
             end
           end
@@ -117,7 +117,7 @@ module Rollbar
         if capistrano.fetch(:rollbar_deploy_id)
           yield
         else
-          logger.error 'Failed to update the deploy in Rollbar. No deploy id available.'
+          log_error logger, 'Failed to update the deploy in Rollbar. No deploy id available.'
         end
       end
 
@@ -133,6 +133,15 @@ module Rollbar
         # NOTE: in Capistrano debug messages go to log/capistrano.log but not to stdout even if log_level == :debug
         logger.debug result[:request_info]
         logger.debug result[:response_info] if result[:response_info]
+      end
+
+      def log_error(logger, message)
+        # Capistrano 2.x doesn't have the #error method, so we use #important if #error isn't present
+        if logger.respond_to?(:error)
+          logger.error message
+        elsif logger.respond_to?(:important)
+          logger.important message
+        end
       end
     end
   end
