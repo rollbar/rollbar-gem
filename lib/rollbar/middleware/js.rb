@@ -178,9 +178,8 @@ module Rollbar
         # Rails will only return a nonce if the app has set a nonce generator.
         # So if we get a valid nonce here, we know we should use it.
         #
-        # Previous versions of this code didn't add a nonce when 'unsafe-inline' was
-        # set, but having both 'unsafe-inline' and a nonce is a valid browser compatibility
-        # configuration.
+        # Having both 'unsafe-inline' and a nonce is a valid and preferred
+        # browser compatibility configuration.
         #
         # If the script_src key is missing, Rails will not add the nonce to the headers,
         # so we detect this and will not add it in this case.
