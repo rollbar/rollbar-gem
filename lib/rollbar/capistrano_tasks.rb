@@ -16,7 +16,9 @@ module Rollbar
             if result[:success] && (deploy_id = result[:data] && result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
-              log_error logger, 'Unable to report deploy to Rollbar' + (result[:message] ? ': ' + result[:message] : '')
+              message = format_message('Unable to report deploy to Rollbar',
+                                       result[:message])
+              log_error(logger, message)
             end
           end
         end
@@ -56,7 +58,9 @@ module Rollbar
               if result[:success]
                 logger.info 'Updated deploy status in Rollbar'
               else
-                log_error logger, 'Unable to update deploy status in Rollbar' + (result[:message] ? ': ' + result[:message] : '')
+                message = format_message('Unable to update deploy status in Rollbar',
+                                         result[:message])
+                log_error(logger, message)
               end
             end
           end
@@ -135,8 +139,13 @@ module Rollbar
         logger.debug result[:response_info] if result[:response_info]
       end
 
+      def format_message(*args)
+        args.compact.join(': ')
+      end
+
       def log_error(logger, message)
-        # Capistrano 2.x doesn't have the #error method, so we use #important if #error isn't present
+        # Capistrano 2.x doesn't have the #error method,
+        # so we use #important if #error isn't present
         if logger.respond_to?(:error)
           logger.error message
         elsif logger.respond_to?(:important)
