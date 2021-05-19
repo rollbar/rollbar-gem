@@ -14,6 +14,12 @@ describe ::Rollbar::CapistranoTasks do
   let(:rollbar_revision) { 'sha123' }
   let(:dry_run) { false }
 
+  class Capistrano2LoggerStub
+    def important(message, line_prefix=nil) end
+    def info(message, line_prefix=nil) end
+    def debug(message, line_prefix=nil) end
+  end
+
   before do
     allow(logger).to receive(:info)
     allow(logger).to receive(:error)
@@ -87,6 +93,19 @@ describe ::Rollbar::CapistranoTasks do
         expect(logger).to receive(:error).with(/an API exception/)
 
         subject.deploy_started(capistrano, logger, dry_run)
+      end
+
+      context 'when using Capistrano 2.x logger' do
+        let(:logger2) { Capistrano2LoggerStub.new }
+
+        it "logs the error to the logger" do
+          expect(::Rollbar::Deploy).to receive(:report)
+            .and_raise('an API exception')
+
+          expect(logger2).to receive(:important).with(/an API exception/)
+
+          subject.deploy_started(capistrano, logger2, dry_run)
+        end
       end
     end
 
@@ -173,6 +192,19 @@ describe ::Rollbar::CapistranoTasks do
           expect(logger).to receive(:error).with(/an API exception/)
 
           subject.deploy_succeeded(capistrano, logger, dry_run)
+        end
+
+        context 'when using Capistrano 2.x logger' do
+          let(:logger2) { Capistrano2LoggerStub.new }
+
+          it "logs the error to the logger" do
+            expect(::Rollbar::Deploy).to receive(:update)
+              .and_raise('an API exception')
+
+            expect(logger2).to receive(:important).with(/an API exception/)
+
+            subject.deploy_succeeded(capistrano, logger2, dry_run)
+          end
         end
       end
 
@@ -282,6 +314,19 @@ describe ::Rollbar::CapistranoTasks do
 
           subject.deploy_failed(capistrano, logger, dry_run)
         end
+
+        context 'when using Capistrano 2.x logger' do
+          let(:logger2) { Capistrano2LoggerStub.new }
+
+          it "logs the error to the logger" do
+            expect(::Rollbar::Deploy).to receive(:update)
+              .and_raise('an API exception')
+
+            expect(logger2).to receive(:important).with(/an API exception/)
+
+            subject.deploy_failed(capistrano, logger2, dry_run)
+          end
+        end
       end
 
       context 'with --dry-run provided' do
@@ -323,6 +368,18 @@ describe ::Rollbar::CapistranoTasks do
         expect(logger).to receive(:error).with(/Failed(.*)No deploy id available/)
 
         subject.deploy_failed(capistrano, logger, dry_run)
+      end
+
+      context 'when using Capistrano 2.x logger' do
+        let(:logger2) { Capistrano2LoggerStub.new }
+
+        it 'displays an error message and exits' do
+          expect(Rollbar::Deploy).to_not receive(:report)
+
+          expect(logger2).to receive(:important).with(/Failed(.*)No deploy id available/)
+
+          subject.deploy_failed(capistrano, logger2, dry_run)
+        end
       end
     end
   end

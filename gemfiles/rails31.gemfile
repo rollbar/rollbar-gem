@@ -29,6 +29,7 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
+gem 'rexml', '<= 3.2.4'
 gem 'sucker_punch'
 gem 'shoryuken'
 gem 'codacy-coverage'
