@@ -74,6 +74,7 @@ gem 'redis'
 gem 'resque', '< 2.0.0'
 gem 'rubocop', '~> 0.93.0', :require => false
 gem 'rubocop-performance', :require => false
+gem 'secure_headers', '~> 6.3.2', :require => false
 gem 'sinatra'
 gem 'webmock', :require => false
 gemspec

@@ -157,8 +157,7 @@ module Rollbar
       def script_tag(content, env)
         if (nonce = rails5_nonce(env))
           script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
-        elsif secure_headers_nonce?
-          nonce = ::SecureHeaders.content_security_policy_script_nonce(::Rack::Request.new(env))
+        elsif (nonce = secure_headers_nonce(env))
           script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
         else
           script_tag_content = "\n<script type=\"text/javascript\">#{content}</script>"
@@ -172,14 +171,18 @@ module Rollbar
         string
       end
 
-      # Rails 5.2 Secure Content Policy
+      # Rails 5.2+ Secure Content Policy
       def rails5_nonce(env)
-        # The nonce is the preferred method, however 'unsafe-inline' is also possible.
-        # The app gets to decide, so we handle both. If the script_src key is missing,
-        # Rails will not add the nonce to the headers, so we should not add it either.
-        # If the 'unsafe-inline' value is present, the app should not add a nonce and
-        # we should ignore it if they do.
-        req = ::ActionDispatch::Request.new env
+        req = ::ActionDispatch::Request.new(env)
+
+        # Rails will only return a nonce if the app has set a nonce generator.
+        # So if we get a valid nonce here, we know we should use it.
+        #
+        # Having both 'unsafe-inline' and a nonce is a valid and preferred
+        # browser compatibility configuration.
+        #
+        # If the script_src key is missing, Rails will not add the nonce to the headers,
+        # so we detect this and will not add it in this case.
         req.respond_to?(:content_security_policy) &&
           req.content_security_policy &&
           req.content_security_policy.directives['script-src'] &&
@@ -187,12 +190,20 @@ module Rollbar
       end
 
       # Secure Headers gem
-      def secure_headers_nonce?
-        secure_headers.append_nonce?
+      def secure_headers_nonce(env)
+        req = ::Rack::Request.new(env)
+
+        return unless secure_headers(req).append_nonce?
+
+        ::SecureHeaders.content_security_policy_script_nonce(req)
       end
 
-      def secure_headers
+      def secure_headers(req)
         return SecureHeadersFalse.new unless defined?(::SecureHeaders::Configuration)
+
+        # If the nonce key has been set, the app is using nonces for this request.
+        # If it hasn't, we shouldn't cause one to be added to script_src, so return now.
+        return SecureHeadersFalse.new unless secure_headers_nonce_key(req)
 
         config = ::SecureHeaders::Configuration
 
@@ -209,6 +220,10 @@ module Rollbar
                              end
 
         secure_headers_cls.new
+      end
+
+      def secure_headers_nonce_key(req)
+        defined?(::SecureHeaders::NONCE_KEY) && req.env[::SecureHeaders::NONCE_KEY]
       end
 
       class SecureHeadersResolver
