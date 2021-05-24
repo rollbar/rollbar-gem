@@ -23,6 +23,20 @@ module Rollbar
     EXTENSION_REGEXP = /.rollbar\z/.freeze
     FAILSAFE_STRING_LENGTH = 10_000
 
+    # helps cache the hierarchy of the report levels from low to high
+    # as both symbols and strings
+    REPORT_LEVELS =
+      begin
+        h = Hash.new(100) # configure with default of 10
+
+        [:debug, :info, :warning, :error, :critical].each_with_index do |level, i|
+          h[level] = i
+          h[level.to_s] = i
+        end
+
+        h
+      end.freeze
+
     def initialize(parent_notifier = nil, payload_options = nil, scope = nil)
       if parent_notifier
         self.configuration = parent_notifier.configuration.clone
@@ -130,6 +144,8 @@ module Rollbar
     #
     def log(level, *args)
       return 'disabled' unless enabled?
+
+      return 'not_reported' if REPORT_LEVELS[level] < REPORT_LEVELS[configuration.report_level]
 
       message, exception, extra, context = extract_arguments(args)
       use_exception_level_filters = use_exception_level_filters?(extra)

@@ -40,6 +40,7 @@ module Rollbar
     attr_accessor :open_timeout
     attr_accessor :request_timeout
     attr_accessor :net_retries
+    attr_accessor :report_level
     attr_accessor :root
     attr_accessor :js_options
     attr_accessor :js_enabled
@@ -129,6 +130,7 @@ module Rollbar
       @js_enabled = false
       @js_options = {}
       @locals = {}
+      @report_level = :debug
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
                        :confirm_password, :password_confirmation, :secret_token,
                        :api_key, :access_token, :accessToken, :session_id]

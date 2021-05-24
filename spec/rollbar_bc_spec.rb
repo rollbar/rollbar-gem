@@ -172,6 +172,27 @@ describe Rollbar do
       Rollbar.report_exception(@exception).should == 'disabled'
     end
 
+    it 'should not report when level is lower than report_level' do
+      Rollbar.configure do |config|
+        config.enabled = true
+        config.report_level = 'error'
+      end
+
+      Rollbar.configuration.report_level.should == 'error'
+      Rollbar.warning('warning message').should == 'not_reported'
+    end
+
+
+    it 'should report when level is higher than or equal to report_level' do
+      Rollbar.configure do |config|
+        config.report_level = 'error'
+      end
+
+      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      Rollbar.report_exception(@exception)
+    end
+
     it 'should stay disabled if configure is called again' do
       Rollbar.clear_notifier!
 
