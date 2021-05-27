@@ -58,9 +58,9 @@ gem 'aws-sdk-sqs'
 if GEMFILE_RAILS_VERSION >= '5.2'
   gem 'database_cleaner'
 elsif GEMFILE_RAILS_VERSION.between?('5.0', '5.2')
-  gem 'database_cleaner', '~> 1.8.4' # rubocop:disable Bundler/DuplicatedGem
+  gem 'database_cleaner', '~> 1.8.4'
 elsif GEMFILE_RAILS_VERSION < '5.0'
-  gem 'database_cleaner', '~> 1.0.0' # rubocop:disable Bundler/DuplicatedGem
+  gem 'database_cleaner', '~> 1.0.0'
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
@@ -72,7 +72,7 @@ gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque', '< 2.0.0'
-gem 'rubocop', '~> 0.93.0', :require => false
+gem 'rubocop', '1.15.0', :require => false # pin specific version, update manually
 gem 'rubocop-performance', :require => false
 gem 'secure_headers', '~> 6.3.2', :require => false
 gem 'sinatra'
