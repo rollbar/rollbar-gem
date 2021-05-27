@@ -13,8 +13,8 @@ Style/HashSyntax:
 Style/SymbolArray:
   Enabled: false # %i[] syntax isn't 1.9.x compatible
 
-Metrics/LineLength:
-  Max: 1000
+Layout/LineLength:
+  Max: 90
 
 Metrics/MethodLength:
   Max: 15 # Relax slightly from the default of 10
