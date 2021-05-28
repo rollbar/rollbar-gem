@@ -55,6 +55,7 @@ module Rollbar
     attr_accessor :uncaught_exception_level
     attr_accessor :scrub_headers
     attr_accessor :sidekiq_threshold
+    attr_accessor :sidekiq_use_scoped_block
     attr_reader :transform
     attr_accessor :verify_ssl_peer
     attr_accessor :use_async
@@ -139,6 +140,7 @@ module Rollbar
       @uncaught_exception_level = 'error'
       @scrub_headers = ['Authorization']
       @sidekiq_threshold = 0
+      @sidekiq_use_scoped_block = false
       @safely = false
       @transform = []
       @use_async = false

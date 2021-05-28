@@ -4,21 +4,39 @@ module Rollbar
   class Sidekiq
     PARAM_BLACKLIST = %w[backtrace error_backtrace error_message error_class].freeze
 
-    class ClearScope
-      def call(_worker, _msg, _queue)
-        Rollbar.reset_notifier!
+    class ResetScope
+      def call(_worker, msg, _queue)
+        Rollbar.reset_notifier! # clears scope
 
-        yield
+        return yield unless Rollbar.configuration.sidekiq_use_scoped_block
+
+        Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg)) { yield }
       end
     end
 
-    def self.handle_exception(ctx_hash, e)
-      job_hash = ctx_hash && (ctx_hash[:job] || ctx_hash)
-      return if skip_report?(job_hash, e)
+    def self.handle_exception(msg, e)
+      return if skip_report?(msg, e)
 
+      Rollbar.scope(job_scope(msg)).error(e, :use_exception_level_filters => true)
+    end
+
+    def self.skip_report?(msg, _e)
+      job_hash = job_hash_from_msg(msg)
+
+      return false if job_hash.nil?
+
+      # when rollbar middleware catches, sidekiq's retry_job processor hasn't set
+      # the retry_count for the current job yet, so adding 1 gives the actual retry count
+      actual_retry_count = job_hash.fetch('retry_count', -1) + 1
+      job_hash['retry'] && actual_retry_count < ::Rollbar.configuration.sidekiq_threshold
+    end
+
+    def self.job_scope(msg)
       scope = {
         :framework => "Sidekiq: #{::Sidekiq::VERSION}"
       }
+      job_hash = job_hash_from_msg(msg)
+
       unless job_hash.nil?
         params = job_hash.reject { |k| PARAM_BLACKLIST.include?(k) }
         scope[:request] = { :params => scrub_params(params) }
@@ -26,7 +44,7 @@ module Rollbar
         scope[:queue] = params['queue']
       end
 
-      Rollbar.scope(scope).error(e, :use_exception_level_filters => true)
+      scope
     end
 
     def self.scrub_params(params)
@@ -38,22 +56,21 @@ module Rollbar
       Rollbar::Scrubbers::Params.call(options)
     end
 
-    def self.skip_report?(job_hash, _e)
-      return false if job_hash.nil?
-
-      # when rollbar middleware catches, sidekiq's retry_job processor hasn't set
-      # the retry_count for the current job yet, so adding 1 gives the actual retry count
-      actual_retry_count = job_hash.fetch('retry_count', -1) + 1
-      job_hash['retry'] && actual_retry_count < ::Rollbar.configuration.sidekiq_threshold
-    end
-
+    # see https://github.com/mperham/sidekiq/wiki/Middleware#server-middleware
     def call(_worker, msg, _queue)
-      Rollbar.reset_notifier!
+      Rollbar.reset_notifier! # clears scope
 
-      yield
+      return yield unless Rollbar.configuration.sidekiq_use_scoped_block
+
+      Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg)) { yield }
     rescue Exception => e
       Rollbar::Sidekiq.handle_exception(msg, e)
       raise
     end
+
+    def self.job_hash_from_msg(msg)
+      msg && (msg[:job] || msg)
+    end
+    private_class_method :job_hash_from_msg
   end
 end

@@ -25,7 +25,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       }
     end
 
-    let(:ctx_hash) do
+    let(:msg) do
       { :context => 'Job raised exception', :job => job_hash }
     end
 
@@ -40,34 +40,34 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       }
     end
 
-    it 'constructs scope from ctx hash' do
+    it 'constructs scope from msg' do
       allow(rollbar).to receive(:error)
       expect(Rollbar).to receive(:scope).with(expected_scope) { rollbar }
 
-      described_class.handle_exception(ctx_hash, exception)
+      described_class.handle_exception(msg, exception)
     end
 
-    context 'sidekiq < 4.2.3 ctx hash' do
-      let(:ctx_hash) { job_hash }
+    context 'sidekiq < 4.2.3 msg' do
+      let(:msg) { job_hash }
 
-      it 'constructs scope from ctx hash' do
+      it 'constructs scope from msg' do
         allow(rollbar).to receive(:error)
         expect(Rollbar).to receive(:scope).with(expected_scope) { rollbar }
 
-        described_class.handle_exception(ctx_hash, exception)
+        described_class.handle_exception(msg, exception)
       end
     end
 
-    context 'sidekiq < 4.0.0 nil ctx hash from Launcher#actor_died' do
-      let(:ctx_hash) { nil }
+    context 'sidekiq < 4.0.0 nilmsg from Launcher#actor_died' do
+      let(:msg) { nil }
 
-      it 'constructs scope from ctx hash' do
+      it 'constructs scope from msg' do
         allow(rollbar).to receive(:error)
         expect(Rollbar).to receive(:scope).with(
           :framework => "Sidekiq: #{Sidekiq::VERSION}"
         ) { rollbar }
 
-        described_class.handle_exception(ctx_hash, exception)
+        described_class.handle_exception(msg, exception)
       end
     end
 
@@ -75,7 +75,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       allow(Rollbar).to receive(:scope).and_return(rollbar)
       expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
 
-      described_class.handle_exception(ctx_hash, exception)
+      described_class.handle_exception(msg, exception)
     end
 
     context 'with fields in job hash to be scrubbed' do
@@ -153,7 +153,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
   end
 
   describe '#call' do
-    let(:msg) { ['hello'] }
+    let(:msg) { { 'class' => 'SomeWorker', 'queue' => 'default' } }
     let(:exception) { StandardError.new('oh noes') }
     let(:middleware_block) { proc { raise exception } }
 
@@ -164,6 +164,38 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       expect(Rollbar::Sidekiq).to receive(:handle_exception).with(msg, exception)
 
       expect { subject.call(nil, msg, nil, &middleware_block) }.to raise_error(exception)
+    end
+
+    context 'when the block calls Rollbar.log without raising an error' do
+      let(:middleware_block) { proc { Rollbar.log('warning', 'Danger, Will Robinson') } }
+
+      context 'and Rollbar.configuration.sidekiq_use_scoped_block is false (default)' do
+        before do
+          Rollbar.configuration.sidekiq_use_scoped_block = false
+        end
+
+        it 'does NOT send the scope information to rollbar' do
+          expect(Rollbar).to receive(:log) do
+            expect(Rollbar.scope_object).not_to be_eql(described_class.job_scope(msg))
+          end
+
+          subject.call(nil, msg, nil, &middleware_block)
+        end
+      end
+
+      context 'and Rollbar.configuration.sidekiq_use_scoped_block is true' do
+        before do
+          Rollbar.configuration.sidekiq_use_scoped_block = true
+        end
+
+        it 'sends the scope information to rollbar' do
+          expect(Rollbar).to receive(:log) do
+            expect(Rollbar.scope_object).to be_eql(described_class.job_scope(msg))
+          end
+
+          subject.call(nil, msg, nil, &middleware_block)
+        end
+      end
     end
   end
 end
