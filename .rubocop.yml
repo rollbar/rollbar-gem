@@ -4,6 +4,7 @@ AllCops:
   Exclude:
     - 'vendor/**/*'
     - 'gemfiles/vendor/**/*'
+  TargetRubyVersion: 2.5 # This is the minimum allowed for current rubocop
 
 Style/HashSyntax:
   EnforcedStyle: hash_rockets
@@ -26,6 +27,10 @@ Style/Lambda:
   Enabled: false
 
 Style/EachWithObject:
+  Enabled: false
+
+Style/RedundantBegin:
+  # Ruby < 2.5 needs begin/end inside blocks when using rescue
   Enabled: false
 
 Metrics/BlockLength:
