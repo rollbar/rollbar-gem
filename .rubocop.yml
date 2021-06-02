@@ -17,6 +17,11 @@ Style/SymbolArray:
 Layout/LineLength:
   Max: 90
 
+Layout/HeredocIndentation:
+  # When enabled, forces either squiggly syntax (not available until 2.3),
+  # or external packages that we don't want as dependencies.
+  Enabled: false
+
 Metrics/MethodLength:
   Max: 15 # Relax slightly from the default of 10
 
