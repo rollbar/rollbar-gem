@@ -152,7 +152,7 @@ describe Rollbar::Item do
     context 'ActiveSupport < 4.1',
             :if => Gem.loaded_specs['activesupport'].version < Gem::Version.new('4.1') do
       it 'should have configured_options message' do
-        payload['data'][:notifier][:configured_options].instance_of?('String')
+        payload['data'][:notifier][:configured_options].instance_of?(String)
       end
     end
 
