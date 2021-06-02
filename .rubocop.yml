@@ -22,6 +22,10 @@ Layout/HeredocIndentation:
   # or external packages that we don't want as dependencies.
   Enabled: false
 
+Lint/SendWithMixinArgument:
+  # Object#include is still a private method in Ruby 2.0.
+  Enabled: false
+
 Metrics/MethodLength:
   Max: 15 # Relax slightly from the default of 10
 
