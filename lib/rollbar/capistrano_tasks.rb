@@ -25,13 +25,15 @@ module Rollbar
       end
 
       def deploy_succeeded(capistrano, logger, dry_run)
-        deploy_update(capistrano, logger, dry_run, :desc => 'Setting deployment status to `succeeded` in Rollbar') do
+        deploy_update(capistrano, logger, dry_run,
+                      :desc => 'Setting deployment status to `succeeded` in Rollbar') do
           report_deploy_succeeded(capistrano, dry_run)
         end
       end
 
       def deploy_failed(capistrano, logger, dry_run)
-        deploy_update(capistrano, logger, dry_run, :desc => 'Setting deployment status to `failed` in Rollbar') do
+        deploy_update(capistrano, logger, dry_run,
+                      :desc => 'Setting deployment status to `failed` in Rollbar') do
           report_deploy_failed(capistrano, dry_run)
         end
       end
@@ -42,7 +44,6 @@ module Rollbar
         capistrano_300_warning(logger)
         logger.info opts[:desc] if opts[:desc]
         yield
-
       rescue StandardError => e
         log_error logger, "Error reporting to Rollbar: #{e.inspect}"
       end
@@ -68,7 +69,9 @@ module Rollbar
       end
 
       def capistrano_300_warning(logger)
-        return unless ::Capistrano.const_defined?('VERSION') && ::Capistrano::VERSION =~ /^3\.0/
+        unless ::Capistrano.const_defined?('VERSION') && ::Capistrano::VERSION =~ /^3\.0/
+          return
+        end
 
         logger.warn('You need to upgrade capistrano to >= 3.1 version in order'\
           'to correctly report deploys to Rollbar. (On 3.0, the reported revision'\
@@ -121,7 +124,8 @@ module Rollbar
         if capistrano.fetch(:rollbar_deploy_id)
           yield
         else
-          log_error logger, 'Failed to update the deploy in Rollbar. No deploy id available.'
+          log_error logger,
+                    'Failed to update the deploy in Rollbar. No deploy id available.'
         end
       end
 

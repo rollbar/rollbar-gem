@@ -23,17 +23,8 @@ module Rollbar
 
     attr_writer :payload
 
-    attr_reader :level
-    attr_reader :message
-    attr_reader :exception
-    attr_reader :extra
-
-    attr_reader :configuration
-    attr_reader :scope
-    attr_reader :logger
-    attr_reader :notifier
-
-    attr_reader :context
+    attr_reader :level, :message, :exception, :extra, :configuration, :scope, :logger,
+                :notifier, :context
 
     def_delegators :payload, :[]
 
@@ -64,7 +55,7 @@ module Rollbar
 
     def build
       data = build_data
-      self.payload = add_access_token_to_payload({'data' => data})
+      self.payload = add_access_token_to_payload({ 'data' => data })
 
       enforce_valid_utf8
       transform
@@ -86,9 +77,15 @@ module Rollbar
         },
         :body => build_body
       }
-      data[:project_package_paths] = configuration.project_gem_paths if configuration.project_gem_paths.any?
+      if configuration.project_gem_paths.any?
+        data[:project_package_paths] =
+          configuration.project_gem_paths
+      end
       data[:code_version] = configuration.code_version if configuration.code_version
-      data[:uuid] = SecureRandom.uuid if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
+      if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
+        data[:uuid] =
+          SecureRandom.uuid
+      end
 
       Util.deep_merge(data, configuration.payload_options)
       Util.deep_merge(data, scope)
@@ -130,7 +127,7 @@ module Rollbar
       nil
     end
 
-    def handle_too_large_payload(stringified_payload, final_payload, attempts)
+    def handle_too_large_payload(stringified_payload, _final_payload, attempts)
       uuid = stringified_payload['data']['uuid']
       host = stringified_payload['data'].fetch('server', {})['host']
 
@@ -172,7 +169,7 @@ module Rollbar
       #
       # Until the delayed sender interface is changed to allow passing dynamic config options,
       # this workaround allows the main process to set the token by adding it to the payload.
-      if (configuration && configuration.use_payload_access_token)
+      if configuration && configuration.use_payload_access_token
         payload['access_token'] ||= configuration.access_token
       end
 

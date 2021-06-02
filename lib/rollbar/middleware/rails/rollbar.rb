@@ -29,8 +29,8 @@ module Rollbar
               end
 
               response
-            rescue Exception => exception
-              report_exception_to_rollbar(env, exception)
+            rescue Exception => e
+              report_exception_to_rollbar(env, e)
               raise
             ensure
               Rollbar.notifier.disable_locals
@@ -63,7 +63,9 @@ module Rollbar
 
         def person_data_proc(env)
           block = proc { extract_person_data_from_controller(env) }
-          return block unless defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?
+          unless defined?(ActiveRecord::Base) && ActiveRecord::Base.connected?
+            return block
+          end
 
           proc do
             begin
@@ -79,7 +81,9 @@ module Rollbar
 
           route_params = request_data[:params]
           # make sure route is a hash built by RequestDataExtractor
-          return route_params[:controller].to_s + '#' + route_params[:action].to_s if route_params.is_a?(Hash) && !route_params.empty?
+          if route_params.is_a?(Hash) && !route_params.empty?
+            route_params[:controller].to_s + '#' + route_params[:action].to_s
+          end
         end
       end
     end

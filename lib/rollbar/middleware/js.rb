@@ -10,11 +10,11 @@ module Rollbar
     class Js
       include Rollbar::RequestDataExtractor
 
-      attr_reader :app
-      attr_reader :config
+      attr_reader :app, :config
 
       JS_IS_INJECTED_KEY = 'rollbar.js_is_injected'.freeze
-      SNIPPET = File.read(File.expand_path('../../../../data/rollbar.snippet.js', __FILE__))
+      SNIPPET = File.read(File.expand_path('../../../../data/rollbar.snippet.js',
+                                           __FILE__))
 
       def initialize(app, config)
         @app = app
@@ -82,7 +82,10 @@ module Rollbar
         env[JS_IS_INJECTED_KEY] = true
 
         status, headers, = app_result
-        headers['Content-Length'] = response_string.bytesize.to_s if headers.key?('Content-Length')
+        if headers.key?('Content-Length')
+          headers['Content-Length'] =
+            response_string.bytesize.to_s
+        end
 
         response = ::Rack::Response.new(response_string, status, headers)
 

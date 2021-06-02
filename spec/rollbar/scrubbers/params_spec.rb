@@ -599,7 +599,8 @@ end
 
 describe Rollbar::Scrubbers::Params::ATTACHMENT_CLASSES do
   it 'has the correct values' do
-    expect(described_class).to be_eql(%w[ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile].freeze)
+    expect(described_class).to be_eql(%w[ActionDispatch::Http::UploadedFile
+                                         Rack::Multipart::UploadedFile].freeze)
   end
 end
 

@@ -33,7 +33,8 @@ describe Rollbar::Logger do
       let(:message) { 'foo' }
 
       it 'calls Rollbar to send the message with critical level' do
-        expect_any_instance_of(Rollbar::Notifier).to receive(:log).with(:critical, message)
+        expect_any_instance_of(Rollbar::Notifier).to receive(:log).with(:critical,
+                                                                        message)
 
         subject.add(Logger::FATAL, message)
       end
@@ -60,7 +61,11 @@ describe Rollbar::Logger do
     end
 
     context 'without active_support/core_ext/object/blank' do
-      let(:message) { 'foo'.tap { |message| message.instance_eval('undef :blank?') } }
+      let(:message) do
+        'foo'.tap do |message|
+          message.instance_eval('undef :blank?', __FILE__, __LINE__)
+        end
+      end
 
       it 'calls Rollbar to send the message' do
         expect_any_instance_of(Rollbar::Notifier).to receive(:log).with(:error, message)

@@ -54,8 +54,10 @@ module Rollbar
         uri = URI.parse(url)
 
         uri.user = filter_user(uri.user, scrub_user, randomize_scrub_length)
-        uri.password = filter_password(uri.password, scrub_password, randomize_scrub_length)
-        uri.query = filter_query(uri.query, regex, randomize_scrub_length, scrub_all, whitelist)
+        uri.password = filter_password(uri.password, scrub_password,
+                                       randomize_scrub_length)
+        uri.query = filter_query(uri.query, regex, randomize_scrub_length, scrub_all,
+                                 whitelist)
 
         uri.to_s
       end
@@ -73,7 +75,12 @@ module Rollbar
       end
 
       def filter_password(password, scrub_password, randomize_scrub_length)
-        scrub_password && password ? filtered_value(password, randomize_scrub_length) : password
+        if scrub_password && password
+          filtered_value(password,
+                         randomize_scrub_length)
+        else
+          password
+        end
       end
 
       def filter_query(query, regex, randomize_scrub_length, scrub_all, whitelist)
@@ -81,7 +88,8 @@ module Rollbar
 
         params = decode_www_form(query)
 
-        encode_www_form(filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist))
+        encode_www_form(filter_query_params(params, regex, randomize_scrub_length,
+                                            scrub_all, whitelist))
       end
 
       def decode_www_form(query)
@@ -102,7 +110,13 @@ module Rollbar
 
       def filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist)
         params.map do |key, value|
-          [key, filter_key?(key, regex, scrub_all, whitelist) ? filtered_value(value, randomize_scrub_length) : value]
+          [key,
+           if filter_key?(key, regex, scrub_all,
+                          whitelist)
+             filtered_value(value, randomize_scrub_length)
+           else
+             value
+           end]
         end
       end
 
@@ -115,10 +129,10 @@ module Rollbar
           random_filtered_value
         else
           '*' * (begin
-                   value.length
-                 rescue StandardError
-                   8
-                 end)
+            value.length
+          rescue StandardError
+            8
+          end)
         end
       end
 

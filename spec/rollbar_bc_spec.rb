@@ -87,7 +87,10 @@ describe Rollbar do
     end
 
     let(:logger_mock) { double('Rails.logger').as_null_object }
-    let(:user) { User.create(:email => 'email@example.com', :encrypted_password => '', :created_at => Time.now, :updated_at => Time.now) }
+    let(:user) do
+      User.create(:email => 'email@example.com', :encrypted_password => '',
+                  :created_at => Time.now, :updated_at => Time.now)
+    end
 
     it 'should report simple messages' do
       allow(Rollbar).to receive(:notifier).and_return(notifier)
@@ -118,7 +121,8 @@ describe Rollbar do
         :extra_foo => 'extra_bar'
       }
 
-      Rollbar.report_message_with_request('Test message', 'info', request_data, person_data, extra_data)
+      Rollbar.report_message_with_request('Test message', 'info', request_data,
+                                          person_data, extra_data)
 
       Rollbar.last_report[:request].should eq(request_data)
       Rollbar.last_report[:person].should eq(person_data)

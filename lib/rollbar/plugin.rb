@@ -4,12 +4,8 @@ module Rollbar
   # On Rollbar initialization, all plugins will be saved in memory and those that
   # satisfy the dependencies will be loaded
   class Plugin
-    attr_reader :name
-    attr_reader :dependencies
-    attr_reader :callables
-    attr_reader :revert_callables
-    attr_accessor :on_demand
-    attr_accessor :loaded
+    attr_reader :name, :dependencies, :callables, :revert_callables
+    attr_accessor :on_demand, :loaded
 
     private :loaded=
 

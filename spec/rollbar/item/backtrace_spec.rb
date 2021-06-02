@@ -25,7 +25,8 @@ describe Rollbar::Item::Backtrace do
   end
 
   describe '#map_frames' do
-    context 'when using backtrace_cleaner', :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('3.0') do
+    context 'when using backtrace_cleaner',
+            :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('3.0') do
       subject { described_class.new(exception, { :configuration => config }) }
 
       let(:config) do

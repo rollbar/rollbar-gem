@@ -17,7 +17,9 @@ describe RollbarTest do
 
     context 'when rollbar is not configured' do
       it 'exits with token error message' do
-        expect { subject.run }.to output(Regexp.new(subject.token_error_message)).to_stdout
+        expect do
+          subject.run
+        end.to output(Regexp.new(subject.token_error_message)).to_stdout
       end
     end
 

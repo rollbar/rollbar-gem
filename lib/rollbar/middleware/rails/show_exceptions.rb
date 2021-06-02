@@ -20,20 +20,22 @@ module Rollbar
 
         def call_with_rollbar(env)
           call_without_rollbar(env)
-        rescue ActionController::RoutingError => exception
+        rescue ActionController::RoutingError => e
           # won't reach here if show_detailed_exceptions is true
           scope = extract_scope_from(env)
 
           Rollbar.scoped(scope) do
-            report_exception_to_rollbar(env, exception)
+            report_exception_to_rollbar(env, e)
           end
 
-          raise exception
+          raise e
         end
 
         def extract_scope_from(env)
           scope = env['rollbar.scope']
-          Rollbar.log_warn('[Rollbar] rollbar.scope key has been removed from Rack env.') unless scope
+          unless scope
+            Rollbar.log_warn('[Rollbar] rollbar.scope key has been removed from Rack env.')
+          end
 
           scope || {}
         end

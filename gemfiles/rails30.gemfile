@@ -4,16 +4,16 @@ source 'https://rubygems.org'
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
 
-gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
-gem 'jruby-openssl', :platform => :jruby
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
-gem 'rails', '~> 3.0.20'
 gem 'hitimes', '< 1.2.2'
+gem 'jruby-openssl', :platform => :jruby
 gem 'mixlib-shellout', '<= 2.0.0'
 gem 'net-ssh', '<= 3.1.1'
 gem 'public_suffix', '<= 2.0.5'
+gem 'rails', '~> 3.0.20'
 gem 'rake', '< 11'
 gem 'rspec-rails', '>= 2.14.0'
+gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
 if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
@@ -30,24 +30,24 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
-gem 'rexml', '<= 3.2.4'
-gem 'sucker_punch', '~> 2.0'
-gem 'shoryuken'
 gem 'codacy-coverage'
+gem 'rexml', '<= 3.2.4'
+gem 'shoryuken'
 gem 'simplecov', '<= 0.17.1'
+gem 'sucker_punch', '~> 2.0'
 
-gem 'sinatra'
-gem 'delayed_job', :require => false
-gem 'redis', '<= 3.3.5'
-gem 'redis-namespace', '<= 1.5.0'
 gem 'database_cleaner', '~> 1.0.0'
+gem 'delayed_job', :require => false
 gem 'genspec', '>= 0.2.8'
 gem 'girl_friday', '>= 0.11.1'
+gem 'redis', '<= 3.3.5'
+gem 'redis-namespace', '<= 1.5.0'
 gem 'rspec-command'
+gem 'sinatra'
 
 gem 'webmock', :require => false
 
-gem 'resque', '< 2.0.0'
 gem 'aws-sdk-sqs'
+gem 'resque', '< 2.0.0'
 
 gemspec :path => '../'

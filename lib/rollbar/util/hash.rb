@@ -35,11 +35,17 @@ module Rollbar
         case thing
         when ::Hash
           thing.keys.each do |key|
-            thing[key] = "removed circular reference: #{thing[key]}" if seen[thing[key].object_id]
+            if seen[thing[key].object_id]
+              thing[key] =
+                "removed circular reference: #{thing[key]}"
+            end
           end
         when Array
           thing.each_with_index do |_, i|
-            thing[i] = "removed circular reference: #{thing[i]}" if seen[thing[i].object_id]
+            if seen[thing[i].object_id]
+              thing[i] =
+                "removed circular reference: #{thing[i]}"
+            end
           end
         end
       end

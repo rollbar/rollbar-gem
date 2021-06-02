@@ -7,25 +7,27 @@ module Rollbar
       include RequestDataExtractor
 
       def rollbar_person_data
-        (user = send(Rollbar.configuration.person_method)) unless Rollbar::Util.method_in_stack_twice(:rollbar_person_data, __FILE__)
+        (user = send(Rollbar.configuration.person_method)) unless Rollbar::Util.method_in_stack_twice(
+          :rollbar_person_data, __FILE__
+        )
         # include id, username, email if non-empty
         if user
           {
             :id => (begin
-                      user.send(Rollbar.configuration.person_id_method)
-                    rescue StandardError
-                      nil
-                    end),
+              user.send(Rollbar.configuration.person_id_method)
+            rescue StandardError
+              nil
+            end),
             :username => (begin
-                            user.send(Rollbar.configuration.person_username_method)
-                          rescue StandardError
-                            nil
-                          end),
+              user.send(Rollbar.configuration.person_username_method)
+            rescue StandardError
+              nil
+            end),
             :email => (begin
-                         user.send(Rollbar.configuration.person_email_method)
-                       rescue StandardError
-                         nil
-                       end)
+              user.send(Rollbar.configuration.person_email_method)
+            rescue StandardError
+              nil
+            end)
           }
         else
           {}

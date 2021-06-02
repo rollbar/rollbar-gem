@@ -101,7 +101,7 @@ describe Rollbar::Util do
     context 'with frozen data' do
       let(:data) do
         {
-          :foo => ['bar', 'baz', 'buzz'].freeze,
+          :foo => %w[bar baz buzz].freeze,
           :baz => 'buzz'.freeze
         }
       end

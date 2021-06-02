@@ -9,6 +9,6 @@ Rollbar.plugins.define('thread') do
   end
 
   execute do
-    Thread.send(:prepend, Rollbar::ThreadPlugin) # rubocop:disable Lint/SendWithMixinArgument
+    Thread.send(:prepend, Rollbar::ThreadPlugin)
   end
 end

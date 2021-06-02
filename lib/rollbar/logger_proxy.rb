@@ -23,7 +23,9 @@ module Rollbar
     end
 
     def log(level, message)
-      return unless Rollbar.configuration.enabled && acceptable_levels.include?(level.to_sym)
+      unless Rollbar.configuration.enabled && acceptable_levels.include?(level.to_sym)
+        return
+      end
 
       @object.send(level, message)
     rescue StandardError

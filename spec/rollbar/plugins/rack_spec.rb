@@ -27,7 +27,8 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
   let(:uncaught_level) { Rollbar.configuration.uncaught_exception_level }
 
   it 'reports the error to Rollbar' do
-    expect(Rollbar).to receive(:log).with(uncaught_level, exception, :use_exception_level_filters => true)
+    expect(Rollbar).to receive(:log).with(uncaught_level, exception,
+                                          :use_exception_level_filters => true)
     expect { request.get('/will_crash') }.to raise_error(exception)
   end
 
@@ -66,7 +67,8 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
 
     it 'sends them to Rollbar' do
       expect do
-        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        request.post('/will_crash', :input => params.to_json,
+                                    'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
       expect(Rollbar.last_report[:request][:body]).to be_eql(params.to_json)
@@ -80,10 +82,11 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
 
     it 'scrubs the body' do
       expect do
-        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        request.post('/will_crash', :input => params.to_json,
+                                    'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
-      expect(Rollbar.last_report[:request][:body]).to be_eql("{\"password\":\"******\"}")
+      expect(Rollbar.last_report[:request][:body]).to be_eql('{"password":"******"}')
     end
   end
 
@@ -94,11 +97,13 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
 
     it 'sends a body.multi key in params' do
       expect do
-        request.post('/will_crash', :input => params.to_json, 'CONTENT_TYPE' => 'application/json')
+        request.post('/will_crash', :input => params.to_json,
+                                    'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
       reported_body = Rollbar.last_report[:request][:body]
-      expect(reported_body).to be_eql({ 'body.multi' => [{ 'key' => 'value' }, 'string', 10] }.to_json)
+      expect(reported_body).to be_eql({ 'body.multi' => [{ 'key' => 'value' }, 'string',
+                                                         10] }.to_json)
     end
   end
 
@@ -107,7 +112,8 @@ describe Rollbar::Middleware::Rack::Builder, :reconfigure_notifier => true do
 
     it 'sends a body.multi key in params' do
       expect do
-        request.post('/will_crash', :input => params, 'CONTENT_TYPE' => 'application/json')
+        request.post('/will_crash', :input => params,
+                                    'CONTENT_TYPE' => 'application/json')
       end.to raise_error(exception)
 
       reported_body = Rollbar.last_report[:request][:body]

@@ -31,11 +31,11 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
-gem 'rexml', '<= 3.2.4'
-gem 'sucker_punch', '~> 2.0'
-gem 'shoryuken'
 gem 'codacy-coverage'
+gem 'rexml', '<= 3.2.4'
+gem 'shoryuken'
 gem 'simplecov', '<= 0.17.1'
+gem 'sucker_punch', '~> 2.0'
 
 gem 'delayed_job', :require => false
 gem 'redis', '<= 3.3.5'
@@ -49,7 +49,7 @@ gem 'rspec-command'
 
 gem 'webmock', :require => false
 
-gem 'resque', '< 2.0.0'
 gem 'aws-sdk-sqs'
+gem 'resque', '< 2.0.0'
 
 gemspec :path => '../'

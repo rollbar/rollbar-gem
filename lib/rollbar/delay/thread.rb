@@ -62,11 +62,12 @@ module Rollbar
                 reaper.join
               end
             rescue Timeout::Error
-              raise TimeoutError, "unable to reap all threads within #{EXIT_TIMEOUT} seconds"
+              raise TimeoutError,
+                    "unable to reap all threads within #{EXIT_TIMEOUT} seconds"
             end
           end
         end
-      end # class << self
+      end
 
       def priority
         self.class.options[:priority] || DEFAULT_PRIORITY

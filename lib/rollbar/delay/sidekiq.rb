@@ -10,7 +10,10 @@ module Rollbar
       end
 
       def call(payload)
-        raise StandardError, 'Unable to push the job to Sidekiq' if ::Sidekiq::Client.push(@options.merge('args' => [payload])).nil?
+        if ::Sidekiq::Client.push(@options.merge('args' => [payload])).nil?
+          raise StandardError,
+                'Unable to push the job to Sidekiq'
+        end
       end
 
       include ::Sidekiq::Worker

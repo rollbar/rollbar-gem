@@ -44,7 +44,7 @@ describe Rollbar::ActiveJob do
   end
 
   context 'using ActionMailer::DeliveryJob', :if => defined?(ActionMailer::DeliveryJob) do
-    include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper) # rubocop:disable Style/MixinUsage
+    include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
     class TestMailer < ActionMailer::Base
       attr_accessor :arguments
@@ -68,7 +68,8 @@ describe Rollbar::ActiveJob do
         :use_exception_level_filters => true,
         :arguments => ['TestMailer', 'test_email', 'deliver_now', 12]
       }
-      expect(Rollbar).to receive(:error).with(kind_of(StandardError), hash_including(expected_params))
+      expect(Rollbar).to receive(:error).with(kind_of(StandardError),
+                                              hash_including(expected_params))
       perform_enqueued_jobs do
         TestMailer.test_email(argument).deliver_later rescue nil # rubocop:disable Style/RescueModifier
       end

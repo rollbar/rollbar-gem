@@ -15,9 +15,14 @@ module Rollbar
 
           # DelayedJob < 4.1 doesn't provide job#error
           if job.class.method_defined? :error
-            ::Rollbar.scope(:request => data).error(job.error, :use_exception_level_filters => true) if job.error
+            if job.error
+              ::Rollbar.scope(:request => data).error(job.error,
+                                                      :use_exception_level_filters => true)
+            end
           elsif job.last_error
-            ::Rollbar.scope(:request => data).error("Job has failed and won't be retried anymore: " + job.last_error, :use_exception_level_filters => true)
+            ::Rollbar.scope(:request => data).error(
+              "Job has failed and won't be retried anymore: " + job.last_error, :use_exception_level_filters => true
+            )
           end
         end
       end

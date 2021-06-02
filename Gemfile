@@ -20,26 +20,26 @@ gem 'rake'
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'rspec-rails', '~> 3.4'
 else
-  gem 'rspec-rails', '~> 4.0.2' # rubocop:disable Bundler/DuplicatedGem
+  gem 'rspec-rails', '~> 4.0.2'
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 else
-  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw] # rubocop:disable Bundler/DuplicatedGem
+  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
 end
 
 if RUBY_VERSION < '2.2.2'
   gem 'sidekiq', '~> 2.13.0'
 else
-  gem 'sidekiq', '>= 2.13.0' # rubocop:disable Bundler/DuplicatedGem
+  gem 'sidekiq', '>= 2.13.0'
 end
 
 platforms :rbx do
   gem 'minitest'
   gem 'racc'
   gem 'rubinius-developer_tools'
-  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2') # rubysl doesn't yet support Ruby 3.x
+  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2')
 end
 
 gem 'capistrano', :require => false
@@ -58,21 +58,21 @@ gem 'aws-sdk-sqs'
 if GEMFILE_RAILS_VERSION >= '5.2'
   gem 'database_cleaner'
 elsif GEMFILE_RAILS_VERSION.between?('5.0', '5.2')
-  gem 'database_cleaner', '~> 1.8.4' # rubocop:disable Bundler/DuplicatedGem
+  gem 'database_cleaner', '~> 1.8.4'
 elsif GEMFILE_RAILS_VERSION < '5.0'
-  gem 'database_cleaner', '~> 1.0.0' # rubocop:disable Bundler/DuplicatedGem
+  gem 'database_cleaner', '~> 1.0.0'
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'delayed_job', :require => false
 else
-  gem 'delayed_job', '~> 4.1', :require => false # rubocop:disable Bundler/DuplicatedGem
+  gem 'delayed_job', '~> 4.1', :require => false
 end
 gem 'generator_spec'
 gem 'girl_friday', '>= 0.11.1'
 gem 'redis'
 gem 'resque', '< 2.0.0'
-gem 'rubocop', '~> 0.93.0', :require => false
+gem 'rubocop', '1.15.0', :require => false # pin specific version, update manually
 gem 'rubocop-performance', :require => false
 gem 'secure_headers', '~> 6.3.2', :require => false
 gem 'sinatra'

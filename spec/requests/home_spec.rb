@@ -25,15 +25,19 @@ describe HomeController do
 
   context 'with error hiding deep inside' do
     let!(:cookie_method_name) { :[] }
-    let!(:original_cookie_method) { ActionDispatch::Cookies::CookieJar.instance_method(cookie_method_name) }
+    let!(:original_cookie_method) do
+      ActionDispatch::Cookies::CookieJar.instance_method(cookie_method_name)
+    end
     let!(:broken_cookie_method) { proc { |_name| '1' - 1 } }
 
     before(:each) do
-      ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name, broken_cookie_method)
+      ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name,
+                                              broken_cookie_method)
     end
 
     after do
-      ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name, original_cookie_method)
+      ActionDispatch::Cookies::CookieJar.send(:define_method, cookie_method_name,
+                                              original_cookie_method)
     end
 
     it 'should report uncaught exceptions' do

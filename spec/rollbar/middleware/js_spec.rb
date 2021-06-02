@@ -265,7 +265,8 @@ describe Rollbar::Middleware::Js do
         end
       end
 
-      context 'having a html 200 response without head but with an header tag', :add_js => false do
+      context 'having a html 200 response without head but with an header tag',
+              :add_js => false do
         let(:body) { ['<header>foobar</header>'] }
         let(:status) { 200 }
         let(:headers) do

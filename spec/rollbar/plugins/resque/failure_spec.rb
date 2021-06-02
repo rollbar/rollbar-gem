@@ -16,7 +16,8 @@ describe Resque::Failure::Rollbar do
     end
 
     it 'should be notified of an error' do
-      expect_any_instance_of(Rollbar::Notifier).to receive(:log).with('error', exception, payload)
+      expect_any_instance_of(Rollbar::Notifier).to receive(:log).with('error', exception,
+                                                                      payload)
       backend.save
     end
   end
@@ -29,7 +30,8 @@ describe Resque::Failure::Rollbar do
     end
 
     it 'sends the :use_exception_level_filters option' do
-      expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(exception, payload_with_options)
+      expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(exception,
+                                                                        payload_with_options)
       backend.save
     end
   end

@@ -1,9 +1,7 @@
 module Rollbar
   class LazyStore
-    attr_reader :loaded_data
+    attr_reader :loaded_data, :raw
     private :loaded_data
-
-    attr_reader :raw
 
     def initialize(initial_data)
       initial_data ||= {}

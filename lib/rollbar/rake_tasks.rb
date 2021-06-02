@@ -1,4 +1,3 @@
-
 namespace :rollbar do
   desc 'Verify your gem installation by sending a test message to Rollbar'
   task :test => [:environment] do

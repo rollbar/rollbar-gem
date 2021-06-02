@@ -36,7 +36,8 @@ module Rollbar
       def trace_point
         return unless defined?(TracePoint)
 
-        @trace_point ||= TracePoint.new(:call, :return, :b_call, :b_return, :c_call, :c_return, :raise) do |tp|
+        @trace_point ||= TracePoint.new(:call, :return, :b_call, :b_return, :c_call,
+                                        :c_return, :raise) do |tp|
           case tp.event
           when :call, :b_call, :c_call, :class
             frames.push frame(tp)

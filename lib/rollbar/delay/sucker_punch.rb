@@ -7,8 +7,7 @@ module Rollbar
       include ::SuckerPunch::Job
 
       class << self
-        attr_accessor :perform_proc
-        attr_accessor :ready
+        attr_accessor :perform_proc, :ready
       end
 
       self.ready = false

@@ -77,7 +77,8 @@ class BenchmarkTraceWithBindings # :nodoc:
   def trace_point # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     return unless defined?(TracePoint)
 
-    @trace_point ||= TracePoint.new(:call, :return, :b_call, :b_return, :c_call, :c_return, :raise) do |tp|
+    @trace_point ||= TracePoint.new(:call, :return, :b_call, :b_return, :c_call,
+                                    :c_return, :raise) do |tp|
       next if options['hook_only']
 
       case tp.event

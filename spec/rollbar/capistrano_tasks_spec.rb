@@ -5,7 +5,9 @@ require 'sshkit'
 
 describe ::Rollbar::CapistranoTasks do
   let(:capistrano) { ::Capistrano::Configuration.new }
-  let(:logger) { instance_double(::SSHKit::Backend::Printer) } # this needs to be different for Capistrano 2.x
+  let(:logger) do
+    instance_double(::SSHKit::Backend::Printer)
+  end
 
   let(:rollbar_user) { 'foo' }
   let(:rollbar_comment) { 'bar' }
@@ -15,9 +17,11 @@ describe ::Rollbar::CapistranoTasks do
   let(:dry_run) { false }
 
   class Capistrano2LoggerStub
-    def important(message, line_prefix=nil) end
-    def info(message, line_prefix=nil) end
-    def debug(message, line_prefix=nil) end
+    def important(message, line_prefix = nil) end
+
+    def info(message, line_prefix = nil) end
+
+    def debug(message, line_prefix = nil) end
   end
 
   before do
@@ -86,7 +90,7 @@ describe ::Rollbar::CapistranoTasks do
     end
 
     context 'when an an exception is raised' do
-      it "logs the error to the logger" do
+      it 'logs the error to the logger' do
         expect(::Rollbar::Deploy).to receive(:report)
           .and_raise('an API exception')
 
@@ -98,7 +102,7 @@ describe ::Rollbar::CapistranoTasks do
       context 'when using Capistrano 2.x logger' do
         let(:logger2) { Capistrano2LoggerStub.new }
 
-        it "logs the error to the logger" do
+        it 'logs the error to the logger' do
           expect(::Rollbar::Deploy).to receive(:report)
             .and_raise('an API exception')
 
@@ -185,7 +189,7 @@ describe ::Rollbar::CapistranoTasks do
       end
 
       context 'when an an exception is raised' do
-        it "logs the error to the logger" do
+        it 'logs the error to the logger' do
           expect(::Rollbar::Deploy).to receive(:update)
             .and_raise('an API exception')
 
@@ -197,7 +201,7 @@ describe ::Rollbar::CapistranoTasks do
         context 'when using Capistrano 2.x logger' do
           let(:logger2) { Capistrano2LoggerStub.new }
 
-          it "logs the error to the logger" do
+          it 'logs the error to the logger' do
             expect(::Rollbar::Deploy).to receive(:update)
               .and_raise('an API exception')
 
@@ -306,7 +310,7 @@ describe ::Rollbar::CapistranoTasks do
       end
 
       context 'when an an exception is raised' do
-        it "logs the error to the logger" do
+        it 'logs the error to the logger' do
           expect(::Rollbar::Deploy).to receive(:update)
             .and_raise('an API exception')
 
@@ -318,7 +322,7 @@ describe ::Rollbar::CapistranoTasks do
         context 'when using Capistrano 2.x logger' do
           let(:logger2) { Capistrano2LoggerStub.new }
 
-          it "logs the error to the logger" do
+          it 'logs the error to the logger' do
             expect(::Rollbar::Deploy).to receive(:update)
               .and_raise('an API exception')
 

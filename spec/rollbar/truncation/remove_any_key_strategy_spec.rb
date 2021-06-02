@@ -55,7 +55,8 @@ describe Rollbar::Truncation::RemoveAnyKeyStrategy do
 
       expect(result['data']['body']).to be_eql(truncation_message)
       expect(result['data']['request']).to be_eql(request)
-      expect(result['data']['title']).to be_eql([exception_class, exception_message].join(': '))
+      expect(result['data']['title']).to be_eql([exception_class,
+                                                 exception_message].join(': '))
       expect(result['unknown_root_key']).to be_nil
       expect(result['data']['notifier']).to be_eql(diagnostic)
 

@@ -91,7 +91,10 @@ module Rollbar
       def extract_title(body)
         return body['message']['body'] if body['message'] && body['message']['body']
         return extract_title_from_trace(body['trace']) if body['trace']
-        return extract_title_from_trace(body['trace_chain'][0]) if body['trace_chain'] && body['trace_chain'][0]
+
+        if body['trace_chain'] && body['trace_chain'][0]
+          extract_title_from_trace(body['trace_chain'][0])
+        end
       end
 
       def extract_title_from_trace(trace)

@@ -20,7 +20,9 @@ describe ApplicationController, :type => 'request' do
     it 'renders the snippet and config in the response', :type => 'request' do
       get '/test_rollbar_js'
 
-      snippet_from_submodule = File.read(File.expand_path('../../../../rollbar.js/dist/rollbar.snippet.js', __FILE__))
+      snippet_from_submodule = File.read(File.expand_path(
+                                           '../../../../rollbar.js/dist/rollbar.snippet.js', __FILE__
+                                         ))
 
       expect(response.body).to include("var _rollbarConfig = #{Rollbar.configuration.js_options.to_json};")
       expect(response.body).to include(snippet_from_submodule)
@@ -60,7 +62,9 @@ describe ApplicationController, :type => 'request' do
 
     def nonce_present
       # Rails will add the nonce to script_src when the generator is set.
-      Rails.application.config.content_security_policy_nonce_generator = lambda { |_| SecureRandom.base64(16) }
+      Rails.application.config.content_security_policy_nonce_generator = lambda { |_|
+        SecureRandom.base64(16)
+      }
 
       Rails.application.config.content_security_policy do |policy|
         policy.script_src :self, :https
@@ -76,7 +80,9 @@ describe ApplicationController, :type => 'request' do
     end
 
     def script_src_not_present
-      Rails.application.config.content_security_policy_nonce_generator = lambda { |_| SecureRandom.base64(16) }
+      Rails.application.config.content_security_policy_nonce_generator = lambda { |_|
+        SecureRandom.base64(16)
+      }
 
       # This is a valid policy, but Rails will not apply the nonce to script_src.
       Rails.application.config.content_security_policy do |policy|
@@ -87,7 +93,9 @@ describe ApplicationController, :type => 'request' do
 
     def unsafe_inline_present
       # Rails will add the nonce to script_src when the generator is set.
-      Rails.application.config.content_security_policy_nonce_generator = lambda { |_| SecureRandom.base64(16) }
+      Rails.application.config.content_security_policy_nonce_generator = lambda { |_|
+        SecureRandom.base64(16)
+      }
 
       Rails.application.config.content_security_policy do |policy|
         policy.script_src :unsafe_inline
@@ -186,7 +194,6 @@ describe ApplicationController, :type => 'request' do
 
   context 'using secure_headers',
           :if => (Gem::Version.new(Rails.version) >= Gem::Version.new('5.0.0')) do
-
     before do
       configure_csp(nonce_mode)
     end
@@ -197,6 +204,7 @@ describe ApplicationController, :type => 'request' do
 
     def configure_csp(mode)
       return unless defined?(::SecureHeaders)
+
       if mode == :nonce_present
         nonce_present
       elsif mode == :nonce_not_present
@@ -211,8 +219,8 @@ describe ApplicationController, :type => 'request' do
     def nonce_present
       config = ::SecureHeaders::Configuration.new do |config|
         config.csp = {
-          :default_src => %w('none'),
-          :script_src => %w('self')
+          :default_src => %w['none'],
+          :script_src => %w['self']
         }
       end
       ::SecureHeaders::Configuration.instance_variable_set(:@default_config, config)
@@ -221,8 +229,8 @@ describe ApplicationController, :type => 'request' do
     def nonce_not_present
       config = ::SecureHeaders::Configuration.new do |config|
         config.csp = {
-          :default_src => %w('none'),
-          :script_src => %w('self')
+          :default_src => %w['none'],
+          :script_src => %w['self']
         }
       end
       ::SecureHeaders::Configuration.instance_variable_set(:@default_config, config)
@@ -231,8 +239,8 @@ describe ApplicationController, :type => 'request' do
     def unsafe_inline_present
       config = ::SecureHeaders::Configuration.new do |config|
         config.csp = {
-          :default_src => %w('none'),
-          :script_src => %w('unsafe-inline')
+          :default_src => %w['none'],
+          :script_src => %w['unsafe-inline']
         }
       end
       ::SecureHeaders::Configuration.instance_variable_set(:@default_config, config)

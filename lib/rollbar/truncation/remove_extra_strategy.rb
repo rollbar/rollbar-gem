@@ -24,7 +24,9 @@ module Rollbar
       end
 
       def delete_trace_chain_extra(body)
-        body['trace_chain'][0].delete('extra') if body['trace_chain'] && body['trace_chain'][0]['extra']
+        if body['trace_chain'] && body['trace_chain'][0]['extra']
+          body['trace_chain'][0].delete('extra')
+        end
       end
 
       def delete_trace_extra(body)

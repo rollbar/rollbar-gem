@@ -149,7 +149,8 @@ describe ::Rollbar::Deploy do
     end
 
     context 'with valid request data' do
-      it_behaves_like 'valid deploy API request', /^200; OK; {"data":{"deploy_id":[0-9]+}}/
+      it_behaves_like 'valid deploy API request',
+                      /^200; OK; {"data":{"deploy_id":[0-9]+}}/
 
       it 'adds deploy id to the result' do
         expect(@result[:data][:deploy_id].to_s).to match(/[0-9]+/)
@@ -199,7 +200,7 @@ describe ::Rollbar::Deploy do
     end
 
     context 'with valid request data' do
-      it_behaves_like 'valid deploy API request', /^200; OK; {.*\"id\":[0-9]+.*/
+      it_behaves_like 'valid deploy API request', /^200; OK; {.*"id":[0-9]+.*/
     end
 
     context 'with invalid request data' do

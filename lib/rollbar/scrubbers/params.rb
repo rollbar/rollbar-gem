@@ -10,7 +10,8 @@ module Rollbar
     # configuration array even if :scrub_all is true.
     class Params
       SKIPPED_CLASSES = [::Tempfile].freeze
-      ATTACHMENT_CLASSES = %w[ActionDispatch::Http::UploadedFile Rack::Multipart::UploadedFile].freeze
+      ATTACHMENT_CLASSES = %w[ActionDispatch::Http::UploadedFile
+                              Rack::Multipart::UploadedFile].freeze
       SCRUB_ALL = :scrub_all
 
       def self.call(*args)
@@ -52,10 +53,14 @@ module Rollbar
       end
 
       def build_whitelist_regex(whitelist)
-        fields = whitelist.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) || f.is_a?(Regexp) }
+        fields = whitelist.find_all do |f|
+          f.is_a?(String) || f.is_a?(Symbol) || f.is_a?(Regexp)
+        end
         return unless fields.any?
 
-        Regexp.new(fields.map { |val| val.is_a?(Regexp) ? val : /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
+        Regexp.new(fields.map do |val|
+                     val.is_a?(Regexp) ? val : /\A#{Regexp.escape(val.to_s)}\z/
+                   end.join('|'))
       end
 
       def scrub(params, options)

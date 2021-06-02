@@ -39,7 +39,8 @@ Rollbar.plugins.define('rails-rollbar.js') do
             end
 
             def after_secure_headers(&block)
-              Rollbar::Railtie.initializer('rollbar.js.frameworks.rails', :after => 'secure_headers.middleware', &block)
+              Rollbar::Railtie.initializer('rollbar.js.frameworks.rails',
+                                           :after => 'secure_headers.middleware', &block)
             end
 
             def plugin_execute_proc_body(plugin)
@@ -52,7 +53,8 @@ Rollbar.plugins.define('rails-rollbar.js') do
                       :options => Rollbar.configuration.js_options,
                       :enabled => Rollbar.configuration.js_enabled
                     }
-                    ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js, config)
+                    ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js,
+                                                         config)
                   end
                 end
               end
