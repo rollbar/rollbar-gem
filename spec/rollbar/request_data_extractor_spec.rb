@@ -11,7 +11,8 @@ describe Rollbar::RequestDataExtractor do
   subject { ExtractorDummy.new }
 
   let(:env) do
-    Rack::MockRequest.env_for('/', 'HTTP_HOST' => 'localhost:81', 'HTTP_X_FORWARDED_HOST' => 'example.org:9292')
+    Rack::MockRequest.env_for('/', 'HTTP_HOST' => 'localhost:81',
+                                   'HTTP_X_FORWARDED_HOST' => 'example.org:9292')
   end
 
   describe '#scrub_url' do
@@ -85,7 +86,9 @@ describe Rollbar::RequestDataExtractor do
     end
 
     context 'with scrub headers set' do
-      let(:scrub_headers) { ['HTTP_UPPER_CASE_HEADER', 'http-lower-case-header', 'Mixed-CASE-header'] }
+      let(:scrub_headers) do
+        %w[HTTP_UPPER_CASE_HEADER http-lower-case-header Mixed-CASE-header]
+      end
 
       let(:env) do
         env = Rack::MockRequest.env_for('/',
@@ -110,7 +113,8 @@ describe Rollbar::RequestDataExtractor do
 
     context 'with invalid utf8 sequence in key' do
       let(:data) do
-        File.read(File.expand_path('../../support/encodings/iso_8859_9', __FILE__)).force_encoding(Encoding::ISO_8859_9)
+        File.read(File.expand_path('../../support/encodings/iso_8859_9',
+                                   __FILE__)).force_encoding(Encoding::ISO_8859_9)
       end
       let(:env) do
         env = Rack::MockRequest.env_for('/',
@@ -294,8 +298,6 @@ describe Rollbar::RequestDataExtractor do
         result = subject.extract_request_data_from_rack(env)
         expect(result[:body]).to be_eql(body)
       end
-
-
     end
 
     context 'with JSON DELETE body' do

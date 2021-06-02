@@ -12,10 +12,10 @@ gem 'rails', '~> 5.0.7'
 gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 
 gem 'rspec-core', '~> 3.5.0.beta3'
-gem 'rspec-rails', '~> 3.5.0.beta3'
-gem 'rspec-support', '~> 3.5.0.beta3'
 gem 'rspec-expectations', '~> 3.5.0.beta3'
 gem 'rspec-mocks', '~> 3.5.0.beta3'
+gem 'rspec-rails', '~> 3.5.0.beta3'
+gem 'rspec-support', '~> 3.5.0.beta3'
 
 gem 'rake'
 
@@ -25,20 +25,17 @@ platforms :rbx do
   gem 'minitest'
   gem 'racc'
   gem 'rubinius-developer_tools'
-  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2') # rubysl doesn't yet support Ruby 3.x
+  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2')
 end
 
 gem 'capistrano', :require => false
-gem 'sucker_punch', '~> 2.0'
 gem 'codacy-coverage'
 gem 'simplecov', '<= 0.17.1'
+gem 'sucker_punch', '~> 2.0'
 
-if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3')
-  gem 'rack', '2.1.2'
-end
+gem 'rack', '2.1.2' if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3')
 
 # We need last sinatra that uses rack 2.1.x
-gem 'sinatra', :git => 'https://github.com/sinatra/sinatra', :tag => 'v2.0.8'
 gem 'database_cleaner', '~> 1.8.4'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
@@ -46,6 +43,7 @@ gem 'girl_friday', '>= 0.11.1'
 gem 'redis', '<= 3.3.5'
 gem 'resque'
 gem 'secure_headers', '~> 6.3.2', :require => false
+gem 'sinatra', :git => 'https://github.com/sinatra/sinatra', :tag => 'v2.0.8'
 
 unless is_jruby
   # JRuby doesn't support fork, which is required for this test helper.

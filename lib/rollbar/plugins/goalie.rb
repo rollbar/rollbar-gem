@@ -11,16 +11,18 @@ Rollbar.plugins.define('goalie') do
           begin
             controller = env['action_controller.instance']
             request_data = begin
-                             controller.rollbar_request_data
-                           rescue StandardError
-                             nil
-                           end
+              controller.rollbar_request_data
+            rescue StandardError
+              nil
+            end
             person_data = begin
-                            controller.rollbar_person_data
-                          rescue StandardError
-                            nil
-                          end
-            exception_data = Rollbar.scope(:request => request_data, :person => person_data).error(exception, :use_exception_level_filters => true)
+              controller.rollbar_person_data
+            rescue StandardError
+              nil
+            end
+            exception_data = Rollbar.scope(:request => request_data, :person => person_data).error(
+              exception, :use_exception_level_filters => true
+            )
           rescue StandardError => e
             Rollbar.log_warning "[Rollbar] Exception while reporting exception to Rollbar: #{e}"
           end

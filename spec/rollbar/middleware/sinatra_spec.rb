@@ -245,7 +245,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
             {
               :obj => 'Post',
               :bar => 'bar',
-              :hash => {:foo => 'Post', :bar => 'bar'},
+              :hash => { :foo => 'Post', :bar => 'bar' },
               :foo => 'Post',
               :_index => 0
             },

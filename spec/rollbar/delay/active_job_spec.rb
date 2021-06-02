@@ -5,7 +5,7 @@ if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
     require 'rollbar/delay/active_job'
 
     describe Rollbar::Delay::ActiveJob do
-      include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper) # rubocop:disable Style/MixinUsage
+      include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
       describe '.call' do
         let(:payload) { {} }

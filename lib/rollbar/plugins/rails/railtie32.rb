@@ -11,7 +11,8 @@ module Rollbar
 
       app.config.middleware.insert_after ActionDispatch::DebugExceptions,
                                          Rollbar::Middleware::Rails::RollbarMiddleware
-      ActionDispatch::DebugExceptions.send(:include, Rollbar::Middleware::Rails::ShowExceptions)
+      ActionDispatch::DebugExceptions.send(:include,
+                                           Rollbar::Middleware::Rails::ShowExceptions)
     end
   end
 end

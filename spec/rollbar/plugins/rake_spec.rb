@@ -12,7 +12,8 @@ describe Rollbar::Rake do
     end
 
     it 'reports error to Rollbar' do
-      expect(Rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
+      expect(Rollbar).to receive(:error).with(exception,
+                                              :use_exception_level_filters => true)
       expect(application).to receive(:orig_display_error_message).with(exception)
 
       Rollbar::Rake.patch! # Really here Rake is already patched

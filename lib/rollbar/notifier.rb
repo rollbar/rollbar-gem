@@ -15,9 +15,7 @@ module Rollbar
   # The notifier class. It has the core functionality
   # for sending reports to the API.
   class Notifier
-    attr_accessor :configuration
-    attr_accessor :last_report
-    attr_accessor :scope_object
+    attr_accessor :configuration, :last_report, :scope_object
 
     MUTEX = Mutex.new
     EXTENSION_REGEXP = /.rollbar\z/.freeze
@@ -34,7 +32,10 @@ module Rollbar
         self.scope_object = ::Rollbar::LazyStore.new(scope)
       end
 
-      Rollbar::Util.deep_merge(configuration.payload_options, payload_options) if payload_options
+      if payload_options
+        Rollbar::Util.deep_merge(configuration.payload_options,
+                                 payload_options)
+      end
     end
 
     def reset!
@@ -328,8 +329,10 @@ module Rollbar
     end
 
     def add_original_message(diagnostic, original_error)
-        diagnostic[:original_message] = original_error[:message].truncate(FAILSAFE_STRING_LENGTH) if original_error[:message]
-
+      if original_error[:message]
+        diagnostic[:original_message] =
+          original_error[:message].truncate(FAILSAFE_STRING_LENGTH)
+      end
     rescue StandardError => e
       diagnostic[:original_message] = "Failed: #{e.message}"
     end
@@ -343,7 +346,6 @@ module Rollbar
           :stack => backtrace && backtrace.join(', ').truncate(FAILSAFE_STRING_LENGTH)
         }
       end
-
     rescue StandardError => e
       diagnostic[:original_error] = "Failed: #{e.message}"
     end
@@ -351,9 +353,9 @@ module Rollbar
     def add_configured_options(payload_notifier, original_error)
       if original_error[:configuration]
         configured = original_error[:configuration].configured_options.configured
-        payload_notifier[:configured_options] = ::JSON.generate(configured).truncate(FAILSAFE_STRING_LENGTH)
+        payload_notifier[:configured_options] =
+          ::JSON.generate(configured).truncate(FAILSAFE_STRING_LENGTH)
       end
-
     rescue StandardError => e
       payload_notifier[:configured_options] = "Failed: #{e.message}"
     end
@@ -390,7 +392,8 @@ module Rollbar
     end
 
     def enable_locals?
-      configuration.locals[:enabled] && [:app, :all].include?(configuration.send_extra_frame_data)
+      configuration.locals[:enabled] && [:app,
+                                         :all].include?(configuration.send_extra_frame_data)
     end
 
     def enable_locals
@@ -547,7 +550,7 @@ module Rollbar
       rescue StandardError => e
         send_failsafe('error logging instance link', e, original_error)
         log_error "[Rollbar] Item: #{item}"
-        return
+        nil
       end
     end
 
@@ -579,7 +582,8 @@ module Rollbar
 
       headers = { 'X-Rollbar-Access-Token' => configuration.access_token }
       options = http_proxy_for_em(uri)
-      req = EventMachine::HttpRequest.new(uri.to_s, options).post(:body => body, :head => headers)
+      req = EventMachine::HttpRequest.new(uri.to_s, options).post(:body => body,
+                                                                  :head => headers)
 
       eventmachine_callback(req)
       eventmachine_errback(req)
@@ -627,7 +631,8 @@ module Rollbar
 
     def do_post(uri, body, access_token)
       proxy = http_proxy(uri)
-      http  = Net::HTTP.new(uri.host, uri.port, proxy.host, proxy.port, proxy.user, proxy.password)
+      http  = Net::HTTP.new(uri.host, uri.port, proxy.host, proxy.port, proxy.user,
+                            proxy.password)
 
       http.open_timeout = configuration.open_timeout
       http.read_timeout = configuration.request_timeout
@@ -642,7 +647,7 @@ module Rollbar
       request.body = pack_ruby260_bytes(body)
 
       # Ensure the payload token will be used if the option is set.
-      unless (configuration.use_payload_access_token)
+      unless configuration.use_payload_access_token
         request.add_field('X-Rollbar-Access-Token', access_token)
       end
 
@@ -762,7 +767,9 @@ module Rollbar
       return unless configuration.files_processed_enabled
 
       time_now = Time.now
-      return if configuration.files_processed_duration > time_now - file.birthtime && file.size < configuration.files_processed_size
+      if configuration.files_processed_duration > time_now - file.birthtime && file.size < configuration.files_processed_size
+        return
+      end
 
       new_file_name = file_name.gsub(EXTENSION_REGEXP, "_processed_#{time_now.to_i}\\0")
       File.rename(file, new_file_name)
@@ -780,7 +787,9 @@ module Rollbar
 
           exception_info = exception.class.name
           # #to_s and #message defaults to class.to_s. Add message only if add valuable info.
-          exception_info += %[: "#{exception.message}"] if exception.message != exception.class.to_s
+          if exception.message != exception.class.to_s
+            exception_info += %[: "#{exception.message}"]
+          end
           exception_info += " in #{nearest_frame}" if nearest_frame
 
           body += "#{exception_info}: #{message}"

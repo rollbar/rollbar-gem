@@ -2,7 +2,7 @@ module Rollbar
   module Scrubbers
     module_function
 
-    def scrub_value(value)
+    def scrub_value(_value)
       if Rollbar.configuration.randomize_scrub_length
         random_filtered_value
       else

@@ -19,10 +19,10 @@ module Rollbar
       else
         controller = env['action_controller.instance']
         person_data = begin
-                        controller.rollbar_person_data
-                      rescue StandardError
-                        {}
-                      end
+          controller.rollbar_person_data
+        rescue StandardError
+          {}
+        end
       end
 
       person_data
@@ -34,7 +34,8 @@ module Rollbar
 
       get_params = scrub_params(rollbar_get_params(rack_req), sensitive_params)
       post_params = scrub_params(rollbar_post_params(rack_req), sensitive_params)
-      raw_body_params = scrub_params(mergeable_raw_body_params(rack_req), sensitive_params)
+      raw_body_params = scrub_params(mergeable_raw_body_params(rack_req),
+                                     sensitive_params)
       cookies = scrub_params(rollbar_request_cookies(rack_req), sensitive_params)
       session = scrub_params(rollbar_request_session(env), sensitive_params)
       route_params = scrub_params(rollbar_route_params(env), sensitive_params)
@@ -54,7 +55,10 @@ module Rollbar
         :method => rollbar_request_method(env)
       }
 
-      data[:request_id] = env['action_dispatch.request_id'] if env['action_dispatch.request_id']
+      if env['action_dispatch.request_id']
+        data[:request_id] =
+          env['action_dispatch.request_id']
+      end
 
       data
     end
@@ -131,9 +135,11 @@ module Rollbar
       host = host.split(',').first.strip unless host.empty?
 
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
-      path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{"?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].to_s.empty?}"
-      unless path.nil? || path.empty?
-        path = '/' + path.to_s if path.to_s.slice(0, 1) != '/'
+      path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{unless env['QUERY_STRING'].to_s.empty?
+                                                            "?#{env['QUERY_STRING']}"
+                                                          end}"
+      if !(path.nil? || path.empty?) && (path.to_s.slice(0, 1) != '/')
+        path = '/' + path.to_s
       end
 
       port = env['HTTP_X_FORWARDED_PORT']
@@ -248,7 +254,9 @@ module Rollbar
     end
 
     def sensitive_headers_list
-      return [] unless Rollbar.configuration.scrub_headers && Rollbar.configuration.scrub_headers.is_a?(Array)
+      unless Rollbar.configuration.scrub_headers && Rollbar.configuration.scrub_headers.is_a?(Array)
+        return []
+      end
 
       # Normalize into the expected matching format
       Rollbar.configuration.scrub_headers.map do |header|

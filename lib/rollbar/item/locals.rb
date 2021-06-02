@@ -58,7 +58,9 @@ module Rollbar
         # truncation strategy for large payloads.
         #
         def prepare_value(value)
-          return simple_value?(value) ? value : value.inspect unless value.is_a?(Hash) || value.is_a?(Array)
+          unless value.is_a?(Hash) || value.is_a?(Array)
+            return simple_value?(value) ? value : value.inspect
+          end
 
           cloned_value = ::Rollbar::Util.deep_copy(value)
           ::Rollbar::Util.iterate_and_update_with_block(cloned_value) do |v|

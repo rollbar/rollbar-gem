@@ -34,7 +34,9 @@ module Rollbar
           _cset(:rollbar_role)  { :app }
           _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
           _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
-          _cset(:rollbar_token) { abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'") }
+          _cset(:rollbar_token) do
+            abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'")
+          end
           _cset(:rollbar_revision) { real_revision }
           _cset(:rollbar_comment) { nil }
         end
@@ -51,7 +53,8 @@ module Rollbar
           :task => :deploy_started,
           :configuration => configuration
         ) do
-          ::Rollbar::CapistranoTasks.deploy_started(configuration, configuration.logger, configuration.dry_run)
+          ::Rollbar::CapistranoTasks.deploy_started(configuration, configuration.logger,
+                                                    configuration.dry_run)
         end
       end
 
@@ -61,17 +64,16 @@ module Rollbar
           :task => :deploy_succeeded,
           :configuration => configuration
         ) do
-          ::Rollbar::CapistranoTasks.deploy_succeeded(configuration, configuration.logger, configuration.dry_run)
+          ::Rollbar::CapistranoTasks.deploy_succeeded(configuration,
+                                                      configuration.logger, configuration.dry_run)
         end
       end
 
-      def load_task(configuration:, desc:, task:)
+      def load_task(configuration:, desc:, task:, &block)
         configuration.load do
           namespace :rollbar do
             desc(desc)
-            task(task) do
-              yield
-            end
+            task(task, &block)
           end
         end
       end
@@ -79,4 +81,6 @@ module Rollbar
   end
 end
 
-Rollbar::Capistrano2.load_into(Capistrano::Configuration.instance) if Capistrano::Configuration.instance
+if Capistrano::Configuration.instance
+  Rollbar::Capistrano2.load_into(Capistrano::Configuration.instance)
+end

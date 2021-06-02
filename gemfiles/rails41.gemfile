@@ -28,10 +28,10 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
-gem 'sucker_punch', '~> 2.0'
-gem 'shoryuken'
 gem 'codacy-coverage'
+gem 'shoryuken'
 gem 'simplecov', '<= 0.17.1'
+gem 'sucker_punch', '~> 2.0'
 
 gem 'delayed_job', :require => false
 gem 'redis', '<= 3.3.5'
@@ -46,7 +46,7 @@ gem 'rspec-command'
 
 gem 'webmock', :require => false
 
-gem 'resque'
 gem 'aws-sdk-sqs'
+gem 'resque'
 
 gemspec :path => '../'

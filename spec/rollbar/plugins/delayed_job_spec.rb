@@ -43,7 +43,8 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
 
-      expect(payload['data'][:request]["handler"]).to include({:args=>[:foo, :bar], :method_name=>:do_job_please!})
+      expect(payload['data'][:request]['handler']).to include({ :args => [:foo, :bar],
+                                                                :method_name => :do_job_please! })
     end
   end
 
@@ -52,9 +53,9 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       [/Delayed::DeserializationError/, { :use_exception_level_filters => true }]
     end
     let(:new_expected_args) do
-      [instance_of(Delayed::DeserializationError), { :use_exception_level_filters => true }]
+      [instance_of(Delayed::DeserializationError),
+       { :use_exception_level_filters => true }]
     end
-
 
     it 'sends the exception' do
       expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original

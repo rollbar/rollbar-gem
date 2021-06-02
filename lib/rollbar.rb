@@ -31,8 +31,7 @@ module Rollbar
 
     def_delegators :notifier, *PUBLIC_NOTIFIER_METHODS
 
-    attr_writer :plugins
-    attr_writer :root_notifier
+    attr_writer :plugins, :root_notifier
 
     def notifier
       # Use the global instance @root_notifier so we don't fall

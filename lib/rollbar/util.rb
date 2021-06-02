@@ -80,7 +80,9 @@ module Rollbar
       hash2 ||= {}
 
       # If we've already merged these two objects, return hash1 now.
-      return hash1 if merged[hash1.object_id] && merged[hash1.object_id].include?(hash2.object_id)
+      if merged[hash1.object_id] && merged[hash1.object_id].include?(hash2.object_id)
+        return hash1
+      end
 
       merged[hash1.object_id] ||= []
       merged[hash1.object_id] << hash2.object_id
@@ -121,7 +123,7 @@ module Rollbar
     end
 
     def self.count_method_in_stack(method_symbol, file_path = '')
-      caller.grep(/#{file_path}.*#{method_symbol.to_s}/).count
+      caller.grep(/#{file_path}.*#{method_symbol}/).count
     end
 
     def self.method_in_stack(method_symbol, file_path = '')

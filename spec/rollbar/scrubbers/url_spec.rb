@@ -35,7 +35,9 @@ describe Rollbar::Scrubbers::URL do
         end
 
         context 'with arrays in params' do
-          let(:url) { 'http://user:password@foo.com/some-interesting-path?foo[]=1&foo[]=2' }
+          let(:url) do
+            'http://user:password@foo.com/some-interesting-path?foo[]=1&foo[]=2'
+          end
 
           it 'returns the URL without any change' do
             expect(subject.call(options)).to be_eql(url)
@@ -56,14 +58,16 @@ describe Rollbar::Scrubbers::URL do
         let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
         it 'returns the URL without any change' do
-          expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting\-path#fragment}
+          expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting-path#fragment}
 
           expect(subject.call(options)).to match(expected_url)
         end
       end
 
       context 'with params to be filtered' do
-        let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue#fragment' }
+        let(:url) do
+          'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue#fragment'
+        end
 
         it 'returns the URL with some params filtered' do
           expected_url = %r{http://foo.com/some-interesting-path\?foo=bar&password=\*{3,8}&secret=\*{3,8}#fragment}
@@ -72,7 +76,9 @@ describe Rollbar::Scrubbers::URL do
         end
 
         context 'having array params' do
-          let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue#fragment' }
+          let(:url) do
+            'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue#fragment'
+          end
 
           it 'returns the URL with some params filtered' do
             expected_url = %r{http://foo.com/some-interesting-path\?foo=bar&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=\*{3,8}#fragment}
@@ -93,7 +99,9 @@ describe Rollbar::Scrubbers::URL do
           }
         end
         let(:password) { 'longpasswordishere' }
-        let(:url) { "http://foo.com/some-interesting-path?foo=bar&password=#{password}#fragment" }
+        let(:url) do
+          "http://foo.com/some-interesting-path?foo=bar&password=#{password}#fragment"
+        end
 
         it 'scrubs with same length than the scrubbed param' do
           expected_url = %r{http://foo.com/some-interesting-path\?foo=bar&password=\*{#{password.length}}#fragment}
@@ -123,7 +131,9 @@ describe Rollbar::Scrubbers::URL do
       end
 
       context 'with non-ASCII ASCII-8BIT encoded URL' do
-        let(:url) { 'http://foo.com/some-path?foo=あああ'.force_encoding(Encoding::ASCII_8BIT) }
+        let(:url) do
+          'http://foo.com/some-path?foo=あああ'.force_encoding(Encoding::ASCII_8BIT)
+        end
         before { reconfigure_notifier }
 
         it 'returns the URI encoded url' do
@@ -139,7 +149,8 @@ describe Rollbar::Scrubbers::URL do
         let(:options) do
           {
             :url => url,
-            :scrub_fields => [:passwd, :password, :password_confirmation, :secret, :confirm_password, :secret_token, :api_key, :access_token, :auth, :SAMLResponse, :password, :auth],
+            :scrub_fields => [:passwd, :password, :password_confirmation, :secret,
+                              :confirm_password, :secret_token, :api_key, :access_token, :auth, :SAMLResponse, :password, :auth],
             :scrub_user => true,
             :scrub_password => true,
             :randomize_scrub_length => true
@@ -179,7 +190,7 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
           it 'returns the URL without any change' do
-            expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting\-path#fragment}
+            expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting-path#fragment}
 
             expect(subject.call(options)).to match(expected_url)
           end
@@ -195,7 +206,9 @@ describe Rollbar::Scrubbers::URL do
               :whitelist => whitelist
             }
           end
-          let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
+          let(:url) do
+            'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment'
+          end
 
           it 'returns the URL with some params filtered' do
             expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
@@ -204,7 +217,9 @@ describe Rollbar::Scrubbers::URL do
           end
 
           context 'having array params' do
-            let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
+            let(:url) do
+              'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment'
+            end
 
             it 'returns the URL with some params filtered' do
               expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
@@ -225,7 +240,9 @@ describe Rollbar::Scrubbers::URL do
             }
           end
 
-          let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment' }
+          let(:url) do
+            'http://foo.com/some-interesting-path?foo=bar&password=mypassword&secret=somevalue&dont_scrub=foo#fragment'
+          end
 
           it 'returns the URL with some params filtered' do
             expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}
@@ -234,7 +251,9 @@ describe Rollbar::Scrubbers::URL do
           end
 
           context 'having array params' do
-            let(:url) { 'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment' }
+            let(:url) do
+              'http://foo.com/some-interesting-path?foo=bar&password[]=mypassword&password[]=otherpassword&secret=somevalue&dont_scrub=foo#fragment'
+            end
 
             it 'returns the URL with some params filtered' do
               expected_url = %r{http://foo.com/some-interesting-path\?foo=\*{3,8}&password\[\]=\*{3,8}&password\[\]=\*{3,8}&secret=somevalue&dont_scrub=\*{3,8}#fragment}

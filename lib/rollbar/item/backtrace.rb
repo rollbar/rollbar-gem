@@ -3,11 +3,7 @@ require 'rollbar/item/frame'
 module Rollbar
   class Item
     class Backtrace
-      attr_reader :exception
-      attr_reader :message
-      attr_reader :extra
-      attr_reader :configuration
-      attr_reader :files
+      attr_reader :exception, :message, :extra, :configuration, :files
 
       private :files
 
@@ -100,7 +96,9 @@ module Rollbar
       # are those from the user's Rollbar.error line until this method. We want
       # to remove those lines.
       def exception_backtrace(current_exception)
-        return current_exception.backtrace if current_exception.backtrace.respond_to?(:map)
+        if current_exception.backtrace.respond_to?(:map)
+          return current_exception.backtrace
+        end
         return [] unless configuration.populate_empty_backtraces
 
         caller_backtrace = caller

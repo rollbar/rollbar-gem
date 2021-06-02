@@ -74,7 +74,7 @@ describe Rollbar::Notifier do
         notifier.configuration.files_processed_enabled = true
       end
 
-      let(:dummy_file) { double(File, birthtime: Time.now, size: 0).as_null_object }
+      let(:dummy_file) { double(File, :birthtime => Time.now, :size => 0).as_null_object }
 
       it 'writes to the file' do
         allow(File).to receive(:open).with(nil, 'a').and_return(dummy_file)
@@ -96,7 +96,7 @@ describe Rollbar::Notifier do
 
       let(:dummy_file) do
         double(
-          File, birthtime: Time.now - (notifier.configuration.files_processed_duration + 1).seconds, size: 0
+          File, :birthtime => Time.now - (notifier.configuration.files_processed_duration + 1).seconds, :size => 0
         ).as_null_object
       end
 
@@ -119,7 +119,8 @@ describe Rollbar::Notifier do
       end
 
       let(:dummy_file) do
-        double(File, birthtime: Time.now, size: notifier.configuration.files_processed_size + 1).as_null_object
+        double(File, :birthtime => Time.now,
+                     :size => notifier.configuration.files_processed_size + 1).as_null_object
       end
 
       it 'writes to the file and rename' do
@@ -161,7 +162,7 @@ describe Rollbar::Notifier do
         before { allow(dummy_http).to receive(:request).and_raise(SocketError) }
 
         it 'passes the message on' do
-          expect {process_item}.to raise_error(SocketError)
+          expect { process_item }.to raise_error(SocketError)
         end
 
         context 'the item has come via failsafe' do
@@ -233,11 +234,11 @@ describe Rollbar::Notifier do
         before { allow(dummy_http).to receive(:request).and_raise(SocketError) }
 
         it 'passes the message on' do
-          expect {process_from_async_handler}.to raise_error(SocketError)
+          expect { process_from_async_handler }.to raise_error(SocketError)
         end
 
         context 'the item has come via failsafe' do
-          let(:payload) { { "data" => { "failsafe" => true } } }
+          let(:payload) { { 'data' => { 'failsafe' => true } } }
 
           it 'does not pass the message on' do
             expect(notifier).to receive(:log_error).with("[Rollbar] Error processing the item: SocketError, SocketError. Item: #{payload.inspect}")
@@ -268,7 +269,8 @@ describe Rollbar::Notifier do
         begin
           raise java.lang.Exception, 'Hello'
         rescue StandardError => e
-          _message, exception, _extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
+          _message, exception, _extra = Rollbar::Notifier.new.send(:extract_arguments,
+                                                                   [e])
           expect(exception).to eq(e)
         end
       end
@@ -277,7 +279,8 @@ describe Rollbar::Notifier do
         begin
           raise java.lang.AssertionError.new('Hello') # rubocop:disable Style/RaiseArgs
         rescue java.lang.Error => e
-          _message, exception, _extra = Rollbar::Notifier.new.send(:extract_arguments, [e])
+          _message, exception, _extra = Rollbar::Notifier.new.send(:extract_arguments,
+                                                                   [e])
           expect(exception).to eq(e)
         end
       end

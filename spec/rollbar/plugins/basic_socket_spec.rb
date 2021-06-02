@@ -37,9 +37,9 @@ describe 'basic_socket plugin' do
       if Gem::Version.new(ActiveSupport::VERSION::STRING) < Gem::Version.new('4.1.0')
         context 'using active_support < 4.1' do
           it 'changes implementation of ::BasicSocket#as_json temporarily' do
-            original_implementation = BasicSocket.
-              public_instance_method(:as_json).
-              source_location
+            original_implementation = BasicSocket
+                                      .public_instance_method(:as_json)
+                                      .source_location
 
             subject.load_scoped! do
               expect(subject.loaded).to eq(true)
@@ -49,8 +49,8 @@ describe 'basic_socket plugin' do
             end
 
             expect(subject.loaded).to eq(false)
-            expect(BasicSocket.public_instance_method(:as_json).source_location).
-              to(eq(original_implementation))
+            expect(BasicSocket.public_instance_method(:as_json).source_location)
+              .to(eq(original_implementation))
           end
         end
       else

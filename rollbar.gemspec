@@ -12,7 +12,9 @@ Gem::Specification.new do |gem|
   gem.summary       = 'Reports exceptions to Rollbar'
   gem.homepage      = 'https://rollbar.com'
   gem.license       = 'MIT'
-  gem.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  gem.files         = `git ls-files -z`.split("\x0").reject do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
   gem.files        += ['spec/support/rollbar_api.rb'] # useful helper for app spec/tests.
   gem.name          = 'rollbar'
   gem.require_paths = ['lib']

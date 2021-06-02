@@ -62,7 +62,8 @@ describe HomeController do
     end
   end
 
-  context format('rollbar controller methods with %s requests', (local? ? 'local' : 'non-local')) do
+  context format('rollbar controller methods with %s requests',
+                 (local? ? 'local' : 'non-local')) do
     # TODO: run these for a a more-real request
     it 'should build valid request data' do
       data = @controller.rollbar_request_data
@@ -275,7 +276,8 @@ describe HomeController do
       it 'reports the errors successfully' do
         logger_mock.should_receive(:info).with('[Rollbar] Success')
 
-        send_req(:put, '/deprecated_report_exception', wrap_process_args(:putparam => 'putval'))
+        send_req(:put, '/deprecated_report_exception',
+                 wrap_process_args(:putparam => 'putval'))
 
         Rollbar.last_report.should_not be_nil
         Rollbar.last_report[:request][:POST]['putparam'].should == 'putval'
@@ -287,7 +289,8 @@ describe HomeController do
       @request.env['HTTP_ACCEPT'] = 'application/json'
 
       params = { :jsonparam => 'jsonval' }.to_json
-      send_req(:post, '/report_exception', wrap_process_args(params, 'CONTENT_TYPE' => 'application/json'))
+      send_req(:post, '/report_exception',
+               wrap_process_args(params, 'CONTENT_TYPE' => 'application/json'))
 
       Rollbar.last_report.should_not be_nil
       expect(Rollbar.last_report[:request][:body]).to be_eql(params)
@@ -311,7 +314,7 @@ describe HomeController do
           {
             :obj => 'Post',
             :password => '******',
-            :hash => {:foo => 'Post', :bar => 'bar'},
+            :hash => { :foo => 'Post', :bar => 'bar' },
             :foo => 'Post',
             :_index => 0
           },
@@ -465,7 +468,11 @@ describe HomeController do
             end
 
             context 'configured to send email addresses and username' do
-              before { Rollbar.configure { |config| config.person_username_method = 'username' } }
+              before do
+                Rollbar.configure do |config|
+                  config.person_username_method = 'username'
+                end
+              end
 
               it 'sends the current user data including email address and username' do
                 expect(person_data).to eq(:id => user.id,
@@ -567,7 +574,8 @@ describe HomeController do
 
     it 'parses the correct headers' do
       expect do
-        send_req(:post, '/cause_exception', wrap_process_args(params, 'ACCEPT' => 'application/vnd.github.v3+json'))
+        send_req(:post, '/cause_exception',
+                 wrap_process_args(params, 'ACCEPT' => 'application/vnd.github.v3+json'))
       end.to raise_exception(NameError)
 
       expect(Rollbar.last_report[:request][:POST]['foo']).to be_eql('bar')
@@ -589,7 +597,8 @@ describe HomeController do
 
     it 'scrubs sensible data from URL' do
       expect do
-        send_req(:get, '/cause_exception', wrap_process_args({ :password => 'my-secret-password' }, headers))
+        send_req(:get, '/cause_exception',
+                 wrap_process_args({ :password => 'my-secret-password' }, headers))
       end.to raise_exception(NameError)
 
       request_data = Rollbar.last_report[:request]

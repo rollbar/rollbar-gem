@@ -2,7 +2,7 @@ require 'spec_helper'
 
 begin
   require 'genspec'
-rescue LoadError # rubocop:disable HandleExceptions
+rescue LoadError
 end
 
 require 'generators/rollbar/rollbar_generator'

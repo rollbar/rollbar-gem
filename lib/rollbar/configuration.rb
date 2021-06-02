@@ -4,82 +4,11 @@ module Rollbar
   class Configuration
     SEND_EXTRA_FRAME_DATA_OPTIONS = [:none, :app, :all].freeze
 
-    attr_accessor :access_token
-    attr_accessor :async_handler
-    attr_accessor :branch
-    attr_reader :before_process
-    attr_accessor :capture_uncaught
-    attr_accessor :code_version
-    attr_accessor :custom_data_method
-    attr_accessor :delayed_job_enabled
-    attr_accessor :default_logger
-    attr_reader :logger_level
-    attr_accessor :disable_monkey_patch
-    attr_accessor :disable_rack_monkey_patch
-    attr_accessor :disable_core_monkey_patch
-    attr_accessor :enable_error_context
-    attr_accessor :dj_threshold
-    attr_accessor :async_skip_report_handler
-    attr_accessor :enabled
-    attr_accessor :endpoint
-    attr_accessor :environment
-    attr_accessor :exception_level_filters
-    attr_accessor :failover_handlers
-    attr_accessor :framework
-    attr_accessor :ignored_person_ids
-    attr_accessor :host
-    attr_accessor :locals
-    attr_writer :logger
-    attr_accessor :payload_options
-    attr_accessor :person_method
-    attr_accessor :person_id_method
-    attr_accessor :person_username_method
-    attr_accessor :person_email_method
-    attr_accessor :populate_empty_backtraces
-    attr_accessor :report_dj_data
-    attr_accessor :open_timeout
-    attr_accessor :request_timeout
-    attr_accessor :net_retries
-    attr_accessor :root
-    attr_accessor :js_options
-    attr_accessor :js_enabled
-    attr_accessor :safely
-    attr_accessor :scrub_fields
-    attr_accessor :scrub_user
-    attr_accessor :scrub_password
-    attr_accessor :scrub_whitelist
-    attr_accessor :collect_user_ip
-    attr_accessor :anonymize_user_ip
-    attr_accessor :user_ip_obfuscator_secret
-    attr_accessor :randomize_scrub_length
-    attr_accessor :uncaught_exception_level
-    attr_accessor :scrub_headers
-    attr_accessor :sidekiq_threshold
-    attr_accessor :sidekiq_use_scoped_block
-    attr_reader :transform
-    attr_accessor :verify_ssl_peer
-    attr_accessor :use_async
-    attr_accessor :async_json_payload
-    attr_reader :use_eventmachine
-    attr_accessor :web_base
-    attr_reader :send_extra_frame_data
-    attr_accessor :use_exception_level_filters_default
-    attr_accessor :proxy
-    attr_accessor :raise_on_error
-    attr_accessor :transmit
-    attr_accessor :log_payload
-    attr_accessor :backtrace_cleaner
-
-    attr_accessor :write_to_file
-    attr_accessor :filepath
-    attr_accessor :files_with_pid_name_enabled
-    attr_accessor :files_processed_enabled
-    attr_accessor :files_processed_duration # seconds
-    attr_accessor :files_processed_size # bytes
-    attr_accessor :use_payload_access_token
-
-    attr_reader :project_gem_paths
-    attr_accessor :configured_options
+    attr_accessor :access_token, :async_handler, :branch, :capture_uncaught,
+                  :code_version, :custom_data_method, :delayed_job_enabled, :default_logger, :disable_monkey_patch, :disable_rack_monkey_patch, :disable_core_monkey_patch, :enable_error_context, :dj_threshold, :async_skip_report_handler, :enabled, :endpoint, :environment, :exception_level_filters, :failover_handlers, :framework, :ignored_person_ids, :host, :locals, :payload_options, :person_method, :person_id_method, :person_username_method, :person_email_method, :populate_empty_backtraces, :report_dj_data, :open_timeout, :request_timeout, :net_retries, :root, :js_options, :js_enabled, :safely, :scrub_fields, :scrub_user, :scrub_password, :scrub_whitelist, :collect_user_ip, :anonymize_user_ip, :user_ip_obfuscator_secret, :randomize_scrub_length, :uncaught_exception_level, :scrub_headers, :sidekiq_threshold, :sidekiq_use_scoped_block, :verify_ssl_peer, :use_async, :async_json_payload, :web_base, :use_exception_level_filters_default, :proxy, :raise_on_error, :transmit, :log_payload, :backtrace_cleaner, :write_to_file, :filepath, :files_with_pid_name_enabled, :files_processed_enabled, :files_processed_duration, :files_processed_size, :use_payload_access_token, :configured_options
+    attr_reader :before_process, :logger_level, :transform, :use_eventmachine,
+                :send_extra_frame_data, :project_gem_paths
+    attr_writer :logger # seconds # bytes
 
     alias safely? safely
 
@@ -360,7 +289,10 @@ module Rollbar
       return super unless configuration.respond_to?(method)
 
       method_string = method.to_s
-      configured[method_string.chomp('=').to_sym] = args.first if method_string.end_with?('=')
+      if method_string.end_with?('=')
+        configured[method_string.chomp('=').to_sym] =
+          args.first
+      end
 
       configuration.send(method, *args, &block)
     end

@@ -73,7 +73,8 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
     it 'sends the passed-in error to rollbar' do
       allow(Rollbar).to receive(:scope).and_return(rollbar)
-      expect(rollbar).to receive(:error).with(exception, :use_exception_level_filters => true)
+      expect(rollbar).to receive(:error).with(exception,
+                                              :use_exception_level_filters => true)
 
       described_class.handle_exception(msg, exception)
     end

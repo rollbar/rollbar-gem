@@ -49,7 +49,7 @@ module Rails
     def legacy_runner
       string_to_eval = File.read(runner_path)
 
-      ::Rails.module_eval(<<-EOL, __FILE__, __LINE__ + 2)
+      ::Rails.module_eval(<<-EOL, __FILE__, __LINE__ + 1)
           #{string_to_eval}
       EOL
     end

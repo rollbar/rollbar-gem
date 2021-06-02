@@ -1,8 +1,10 @@
 module Rollbar
   module Encoding
     class Encoder
-      ALL_ENCODINGS = [::Encoding::UTF_8, ::Encoding::ISO_8859_1, ::Encoding::ASCII_8BIT, ::Encoding::US_ASCII].freeze
-      ASCII_ENCODINGS = [::Encoding::US_ASCII, ::Encoding::ASCII_8BIT, ::Encoding::ISO_8859_1].freeze
+      ALL_ENCODINGS = [::Encoding::UTF_8, ::Encoding::ISO_8859_1, ::Encoding::ASCII_8BIT,
+                       ::Encoding::US_ASCII].freeze
+      ASCII_ENCODINGS = [::Encoding::US_ASCII, ::Encoding::ASCII_8BIT,
+                         ::Encoding::ISO_8859_1].freeze
       UTF8 = 'UTF-8'.freeze
       BINARY = 'binary'.freeze
 
@@ -40,7 +42,9 @@ module Rollbar
       def force_encoding(value)
         return value if value.frozen?
 
-        value.force_encoding(detect_encoding(value)) if value.encoding == ::Encoding::UTF_8
+        if value.encoding == ::Encoding::UTF_8
+          value.force_encoding(detect_encoding(value))
+        end
 
         value
       end

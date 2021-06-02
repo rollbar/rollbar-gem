@@ -6,9 +6,7 @@ module Rollbar
   class Item
     # Representation of the trace data per frame in the payload
     class Frame
-      attr_reader :backtrace
-      attr_reader :frame
-      attr_reader :configuration
+      attr_reader :backtrace, :frame, :configuration
 
       MAX_CONTEXT_LENGTH = 4
 
@@ -104,7 +102,8 @@ module Rollbar
 
       def post_data(file_lines, lineno)
         from_line = lineno
-        number_of_lines = [from_line + MAX_CONTEXT_LENGTH, file_lines.size].min - from_line
+        number_of_lines = [from_line + MAX_CONTEXT_LENGTH,
+                           file_lines.size].min - from_line
 
         file_lines[from_line, number_of_lines]
       end
@@ -113,7 +112,9 @@ module Rollbar
         to_line = lineno - 2
         from_line = [to_line - MAX_CONTEXT_LENGTH + 1, 0].max
 
-        file_lines[from_line, (to_line - from_line + 1)].select { |line| line && !line.empty? }
+        file_lines[from_line, (to_line - from_line + 1)].select do |line|
+          line && !line.empty?
+        end
       end
     end
   end
