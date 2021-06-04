@@ -81,11 +81,13 @@ RSpec.configure do |config|
     stub_request(:any, /api.rollbar.com/).to_rack(RollbarAPI.new) if defined?(WebMock)
     if defined?(WebMock)
       stub_request(:post,
-                   %r{api.rollbar.com/api/[0-9]/deploy/$}).to_rack(DeployAPI::Report.new)
+                   %r{api.rollbar.com/api/[0-9]/deploy/$})
+        .to_rack(DeployAPI::Report.new)
     end
     if defined?(WebMock)
       stub_request(:patch,
-                   %r{api.rollbar.com/api/[0-9]/deploy/[0-9]+}).to_rack(DeployAPI::Update.new)
+                   %r{api.rollbar.com/api/[0-9]/deploy/[0-9]+})
+        .to_rack(DeployAPI::Update.new)
     end
   end
 

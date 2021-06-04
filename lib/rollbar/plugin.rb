@@ -112,11 +112,15 @@ module Rollbar
     end
 
     def log_loading_error(error)
-      Rollbar.log_error("Error trying to load plugin '#{name}': #{error.class}, #{error.message}")
+      Rollbar.log_error(
+        "Error trying to load plugin '#{name}': #{error.class}, #{error.message}"
+      )
     end
 
     def log_unloading_error(error)
-      Rollbar.log_error("Error trying to unload plugin '#{name}': #{error.class}, #{error.message}")
+      Rollbar.log_error(
+        "Error trying to unload plugin '#{name}': #{error.class}, #{error.message}"
+      )
     end
   end
 end

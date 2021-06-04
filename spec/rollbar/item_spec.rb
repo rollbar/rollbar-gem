@@ -72,7 +72,8 @@ describe Rollbar::Item do
       end
 
       it 'should have the correct data keys' do
-        payload['data'].keys.should include(:timestamp, :environment, :level, :language, :framework, :server,
+        payload['data'].keys.should include(:timestamp, :environment, :level,
+                                            :language, :framework, :server,
                                             :notifier, :body)
       end
 
@@ -165,10 +166,11 @@ describe Rollbar::Item do
         end
 
         payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:result].should == 'MyApp#' + context[:controller]
+        payload['data'][:body][:message][:extra][:result]
+          .should == 'MyApp#' + context[:controller]
       end
 
-      it 'should not include data passed in :context if there is no custom_data_method configured' do
+      it 'should not include data passed in :context if there is no custom_data_method' do
         configuration.custom_data_method = nil
 
         payload['data'][:body][:message][:extra].should be_nil
@@ -179,8 +181,9 @@ describe Rollbar::Item do
           { :result => 'Transformed in custom_data_method: ' + message }
         end
 
-        payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:result].should == 'Transformed in custom_data_method: ' + message
+        extra = payload['data'][:body][:message][:extra]
+        extra.should_not be_nil
+        extra[:result].should == 'Transformed in custom_data_method: ' + message
       end
 
       context do
@@ -191,8 +194,10 @@ describe Rollbar::Item do
             { :result => 'Transformed in custom_data_method: ' + exception.message }
           end
 
-          payload['data'][:body][:trace][:extra].should_not be_nil
-          payload['data'][:body][:trace][:extra][:result].should == 'Transformed in custom_data_method: ' + exception.message
+          extra = payload['data'][:body][:trace][:extra]
+          extra.should_not be_nil
+          expect(extra[:result])
+            .to eq('Transformed in custom_data_method: ' + exception.message)
         end
       end
     end
@@ -236,7 +241,8 @@ describe Rollbar::Item do
       end
 
       it 'doesnt crash the report' do
-        expect(subject).to receive(:report_custom_data_error).once.and_return(custom_data_report)
+        expect(subject).to receive(:report_custom_data_error)
+          .once.and_return(custom_data_report)
 
         expect(payload['data'][:body][:message][:extra]).to be_eql(expected_extra)
       end
@@ -291,7 +297,7 @@ describe Rollbar::Item do
       context 'with no exception' do
         let(:exception) { nil }
 
-        it 'should build a message body when no exception is passed in' do
+        it 'should build a message body' do
           payload['data'][:body][:message][:body].should == 'message'
           payload['data'][:body][:message][:extra].should be_nil
           payload['data'][:body][:trace].should be_nil
@@ -302,7 +308,7 @@ describe Rollbar::Item do
             { :a => 'b' }
           end
 
-          it 'should build a message body when no exception and extra data is passed in' do
+          it 'should build a message body' do
             payload['data'][:body][:message][:body].should == 'message'
             payload['data'][:body][:message][:extra].should == { :a => 'b' }
             payload['data'][:body][:trace].should be_nil
@@ -327,7 +333,7 @@ describe Rollbar::Item do
           { :a => 'b' }
         end
 
-        it 'should build an exception body when one is passed in along with extra data' do
+        it 'should build an exception body' do
           body = payload['data'][:body]
           body[:message].should be_nil
 
@@ -350,6 +356,11 @@ describe Rollbar::Item do
         end
       end
 
+      let(:pattern) do
+        /^(undefined\ local\ variable\ or\ method\ `bar'|
+          undefined\ method\ `bar'\ on\ an\ instance\ of)/x
+      end
+
       it 'should build valid exception data' do
         body = payload['data'][:body]
         body[:message].should be_nil
@@ -367,7 +378,7 @@ describe Rollbar::Item do
         # should be NameError, but can be NoMethodError sometimes on rubinius 1.8
         # http://yehudakatz.com/2010/01/02/the-craziest-fing-bug-ive-ever-seen/
         trace[:exception][:class].should match(/^(NameError|NoMethodError)$/)
-        trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
+        trace[:exception][:message].should match(pattern)
       end
 
       context 'with description message' do
@@ -378,7 +389,7 @@ describe Rollbar::Item do
 
           trace = body[:trace]
 
-          trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
+          trace[:exception][:message].should match(pattern)
           trace[:exception][:description].should == 'exception description'
         end
 
@@ -391,7 +402,7 @@ describe Rollbar::Item do
             body = payload['data'][:body]
             trace = body[:trace]
 
-            trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
+            trace[:exception][:message].should match(pattern)
             trace[:exception][:description].should == 'exception description'
             trace[:extra][:key].should == 'value'
             trace[:extra][:hash].should == { :inner_key => 'inner_value' }
@@ -407,7 +418,7 @@ describe Rollbar::Item do
           body = payload['data'][:body]
           trace = body[:trace]
 
-          trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
+          trace[:exception][:message].should match(pattern)
           trace[:extra][:key].should == 'value'
           trace[:extra][:hash].should == { :inner_key => 'inner_value' }
         end
@@ -423,7 +434,7 @@ describe Rollbar::Item do
           body = payload['data'][:body]
           trace = body[:trace]
 
-          trace[:exception][:message].should match(/^(undefined local variable or method `bar'|undefined method `bar' on an instance of)/)
+          trace[:exception][:message].should match(pattern)
           trace[:extra][:key].should == 'value'
           trace[:extra][:hash].should == { :inner_key => 'inner_value' }
         end
@@ -524,7 +535,8 @@ describe Rollbar::Item do
         it 'should build a message with extra data' do
           payload['data'][:body][:message][:body].should == 'message'
           payload['data'][:body][:message][:extra][:key].should == 'value'
-          payload['data'][:body][:message][:extra][:hash].should == { :inner_key => 'inner_value' }
+          payload['data'][:body][:message][:extra][:hash]
+            .should == { :inner_key => 'inner_value' }
         end
       end
 
@@ -537,7 +549,8 @@ describe Rollbar::Item do
         it 'should build an empty message with extra data' do
           payload['data'][:body][:message][:body].should == 'Empty message'
           payload['data'][:body][:message][:extra][:key].should == 'value'
-          payload['data'][:body][:message][:extra][:hash].should == { :inner_key => 'inner_value' }
+          payload['data'][:body][:message][:extra][:hash]
+            .should == { :inner_key => 'inner_value' }
         end
       end
     end
@@ -624,8 +637,9 @@ describe Rollbar::Item do
           end
 
           it 'doesnt call the second handler and logs the error' do
+            message = "[Rollbar] Error calling the `transform` hook: #{exception}"
             expect(handler2).not_to receive(:call)
-            expect(logger).to receive(:error).with("[Rollbar] Error calling the `transform` hook: #{exception}")
+            expect(logger).to receive(:error).with(message)
 
             subject.build
           end
@@ -649,7 +663,8 @@ describe Rollbar::Item do
         end
 
         it 'returns the uuid in :_error_in_custom_data_method' do
-          expect(payload['data'][:body][:message][:extra]).to be_eql(:_error_in_custom_data_method => expected_url)
+          expect(payload['data'][:body][:message][:extra])
+            .to be_eql(:_error_in_custom_data_method => expected_url)
         end
       end
 
@@ -772,10 +787,11 @@ describe Rollbar::Item do
         begin
           _json = item.dump
 
-        # If you get an uninitialized constant "Java" error, it just means an unexpected exception
-        # occurred (i.e. one not in the below list) and caused Java::JavaLang::StackOverflowError.
-        # If the test case is working correctly, this shouldn't happen ang the Java error type
-        # will only be evaluated on JRuby builds.
+        # If you get an uninitialized constant "Java" error, it just means an
+        # unexpected exception occurred (i.e. one not in the below list) and
+        # caused Java::JavaLang::StackOverflowError.
+        # If the test case is working correctly, this shouldn't happen and the
+        # Java error type will only be evaluated on JRuby builds.
         rescue NoMemoryError,
                SystemStackError,
                ActiveSupport::JSON::Encoding::CircularReferenceError,
@@ -792,8 +808,8 @@ describe Rollbar::Item do
           expect(error).not_to be_eql(:SystemError)
         else
           # This ActiveSupport is vulnerable to circular reference errors, and is
-          # virtually impossible to correct, because these versions of AS even hook into
-          # core Ruby JSON.
+          # virtually impossible to correct, because these versions of AS even
+          # hook into core Ruby JSON.
           expect(error).to be_eql(:SystemError)
         end
       end
@@ -810,7 +826,10 @@ describe Rollbar::Item do
       # didn't exercise the failure condition.
       #
       let(:redis_connection) do
-        ::Redis::Connection::Ruby.connect(:host => '127.0.0.1', :port => 6370) # try to pick a polite port
+        ::Redis::Connection::Ruby.connect(
+          :host => '127.0.0.1',
+          :port => 6370 # try to pick a polite port
+        )
       end
 
       let(:payload) do
@@ -852,13 +871,17 @@ describe Rollbar::Item do
         final_size = Rollbar::Truncation.truncate(Rollbar::Util.deep_copy(payload),
                                                   attempts).bytesize
         # final_size = original_size
-        rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
+        rollbar_message = 'Could not send payload due to it being too large ' \
+          'after truncating attempts. Original size: ' \
+          "#{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
         uuid = payload['data']['uuid']
         host = payload['data']['server']['host']
-        log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
+        log_message = '[Rollbar] Payload too large to be sent for UUID ' \
+          "#{uuid}: #{Rollbar::JSON.dump(payload)}"
 
-        expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil,
-                                                         hash_including(:uuid => uuid, :host => host))
+        expect(notifier)
+          .to receive(:send_failsafe)
+          .with(rollbar_message, nil, hash_including(:uuid => uuid, :host => host))
         expect(logger).to receive(:error).with(log_message)
 
         item.dump
@@ -872,9 +895,12 @@ describe Rollbar::Item do
           final_size = Rollbar::Truncation.truncate(Rollbar::Util.deep_copy(payload),
                                                     attempts).bytesize
           # final_size = original_size
-          rollbar_message = "Could not send payload due to it being too large after truncating attempts. Original size: #{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
+          rollbar_message = 'Could not send payload due to it being too large ' \
+            'after truncating attempts. Original size: ' \
+            "#{original_size} Attempts: #{attempts.join(', ')} Final size: #{final_size}"
           uuid = payload['data']['uuid']
-          log_message = "[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}"
+          log_message = '[Rollbar] Payload too large to be sent for UUID ' \
+            "#{uuid}: #{Rollbar::JSON.dump(payload)}"
 
           expect(notifier).to receive(:send_failsafe).with(rollbar_message, nil,
                                                            hash_including(:uuid => uuid))

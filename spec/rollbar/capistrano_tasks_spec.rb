@@ -69,7 +69,8 @@ describe ::Rollbar::CapistranoTasks do
     end
 
     context 'when an invalid response from the API is received' do
-      it "prints the API request, response, doesn't set deploy_id and shows an error with the message from the API" do
+      it "prints the API request, response, doesn't set deploy_id and shows an ' \
+        'error with the message from the API" do
         expect(::Rollbar::Deploy).to receive(:report)
           .and_return(
             :request_info => 'dummy request content',
@@ -118,7 +119,8 @@ describe ::Rollbar::CapistranoTasks do
 
       it 'prints the API request, the skipping message and sets a dummy deploy_id' do
         expect(::Rollbar::Deploy).to receive(:report)
-          .with(hash_including(:dry_run => dry_run), rollbar_token, rollbar_env, rollbar_revision)
+          .with(hash_including(:dry_run => dry_run),
+                rollbar_token, rollbar_env, rollbar_revision)
           .and_return(:request_info => 'dummy request content')
 
         expect(logger).to receive(:debug).with('dummy request content')
@@ -140,7 +142,7 @@ describe ::Rollbar::CapistranoTasks do
       end
 
       context 'when a valid response from the API is received' do
-        it 'prints the API request, response and updates the appropriate deploy to succeeded' do
+        it 'prints the API request, response and updates to succeeded' do
           expect(::Rollbar::Deploy).to receive(:update)
             .with(hash_including(
                     :comment => rollbar_comment,
@@ -216,7 +218,8 @@ describe ::Rollbar::CapistranoTasks do
         let(:dry_run) { true }
         let(:deploy_id) { 123 }
 
-        it 'calls deploy update with the dummy deploy_id, prints the API request and the skipping message' do
+        it 'calls deploy update with the dummy deploy_id, prints the API request ' \
+          'and the skipping message' do
           expect(::Rollbar::Deploy).to receive(:update)
             .with(hash_including(
                     :dry_run => dry_run
@@ -260,7 +263,7 @@ describe ::Rollbar::CapistranoTasks do
       end
 
       context 'when a valid response from the API is received' do
-        it 'prints the API request, response and updates the appropriate deploy to failed' do
+        it 'prints the API request, response and updates to failed' do
           expect(::Rollbar::Deploy).to receive(:update)
             .with(hash_including(
                     :comment => rollbar_comment,
@@ -341,7 +344,8 @@ describe ::Rollbar::CapistranoTasks do
           capistrano.set(:rollbar_deploy_id, deploy_id)
         end
 
-        it 'calls deploy update with the dummy deploy_id, prints the API request and the skipping message' do
+        it 'calls deploy update with the dummy deploy_id, prints the API request ' \
+          'and the skipping message' do
           expect(::Rollbar::Deploy).to receive(:update)
             .with(hash_including(
                     :dry_run => dry_run

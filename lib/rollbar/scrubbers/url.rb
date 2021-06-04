@@ -23,7 +23,9 @@ module Rollbar
                options[:scrub_fields].include?(SCRUB_ALL),
                build_whitelist_regex(options[:whitelist] || []))
       rescue StandardError => e
-        Rollbar.logger.error("[Rollbar] There was an error scrubbing the url: #{e}, options: #{options.inspect}")
+        message = '[Rollbar] There was an error scrubbing the url: ' \
+          "#{e}, options: #{options.inspect}"
+        Rollbar.logger.error(message)
         url
       end
 
@@ -32,10 +34,11 @@ module Rollbar
       def ascii_encode(url)
         # In some cases non-ascii characters won't be properly encoded, so we do it here.
         #
-        # The standard encoders (the CGI and URI methods) are not reliable when the query string
-        # is already embedded in the full URL, but the inconsistencies are limited to issues
-        # with characters in the ascii range. (For example, the '#' if it appears in an unexpected place.)
-        # For escaping non-ascii, they are all OK, so we'll take care to skip the ascii chars.
+        # The standard encoders (the CGI and URI methods) are not reliable when
+        # the query string is already embedded in the full URL, but the inconsistencies
+        # are limited to issues with characters in the ascii range. (For example,
+        # the '#' if it appears in an unexpected place.) For escaping non-ascii,
+        # they are all OK, so we'll take care to skip the ascii chars.
 
         return url if url.ascii_only?
 
@@ -50,7 +53,8 @@ module Rollbar
         Regexp.new(fields.map { |val| /\A#{Regexp.escape(val.to_s)}\z/ }.join('|'))
       end
 
-      def filter(url, regex, scrub_user, scrub_password, randomize_scrub_length, scrub_all, whitelist)
+      def filter(url, regex, scrub_user, scrub_password, randomize_scrub_length,
+                 scrub_all, whitelist)
         uri = URI.parse(url)
 
         uri.user = filter_user(uri.user, scrub_user, randomize_scrub_length)
@@ -103,12 +107,14 @@ module Rollbar
       def restore_square_brackets(query)
         # We want this to rebuild array params like foo[]=1&foo[]=2
         #
-        # URI.encode_www_form follows the spec at https://url.spec.whatwg.org/#concept-urlencoded-serializer
+        # URI.encode_www_form follows the spec at
+        # https://url.spec.whatwg.org/#concept-urlencoded-serializer
         # and percent encodes square brackets. Here we change them back.
         query.gsub('%5B', '[').gsub('%5D', ']')
       end
 
-      def filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist)
+      def filter_query_params(params, regex, randomize_scrub_length, scrub_all,
+                              whitelist)
         params.map do |key, value|
           [key,
            if filter_key?(key, regex, scrub_all,

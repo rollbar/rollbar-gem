@@ -13,7 +13,9 @@ module Rollbar
           capistrano.set(:rollbar_deploy_id, 123) if dry_run
 
           skip_in_dry_run(logger, dry_run) do
-            if result[:success] && (deploy_id = result[:data] && result[:data][:deploy_id])
+            if result[:success] &&
+               (deploy_id = result[:data] &&
+               result[:data][:deploy_id])
               capistrano.set :rollbar_deploy_id, deploy_id
             else
               message = format_message('Unable to report deploy to Rollbar',
@@ -25,8 +27,9 @@ module Rollbar
       end
 
       def deploy_succeeded(capistrano, logger, dry_run)
-        deploy_update(capistrano, logger, dry_run,
-                      :desc => 'Setting deployment status to `succeeded` in Rollbar') do
+        deploy_update(
+          capistrano, logger, dry_run,
+          :desc => 'Setting deployment status to `succeeded` in Rollbar') do
           report_deploy_succeeded(capistrano, dry_run)
         end
       end
@@ -138,7 +141,8 @@ module Rollbar
       end
 
       def debug_request_response(logger, result)
-        # NOTE: in Capistrano debug messages go to log/capistrano.log but not to stdout even if log_level == :debug
+        # NOTE: in Capistrano debug messages go to log/capistrano.log but not to
+        # stdout even if log_level == :debug
         logger.debug result[:request_info]
         logger.debug result[:response_info] if result[:response_info]
       end

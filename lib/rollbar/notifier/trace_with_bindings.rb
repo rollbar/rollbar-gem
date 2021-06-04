@@ -45,7 +45,8 @@ module Rollbar
             frames.pop
           when :raise
             unless detect_reraise(tp) # ignore reraised exceptions
-              @exception_frames = @frames.dup # may be possible to optimize better than #dup
+              @exception_frames = @frames.dup # may be possible to optimize
+                                              # better than #dup
               @exception_signature = exception_signature(tp)
             end
           end

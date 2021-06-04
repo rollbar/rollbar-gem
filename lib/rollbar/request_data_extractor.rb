@@ -113,13 +113,17 @@ module Rollbar
           { name => Rollbar::Scrubbers.scrub_value(env[header]) }
         elsif name == 'X-Forwarded-For' && !Rollbar.configuration.collect_user_ip
           {}
-        elsif name == 'X-Forwarded-For' && Rollbar.configuration.collect_user_ip && Rollbar.configuration.anonymize_user_ip
+        elsif name == 'X-Forwarded-For' &&
+              Rollbar.configuration.collect_user_ip &&
+              Rollbar.configuration.anonymize_user_ip
           ips = env[header].sub(' ', '').split(',')
           ips = ips.map { |ip| Rollbar::Util::IPAnonymizer.anonymize_ip(ip) }
           { name => ips.join(', ') }
         elsif name == 'X-Real-Ip' && !Rollbar.configuration.collect_user_ip
           {}
-        elsif name == 'X-Real-Ip' && Rollbar.configuration.collect_user_ip && Rollbar.configuration.anonymize_user_ip
+        elsif name == 'X-Real-Ip' &&
+              Rollbar.configuration.collect_user_ip &&
+              Rollbar.configuration.anonymize_user_ip
           { name => Rollbar::Util::IPAnonymizer.anonymize_ip(env[header]) }
         else
           { name => env[header] }
@@ -135,9 +139,8 @@ module Rollbar
       host = host.split(',').first.strip unless host.empty?
 
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
-      path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{unless env['QUERY_STRING'].to_s.empty?
-                                                            "?#{env['QUERY_STRING']}"
-                                                          end}"
+      query = env['QUERY_STRING'].to_s.empty? ? nil : "?#{env['QUERY_STRING']}"
+      path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{query}"
       if !(path.nil? || path.empty?) && (path.to_s.slice(0, 1) != '/')
         path = '/' + path.to_s
       end
@@ -155,7 +158,10 @@ module Rollbar
     def rollbar_user_ip(env)
       return nil unless Rollbar.configuration.collect_user_ip
 
-      user_ip_string = (env['action_dispatch.remote_ip'] || env['HTTP_X_REAL_IP'] || x_forwarded_for_client(env['HTTP_X_FORWARDED_FOR']) || env['REMOTE_ADDR']).to_s
+      user_ip_string = (env['action_dispatch.remote_ip'] ||
+                        env['HTTP_X_REAL_IP'] ||
+                        x_forwarded_for_client(env['HTTP_X_FORWARDED_FOR']) ||
+                        env['REMOTE_ADDR']).to_s
 
       user_ip_string = Rollbar::Util::IPAnonymizer.anonymize_ip(user_ip_string)
 
@@ -254,7 +260,8 @@ module Rollbar
     end
 
     def sensitive_headers_list
-      unless Rollbar.configuration.scrub_headers && Rollbar.configuration.scrub_headers.is_a?(Array)
+      unless Rollbar.configuration.scrub_headers &&
+             Rollbar.configuration.scrub_headers.is_a?(Array)
         return []
       end
 

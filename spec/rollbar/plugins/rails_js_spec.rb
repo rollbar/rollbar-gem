@@ -20,11 +20,12 @@ describe ApplicationController, :type => 'request' do
     it 'renders the snippet and config in the response', :type => 'request' do
       get '/test_rollbar_js'
 
-      snippet_from_submodule = File.read(File.expand_path(
-                                           '../../../../rollbar.js/dist/rollbar.snippet.js', __FILE__
-                                         ))
+      snippet_from_submodule = File.read(
+        File.expand_path('../../../../rollbar.js/dist/rollbar.snippet.js', __FILE__))
 
-      expect(response.body).to include("var _rollbarConfig = #{Rollbar.configuration.js_options.to_json};")
+      expect(response.body).to include(
+        "var _rollbarConfig = #{Rollbar.configuration.js_options.to_json};"
+      )
       expect(response.body).to include(snippet_from_submodule)
     end
   end
@@ -145,7 +146,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response without nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to include '<script type="text/javascript">'
       end
 
@@ -158,7 +160,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response without nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to include '<script type="text/javascript">'
       end
 
@@ -171,7 +174,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to_not include '<script type="text/javascript">'
       end
 
@@ -184,7 +188,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to_not include '<script type="text/javascript">'
       end
 
@@ -256,7 +261,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response without nonce in script tag' do
         get '/test_rollbar_js'
 
-        expect(response.body).to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to_not include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to include '<script type="text/javascript">'
       end
 
@@ -269,7 +275,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js_with_nonce'
 
-        expect(response.body).to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to_not include '<script type="text/javascript">'
       end
 
@@ -282,7 +289,8 @@ describe ApplicationController, :type => 'request' do
       it 'renders the snippet and config in the response with nonce in script tag' do
         get '/test_rollbar_js_with_nonce'
 
-        expect(response.body).to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
+        expect(response.body)
+          .to include %[<script type="text/javascript" nonce="#{nonce(response)}">]
         expect(response.body).to_not include '<script type="text/javascript">'
       end
 

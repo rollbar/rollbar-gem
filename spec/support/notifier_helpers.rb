@@ -22,9 +22,13 @@ module NotifierHelpers
 
     Rollbar.preconfigure do |config|
       config.logger = rails_logger
-      config.environment = defined?(::Rails.env) && ::Rails.env || defined?(RAILS_ENV) && RAILS_ENV
-      config.root = defined?(::Rails.root) && ::Rails.root || defined?(RAILS_ROOT) && RAILS_ROOT
-      config.framework = defined?(::Rails.version) && "Rails: #{::Rails.version}" || defined?(::Rails::VERSION::STRING) && "Rails: #{::Rails::VERSION::STRING}"
+      config.environment = defined?(::Rails.env) && ::Rails.env ||
+                           defined?(RAILS_ENV) && RAILS_ENV
+      config.root = defined?(::Rails.root) && ::Rails.root ||
+                    defined?(RAILS_ROOT) && RAILS_ROOT
+      version = defined?(::Rails.version) && ::Rails.version ||
+                  defined?(::Rails::VERSION::STRING) && ::Rails::VERSION::STRING
+      config.framework = "Rails: #{version}"
     end
   end
 

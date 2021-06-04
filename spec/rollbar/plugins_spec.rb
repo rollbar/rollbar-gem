@@ -18,7 +18,8 @@ describe Rollbar::Plugins do
 
   before do
     Rollbar.plugins = nil
-    allow_any_instance_of(described_class).to receive(:plugin_files).and_return(plugin_files_path)
+    allow_any_instance_of(described_class).to receive(:plugin_files)
+      .and_return(plugin_files_path)
   end
 
   after do

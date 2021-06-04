@@ -28,7 +28,8 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
   context 'with delayed method without arguments failing' do
     it 'sends the exception' do
       expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
-      expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*expected_args)
+      expect_any_instance_of(Rollbar::Notifier).to receive(:error)
+        .with(*expected_args)
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
     end
@@ -43,8 +44,8 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
 
-      expect(payload['data'][:request]['handler']).to include({ :args => [:foo, :bar],
-                                                                :method_name => :do_job_please! })
+      expect(payload['data'][:request]['handler'])
+        .to include({ :args => [:foo, :bar], :method_name => :do_job_please! })
     end
   end
 
@@ -59,11 +60,15 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
     it 'sends the exception' do
       expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
-      allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
+      allow_any_instance_of(Delayed::Backend::Base)
+        .to receive(:payload_object)
+        .and_raise(Delayed::DeserializationError)
       if Delayed::Backend::Base.method_defined? :error
-        expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*new_expected_args)
+        expect_any_instance_of(Rollbar::Notifier).to receive(:error)
+          .with(*new_expected_args)
       else
-        expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*old_expected_args)
+        expect_any_instance_of(Rollbar::Notifier).to receive(:error)
+          .with(*old_expected_args)
       end
 
       FailingJob.new.delay.do_job_please!(:foo, :bar)
@@ -78,11 +83,15 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       it 'sends the exception' do
         expect(Rollbar).to receive(:scope).with(kind_of(Hash)).and_call_original
-        allow_any_instance_of(Delayed::Backend::Base).to receive(:payload_object).and_raise(Delayed::DeserializationError)
+        allow_any_instance_of(Delayed::Backend::Base)
+          .to receive(:payload_object)
+          .and_raise(Delayed::DeserializationError)
         if Delayed::Backend::Base.method_defined? :error
-          expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*new_expected_args)
+          expect_any_instance_of(Rollbar::Notifier).to receive(:error)
+            .with(*new_expected_args)
         else
-          expect_any_instance_of(Rollbar::Notifier).to receive(:error).with(*old_expected_args)
+          expect_any_instance_of(Rollbar::Notifier).to receive(:error)
+            .with(*old_expected_args)
         end
 
         FailingJob.new.delay.do_job_please!(:foo, :bar)
@@ -158,7 +167,8 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
       let(:handler) { double('handler') }
 
       before do
-        allow(configuration).to receive(:async_skip_report_handler).and_return(handler)
+        allow(configuration).to receive(:async_skip_report_handler)
+          .and_return(handler)
         allow(handler).to receive(:respond_to).with(:call).and_return(true)
       end
 

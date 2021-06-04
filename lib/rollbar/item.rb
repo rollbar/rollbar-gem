@@ -98,10 +98,12 @@ module Rollbar
     end
 
     def configured_options
-      if Gem.loaded_specs['activesupport'] && Gem.loaded_specs['activesupport'].version < Gem::Version.new('4.1')
-        # There are too many types that crash ActiveSupport JSON serialization, and not worth
-        # the risk just to send this diagnostic object. In versions < 4.1, ActiveSupport hooks
-        # Ruby's JSON.generate so deeply there's no workaround.
+      if Gem.loaded_specs['activesupport'] &&
+         Gem.loaded_specs['activesupport'].version < Gem::Version.new('4.1')
+        # There are too many types that crash ActiveSupport JSON serialization,
+        # and not worth the risk just to send this diagnostic object.
+        # In versions < 4.1, ActiveSupport hooks Ruby's JSON.generate so deeply
+        # that there's no workaround.
         'not serialized in ActiveSupport < 4.1'
       elsif configuration.use_async && !configuration.async_json_payload
         # The setting allows serialization to be performed by each handler,
@@ -144,12 +146,14 @@ module Rollbar
         nil,
         original_error
       )
-      logger.error("[Rollbar] Payload too large to be sent for UUID #{uuid}: #{Rollbar::JSON.dump(payload)}")
+      logger.error('[Rollbar] Payload too large to be sent for UUID ' \
+        "#{uuid}: #{Rollbar::JSON.dump(payload)}")
     end
 
     def too_large_payload_string(attempts)
       'Could not send payload due to it being too large after truncating attempts. ' \
-        "Original size: #{attempts.first} Attempts: #{attempts.join(', ')} Final size: #{attempts.last}"
+        "Original size: #{attempts.first} Attempts: #{attempts.join(', ')} " \
+        "Final size: #{attempts.last}"
     end
 
     def ignored?
@@ -167,8 +171,9 @@ module Rollbar
       # When using async senders, if the access token is changed dynamically in
       # the main process config, the sender process won't see that change.
       #
-      # Until the delayed sender interface is changed to allow passing dynamic config options,
-      # this workaround allows the main process to set the token by adding it to the payload.
+      # Until the delayed sender interface is changed to allow passing dynamic
+      # config options, this workaround allows the main process to set the token
+      # by adding it to the payload.
       if configuration && configuration.use_payload_access_token
         payload['access_token'] ||= configuration.access_token
       end
@@ -204,7 +209,8 @@ module Rollbar
       if custom_data_method? && !Rollbar::Util.method_in_stack(:custom_data, __FILE__)
         Util.deep_merge(scrub(custom_data), merged_extra)
       else
-        merged_extra.empty? ? nil : merged_extra # avoid putting an empty {} in the payload.
+        merged_extra.empty? ? nil : merged_extra # avoid putting an empty {}
+                                                 # in the payload.
       end
     end
 

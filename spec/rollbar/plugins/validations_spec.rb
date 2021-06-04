@@ -6,7 +6,8 @@ Rollbar.plugins.load!
 describe Rollbar::ActiveRecordExtension do
   it 'has the extensions loaded into ActiveRecord::Base' do
     expect(ActiveModel::Validations.ancestors).to include(described_class)
-    expect(ActiveModel::Validations.instance_methods.map(&:to_sym)).to include(:report_validation_errors_to_rollbar)
+    expect(ActiveModel::Validations.instance_methods.map(&:to_sym))
+      .to include(:report_validation_errors_to_rollbar)
   end
 
   context 'with an ActiveRecord::Base instance' do

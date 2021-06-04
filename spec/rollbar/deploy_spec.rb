@@ -60,7 +60,8 @@ describe ::Rollbar::Deploy do
     # depends on let(:expected_request_info_url)
     it 'builds the request info string' do
       expect(@result[:request_info]).to match(
-        /#{Regexp.escape(expected_request_info_url)}.*#{Regexp.escape(::JSON.dump(expected_request_data))}/
+        /#{Regexp.escape(expected_request_info_url)}.*
+          #{Regexp.escape(::JSON.dump(expected_request_data))}/x
       )
     end
 

@@ -11,7 +11,8 @@ describe HomeController do
   context 'with broken request' do
     it 'should report uncaught exceptions' do
       # only seems to be relevant in 3.1 and 3.2
-      if ::Rails::VERSION::STRING.starts_with?('3.1') || ::Rails::VERSION::STRING.starts_with?('3.2')
+      if ::Rails::VERSION::STRING.starts_with?('3.1') ||
+        ::Rails::VERSION::STRING.starts_with?('3.2')
         expect { get '/current_user', nil, :cookie => '8%B' }.to raise_exception
 
         Rollbar.last_report.should_not be_nil

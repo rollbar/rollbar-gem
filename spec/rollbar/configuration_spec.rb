@@ -7,20 +7,24 @@ describe Rollbar::Configuration do
       require 'rollbar/delay/active_job'
 
       describe '#use_active_job' do
-        it 'enables async and sets ActiveJob as the handler and uses default queue name' do
-          subject.use_active_job
+        context 'with default queue name' do
+          it 'enables async and sets ActiveJob as the handler' do
+            subject.use_active_job
 
-          expect(subject.use_async).to be_eql(true)
-          expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('default')
-          expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
+            expect(subject.use_async).to be_eql(true)
+            expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('default')
+            expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
+          end
         end
 
-        it 'enables async and sets ActiveJob as the handler and uses provided queue name' do
-          subject.use_active_job(:queue => 'my_test_queue')
+        context 'with provided queue name' do
+          it 'enables async and sets ActiveJob as the handler' do
+            subject.use_active_job(:queue => 'my_test_queue')
 
-          expect(subject.use_async).to be_eql(true)
-          expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('my_test_queue')
-          expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
+            expect(subject.use_async).to be_eql(true)
+            expect(Rollbar::Delay::ActiveJob.queue_name).to be_eql('my_test_queue')
+            expect(subject.async_handler).to be_eql(Rollbar::Delay::ActiveJob)
+          end
         end
       end
     end

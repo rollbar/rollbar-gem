@@ -27,7 +27,9 @@ module RollbarTest # :nodoc:
   end
 
   def self.error_message
-    'Test failed! You may have a configuration issue, or you could be using a gem that\'s blocking the test. Contact support@rollbar.com if you need help troubleshooting.'
+    'Test failed! You may have a configuration issue, or you could be using a ' \
+    'gem that\'s blocking the test. Contact support@rollbar.com if you need ' \
+    'help troubleshooting.'
   end
 
   def self.success_message

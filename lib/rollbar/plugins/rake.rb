@@ -40,7 +40,8 @@ Rollbar.plugins.define('rake') do
       end
 
       def self.skip_patch
-        warn('[Rollbar] Rollbar is disabled for Rake tasks since your Rake version is under 0.9.x. Please upgrade to 0.9.x or higher.')
+        warn('[Rollbar] Rollbar is disabled for Rake tasks since your Rake ' \
+          'version is under 0.9.x. Please upgrade to 0.9.x or higher.')
       end
 
       def self.patch?

@@ -35,7 +35,9 @@ module Rollbar
           _cset(:rollbar_user)  { ENV['USER'] || ENV['USERNAME'] }
           _cset(:rollbar_env)   { fetch(:rails_env, 'production') }
           _cset(:rollbar_token) do
-            abort("Please specify the Rollbar access token, set :rollbar_token, 'your token'")
+            abort(
+              "Please specify the Rollbar access token, set :rollbar_token, 'your token'"
+            )
           end
           _cset(:rollbar_revision) { real_revision }
           _cset(:rollbar_comment) { nil }
@@ -53,8 +55,9 @@ module Rollbar
           :task => :deploy_started,
           :configuration => configuration
         ) do
-          ::Rollbar::CapistranoTasks.deploy_started(configuration, configuration.logger,
-                                                    configuration.dry_run)
+          ::Rollbar::CapistranoTasks.deploy_started(
+            configuration, configuration.logger, configuration.dry_run
+          )
         end
       end
 
@@ -64,8 +67,9 @@ module Rollbar
           :task => :deploy_succeeded,
           :configuration => configuration
         ) do
-          ::Rollbar::CapistranoTasks.deploy_succeeded(configuration,
-                                                      configuration.logger, configuration.dry_run)
+          ::Rollbar::CapistranoTasks.deploy_succeeded(
+            configuration, configuration.logger, configuration.dry_run
+          )
         end
       end
 

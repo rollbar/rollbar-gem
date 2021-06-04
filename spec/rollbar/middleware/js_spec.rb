@@ -3,7 +3,8 @@ require 'rollbar/middleware/js'
 require 'rollbar/middleware/js/json_value'
 
 shared_examples 'secure_headers' do
-  it 'renders the snippet and config in the response with nonce in script tag when SecureHeaders installed' do
+  it 'renders the snippet and config in the response with nonce in script tag ' \
+    'when SecureHeaders installed' do
     SecureHeadersMocks::CSP.config = {
       :opt_out? => false
     }
@@ -12,7 +13,8 @@ shared_examples 'secure_headers' do
 
     new_body = response.body.join
 
-    expect(new_body).to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
+    expect(new_body)
+      .to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
     expect(new_body).to include("var _rollbarConfig = #{json_options};")
     expect(new_body).to include(snippet)
   end
@@ -56,7 +58,14 @@ describe Rollbar::Middleware::Js do
   end
   let(:minified_html) do
     <<-END
-<html><head><link rel="stylesheet" href="url" type="text/css" media="screen" /><script type="text/javascript" src="foo"></script></head><body><h1>Testing the middleware</h1></body></html>
+<html>
+  <head><link rel="stylesheet" href="url" type="text/css" media="screen" />
+    <script type="text/javascript" src="foo"></script>
+  </head>
+  <body>
+    <h1>Testing the middleware</h1>
+  </body>
+</html>
     END
   end
   let(:meta_charset_html) do
@@ -200,7 +209,8 @@ describe Rollbar::Middleware::Js do
           expect(new_body).to include(json_options)
           expect(res_status).to be_eql(status)
           expect(res_headers['Content-Type']).to be_eql(content_type)
-          meta_tag = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
+          meta_tag = '<meta http-equiv="Content-Type" content="text/html; ' \
+            'charset=utf-8"/>'
           expect(new_body.index(snippet)).to be > new_body.index(meta_tag)
         end
       end
@@ -247,7 +257,8 @@ describe Rollbar::Middleware::Js do
           stub_const('::SecureHeaders', ::SecureHeadersMocks::SecureHeaders20)
         end
 
-        it 'renders the snippet and config in the response without nonce in script tag when too old SecureHeaders installed' do
+        it 'renders the snippet and config in the response without nonce in ' \
+          'script tag when too old SecureHeaders installed' do
           _, _, response = subject.call(env)
           new_body = response.body.join
 
