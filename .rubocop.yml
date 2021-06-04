@@ -4,6 +4,8 @@ AllCops:
   Exclude:
     - 'vendor/**/*'
     - 'gemfiles/vendor/**/*'
+    - 'spec/dummyapp/**/*'
+    - 'spec/tmp/**/*'
   TargetRubyVersion: 2.5 # This is the minimum allowed for current rubocop
 
 Gemspec/RequiredRubyVersion:
