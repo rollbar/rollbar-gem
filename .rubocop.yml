@@ -6,64 +6,26 @@ AllCops:
     - 'gemfiles/vendor/**/*'
   TargetRubyVersion: 2.5 # This is the minimum allowed for current rubocop
 
-Style/HashSyntax:
-  EnforcedStyle: hash_rockets
-  SupportedStyles:
-    - hash_rockets
-
-Style/SymbolArray:
-  Enabled: false # %i[] syntax isn't 1.9.x compatible
-
-Layout/LineLength:
-  Max: 90
+Gemspec/RequiredRubyVersion:
+  Enabled: false # rubocop compares to gemspec, yet won't allow 1.9 as minimum version
 
 Layout/HeredocIndentation:
   # When enabled, forces either squiggly syntax (not available until 2.3),
   # or external packages that we don't want as dependencies.
   Enabled: false
 
+Layout/LineLength:
+  Max: 90
+
 Lint/SendWithMixinArgument:
   # Object#include is still a private method in Ruby 2.0.
-  Enabled: false
-
-Metrics/MethodLength:
-  Max: 15 # Relax slightly from the default of 10
-
-Style/DoubleNegation:
-  Enabled: false
-
-Style/Lambda:
-  Enabled: false
-
-Style/EachWithObject:
-  Enabled: false
-
-Style/RedundantBegin:
-  # Ruby < 2.5 needs begin/end inside blocks when using rescue
   Enabled: false
 
 Metrics/BlockLength:
   ExcludedMethods: ['describe', 'context'] # RSpec DSL is expected to have long blocks.
 
-Style/ExpandPathArguments:
-  Enabled: false # syntax requires Ruby >= 2.0
-
-Gemspec/RequiredRubyVersion:
-  Enabled: false # rubocop compares to gemspec, yet won't allow 1.9 as minimum version
-
-Style/Encoding:
-  Enabled: false # Ruby 1.9.3 needs these magic comments, e.g. # encoding: UTF-8
-
-Style/PercentLiteralDelimiters:
-  PreferredDelimiters:
-    # rubocop switched from () to [] at some past version.
-    # Make sure we are consistent across all bundles/builds.
-    default: '[]'
-
-Style/Documentation:
-  # We can enabled this if/when we want to start doing consistent class documentation.
-  # As is, we currently add :nodoc: if anything at all.
-  Enabled: false
+Metrics/MethodLength:
+  Max: 15 # Relax slightly from the default of 10
 
 Naming/MethodParameterName:
   # It's possible to configure this cop to allow just about anything, but what's the point.
@@ -78,14 +40,52 @@ Style/CaseEquality:
   # review and test each of these.
   Enabled: false
 
+Style/Documentation:
+  # We can enabled this if/when we want to start doing consistent class documentation.
+  # As is, we currently add :nodoc: if anything at all.
+  Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false
+
+Style/EachWithObject:
+  Enabled: false
+
+Style/Encoding:
+  Enabled: false # Ruby 1.9.3 needs these magic comments, e.g. # encoding: UTF-8
+
+Style/ExpandPathArguments:
+  Enabled: false # syntax requires Ruby >= 2.0
+
 Style/FrozenStringLiteralComment:
   # If we do this, it will be in its own PR. It requires adding these magic comments
   # throughout the project, in order to prepare for a future Ruby 3.x.
   Enabled: false
 
+Style/HashSyntax:
+  EnforcedStyle: hash_rockets
+  SupportedStyles:
+    - hash_rockets
+
+Style/Lambda:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    # rubocop switched from () to [] at some past version.
+    # Make sure we are consistent across all bundles/builds.
+    default: '[]'
+
+Style/RedundantBegin:
+  # Ruby < 2.5 needs begin/end inside blocks when using rescue
+  Enabled: false
+
 Style/SafeNavigation:
   # Not available in Ruby < 2.3.
   Enabled: false
+
+Style/SymbolArray:
+  Enabled: false # %i[] syntax isn't 1.9.x compatible
 
 #
 # Performance cops are opt in, and `Enabled: true` is always required.
