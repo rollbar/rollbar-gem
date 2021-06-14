@@ -78,13 +78,13 @@ describe Rollbar::Item do
       end
 
       it 'should have the correct notifier name and version' do
-        payload['data'][:notifier][:name].should == 'rollbar-gem'
-        payload['data'][:notifier][:version].should == Rollbar::VERSION
+        payload['data'][:notifier][:name].should eq('rollbar-gem')
+        payload['data'][:notifier][:version].should eq(Rollbar::VERSION)
       end
 
       it 'should have the correct language and framework' do
-        payload['data'][:language].should == 'ruby'
-        payload['data'][:framework].should == configuration.framework
+        payload['data'][:language].should eq('ruby')
+        payload['data'][:framework].should eq(configuration.framework)
         payload['data'][:framework].should match(/^Rails/)
       end
 
@@ -93,15 +93,15 @@ describe Rollbar::Item do
       end
 
       it 'should have the correct level and message body' do
-        payload['data'][:level].should == 'info'
-        payload['data'][:body][:message][:body].should == 'message'
+        payload['data'][:level].should eq('info')
+        payload['data'][:body][:message][:body].should eq('message')
       end
     end
 
     it 'should merge in a new key from payload_options' do
       configuration.payload_options = { :some_new_key => 'some new value' }
 
-      payload['data'][:some_new_key].should == 'some new value'
+      payload['data'][:some_new_key].should eq('some new value')
     end
 
     it 'should overwrite existing keys from payload_options' do
@@ -111,22 +111,22 @@ describe Rollbar::Item do
       }
       configuration.payload_options = payload_options
 
-      payload['data'][:notifier].should == 'bad notifier'
-      payload['data'][:server][:host].should == 'new host'
+      payload['data'][:notifier].should eq('bad notifier')
+      payload['data'][:server][:host].should eq('new host')
       payload['data'][:server][:root].should_not be_nil
-      payload['data'][:server][:new_server_key].should == 'value'
+      payload['data'][:server][:new_server_key].should eq('value')
     end
 
     it 'should have default environment "unspecified"' do
       configuration.environment = nil
 
-      payload['data'][:environment].should == 'unspecified'
+      payload['data'][:environment].should eq('unspecified')
     end
 
     it 'should have an overridden environment' do
       configuration.environment = 'overridden'
 
-      payload['data'][:environment].should == 'overridden'
+      payload['data'][:environment].should eq('overridden')
     end
 
     it 'should not have custom data under default configuration' do
@@ -137,16 +137,16 @@ describe Rollbar::Item do
       configuration.custom_data_method = lambda { { :a => 1, :b => [2, 3, 4] } }
 
       payload['data'][:body][:message][:extra].should_not be_nil
-      payload['data'][:body][:message][:extra][:a].should == 1
-      payload['data'][:body][:message][:extra][:b][2].should == 4
+      payload['data'][:body][:message][:extra][:a].should eq(1)
+      payload['data'][:body][:message][:extra][:b][2].should eq(4)
     end
 
     context 'ActiveSupport >= 4.1',
             :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1') do
       it 'should have correct configured_options object' do
-        payload['data'][:notifier][:configured_options][:access_token].should == '******'
-        payload['data'][:notifier][:configured_options][:root].should == '/foo/'
-        payload['data'][:notifier][:configured_options][:framework].should == 'Rails'
+        payload['data'][:notifier][:configured_options][:access_token].should eq('******')
+        payload['data'][:notifier][:configured_options][:root].should eq('/foo/')
+        payload['data'][:notifier][:configured_options][:framework].should eq('Rails')
       end
     end
 
@@ -217,11 +217,11 @@ describe Rollbar::Item do
         configuration.custom_data_method = custom_method
 
         payload['data'][:body][:message][:extra].should_not be_nil
-        payload['data'][:body][:message][:extra][:a].should == 1
-        payload['data'][:body][:message][:extra][:b][2].should == 4
-        payload['data'][:body][:message][:extra][:c][:d].should == 'd'
-        payload['data'][:body][:message][:extra][:c][:e].should == 'g'
-        payload['data'][:body][:message][:extra][:f].should == 'f'
+        payload['data'][:body][:message][:extra][:a].should eq(1)
+        payload['data'][:body][:message][:extra][:b][2].should eq(4)
+        payload['data'][:body][:message][:extra][:c][:d].should eq('d')
+        payload['data'][:body][:message][:extra][:c][:e].should eq('g')
+        payload['data'][:body][:message][:extra][:f].should eq('f')
       end
     end
 
@@ -270,19 +270,19 @@ describe Rollbar::Item do
     it 'should include a code_version' do
       configuration.code_version = 'abcdef'
 
-      payload['data'][:code_version].should == 'abcdef'
+      payload['data'][:code_version].should eq('abcdef')
     end
 
     it 'should have the right hostname' do
-      payload['data'][:server][:host].should == Socket.gethostname
+      payload['data'][:server][:host].should eq(Socket.gethostname)
     end
 
     it 'should have root and branch set when configured' do
       configuration.root = '/path/to/root'
       configuration.branch = 'master'
 
-      payload['data'][:server][:root].should == '/path/to/root'
-      payload['data'][:server][:branch].should == 'master'
+      payload['data'][:server][:root].should eq('/path/to/root')
+      payload['data'][:server][:branch].should eq('master')
     end
 
     context 'build_payload_body' do
@@ -298,7 +298,7 @@ describe Rollbar::Item do
         let(:exception) { nil }
 
         it 'should build a message body' do
-          payload['data'][:body][:message][:body].should == 'message'
+          payload['data'][:body][:message][:body].should eq('message')
           payload['data'][:body][:message][:extra].should be_nil
           payload['data'][:body][:trace].should be_nil
         end
@@ -309,8 +309,8 @@ describe Rollbar::Item do
           end
 
           it 'should build a message body' do
-            payload['data'][:body][:message][:body].should == 'message'
-            payload['data'][:body][:message][:extra].should == { :a => 'b' }
+            payload['data'][:body][:message][:body].should eq('message')
+            payload['data'][:body][:message][:extra].should eq({ :a => 'b' })
             payload['data'][:body][:trace].should be_nil
           end
         end
@@ -390,7 +390,7 @@ describe Rollbar::Item do
           trace = body[:trace]
 
           trace[:exception][:message].should match(pattern)
-          trace[:exception][:description].should == 'exception description'
+          trace[:exception][:description].should eq('exception description')
         end
 
         context 'and extra data' do
@@ -403,9 +403,9 @@ describe Rollbar::Item do
             trace = body[:trace]
 
             trace[:exception][:message].should match(pattern)
-            trace[:exception][:description].should == 'exception description'
-            trace[:extra][:key].should == 'value'
-            trace[:extra][:hash].should == { :inner_key => 'inner_value' }
+            trace[:exception][:description].should eq('exception description')
+            trace[:extra][:key].should eq('value')
+            trace[:extra][:hash].should eq({ :inner_key => 'inner_value' })
           end
         end
       end
@@ -419,8 +419,8 @@ describe Rollbar::Item do
           trace = body[:trace]
 
           trace[:exception][:message].should match(pattern)
-          trace[:extra][:key].should == 'value'
-          trace[:extra][:hash].should == { :inner_key => 'inner_value' }
+          trace[:extra][:key].should eq('value')
+          trace[:extra][:hash].should eq({ :inner_key => 'inner_value' })
         end
       end
 
@@ -435,8 +435,8 @@ describe Rollbar::Item do
           trace = body[:trace]
 
           trace[:exception][:message].should match(pattern)
-          trace[:extra][:key].should == 'value'
-          trace[:extra][:hash].should == { :inner_key => 'inner_value' }
+          trace[:extra][:key].should eq('value')
+          trace[:extra][:hash].should eq({ :inner_key => 'inner_value' })
         end
       end
 
@@ -523,7 +523,7 @@ describe Rollbar::Item do
 
     context 'build_payload_body_message' do
       it 'should build a message' do
-        payload['data'][:body][:message][:body].should == 'message'
+        payload['data'][:body][:message][:body].should eq('message')
         payload['data'][:body][:trace].should be_nil
       end
 
@@ -533,10 +533,10 @@ describe Rollbar::Item do
         end
 
         it 'should build a message with extra data' do
-          payload['data'][:body][:message][:body].should == 'message'
-          payload['data'][:body][:message][:extra][:key].should == 'value'
+          payload['data'][:body][:message][:body].should eq('message')
+          payload['data'][:body][:message][:extra][:key].should eq('value')
           payload['data'][:body][:message][:extra][:hash]
-            .should == { :inner_key => 'inner_value' }
+            .should eq({ :inner_key => 'inner_value' })
         end
       end
 
@@ -547,10 +547,10 @@ describe Rollbar::Item do
         end
 
         it 'should build an empty message with extra data' do
-          payload['data'][:body][:message][:body].should == 'Empty message'
-          payload['data'][:body][:message][:extra][:key].should == 'value'
+          payload['data'][:body][:message][:body].should eq('Empty message')
+          payload['data'][:body][:message][:extra][:key].should eq('value')
           payload['data'][:body][:message][:extra][:hash]
-            .should == { :inner_key => 'inner_value' }
+            .should eq({ :inner_key => 'inner_value' })
         end
       end
     end
@@ -686,8 +686,8 @@ describe Rollbar::Item do
         configuration.root = '/path/to/root'
         configuration.branch = 'master'
 
-        payload['data'][:server][:root].should == '/path/to/root'
-        payload['data'][:server][:branch].should == 'master'
+        payload['data'][:server][:root].should eq('/path/to/root')
+        payload['data'][:server][:branch].should eq('master')
       end
 
       context 'with custom hostname' do
