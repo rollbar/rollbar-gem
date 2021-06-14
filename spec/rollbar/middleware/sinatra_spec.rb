@@ -125,7 +125,8 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
       let(:exception) { Exception.new }
 
       before do
-        allow_any_instance_of(described_class).to receive(:framework_error).and_raise(exception)
+        allow_any_instance_of(described_class).to receive(:framework_error)
+          .and_raise(exception)
         allow(app.settings).to receive(:raise_errors?).and_return(false)
       end
 
@@ -231,7 +232,8 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
     end
 
     describe 'configuration.locals', :if => RUBY_VERSION >= '2.3.0' &&
-                                            !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
+                                            !(defined?(RUBY_ENGINE) &&
+                                            RUBY_ENGINE == 'jruby') do
       context 'when locals is enabled' do
         before do
           Rollbar.configure do |config|

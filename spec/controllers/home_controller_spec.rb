@@ -50,7 +50,7 @@ describe HomeController do
       data['data'][:environment].should eq('dev')
     end
 
-    it 'should use the default "unspecified" environment if rails env ends up being empty' do
+    it 'should use the default "unspecified" environment if rails env is empty' do
       old_env = ::Rails.env
       ::Rails.env = ''
       preconfigure_rails_notifier
@@ -299,7 +299,8 @@ describe HomeController do
 
   describe 'configuration.locals', :type => 'request',
                                    :if => RUBY_VERSION >= '2.3.0' &&
-                                          !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
+                                          !(defined?(RUBY_ENGINE) &&
+                                          RUBY_ENGINE == 'jruby') do
     context 'when locals is enabled' do
       before do
         Rollbar.configure do |config|
@@ -450,7 +451,8 @@ describe HomeController do
         end
 
         context 'default' do
-          it 'sends the current user data excluding personally identifiable information' do
+          it 'sends the current user data excluding personally identifiable ' \
+           'information' do
             expect(person_data).to eq(:id => user.id,
                                       :email => nil,
                                       :username => nil)
@@ -459,7 +461,9 @@ describe HomeController do
 
         context 'without EU GDPR subjects' do
           context 'configured to send email addresses' do
-            before { Rollbar.configure { |config| config.person_email_method = 'email' } }
+            before do
+              Rollbar.configure { |config| config.person_email_method = 'email' }
+            end
 
             it 'sends the current user data including email address' do
               expect(person_data).to eq(:id => user.id,
@@ -603,7 +607,8 @@ describe HomeController do
 
       request_data = Rollbar.last_report[:request]
 
-      expect(request_data[:url]).to match('http:\/\/www.example.com\/cause_exception\?password=\*{3,8}')
+      expect(request_data[:url])
+        .to match('http:\/\/www.example.com\/cause_exception\?password=\*{3,8}')
     end
   end
 

@@ -17,7 +17,9 @@ Rollbar.plugins.define('active_model') do
       module ActiveRecordExtension
         def report_validation_errors_to_rollbar
           errors.full_messages.each do |error|
-            Rollbar.log_info "[Rollbar] Reporting form validation error: #{error} for #{self}"
+            Rollbar.log_info(
+              "[Rollbar] Reporting form validation error: #{error} for #{self}"
+            )
             Rollbar.warning("Form Validation Error: #{error} for #{self}")
           end
         end

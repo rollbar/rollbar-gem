@@ -48,7 +48,9 @@ describe Rollbar::Delay::Sidekiq do
       subject { Rollbar::Delay::Sidekiq.new custom_config }
 
       it 'enqueues to custom queue' do
-        options = Rollbar::Delay::Sidekiq::OPTIONS.merge(custom_config.merge('args' => [payload]))
+        options = Rollbar::Delay::Sidekiq::OPTIONS.merge(
+          custom_config.merge('args' => [payload])
+        )
         ::Sidekiq::Client.should_receive(:push).with(options) { true }
 
         subject.call payload

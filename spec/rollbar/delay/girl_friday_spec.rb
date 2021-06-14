@@ -25,12 +25,14 @@ describe Rollbar::Delay::GirlFriday do
       let(:exception) { Exception.new }
 
       before do
-        expect(Rollbar).to receive(:process_from_async_handler).with(payload).and_raise(exception)
+        expect(Rollbar).to receive(:process_from_async_handler)
+          .with(payload)
+          .and_raise(exception)
       end
 
       it 'raises an exception cause we are using immediate queue' do
         # This will not happen with a norma work queue cause this:
-        # https://github.com/mperham/girl_friday/blob/master/lib/girl_friday/work_queue.rb#L90-L106
+        # mperham/girl_friday/blob/v0.11.2/lib/girl_friday/work_queue.rb#L90-L106
         expect do
           described_class.call(payload)
         end.to raise_error(exception)

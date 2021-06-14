@@ -4,7 +4,10 @@ require 'rollbar'
 # Rails.root is not present here.
 # RSpec needs ENV['DUMMYAPP_PATH'] in order to have a valid path.
 # Dir.pwd is used in normal operation.
-APP_PATH = File.expand_path('config/application', (ENV['DUMMYAPP_PATH'] || Dir.pwd))
+APP_PATH = File.expand_path(
+  'config/application',
+  (ENV['DUMMYAPP_PATH'] || Dir.pwd)
+)
 
 module Rails
   class RollbarRunner
@@ -72,7 +75,11 @@ module Rails
     end
 
     def railties_gem
-      resolver_class = Gem::Specification.respond_to?(:find_by_name) ? GemResolver : LegacyGemResolver
+      resolver_class = if Gem::Specification.respond_to?(:find_by_name)
+                         GemResolver
+                       else
+                         LegacyGemResolver
+                       end
       gem = resolver_class.new.railties_gem
 
       abort 'railties gem not found' unless gem

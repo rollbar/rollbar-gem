@@ -35,7 +35,9 @@ describe Rollbar::Delay::Shoryuken do
       end
 
       it 'uses specified queue' do
-        expect(Shoryuken::Client).to receive(:queues).with('non_default_queue').and_return(sqs_queue)
+        expect(Shoryuken::Client).to receive(:queues)
+          .with('non_default_queue')
+          .and_return(sqs_queue)
         expect(sqs_queue).to receive(:send_message)
         described_class.call(payload)
       end

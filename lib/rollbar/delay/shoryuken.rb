@@ -2,9 +2,10 @@ require 'shoryuken'
 
 module Rollbar
   module Delay
-    # Following class allows to send rollbars using Sho-ryu-ken as a background jobs processor.
-    # see the queue_name method which states that your queues needs to be names as "rollbar_ENVIRONMENT".
-    # retry intervals will be used to retry sending the same message again if failed before.
+    # Following class allows to send rollbars using Sho-ryu-ken as a background
+    # jobs processor. See the queue_name method which states that your queues
+    # needs to be names as "rollbar_ENVIRONMENT". Retry intervals will be used
+    # to retry sending the same message again if failed before.
     class Shoryuken
       include ::Shoryuken::Worker
 

@@ -41,8 +41,12 @@ describe Rollbar do
 
     it 'should report messages with extra data' do
       logger_mock.should_receive(:info).with('[Rollbar] Success')
-      Rollbar.report_message('Test message with extra data', 'debug', :foo => 'bar',
-                                                                      :hash => { :a => 123, :b => 'xyz' })
+      Rollbar.report_message(
+        'Test message with extra data',
+        'debug',
+        :foo => 'bar',
+        :hash => { :a => 123, :b => 'xyz' }
+      )
     end
 
     it 'should not crash with circular extra_data' do
@@ -287,13 +291,17 @@ describe Rollbar do
       Rollbar.last_report.should_not be_nil
     end
 
-    it 'should allow callables to set exception filtered level with :use_exception_level_filters option' do
+    it 'should allow callables to set exception filtered level with' \
+      ':use_exception_level_filters option' do
       callable_mock = double
       Rollbar.configure do |config|
         config.exception_level_filters = { 'NameError' => callable_mock }
       end
 
-      callable_mock.should_receive(:call).with(@exception).at_least(:once).and_return('info')
+      callable_mock.should_receive(:call)
+                   .with(@exception)
+                   .at_least(:once)
+                   .and_return('info')
       logger_mock.should_receive(:info)
       logger_mock.should_not_receive(:error)
 
@@ -360,7 +368,8 @@ describe Rollbar do
 
       Rollbar.report_exception(exception)
 
-      payload['data'][:body][:trace][:frames][0][:method].should eq('custom backtrace line')
+      payload['data'][:body][:trace][:frames][0][:method]
+        .should eq('custom backtrace line')
     end
 
     it 'should report exceptions with a custom level' do

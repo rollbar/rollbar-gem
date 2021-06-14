@@ -4,10 +4,79 @@ module Rollbar
   class Configuration
     SEND_EXTRA_FRAME_DATA_OPTIONS = [:none, :app, :all].freeze
 
-    attr_accessor :access_token, :async_handler, :branch, :capture_uncaught,
-                  :code_version, :custom_data_method, :delayed_job_enabled, :default_logger, :disable_monkey_patch, :disable_rack_monkey_patch, :disable_core_monkey_patch, :enable_error_context, :dj_threshold, :async_skip_report_handler, :enabled, :endpoint, :environment, :exception_level_filters, :failover_handlers, :framework, :ignored_person_ids, :host, :locals, :payload_options, :person_method, :person_id_method, :person_username_method, :person_email_method, :populate_empty_backtraces, :report_dj_data, :open_timeout, :request_timeout, :net_retries, :root, :js_options, :js_enabled, :safely, :scrub_fields, :scrub_user, :scrub_password, :scrub_whitelist, :collect_user_ip, :anonymize_user_ip, :user_ip_obfuscator_secret, :randomize_scrub_length, :uncaught_exception_level, :scrub_headers, :sidekiq_threshold, :sidekiq_use_scoped_block, :verify_ssl_peer, :use_async, :async_json_payload, :web_base, :use_exception_level_filters_default, :proxy, :raise_on_error, :transmit, :log_payload, :backtrace_cleaner, :write_to_file, :filepath, :files_with_pid_name_enabled, :files_processed_enabled, :files_processed_duration, :files_processed_size, :use_payload_access_token, :configured_options
-    attr_reader :before_process, :logger_level, :transform, :use_eventmachine,
-                :send_extra_frame_data, :project_gem_paths
+    attr_accessor :access_token,
+                  :anonymize_user_ip,
+                  :async_handler,
+                  :async_json_payload,
+                  :async_skip_report_handler,
+                  :backtrace_cleaner,
+                  :branch,
+                  :capture_uncaught,
+                  :code_version,
+                  :collect_user_ip,
+                  :configured_options,
+                  :custom_data_method,
+                  :default_logger,
+                  :delayed_job_enabled,
+                  :disable_core_monkey_patch,
+                  :disable_monkey_patch,
+                  :disable_rack_monkey_patch,
+                  :dj_threshold,
+                  :enable_error_context,
+                  :enabled,
+                  :endpoint,
+                  :environment,
+                  :exception_level_filters,
+                  :failover_handlers,
+                  :filepath,
+                  :files_processed_duration,
+                  :files_processed_enabled,
+                  :files_processed_size,
+                  :files_with_pid_name_enabled,
+                  :framework,
+                  :ignored_person_ids,
+                  :js_enabled,
+                  :js_options,
+                  :host,
+                  :locals,
+                  :log_payload,
+                  :net_retries,
+                  :open_timeout,
+                  :payload_options,
+                  :person_email_method,
+                  :person_id_method,
+                  :person_method,
+                  :person_username_method,
+                  :populate_empty_backtraces,
+                  :proxy,
+                  :raise_on_error,
+                  :randomize_scrub_length,
+                  :report_dj_data,
+                  :request_timeout,
+                  :root,
+                  :safely,
+                  :scrub_fields,
+                  :scrub_password,
+                  :scrub_user,
+                  :scrub_whitelist,
+                  :transmit,
+                  :uncaught_exception_level,
+                  :user_ip_obfuscator_secret,
+                  :scrub_headers,
+                  :sidekiq_threshold,
+                  :sidekiq_use_scoped_block,
+                  :use_async,
+                  :use_exception_level_filters_default,
+                  :use_payload_access_token,
+                  :verify_ssl_peer,
+                  :web_base,
+                  :write_to_file
+    attr_reader :before_process,
+                :logger_level,
+                :project_gem_paths,
+                :send_extra_frame_data,
+                :transform,
+                :use_eventmachine
     attr_writer :logger # seconds # bytes
 
     alias safely? safely
@@ -143,7 +212,8 @@ module Rollbar
     def use_active_job(options = {})
       require 'rollbar/delay/active_job'
 
-      Rollbar::Delay::ActiveJob.queue_as(options[:queue] || Rollbar::Delay::ActiveJob.default_queue_name)
+      Rollbar::Delay::ActiveJob.queue_as(options[:queue] ||
+      Rollbar::Delay::ActiveJob.default_queue_name)
 
       @use_async      = true
       @async_handler  = Rollbar::Delay::ActiveJob
@@ -183,8 +253,13 @@ module Rollbar
     end
 
     def use_sidekiq=(value)
-      deprecation_message = '#use_sidekiq=(value) has been deprecated in favor of #use_sidekiq(options = {}). Please update your rollbar configuration.'
-      defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
+      deprecation_message = '#use_sidekiq=(value) has been deprecated in favor ' \
+        'of #use_sidekiq(options = {}). Please update your rollbar configuration.'
+      if defined?(ActiveSupport)
+        ActiveSupport::Deprecation.warn(deprecation_message)
+      else
+        puts(deprecation_message)
+      end
 
       value.is_a?(Hash) ? use_sidekiq(value) : use_sidekiq
     end
@@ -203,8 +278,13 @@ module Rollbar
     end
 
     def use_sucker_punch=(_value)
-      deprecation_message = '#use_sucker_punch=(value) has been deprecated in favor of #use_sucker_punch. Please update your rollbar configuration.'
-      defined?(ActiveSupport) ? ActiveSupport::Deprecation.warn(deprecation_message) : puts(deprecation_message)
+      deprecation_message = '#use_sucker_punch=(value) has been deprecated in ' \
+        'favor of #use_sucker_punch. Please update your rollbar configuration.'
+      if defined?(ActiveSupport)
+        ActiveSupport::Deprecation.warn(deprecation_message)
+      else
+        puts(deprecation_message)
+      end
 
       use_sucker_punch
     end
@@ -235,7 +315,9 @@ module Rollbar
 
     def send_extra_frame_data=(value)
       unless SEND_EXTRA_FRAME_DATA_OPTIONS.include?(value)
-        logger.warning("Wrong 'send_extra_frame_data' value, :none, :app or :full is expected")
+        logger.warning(
+          "Wrong 'send_extra_frame_data' value, :none, :app or :full is expected"
+        )
 
         return
       end

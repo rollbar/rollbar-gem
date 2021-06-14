@@ -20,22 +20,30 @@ Rollbar.plugins.define('goalie') do
             rescue StandardError
               nil
             end
-            exception_data = Rollbar.scope(:request => request_data, :person => person_data).error(
-              exception, :use_exception_level_filters => true
-            )
+            exception_data = Rollbar.scope(
+              :request => request_data,
+              :person => person_data
+            ).error(exception, :use_exception_level_filters => true)
           rescue StandardError => e
-            Rollbar.log_warning "[Rollbar] Exception while reporting exception to Rollbar: #{e}"
+            message = "[Rollbar] Exception while reporting exception to Rollbar: #{e}"
+            Rollbar.log_warning(message)
           end
 
           # if an exception was reported, save uuid in the env
           # so it can be displayed to the user on the error page
           if exception_data.is_a?(Hash)
             env['rollbar.exception_uuid'] = exception_data[:uuid]
-            Rollbar.log_info "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
+            Rollbar.log_info(
+              "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
+            )
           elsif exception_data == 'disabled'
-            Rollbar.log_info '[Rollbar] Exception not reported because Rollbar is disabled'
+            Rollbar.log_info(
+              '[Rollbar] Exception not reported because Rollbar is disabled'
+            )
           elsif exception_data == 'ignored'
-            Rollbar.log_info '[Rollbar] Exception not reported because it was ignored'
+            Rollbar.log_info(
+              '[Rollbar] Exception not reported because it was ignored'
+            )
           end
 
           # now continue as normal

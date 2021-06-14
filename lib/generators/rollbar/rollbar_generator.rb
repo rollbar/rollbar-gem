@@ -14,7 +14,8 @@ module Rollbar
         say 'creating initializer...'
         if access_token_configured?
           say "It looks like you've already configured Rollbar."
-          say 'To re-create the config file, remove it first: config/initializers/rollbar.rb'
+          say 'To re-create the config file, remove it first: ' \
+            'config/initializers/rollbar.rb'
           exit
         end
 
@@ -26,8 +27,10 @@ module Rollbar
         if defined? EY::Config
           say 'Access token will be read from Engine Yard configuration'
         elsif access_token === :use_env_sentinel
-          say 'Generator run without an access token; assuming you want to configure using an environment variable.'
-          say "You'll need to add an environment variable ROLLBAR_ACCESS_TOKEN with your access token:"
+          say 'Generator run without an access token; assuming you want to ' \
+            'configure using an environment variable.'
+          say "You'll need to add an environment variable ROLLBAR_ACCESS_TOKEN " \
+            'with your access token:'
           say "\n$ export ROLLBAR_ACCESS_TOKEN=yourtokenhere"
           say "\nIf that's not what you wanted to do:"
           say "\n$ rm config/initializers/rollbar.rb"

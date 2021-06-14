@@ -24,7 +24,9 @@ describe Rollbar::Delay::Resque do
       let(:exception) { Exception.new }
 
       before do
-        expect(Rollbar).to receive(:process_from_async_handler).with(loaded_hash).and_raise(exception)
+        expect(Rollbar).to receive(:process_from_async_handler)
+          .with(loaded_hash)
+          .and_raise(exception)
       end
 
       it 'raises an exception' do

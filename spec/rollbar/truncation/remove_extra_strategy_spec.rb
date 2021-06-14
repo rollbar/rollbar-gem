@@ -24,7 +24,8 @@ describe Rollbar::Truncation::RemoveExtraStrategy do
       end
 
       it 'should truncate the extra data in the payload' do
-        result = Rollbar::JSON.load(described_class.call(Rollbar::Util.deep_copy(payload)))
+        json = described_class.call(Rollbar::Util.deep_copy(payload))
+        result = Rollbar::JSON.load(json)
 
         expect(result['data']['body']['message']['extra']).to be_nil
         expect(result['data']['body']['message']['body']).to be_eql(message_body)
@@ -50,7 +51,8 @@ describe Rollbar::Truncation::RemoveExtraStrategy do
       end
 
       it 'should truncate the extra data in the payload' do
-        result = Rollbar::JSON.load(described_class.call(Rollbar::Util.deep_copy(payload)))
+        json = described_class.call(Rollbar::Util.deep_copy(payload))
+        result = Rollbar::JSON.load(json)
 
         expect(result['data']['body']['trace']['extra']).to be_nil
         expect(result['data']['body']['trace']['frames']).to be_eql(trace_frames)
@@ -76,7 +78,8 @@ describe Rollbar::Truncation::RemoveExtraStrategy do
       end
 
       it 'should truncate the extra data in the payload' do
-        result = Rollbar::JSON.load(described_class.call(Rollbar::Util.deep_copy(payload)))
+        json = described_class.call(Rollbar::Util.deep_copy(payload))
+        result = Rollbar::JSON.load(json)
 
         expect(result['data']['body']['trace_chain'][0]['extra']).to be_nil
         expect(result['data']['body']['trace_chain'][0]['frames']).to be_eql(trace_frames)

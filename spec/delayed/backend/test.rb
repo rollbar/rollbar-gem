@@ -67,11 +67,15 @@ module Delayed
           end
         end
 
-        # Find a few candidate jobs to run (in case some immediately get locked by others).
-        def self.find_available(worker_name, limit = 5, max_run_time = Worker.max_run_time) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+        # Find a few candidate jobs to run
+        # (in case some immediately get locked by others).
+        def self.find_available(worker_name, limit = 5,
+                                max_run_time = Worker.max_run_time)
           jobs = all.select do |j|
             j.run_at <= db_time_now &&
-              (j.locked_at.nil? || j.locked_at < db_time_now - max_run_time || j.locked_by == worker_name) &&
+              (j.locked_at.nil? ||
+                j.locked_at < db_time_now - max_run_time ||
+                j.locked_by == worker_name) &&
               !j.failed?
           end
           jobs.select! { |j| j.priority <= Worker.max_priority } if Worker.max_priority

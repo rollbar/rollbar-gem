@@ -57,8 +57,10 @@ describe Rollbar::RequestDataExtractor do
     let(:scrub_whitelist) { false }
 
     before do
-      allow(Rollbar.configuration).to receive(:scrub_fields).and_return(scrub_fields)
-      allow(Rollbar.configuration).to receive(:scrub_whitelist).and_return(scrub_whitelist)
+      allow(Rollbar.configuration).to receive(:scrub_fields)
+        .and_return(scrub_fields)
+      allow(Rollbar.configuration).to receive(:scrub_whitelist)
+        .and_return(scrub_whitelist)
     end
 
     it 'calls the scrubber with the correct options' do
@@ -77,8 +79,12 @@ describe Rollbar::RequestDataExtractor do
 
   describe '#extract_request_data_from_rack' do
     it 'returns a Hash object' do
-      expect(Rollbar::Scrubbers::URL).to receive(:call).with(kind_of(Hash)).and_call_original
-      expect(Rollbar::Scrubbers::Params).to receive(:call).with(kind_of(Hash)).and_call_original.exactly(6)
+      expect(Rollbar::Scrubbers::URL).to receive(:call)
+        .with(kind_of(Hash))
+        .and_call_original
+      expect(Rollbar::Scrubbers::Params).to receive(:call)
+        .with(kind_of(Hash))
+        .and_call_original.exactly(6)
 
       result = subject.extract_request_data_from_rack(env)
 
@@ -98,7 +104,8 @@ describe Rollbar::RequestDataExtractor do
       end
 
       before do
-        allow(Rollbar.configuration).to receive(:scrub_headers).and_return(scrub_headers)
+        allow(Rollbar.configuration).to receive(:scrub_headers)
+          .and_return(scrub_headers)
       end
 
       it 'returns scrubbed headers' do
@@ -245,7 +252,8 @@ describe Rollbar::RequestDataExtractor do
         it 'extracts the correct X-Forwarded-For' do
           result = subject.extract_request_data_from_rack(env)
 
-          expect(result[:headers]['X-Forwarded-For']).to be_eql('192.168.1.1, 2.2.2.2, 3.3.3.3')
+          expect(result[:headers]['X-Forwarded-For'])
+            .to be_eql('192.168.1.1, 2.2.2.2, 3.3.3.3')
         end
 
         it 'extracts the correct X-Real-Ip' do

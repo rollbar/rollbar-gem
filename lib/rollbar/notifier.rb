@@ -203,7 +203,9 @@ module Rollbar
 
     def enabled?
       # Require access_token so we don't try to send events when unconfigured.
-      configuration.enabled && configuration.access_token && !configuration.access_token.empty?
+      configuration.enabled &&
+      configuration.access_token &&
+      !configuration.access_token.empty?
     end
 
     def process_item(item)
@@ -219,7 +221,8 @@ module Rollbar
         send_item(item)
       end
     rescue StandardError => e
-      log_error("[Rollbar] Error processing the item: #{e.class}, #{e.message}. Item: #{item.payload.inspect}")
+      log_error '[Rollbar] Error processing the item: ' \
+        "#{e.class}, #{e.message}. Item: #{item.payload.inspect}"
       raise e unless via_failsafe?(item)
 
       log_error('[Rollbar] Item has already failed. Not re-raising')
@@ -392,8 +395,8 @@ module Rollbar
     end
 
     def enable_locals?
-      configuration.locals[:enabled] && [:app,
-                                         :all].include?(configuration.send_extra_frame_data)
+      configuration.locals[:enabled] &&
+      [:app, :all].include?(configuration.send_extra_frame_data)
     end
 
     def enable_locals
@@ -494,7 +497,9 @@ module Rollbar
 
     def report(level, message, exception, extra, context)
       unless message || exception || extra
-        log_error '[Rollbar] Tried to send a report with no message, exception or extra data.'
+        log_error(
+          '[Rollbar] Tried to send a report with no message, exception or extra data.'
+        )
 
         return 'error'
       end
@@ -521,11 +526,14 @@ module Rollbar
       log_info "[Rollbar] Data: #{data}"
     end
 
-    # Reports an internal error in the Rollbar library. This will be reported within the configured
-    # Rollbar project. We'll first attempt to provide a report including the exception traceback.
-    # If that fails, we'll fall back to a more static failsafe response.
+    # Reports an internal error in the Rollbar library. This will be reported
+    # within the configured Rollbar project. We'll first attempt to provide a
+    # report including the exception traceback. If that fails, we'll fall back
+    # to a more static failsafe response.
     def report_internal_error(exception, original_error = nil)
-      log_error '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
+      log_error(
+        '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
+      )
 
       configuration.execute_hook(:on_report_internal_error, exception)
 
@@ -594,7 +602,8 @@ module Rollbar
         if req.response_header.status == 200
           log_info '[Rollbar] Success'
         else
-          log_warning "[Rollbar] Got unexpected status code from Rollbar.io api: #{req.response_header.status}"
+          log_warning '[Rollbar] Got unexpected status code from Rollbar.io api: ' \
+            "#{req.response_header.status}"
           log_info "[Rollbar] Response: #{req.response}"
         end
       end
@@ -602,7 +611,9 @@ module Rollbar
 
     def eventmachine_errback(req)
       req.errback do
-        log_warning "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+        log_warning(
+          "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+        )
         log_info "[Rollbar] Error's response: #{req.response}"
       end
     end
@@ -657,7 +668,7 @@ module Rollbar
     def pack_ruby260_bytes(body)
       # Ruby 2.6.0 shipped with a bug affecting multi-byte body for Net::HTTP.
       # Fix (committed one day after 2.6.0p0 shipped) is here:
-      # https://github.com/ruby/ruby/commit/1680a13a926b17661329beec1ded6b32aad16c1b#diff-00a99d8c71daaf5fc60a050da41f7261
+      # ruby/ruby/commit/1680a13a926b17661329beec1ded6b32aad16c1b
       #
       # We work around this by repacking the body as single byte chars if needed.
       if RUBY_VERSION == '2.6.0' && multibyte?(body)
@@ -724,7 +735,9 @@ module Rollbar
       if response.code == '200'
         log_info '[Rollbar] Success'
       else
-        log_warning "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
+        log_warning(
+          "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
+        )
         log_info "[Rollbar] Response: #{response.body}"
         configuration.execute_hook(:on_error_response, response)
       end
@@ -767,7 +780,8 @@ module Rollbar
       return unless configuration.files_processed_enabled
 
       time_now = Time.now
-      if configuration.files_processed_duration > time_now - file.birthtime && file.size < configuration.files_processed_size
+      if configuration.files_processed_duration > time_now - file.birthtime &&
+         file.size < configuration.files_processed_size
         return
       end
 
@@ -786,7 +800,8 @@ module Rollbar
           nearest_frame = backtrace[0]
 
           exception_info = exception.class.name
-          # #to_s and #message defaults to class.to_s. Add message only if add valuable info.
+          # #to_s and #message defaults to class.to_s.
+          # Add message only if add valuable info.
           if exception.message != exception.class.to_s
             exception_info += %[: "#{exception.message}"]
           end
@@ -837,7 +852,8 @@ module Rollbar
       configuration.async_handler.call(payload)
     rescue StandardError
       if configuration.failover_handlers.empty?
-        log_error '[Rollbar] Async handler failed, and there are no failover handlers configured. See the docs for "failover_handlers"'
+        log_error '[Rollbar] Async handler failed, and there are no failover ' \
+          'handlers configured. See the docs for "failover_handlers"'
         return
       end
 
@@ -855,7 +871,8 @@ module Rollbar
         rescue StandardError
           next unless handler == failover_handlers.last
 
-          log_error "[Rollbar] All failover handlers failed while processing item: #{Rollbar::JSON.dump(item.payload)}"
+          log_error '[Rollbar] All failover handlers failed while processing ' \
+            "item: #{Rollbar::JSON.dump(item.payload)}"
         end
       end
     end
@@ -866,7 +883,9 @@ module Rollbar
       return unless data[:uuid]
 
       uuid_url = Util.uuid_rollbar_url(data, configuration)
-      log_info "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
+      log_info(
+        "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
+      )
     end
 
     def via_failsafe?(item)

@@ -14,7 +14,9 @@ describe Rollbar::Delay::Thread do
       let(:exception) { StandardError.new }
 
       before do
-        expect(Rollbar).to receive(:process_from_async_handler).with(payload).and_raise(exception)
+        expect(Rollbar).to receive(:process_from_async_handler)
+          .with(payload)
+          .and_raise(exception)
       end
 
       it 'doesnt raise any exception' do

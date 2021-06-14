@@ -30,7 +30,9 @@ module Rollbar
           response_string = add_js(env, app_result[2])
           build_response(env, app_result, response_string)
         rescue StandardError => e
-          Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
+          Rollbar.log_error(
+            "[Rollbar] Rollbar.js could not be added because #{e} exception"
+          )
 
           app_result
         end
@@ -58,7 +60,8 @@ module Rollbar
       def streaming?(env)
         return false unless defined?(ActionController::Live)
 
-        env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
+        env['action_controller.instance']
+          .class.included_modules.include?(ActionController::Live)
       end
 
       def add_js(env, response)
@@ -72,7 +75,9 @@ module Rollbar
 
         build_body_with_js(env, body, insert_after_idx)
       rescue StandardError => e
-        Rollbar.log_error("[Rollbar] Rollbar.js could not be added because #{e} exception")
+        Rollbar.log_error(
+          "[Rollbar] Rollbar.js could not be added because #{e} exception"
+        )
         nil
       end
 
@@ -91,7 +96,8 @@ module Rollbar
 
         finished = response.finish
 
-        # Rack < 2.x Response#finish returns self in array[2]. Rack >= 2.x returns self.body.
+        # Rack < 2.x Response#finish returns self in array[2].
+        # Rack >= 2.x returns self.body.
         # Always return with the response object here regardless of rack version.
         finished[2] = response
         finished
@@ -159,9 +165,11 @@ module Rollbar
 
       def script_tag(content, env)
         if (nonce = rails5_nonce(env))
-          script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
+          script_tag_content = "\n<script type=\"text/javascript\" " \
+            "nonce=\"#{nonce}\">#{content}</script>"
         elsif (nonce = secure_headers_nonce(env))
-          script_tag_content = "\n<script type=\"text/javascript\" nonce=\"#{nonce}\">#{content}</script>"
+          script_tag_content = "\n<script type=\"text/javascript\" " \
+            "nonce=\"#{nonce}\">#{content}</script>"
         else
           script_tag_content = "\n<script type=\"text/javascript\">#{content}</script>"
         end
@@ -212,7 +220,10 @@ module Rollbar
 
         secure_headers_cls = nil
 
-        secure_headers_cls = if !::SecureHeaders.respond_to?(:content_security_policy_script_nonce)
+        has_nonce = ::SecureHeaders.respond_to?(
+          :content_security_policy_script_nonce
+        )
+        secure_headers_cls = if !has_nonce
                                SecureHeadersFalse
                              elsif config.respond_to?(:get)
                                SecureHeaders3To5
@@ -226,7 +237,8 @@ module Rollbar
       end
 
       def secure_headers_nonce_key(req)
-        defined?(::SecureHeaders::NONCE_KEY) && req.env[::SecureHeaders::NONCE_KEY]
+        defined?(::SecureHeaders::NONCE_KEY) &&
+        req.env[::SecureHeaders::NONCE_KEY]
       end
 
       class SecureHeadersResolver
@@ -266,7 +278,8 @@ module Rollbar
           if csp.respond_to?(:opt_out?) && csp.opt_out?
             csp.opt_out?
           # secure_headers csp 3.0.x-3.4.x doesn't respond to 'opt_out?'
-          elsif defined?(::SecureHeaders::OPT_OUT) && ::SecureHeaders::OPT_OUT.is_a?(Symbol)
+          elsif defined?(::SecureHeaders::OPT_OUT) &&
+                ::SecureHeaders::OPT_OUT.is_a?(Symbol)
             csp == ::SecureHeaders::OPT_OUT
           end
         end

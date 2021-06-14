@@ -74,7 +74,9 @@ describe Rollbar::Notifier do
         notifier.configuration.files_processed_enabled = true
       end
 
-      let(:dummy_file) { double(File, :birthtime => Time.now, :size => 0).as_null_object }
+      let(:dummy_file) do
+        double(File, :birthtime => Time.now, :size => 0).as_null_object
+      end
 
       it 'writes to the file' do
         allow(File).to receive(:open).with(nil, 'a').and_return(dummy_file)
@@ -87,7 +89,8 @@ describe Rollbar::Notifier do
       end
     end
 
-    context 'when configured to write with process file and file birthtime is already greater than default value' do
+    context 'when configured to write with process file and file birthtime is ' \
+      'already greater than default value' do
       before do
         notifier.configuration.write_to_file = true
         notifier.configuration.files_processed_enabled = true
@@ -95,8 +98,11 @@ describe Rollbar::Notifier do
       end
 
       let(:dummy_file) do
+        duration = notifier.configuration.files_processed_duration
         double(
-          File, :birthtime => Time.now - (notifier.configuration.files_processed_duration + 1).seconds, :size => 0
+          File,
+          :birthtime => Time.now - (duration + 1).seconds,
+          :size => 0
         ).as_null_object
       end
 
@@ -119,8 +125,11 @@ describe Rollbar::Notifier do
       end
 
       let(:dummy_file) do
-        double(File, :birthtime => Time.now,
-                     :size => notifier.configuration.files_processed_size + 1).as_null_object
+        double(
+          File,
+          :birthtime => Time.now,
+          :size => notifier.configuration.files_processed_size + 1
+        ).as_null_object
       end
 
       it 'writes to the file and rename' do
@@ -208,7 +217,9 @@ describe Rollbar::Notifier do
       end
 
       RSpec::Matchers.define :access_token_header do |value|
-        match { |actual| (actual.fetch('X-Rollbar-Access-Token', 'undefined') == value) }
+        match do |actual|
+          (actual.fetch('X-Rollbar-Access-Token', 'undefined') == value)
+        end
       end
 
       it 'sets the access token header' do
@@ -224,7 +235,8 @@ describe Rollbar::Notifier do
         end
 
         it 'omits the access token header' do
-          expect(dummy_http).to receive(:request).with(access_token_header('undefined'))
+          expect(dummy_http).to receive(:request)
+            .with(access_token_header('undefined'))
 
           process_from_async_handler
         end
@@ -241,8 +253,14 @@ describe Rollbar::Notifier do
           let(:payload) { { 'data' => { 'failsafe' => true } } }
 
           it 'does not pass the message on' do
-            expect(notifier).to receive(:log_error).with("[Rollbar] Error processing the item: SocketError, SocketError. Item: #{payload.inspect}")
-            expect(notifier).to receive(:log_error).with('[Rollbar] Item has already failed. Not re-raising')
+            error_message =  '[Rollbar] Error processing the item: ' \
+              "SocketError, SocketError. Item: #{payload.inspect}"
+            expect(notifier)
+              .to receive(:log_error)
+              .with(error_message)
+            expect(notifier)
+              .to receive(:log_error)
+              .with('[Rollbar] Item has already failed. Not re-raising')
 
             process_from_async_handler
           end

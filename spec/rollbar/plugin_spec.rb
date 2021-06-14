@@ -125,7 +125,8 @@ describe Rollbar::Plugin do
         end
 
         it 'it logs a plugin unload error message' do
-          expect(::Rollbar).to receive(:log_error).with(/Error trying to unload plugin/)
+          expect(::Rollbar).to receive(:log_error)
+            .with(/Error trying to unload plugin/)
 
           subject.unload!
         end
@@ -257,7 +258,9 @@ describe Rollbar::Plugin do
       it 'doesnt finish loading the plugin' do
         expect(dummy_object).not_to receive(:upcase)
         expect(dummy_object).not_to receive(:downcase)
-        expect(Rollbar).to receive(:log_error).with("Error trying to load plugin 'plugin': StandardError, the-error")
+        expect(Rollbar)
+          .to receive(:log_error)
+          .with("Error trying to load plugin 'plugin': StandardError, the-error")
 
         subject.load!
 
@@ -291,7 +294,9 @@ describe Rollbar::Plugin do
 
       it 'doesnt finish loading the plugin' do
         expect(dummy_object).not_to receive(:downcase)
-        expect(Rollbar).to receive(:log_error).with("Error trying to load plugin 'plugin': StandardError, the-error")
+        expect(Rollbar)
+          .to receive(:log_error)
+          .with("Error trying to load plugin 'plugin': StandardError, the-error")
 
         subject.load!
 

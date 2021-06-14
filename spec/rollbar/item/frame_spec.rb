@@ -44,7 +44,8 @@ foo13
         END
       end
       let(:filepath) do
-        '/var/www/rollbar/playground/rails4.2/vendor/bundle/gems/actionpack-4.2.0/lib/action_controller/metal/implicit_render.rb'
+        '/var/www/rollbar/playground/rails4.2/vendor/bundle/gems/actionpack-4.2.0' \
+        '/lib/action_controller/metal/implicit_render.rb'
       end
       let(:frame) do
         "#{filepath}:7:in `send_action'"
@@ -54,7 +55,9 @@ foo13
       end
 
       before do
-        allow(backtrace).to receive(:get_file_lines).with(filepath).and_return(file.split("\n"))
+        allow(backtrace).to receive(:get_file_lines)
+          .with(filepath)
+          .and_return(file.split("\n"))
       end
 
       context 'with send_extra_frame_data = :none' do
@@ -117,7 +120,9 @@ foo13
 
         context 'if the file couldnt be read' do
           before do
-            allow(backtrace).to receive(:get_file_lines).with(filepath).and_return(nil)
+            allow(backtrace).to receive(:get_file_lines)
+              .with(filepath)
+              .and_return(nil)
           end
 
           it 'just returns the basic data' do
