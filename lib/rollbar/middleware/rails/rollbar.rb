@@ -82,7 +82,7 @@ module Rollbar
           route_params = request_data[:params]
           # make sure route is a hash built by RequestDataExtractor
           if route_params.is_a?(Hash) && !route_params.empty?
-            route_params[:controller].to_s + '#' + route_params[:action].to_s
+            "#{route_params[:controller]}##{route_params[:action]}"
           end
         end
       end

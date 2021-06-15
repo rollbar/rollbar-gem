@@ -162,12 +162,12 @@ describe Rollbar::Item do
 
       it 'should have access to the context in custom_data_method' do
         configuration.custom_data_method = lambda do |_message, _exception, context|
-          { :result => 'MyApp#' + context[:controller] }
+          { :result => "MyApp##{context[:controller]}" }
         end
 
         payload['data'][:body][:message][:extra].should_not be_nil
         payload['data'][:body][:message][:extra][:result]
-          .should == 'MyApp#' + context[:controller]
+          .should == "MyApp##{context[:controller]}"
       end
 
       it 'should not include data passed in :context if there is no custom_data_method' do
@@ -178,12 +178,12 @@ describe Rollbar::Item do
 
       it 'should have access to the message in custom_data_method' do
         configuration.custom_data_method = lambda do |message, _exception, _context|
-          { :result => 'Transformed in custom_data_method: ' + message }
+          { :result => "Transformed in custom_data_method: #{message}" }
         end
 
         extra = payload['data'][:body][:message][:extra]
         extra.should_not be_nil
-        extra[:result].should == 'Transformed in custom_data_method: ' + message
+        extra[:result].should == "Transformed in custom_data_method: #{message}"
       end
 
       context do
@@ -191,13 +191,13 @@ describe Rollbar::Item do
 
         it 'should have access to the current exception in custom_data_method' do
           configuration.custom_data_method = lambda do |_message, exception, _context|
-            { :result => 'Transformed in custom_data_method: ' + exception.message }
+            { :result => "Transformed in custom_data_method: #{exception.message}" }
           end
 
           extra = payload['data'][:body][:trace][:extra]
           extra.should_not be_nil
           expect(extra[:result])
-            .to eq('Transformed in custom_data_method: ' + exception.message)
+            .to eq("Transformed in custom_data_method: #{exception.message}")
         end
       end
     end

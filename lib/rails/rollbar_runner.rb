@@ -71,7 +71,7 @@ module Rails
     end
 
     def runner_path
-      railties_gem_dir + '/lib/rails/commands/runner.rb'
+      "#{railties_gem_dir}/lib/rails/commands/runner.rb"
     end
 
     def railties_gem

@@ -142,14 +142,14 @@ module Rollbar
       query = env['QUERY_STRING'].to_s.empty? ? nil : "?#{env['QUERY_STRING']}"
       path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{query}"
       if !(path.nil? || path.empty?) && (path.to_s.slice(0, 1) != '/')
-        path = '/' + path.to_s
+        path = "/#{path}"
       end
 
       port = env['HTTP_X_FORWARDED_PORT']
       if port && !(!scheme.nil? && scheme.casecmp('http').zero? && port.to_i == 80) && \
          !(!scheme.nil? && scheme.casecmp('https').zero? && port.to_i == 443) && \
          !(host.include? ':')
-        host = host + ':' + port
+        host = "#{host}:#{port}"
       end
 
       [scheme, '://', host, path].join

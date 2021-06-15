@@ -30,9 +30,7 @@ module Rollbar
       return {} unless access_token && !access_token.empty?
 
       uri = ::URI.parse(
-        ::Rollbar::Deploy::ENDPOINT +
-        deploy_id.to_s +
-        '?access_token=' + access_token
+        "#{::Rollbar::Deploy::ENDPOINT}#{deploy_id}?access_token=#{access_token}"
       )
 
       request = ::Net::HTTP::Patch.new(uri.request_uri)
@@ -74,17 +72,18 @@ module Rollbar
 
       def request_result(uri, request)
         {
-          :request_info => uri.inspect + ': ' + request.body,
+          :request_info => "#{uri.inspect}: #{request.body}",
           :request => request
         }
       end
 
       def response_result(response)
+        code = response.code
+        message = response.message
+        body = response.body.delete("\n")
         {
           :response => response,
-          :response_info => response.code + '; ' +
-            response.message + '; ' +
-            response.body.delete("\n")
+          :response_info => "#{code}; #{message}; #{body}"
         }.merge(::JSON.parse(response.body, :symbolize_names => true))
       end
     end

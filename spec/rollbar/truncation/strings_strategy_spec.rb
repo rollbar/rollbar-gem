@@ -27,7 +27,7 @@ describe Rollbar::Truncation::StringsStrategy do
     end
 
     context 'with utf8 strings' do
-      let(:long_message) { 'Ŝǻмρļẻ śţяịņģ' + 'a' * 2000 }
+      let(:long_message) { "Ŝǻмρļẻ śţяịņģ#{'a' * 2000}" }
       let(:payload) do
         {
           'truncated' => long_message,

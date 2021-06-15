@@ -21,7 +21,7 @@ module Rollbar
             end
           elsif job.last_error
             ::Rollbar.scope(:request => data).error(
-              "Job has failed and won't be retried anymore: " + job.last_error,
+              "Job has failed and won't be retried anymore: #{job.last_error}",
               :use_exception_level_filters => true
             )
           end
