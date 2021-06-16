@@ -24,7 +24,7 @@ module Rollbar
       def self.anonymize_ipv6(ip)
         ip_parts = ip.to_s.split ':'
 
-        ip_string = ip_parts[0..2].join(':') + ':0000:0000:0000:0000:0000'
+        ip_string = "#{ip_parts[0..2].join(':')}:0000:0000:0000:0000:0000"
 
         IPAddr.new(ip_string).to_s
       end

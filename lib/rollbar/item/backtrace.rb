@@ -110,7 +110,8 @@ module Rollbar
       end
 
       def rollbar_lib_gem_dir
-        Gem::Specification.find_by_name('rollbar').gem_dir + '/lib'
+        gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
+        "#{gem_dir}/lib"
       end
     end
   end

@@ -350,7 +350,7 @@ module Rollbar
           @hooks[symbol]
         end
       else
-        raise StandardError, 'Hook :' + symbol.to_s + ' is not supported by Rollbar SDK.'
+        raise StandardError, "Hook :#{symbol} is not supported by Rollbar SDK."
       end
     end
 

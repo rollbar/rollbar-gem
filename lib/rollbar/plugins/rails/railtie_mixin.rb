@@ -16,9 +16,9 @@ module Rollbar
             config.framework = "Rails: #{::Rails::VERSION::STRING}"
             config.filepath ||= begin
               if ::Rails.application.class.respond_to?(:module_parent_name)
-                ::Rails.application.class.module_parent_name + '.rollbar'
+                "#{::Rails.application.class.module_parent_name}.rollbar"
               else
-                ::Rails.application.class.parent_name + '.rollbar'
+                "#{::Rails.application.class.parent_name}.rollbar"
               end
             end
           end

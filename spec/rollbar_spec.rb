@@ -289,7 +289,7 @@ describe Rollbar do
           before do
             Rollbar.configure do |config|
               config.custom_data_method = lambda do |_message, _exception, context|
-                { :result => 'MyApp#' + context[:controller] }
+                { :result => "MyApp##{context[:controller]}" }
               end
             end
           end
@@ -300,7 +300,7 @@ describe Rollbar do
 
             result[:body][:message][:extra].should_not be_nil
             result[:body][:message][:extra][:result]
-              .should eq('MyApp#' + context[:controller])
+              .should eq("MyApp##{context[:controller]}")
             result[:body][:message][:extra][:custom_data_method_context].should be_nil
           end
         end
@@ -1084,7 +1084,7 @@ describe Rollbar do
       Rollbar.error(exception)
 
       gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
-      gem_lib_dir = gem_dir + '/lib'
+      gem_lib_dir = "#{gem_dir}/lib"
       last_report = Rollbar.last_report
 
       filepaths = last_report[:body][:trace][:frames].map do |frame|
