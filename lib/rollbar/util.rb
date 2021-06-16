@@ -7,9 +7,10 @@ module Rollbar
     end
 
     def self.iterate_and_update(obj, block, seen = {})
-      return if obj.frozen? || seen[obj.object_id]
+      seen.compare_by_identity
+      return if obj.frozen? || seen[obj]
 
-      seen[obj.object_id] = true
+      seen[obj] = true
 
       if obj.is_a?(Array)
         iterate_and_update_array(obj, block, seen)
@@ -47,14 +48,16 @@ module Rollbar
     end
 
     def self.deep_copy(obj, copied = {})
+      copied.compare_by_identity
+
       # if we've already made a copy, return it.
-      return copied[obj.object_id] if copied[obj.object_id]
+      return copied[obj] if copied[obj]
 
       result = clone_obj(obj)
 
       # Memoize the cloned object before recursive calls to #deep_copy below.
       # This is the point of doing the work in two steps.
-      copied[obj.object_id] = result
+      copied[obj] = result
 
       if obj.is_a?(::Hash)
         obj.each { |k, v| result[k] = deep_copy(v, copied) }
@@ -78,14 +81,15 @@ module Rollbar
     def self.deep_merge(hash1, hash2, merged = {})
       hash1 ||= {}
       hash2 ||= {}
+      merged.compare_by_identity
 
       # If we've already merged these two objects, return hash1 now.
-      if merged[hash1.object_id] && merged[hash1.object_id].include?(hash2.object_id)
+      if merged[hash1] && merged[hash1].include?(hash2.object_id)
         return hash1
       end
 
-      merged[hash1.object_id] ||= []
-      merged[hash1.object_id] << hash2.object_id
+      merged[hash1] ||= []
+      merged[hash1] << hash2.object_id
 
       perform_deep_merge(hash1, hash2, merged)
 

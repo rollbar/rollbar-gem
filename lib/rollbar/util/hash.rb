@@ -2,9 +2,10 @@ module Rollbar
   module Util
     module Hash # :nodoc:
       def self.deep_stringify_keys(hash, seen = {})
-        return if seen[hash.object_id]
+        seen.compare_by_identity
+        return if seen[hash]
 
-        seen[hash.object_id] = true
+        seen[hash] = true
         replace_seen_children(hash, seen)
 
         hash.reduce({}) do |h, (key, value)|
@@ -19,10 +20,10 @@ module Rollbar
         when ::Hash
           send(meth, thing, seen)
         when Array
-          if seen[thing.object_id]
+          if seen[thing]
             thing
           else
-            seen[thing.object_id] = true
+            seen[thing] = true
             replace_seen_children(thing, seen)
             thing.map { |v| map_value(v, meth, seen) }
           end
@@ -35,14 +36,14 @@ module Rollbar
         case thing
         when ::Hash
           thing.keys.each do |key|
-            if seen[thing[key].object_id]
+            if seen[thing[key]]
               thing[key] =
                 "removed circular reference: #{thing[key]}"
             end
           end
         when Array
           thing.each_with_index do |_, i|
-            if seen[thing[i].object_id]
+            if seen[thing[i]]
               thing[i] =
                 "removed circular reference: #{thing[i]}"
             end
