@@ -2,7 +2,7 @@ require 'rubygems/version'
 
 source 'https://rubygems.org'
 
-is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && 'jruby' == RUBY_ENGINE)
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 is_not_jruby = !is_jruby
 
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
