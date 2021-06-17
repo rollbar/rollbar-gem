@@ -22,7 +22,7 @@ module Rollbar
         params = options[:params]
         return {} unless params
 
-        @scrubbed_object_ids = {}
+        @scrubbed_objects = {}.compare_by_identity
 
         config = options[:config]
         extra_fields = options[:extra_fields]
@@ -64,9 +64,9 @@ module Rollbar
       end
 
       def scrub(params, options)
-        return params if @scrubbed_object_ids[params.object_id]
+        return params if @scrubbed_objects[params]
 
-        @scrubbed_object_ids[params.object_id] = true
+        @scrubbed_objects[params] = true
 
         fields_regex = options[:fields_regex]
         scrub_all = options[:scrub_all]
