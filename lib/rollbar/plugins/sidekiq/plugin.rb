@@ -24,11 +24,11 @@ module Rollbar
       job_hash = job_hash_from_msg(msg)
 
       return false if job_hash.nil?
+      return false unless job_hash['retry_count'] # This job  is not a retry attempt if retry_count is not set
 
-      # when rollbar middleware catches, sidekiq's retry_job processor hasn't set
-      # the retry_count for the current job yet, so adding 1 gives the actual retry count
-      actual_retry_count = job_hash.fetch('retry_count', -1) + 1
-      job_hash['retry'] && actual_retry_count < ::Rollbar.configuration.sidekiq_threshold
+      # Sidekiq retry_count tracks the number of previous retries attempted, which means that for the first retry,
+      # it would be set to 0.
+      job_hash['retry_count'] + 1 < ::Rollbar.configuration.sidekiq_threshold
     end
 
     def self.job_scope(msg)

@@ -111,6 +111,16 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
         Rollbar.configuration.sidekiq_threshold = 3
       end
 
+      it 'sends error to Rollbar if it is not a retry attempt' do
+        allow(Rollbar).to receive(:scope).and_return(rollbar)
+        expect(rollbar).to receive(:error).once
+
+        described_class.handle_exception(
+          { :job => { 'retry' => true } },
+          exception
+        )
+      end
+
       it 'does not send error to rollbar under the threshold' do
         allow(Rollbar).to receive(:scope).and_return(rollbar)
         expect(rollbar).to receive(:error).never
@@ -127,27 +137,6 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
 
         described_class.handle_exception(
           { :job => { 'retry' => true, 'retry_count' => 2 } },
-          exception
-        )
-      end
-
-      it 'sends the error to rollbar if not retry' do
-        allow(Rollbar).to receive(:scope).and_return(rollbar)
-        expect(rollbar).to receive(:error)
-
-        described_class.handle_exception(
-          { :job => { 'retry' => false } },
-          exception
-        )
-      end
-
-      it "does not blow up and doesn't send the error to rollbar if " \
-        'retry is true but there is no retry count' do
-        allow(Rollbar).to receive(:scope).and_return(rollbar)
-        expect(rollbar).to receive(:error).never
-
-        described_class.handle_exception(
-          { :job => { 'retry' => true } },
           exception
         )
       end
