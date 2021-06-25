@@ -15,6 +15,7 @@ begin
   # and write an updated coverage/index.html
   Codacy::Reporter.start if Codacy::Formatter.new.send :should_run?
 rescue LoadError
+  # Skip loading
 end
 
 require 'rubygems'
@@ -31,6 +32,7 @@ begin
   require 'webmock/rspec'
   WebMock.disable_net_connect!(:allow => 'codeclimate.com')
 rescue LoadError
+  # Skip loading
 end
 
 namespace :dummy do

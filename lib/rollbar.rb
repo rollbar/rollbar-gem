@@ -8,6 +8,7 @@ require 'forwardable'
 begin
   require 'securerandom'
 rescue LoadError
+  # Skip loading
 end
 
 require 'rollbar/version'

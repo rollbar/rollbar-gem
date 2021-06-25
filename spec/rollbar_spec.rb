@@ -16,17 +16,20 @@ begin
   require 'rollbar/delay/sidekiq'
   require 'rollbar/delay/sucker_punch'
 rescue LoadError
+  # Skip loading
 end
 
 begin
   require 'sucker_punch'
   require 'sucker_punch/testing/inline'
 rescue LoadError
+  # Skip loading
 end
 
 begin
   require 'rollbar/delay/shoryuken'
 rescue LoadError
+  # Skip loading
 end
 
 describe Rollbar do
