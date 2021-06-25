@@ -64,6 +64,7 @@ Rollbar.plugins.define('rails-rollbar.js') do
               begin
                 require 'secure_headers'
               rescue LoadError
+                # Skip loading
               end
 
               defined?(::SecureHeaders::Middleware)

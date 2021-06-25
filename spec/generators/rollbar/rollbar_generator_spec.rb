@@ -3,6 +3,7 @@ require 'spec_helper'
 begin
   require 'generator_spec'
 rescue LoadError
+  # Skip loading
 end
 
 require 'generators/rollbar/rollbar_generator'
