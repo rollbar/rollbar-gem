@@ -218,8 +218,6 @@ module Rollbar
 
         config = ::SecureHeaders::Configuration
 
-        secure_headers_cls = nil
-
         has_nonce = ::SecureHeaders.respond_to?(
           :content_security_policy_script_nonce
         )
