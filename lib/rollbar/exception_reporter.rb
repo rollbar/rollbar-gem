@@ -7,16 +7,17 @@ module Rollbar
 
       exception_data = exception_data(exception)
 
-      if exception_data.is_a?(Hash)
+      case exception_data
+      when Hash
         env['rollbar.exception_uuid'] = exception_data[:uuid]
         Rollbar.log_debug(
           "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
         )
-      elsif exception_data == 'disabled'
+      when 'disabled'
         Rollbar.log_debug(
           '[Rollbar] Exception not reported because Rollbar is disabled'
         )
-      elsif exception_data == 'ignored'
+      when 'ignored'
         Rollbar.log_debug '[Rollbar] Exception not reported because it was ignored'
       end
     rescue StandardError => e

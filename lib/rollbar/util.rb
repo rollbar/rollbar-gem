@@ -59,9 +59,10 @@ module Rollbar
       # This is the point of doing the work in two steps.
       copied[obj] = result
 
-      if obj.is_a?(::Hash)
+      case obj
+      when ::Hash
         obj.each { |k, v| result[k] = deep_copy(v, copied) }
-      elsif obj.is_a?(Array)
+      when Array
         obj.each { |v| result << deep_copy(v, copied) }
       end
 
@@ -69,9 +70,10 @@ module Rollbar
     end
 
     def self.clone_obj(obj)
-      if obj.is_a?(::Hash)
+      case obj
+      when ::Hash
         obj.dup
-      elsif obj.is_a?(Array)
+      when Array
         obj.dup.clear
       else
         obj
