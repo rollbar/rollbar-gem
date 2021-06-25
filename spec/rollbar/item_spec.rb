@@ -288,7 +288,7 @@ describe Rollbar::Item do
     context 'build_payload_body' do
       let(:exception) do
         begin
-          foo = bar
+          foo = bar # rubocop:disable Lint/UselessAssignment
         rescue StandardError => e
           e
         end
@@ -350,7 +350,7 @@ describe Rollbar::Item do
     context 'build_payload_body_exception' do
       let(:exception) do
         begin
-          foo = bar
+          foo = bar # rubocop:disable Lint/UselessAssignment
         rescue StandardError => e
           e
         end

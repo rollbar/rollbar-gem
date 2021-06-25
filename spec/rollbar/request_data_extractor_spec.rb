@@ -97,10 +97,10 @@ describe Rollbar::RequestDataExtractor do
       end
 
       let(:env) do
-        env = Rack::MockRequest.env_for('/',
-                                        'HTTP_UPPER_CASE_HEADER' => 'foo',
-                                        'HTTP_LOWER_CASE_HEADER' => 'bar',
-                                        'HTTP_MIXED_CASE_HEADER' => 'baz')
+        Rack::MockRequest.env_for('/',
+                                  'HTTP_UPPER_CASE_HEADER' => 'foo',
+                                  'HTTP_LOWER_CASE_HEADER' => 'bar',
+                                  'HTTP_MIXED_CASE_HEADER' => 'baz')
       end
 
       before do
