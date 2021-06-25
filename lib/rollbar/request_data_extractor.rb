@@ -91,9 +91,10 @@ module Rollbar
     def mergeable_raw_body_params(rack_req)
       raw_body_params = rollbar_raw_body_params(rack_req)
 
-      if raw_body_params.is_a?(Hash)
+      case raw_body_params
+      when Hash
         raw_body_params
-      elsif raw_body_params.is_a?(Array)
+      when Array
         { 'body.multi' => raw_body_params }
       else
         { 'body.value' => raw_body_params }

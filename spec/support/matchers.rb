@@ -1,12 +1,13 @@
 RSpec::Matchers.define :be_eql_hash_with_regexes do |expected|
   def check_value(actual_value, expected_value)
-    if expected_value.is_a?(Hash)
+    case expected_value
+    when Hash
       expected_value.all? { |k, _| check_value(actual_value[k], expected_value[k]) }
-    elsif expected_value.is_a?(Array)
+    when Array
       expected_value.each_with_index.map do |v, i|
         check_value(actual_value[i], v)
       end.all?
-    elsif expected_value.is_a?(Regexp)
+    when Regexp
       actual_value.match(expected_value)
     else
       actual_value == expected_value

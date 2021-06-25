@@ -48,13 +48,14 @@ describe ApplicationController, :type => 'request' do
   context 'using rails5 content_security_policy',
           :if => (Gem::Version.new(Rails.version) >= Gem::Version.new('5.2.0')) do
     def configure_csp(mode)
-      if mode == :nonce_present
+      case mode
+      when :nonce_present
         nonce_present
-      elsif mode == :nonce_not_present
+      when :nonce_not_present
         nonce_not_present
-      elsif mode == :script_src_not_present
+      when :script_src_not_present
         script_src_not_present
-      elsif mode == :unsafe_inline_present
+      when :unsafe_inline_present
         unsafe_inline_present
       else
         raise 'Unknown CSP mode'
@@ -210,11 +211,12 @@ describe ApplicationController, :type => 'request' do
     def configure_csp(mode)
       return unless defined?(::SecureHeaders)
 
-      if mode == :nonce_present
+      case mode
+      when :nonce_present
         nonce_present
-      elsif mode == :nonce_not_present
+      when :nonce_not_present
         nonce_not_present
-      elsif mode == :unsafe_inline_present
+      when :unsafe_inline_present
         unsafe_inline_present
       else
         raise 'Unknown CSP mode'

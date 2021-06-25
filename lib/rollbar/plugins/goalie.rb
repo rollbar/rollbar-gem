@@ -31,16 +31,17 @@ Rollbar.plugins.define('goalie') do
 
           # if an exception was reported, save uuid in the env
           # so it can be displayed to the user on the error page
-          if exception_data.is_a?(Hash)
+          case exception_data
+          when Hash
             env['rollbar.exception_uuid'] = exception_data[:uuid]
             Rollbar.log_info(
               "[Rollbar] Exception uuid saved in env: #{exception_data[:uuid]}"
             )
-          elsif exception_data == 'disabled'
+          when 'disabled'
             Rollbar.log_info(
               '[Rollbar] Exception not reported because Rollbar is disabled'
             )
-          elsif exception_data == 'ignored'
+          when 'ignored'
             Rollbar.log_info(
               '[Rollbar] Exception not reported because it was ignored'
             )
