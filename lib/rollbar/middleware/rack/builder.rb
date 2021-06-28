@@ -14,7 +14,7 @@ module Rollbar
           Rollbar.scoped(fetch_scope(env)) do
             begin
               call_without_rollbar(env)
-            rescue ::Exception => e
+            rescue ::Exception => e # rubocop:disable Lint/RescueException
               report_exception_to_rollbar(env, e)
               raise
             end
@@ -26,7 +26,7 @@ module Rollbar
             :request => proc { extract_request_data_from_rack(env) },
             :person => person_data_proc(env)
           }
-        rescue Exception => e
+        rescue Exception => e # rubocop:disable Lint/RescueException
           report_exception_to_rollbar(env, e)
           raise
         end

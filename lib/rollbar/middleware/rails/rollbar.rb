@@ -29,7 +29,7 @@ module Rollbar
               end
 
               response
-            rescue Exception => e
+            rescue Exception => e # rubocop:disable Lint/RescueException
               report_exception_to_rollbar(env, e)
               raise
             ensure

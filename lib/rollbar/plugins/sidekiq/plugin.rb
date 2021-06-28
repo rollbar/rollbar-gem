@@ -63,7 +63,7 @@ module Rollbar
       return yield unless Rollbar.configuration.sidekiq_use_scoped_block
 
       Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg), &block)
-    rescue Exception => e
+    rescue Exception => e # rubocop:disable Lint/RescueException
       Rollbar::Sidekiq.handle_exception(msg, e)
       raise
     end
