@@ -226,8 +226,8 @@ describe ApplicationController, :type => 'request' do
     def nonce_present
       config = ::SecureHeaders::Configuration.new do |config|
         config.csp = {
-          :default_src => %w['none'],
-          :script_src => %w['self']
+          :default_src => ["'none'"],
+          :script_src => ["'self'"]
         }
       end
       ::SecureHeaders::Configuration.instance_variable_set(:@default_config, config)
@@ -236,8 +236,8 @@ describe ApplicationController, :type => 'request' do
     def nonce_not_present
       config = ::SecureHeaders::Configuration.new do |config|
         config.csp = {
-          :default_src => %w['none'],
-          :script_src => %w['self']
+          :default_src => ["'none'"],
+          :script_src => ["'self'"]
         }
       end
       ::SecureHeaders::Configuration.instance_variable_set(:@default_config, config)
@@ -246,8 +246,8 @@ describe ApplicationController, :type => 'request' do
     def unsafe_inline_present
       config = ::SecureHeaders::Configuration.new do |config|
         config.csp = {
-          :default_src => %w['none'],
-          :script_src => %w['unsafe-inline']
+          :default_src => ["'none'"],
+          :script_src => ["'unsafe-inline'"]
         }
       end
       ::SecureHeaders::Configuration.instance_variable_set(:@default_config, config)
