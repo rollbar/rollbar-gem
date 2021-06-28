@@ -55,7 +55,7 @@ describe Rollbar::Plugin do
           end
 
           dependency do
-            1 == 2.0
+            false
           end
 
           execute do
@@ -208,7 +208,7 @@ describe Rollbar::Plugin do
           end
 
           dependency do
-            1 == 1.0
+            true
           end
 
           execute do
@@ -279,7 +279,7 @@ describe Rollbar::Plugin do
           end
 
           dependency do
-            1 == 1.0
+            true
           end
 
           execute do
@@ -315,7 +315,7 @@ describe Rollbar::Plugin do
           end
 
           dependency do
-            1 == 2.0
+            false
           end
 
           execute do
