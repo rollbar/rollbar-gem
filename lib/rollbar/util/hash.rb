@@ -35,7 +35,7 @@ module Rollbar
       def self.replace_seen_children(thing, seen)
         case thing
         when ::Hash
-          thing.keys.each do |key|
+          thing.keys.each do |key| # rubocop:disable Style/HashEachMethods
             if seen[thing[key]]
               thing[key] =
                 "removed circular reference: #{thing[key]}"

@@ -30,7 +30,7 @@ module Rollbar
     end
 
     def self.iterate_and_update_hash(obj, block, seen)
-      obj.keys.each do |k|
+      obj.keys.each do |k| # rubocop:disable Style/HashEachMethods
         v = obj[k]
         new_key = block.call(k)
 
