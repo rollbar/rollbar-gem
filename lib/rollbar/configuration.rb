@@ -92,7 +92,7 @@ module Rollbar
       @capture_uncaught = nil
       @code_version = nil
       @custom_data_method = nil
-      @default_logger = lambda { ::Logger.new(STDERR) }
+      @default_logger = lambda { ::Logger.new($stderr) }
       @logger_level = :info
       @delayed_job_enabled = true
       @disable_monkey_patch = false

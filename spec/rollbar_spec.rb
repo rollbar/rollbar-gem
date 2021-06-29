@@ -1782,7 +1782,7 @@ describe Rollbar do
     end
 
     it 'should use the default_logger when no logger is set' do
-      logger = Logger.new(STDERR)
+      logger = Logger.new($stderr)
 
       Rollbar.configure do |config|
         config.default_logger = lambda { logger }
