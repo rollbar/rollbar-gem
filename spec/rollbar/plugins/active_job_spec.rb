@@ -36,8 +36,11 @@ describe Rollbar::ActiveJob do
       :arguments => [argument]
     }
     expect(Rollbar).to receive(:error).with(exception, expected_params)
-    TestJob.new(argument)
-           .perform(exception, job_id) rescue nil # rubocop:disable Style/RescueModifier
+    begin
+      TestJob.new(argument).perform(exception, job_id)
+    rescue StandardError
+      nil
+    end
   end
 
   it 'reraises the error so the job backend can handle the failure and retry' do
@@ -74,8 +77,11 @@ describe Rollbar::ActiveJob do
       expect(Rollbar).to receive(:error).with(kind_of(StandardError),
                                               hash_including(expected_params))
       perform_enqueued_jobs do
-        TestMailer.test_email(argument)
-                  .deliver_later rescue nil # rubocop:disable Style/RescueModifier
+        begin
+          TestMailer.test_email(argument).deliver_later
+        rescue StandardError
+          nil
+        end
       end
     end
 
@@ -85,8 +91,11 @@ describe Rollbar::ActiveJob do
       end
 
       perform_enqueued_jobs do
-        TestMailer.test_email(:user_id => '15')
-                  .deliver_later rescue nil # rubocop:disable Style/RescueModifier
+        begin
+          TestMailer.test_email(:user_id => '15').deliver_later
+        rescue StandardError
+          nil
+        end
       end
       Rollbar.last_report[:body][:trace][:extra][:arguments][3][:user_id]
              .should match(/^*+$/)
@@ -101,8 +110,11 @@ describe Rollbar::ActiveJob do
       params['user_id'] = '15'
 
       perform_enqueued_jobs do
-        TestMailer.test_email(params)
-                  .deliver_later rescue nil # rubocop:disable Style/RescueModifier
+        begin
+          TestMailer.test_email(params).deliver_later
+        rescue StandardError
+          nil
+        end
       end
       Rollbar.last_report[:body][:trace][:extra][:arguments][3]['user_id']
              .should match(/^*+$/)
