@@ -44,7 +44,7 @@ describe Rollbar::Middleware::Js do
     end
   end
   let(:html) do
-    <<-END
+    <<-HTML
 <html>
   <head>
     <link rel="stylesheet" href="url" type="text/css" media="screen" />
@@ -54,10 +54,10 @@ describe Rollbar::Middleware::Js do
     <h1>Testing the middleware</h1>
   </body>
 </html>
-    END
+    HTML
   end
   let(:minified_html) do
-    <<-END
+    <<-HTML
 <html>
   <head><link rel="stylesheet" href="url" type="text/css" media="screen" />
     <script type="text/javascript" src="foo"></script>
@@ -66,10 +66,10 @@ describe Rollbar::Middleware::Js do
     <h1>Testing the middleware</h1>
   </body>
 </html>
-    END
+    HTML
   end
   let(:meta_charset_html) do
-    <<-END
+    <<-HTML
 <html>
   <head>
     <meta charset="UTF-8"/>
@@ -80,10 +80,10 @@ describe Rollbar::Middleware::Js do
     <h1>Testing the middleware</h1>
   </body>
 </html>
-    END
+    HTML
   end
   let(:meta_content_html) do
-    <<-END
+    <<-HTML
 <html>
   <head>
     <meta content="origin" id="mref" name="referrer">
@@ -95,7 +95,7 @@ describe Rollbar::Middleware::Js do
     <h1>Testing the middleware</h1>
   </body>
 </html>
-    END
+    HTML
   end
   let(:snippet) { 'THIS IS THE SNIPPET' }
   let(:content_type) { 'text/html' }
