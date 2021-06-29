@@ -77,13 +77,12 @@ module Rollbar
         end
 
         def context(request_data)
-          return unless request_data[:params]
-
           route_params = request_data[:params]
+
           # make sure route is a hash built by RequestDataExtractor
-          if route_params.is_a?(Hash) && !route_params.empty?
-            "#{route_params[:controller]}##{route_params[:action]}"
-          end
+          return unless route_params && route_params.is_a?(Hash) && !route_params.empty?
+
+          "#{route_params[:controller]}##{route_params[:action]}"
         end
       end
     end

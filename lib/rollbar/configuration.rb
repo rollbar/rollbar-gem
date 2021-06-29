@@ -343,14 +343,14 @@ module Rollbar
     end
 
     def hook(symbol, &block)
-      if @hooks.key?(symbol)
-        if block_given?
-          @hooks[symbol] = block
-        else
-          @hooks[symbol]
-        end
-      else
+      unless @hooks.key?(symbol)
         raise StandardError, "Hook :#{symbol} is not supported by Rollbar SDK."
+      end
+
+      if block_given?
+        @hooks[symbol] = block
+      else
+        @hooks[symbol]
       end
     end
 

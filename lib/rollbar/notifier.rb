@@ -32,10 +32,9 @@ module Rollbar
         self.scope_object = ::Rollbar::LazyStore.new(scope)
       end
 
-      if payload_options
-        Rollbar::Util.deep_merge(configuration.payload_options,
-                                 payload_options)
-      end
+      return unless payload_options
+
+      Rollbar::Util.deep_merge(configuration.payload_options, payload_options)
     end
 
     def reset!
