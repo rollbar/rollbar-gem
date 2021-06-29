@@ -136,7 +136,7 @@ describe Rollbar::Util do
 
       payload = {
         :bad_value => force_to_ascii("bad value 1\255"),
-        :bad_value_2 => force_to_ascii("bad\255 value 2"),
+        :bad_value2 => force_to_ascii("bad\255 value 2"),
         force_to_ascii("bad\255 key") => 'good value',
         :hash => {
           :inner_bad_value => force_to_ascii("\255\255bad value 3"),
@@ -155,7 +155,7 @@ describe Rollbar::Util do
       described_class.enforce_valid_utf8(payload_copy)
 
       payload_copy[:bad_value].should eq('bad value 1')
-      payload_copy[:bad_value_2].should eq('bad value 2')
+      payload_copy[:bad_value2].should eq('bad value 2')
       payload_copy['bad key'].should eq('good value')
       payload_copy.keys.should_not include("bad\456 key")
       payload_copy[:hash][:inner_bad_value].should eq('bad value 3')
