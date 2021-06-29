@@ -21,7 +21,7 @@ module Rollbar
             response = @app.call(env)
             report_exception_to_rollbar(env, framework_error(env)) if framework_error(env)
             response
-          rescue Exception => e
+          rescue Exception => e # rubocop:disable Lint/RescueException
             report_exception_to_rollbar(env, e)
             raise
           ensure
@@ -35,7 +35,7 @@ module Rollbar
           :request => proc { extract_request_data_from_rack(env) },
           :person => person_data_proc(env)
         }
-      rescue Exception => e
+      rescue Exception => e # rubocop:disable Lint/RescueException
         report_exception_to_rollbar(env, e)
         raise
       end

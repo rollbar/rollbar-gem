@@ -41,7 +41,7 @@ module Rollbar
           say 'access token: ' << access_token
         end
 
-        template 'initializer.rb', 'config/initializers/rollbar.rb',
+        template 'initializer.erb', 'config/initializers/rollbar.rb',
                  :assigns => { :access_token => access_token_expr }
 
         # TODO: run rake test task
