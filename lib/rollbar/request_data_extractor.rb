@@ -142,9 +142,7 @@ module Rollbar
       path = env['ORIGINAL_FULLPATH'] || env['REQUEST_URI']
       query = env['QUERY_STRING'].to_s.empty? ? nil : "?#{env['QUERY_STRING']}"
       path ||= "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}#{query}"
-      if !(path.nil? || path.empty?) && (path.to_s.slice(0, 1) != '/')
-        path = "/#{path}"
-      end
+      path = "/#{path}" if !(path.nil? || path.empty?) && (path.to_s.slice(0, 1) != '/')
 
       port = env['HTTP_X_FORWARDED_PORT']
       if port && !(!scheme.nil? && scheme.casecmp('http').zero? && port.to_i == 80) && \
