@@ -203,8 +203,8 @@ module Rollbar
     def enabled?
       # Require access_token so we don't try to send events when unconfigured.
       configuration.enabled &&
-      configuration.access_token &&
-      !configuration.access_token.empty?
+        configuration.access_token &&
+        !configuration.access_token.empty?
     end
 
     def process_item(item)
@@ -395,7 +395,7 @@ module Rollbar
 
     def enable_locals?
       configuration.locals[:enabled] &&
-      [:app, :all].include?(configuration.send_extra_frame_data)
+        [:app, :all].include?(configuration.send_extra_frame_data)
     end
 
     def enable_locals

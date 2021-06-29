@@ -236,7 +236,7 @@ module Rollbar
 
       def secure_headers_nonce_key(req)
         defined?(::SecureHeaders::NONCE_KEY) &&
-        req.env[::SecureHeaders::NONCE_KEY]
+          req.env[::SecureHeaders::NONCE_KEY]
       end
 
       class SecureHeadersResolver
