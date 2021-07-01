@@ -92,7 +92,7 @@ module Rollbar
       @capture_uncaught = nil
       @code_version = nil
       @custom_data_method = nil
-      @default_logger = lambda { ::Logger.new(STDERR) }
+      @default_logger = lambda { ::Logger.new($stderr) }
       @logger_level = :info
       @delayed_job_enabled = true
       @disable_monkey_patch = false
@@ -343,14 +343,14 @@ module Rollbar
     end
 
     def hook(symbol, &block)
-      if @hooks.key?(symbol)
-        if block_given?
-          @hooks[symbol] = block
-        else
-          @hooks[symbol]
-        end
-      else
+      unless @hooks.key?(symbol)
         raise StandardError, "Hook :#{symbol} is not supported by Rollbar SDK."
+      end
+
+      if block_given?
+        @hooks[symbol] = block
+      else
+        @hooks[symbol]
       end
     end
 

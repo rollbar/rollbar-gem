@@ -30,7 +30,7 @@ module Rollbar
     end
 
     def self.iterate_and_update_hash(obj, block, seen)
-      obj.keys.each do |k|
+      obj.keys.each do |k| # rubocop:disable Style/HashEachMethods
         v = obj[k]
         new_key = block.call(k)
 
@@ -86,9 +86,7 @@ module Rollbar
       merged.compare_by_identity
 
       # If we've already merged these two objects, return hash1 now.
-      if merged[hash1] && merged[hash1].include?(hash2.object_id)
-        return hash1
-      end
+      return hash1 if merged[hash1] && merged[hash1].include?(hash2.object_id)
 
       merged[hash1] ||= []
       merged[hash1] << hash2.object_id

@@ -29,7 +29,8 @@ module Rollbar
       def deploy_succeeded(capistrano, logger, dry_run)
         deploy_update(
           capistrano, logger, dry_run,
-          :desc => 'Setting deployment status to `succeeded` in Rollbar') do
+          :desc => 'Setting deployment status to `succeeded` in Rollbar'
+        ) do
           report_deploy_succeeded(capistrano, dry_run)
         end
       end

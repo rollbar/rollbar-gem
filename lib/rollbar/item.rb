@@ -209,8 +209,8 @@ module Rollbar
       if custom_data_method? && !Rollbar::Util.method_in_stack(:custom_data, __FILE__)
         Util.deep_merge(scrub(custom_data), merged_extra)
       else
-        merged_extra.empty? ? nil : merged_extra # avoid putting an empty {}
-                                                 # in the payload.
+        # avoid putting an empty {} in the payload.
+        merged_extra.empty? ? nil : merged_extra
       end
     end
 

@@ -27,7 +27,7 @@ describe Rollbar::Item::Frame do
 
     context 'with valid frame' do
       let(:file) do
-        <<-END
+        <<-FILE
 foo1
 foo2
 foo3
@@ -41,7 +41,7 @@ foo10
 foo11
 foo12
 foo13
-        END
+        FILE
       end
       let(:filepath) do
         '/var/www/rollbar/playground/rails4.2/vendor/bundle/gems/actionpack-4.2.0' \

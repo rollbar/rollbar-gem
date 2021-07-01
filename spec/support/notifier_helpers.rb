@@ -27,7 +27,7 @@ module NotifierHelpers
       config.root = defined?(::Rails.root) && ::Rails.root ||
                     defined?(RAILS_ROOT) && RAILS_ROOT
       version = defined?(::Rails.version) && ::Rails.version ||
-                  defined?(::Rails::VERSION::STRING) && ::Rails::VERSION::STRING
+                defined?(::Rails::VERSION::STRING) && ::Rails::VERSION::STRING
       config.framework = "Rails: #{version}"
     end
   end
