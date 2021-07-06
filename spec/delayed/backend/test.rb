@@ -41,7 +41,7 @@ module Delayed
         end
 
         def self.all
-          @jobs ||= []
+          @all ||= []
         end
 
         def self.count
