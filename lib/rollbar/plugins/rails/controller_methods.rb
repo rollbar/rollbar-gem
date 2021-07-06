@@ -34,7 +34,7 @@ module Rollbar
         else
           {}
         end
-      rescue NoMethodError, NameError
+      rescue NameError
         {}
       end
 
