@@ -45,7 +45,7 @@ describe HomeController do
       expect { get '/current_user' }.to raise_exception(NoMethodError)
 
       body = Rollbar.last_report[:body]
-      trace = body[:trace] && body[:trace] || body[:trace_chain][0]
+      trace = body[:trace] || body[:trace_chain][0]
 
       trace[:exception][:class].should eq('NoMethodError')
       trace[:exception][:message].should =~ /^undefined method `-'/
