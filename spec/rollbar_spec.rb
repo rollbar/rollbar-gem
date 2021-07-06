@@ -1742,9 +1742,7 @@ describe Rollbar do
         # Reset state before Rollbar.configure
         Rollbar::Delay::Thread.options = nil
 
-        Rollbar.configure do |config|
-          config.use_thread
-        end
+        Rollbar.configure(&:use_thread)
 
         thread = Rollbar::Delay::Thread.call(payload)
         sleep(1) # More reliable than Thread.pass to let the thread set its priority.
