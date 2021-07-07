@@ -49,6 +49,23 @@ describe Rollbar::ActiveJob do
     end.to raise_error exception
   end
 
+  it 'scrubs all arguments if job has `log_arguments` disabled' do
+    allow(TestJob).to receive(:log_arguments?).and_return(false)
+     
+    expected_params = {
+      :job => 'TestJob',
+      :job_id => job_id,
+      :use_exception_level_filters => true,
+      :arguments => ['******', '******', '******']
+    }
+    expect(Rollbar).to receive(:error).with(exception, expected_params)
+    begin
+      TestJob.new(1, 2, 3).perform(exception, job_id)
+    rescue StandardError
+      nil
+    end
+  end
+
   context 'using ActionMailer::DeliveryJob', :if => defined?(ActionMailer::DeliveryJob) do
     include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
