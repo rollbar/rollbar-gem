@@ -31,6 +31,7 @@ module DeployAPI
 
     def access_token(request)
       return if CGI.parse(request.env['QUERY_STRING'])['access_token'].empty?
+
       CGI.parse(request.env['QUERY_STRING'])['access_token'][0]
     end
 

@@ -93,6 +93,7 @@ module Rollbar
         return extract_title_from_trace(body['trace']) if body['trace']
 
         return unless body['trace_chain'] && body['trace_chain'][0]
+
         extract_title_from_trace(body['trace_chain'][0])
       end
 
