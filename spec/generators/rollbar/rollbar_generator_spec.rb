@@ -20,7 +20,7 @@ unless Rails::VERSION::STRING.start_with?('3.0')
       end
 
       it 'outputs a help message and generates Rollbar initializer with ENV' do
-        expect(destination_root).to have_structure {
+        structure = proc do
           directory 'config' do
             directory 'initializers' do
               file 'rollbar.rb' do
@@ -28,7 +28,9 @@ unless Rails::VERSION::STRING.start_with?('3.0')
               end
             end
           end
-        }
+        end
+
+        expect(destination_root).to have_structure(&structure)
       end
     end
 
@@ -38,7 +40,7 @@ unless Rails::VERSION::STRING.start_with?('3.0')
       end
 
       it 'generates a Rollbar initializer with access token' do
-        expect(destination_root).to have_structure {
+        structure = proc do
           directory 'config' do
             directory 'initializers' do
               file 'rollbar.rb' do
@@ -47,7 +49,9 @@ unless Rails::VERSION::STRING.start_with?('3.0')
               end
             end
           end
-        }
+        end
+
+        expect(destination_root).to have_structure(&structure)
       end
     end
   end
