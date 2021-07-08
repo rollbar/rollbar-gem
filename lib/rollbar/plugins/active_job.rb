@@ -3,11 +3,17 @@ module Rollbar
   module ActiveJob
     def self.included(base)
       base.send :rescue_from, Exception do |exception|
+        args = if self.class.respond_to?(:log_arguments?) && !self.class.log_arguments?
+                 arguments.map(&Rollbar::Scrubbers.method(:scrub_value))
+               else
+                 arguments
+               end
+
         Rollbar.error(exception,
                       :job => self.class.name,
                       :job_id => job_id,
                       :use_exception_level_filters => true,
-                      :arguments => arguments)
+                      :arguments => args)
         raise exception
       end
     end
