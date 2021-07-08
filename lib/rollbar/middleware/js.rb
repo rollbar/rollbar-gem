@@ -164,15 +164,13 @@ module Rollbar
       end
 
       def script_tag(content, env)
-        if (nonce = rails5_nonce(env))
-          script_tag_content = "\n<script type=\"text/javascript\" " \
-            "nonce=\"#{nonce}\">#{content}</script>"
-        elsif (nonce = secure_headers_nonce(env))
-          script_tag_content = "\n<script type=\"text/javascript\" " \
-            "nonce=\"#{nonce}\">#{content}</script>"
-        else
-          script_tag_content = "\n<script type=\"text/javascript\">#{content}</script>"
-        end
+        nonce = rails5_nonce(env) || secure_headers_nonce(env)
+        script_tag_content = if nonce
+                               "\n<script type=\"text/javascript\" " \
+                                 "nonce=\"#{nonce}\">#{content}</script>"
+                             else
+                               "\n<script type=\"text/javascript\">#{content}</script>"
+                             end
 
         html_safe_if_needed(script_tag_content)
       end

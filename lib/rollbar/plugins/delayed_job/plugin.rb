@@ -17,7 +17,7 @@ module Rollbar
           if job.class.method_defined? :error
             if job.error
               ::Rollbar.scope(:request => data)
-                       .error(job.error,:use_exception_level_filters => true)
+                       .error(job.error, :use_exception_level_filters => true)
             end
           elsif job.last_error
             ::Rollbar.scope(:request => data).error(

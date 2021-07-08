@@ -45,6 +45,5 @@ gem 'rspec-command'
 gem 'webmock', :require => false
 
 gem 'aws-sdk-sqs'
-gem 'resque'
 
 gemspec :path => '../'

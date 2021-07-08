@@ -253,7 +253,7 @@ describe Rollbar::Notifier do
           let(:payload) { { 'data' => { 'failsafe' => true } } }
 
           it 'does not pass the message on' do
-            error_message =  '[Rollbar] Error processing the item: ' \
+            error_message = '[Rollbar] Error processing the item: ' \
               "SocketError, SocketError. Item: #{payload.inspect}"
             expect(notifier)
               .to receive(:log_error)

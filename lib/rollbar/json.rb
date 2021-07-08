@@ -3,7 +3,7 @@ require 'json'
 
 module Rollbar
   module JSON # :nodoc:
-    extend self
+    module_function
 
     attr_writer :options_module
 
