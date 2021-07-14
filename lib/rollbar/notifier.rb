@@ -134,17 +134,8 @@ module Rollbar
       message, exception, extra, context = extract_arguments(args)
       use_exception_level_filters = use_exception_level_filters?(extra)
 
-      return 'ignored' if ignored?(exception, use_exception_level_filters)
-
-      begin
-        status = call_before_process(:level => level,
-                                     :exception => exception,
-                                     :message => message,
-                                     :extra => extra)
-        return 'ignored' if status == 'ignored'
-      rescue Rollbar::Ignore
-        return 'ignored'
-      end
+      return 'ignored' if ignored?(exception, use_exception_level_filters) ||
+                          ignore_before_process?(level, exception, message, extra)
 
       level = lookup_exception_level(level, exception,
                                      use_exception_level_filters)
@@ -154,6 +145,17 @@ module Rollbar
       raise(exception) if configuration.raise_on_error && exception
 
       ret
+    end
+
+    def ignore_before_process?(level, exception, message, extra)
+      status = call_before_process(:level => level,
+                                   :exception => exception,
+                                   :message => message,
+                                   :extra => extra)
+
+      status == 'ignored'
+    rescue Rollbar::Ignore
+      true
     end
 
     def report_with_rescue(level, message, exception, extra, context)
@@ -208,17 +210,11 @@ module Rollbar
     end
 
     def process_item(item)
-      if configuration.write_to_file
-        if configuration.use_async
-          MUTEX.synchronize do
-            do_write_item(item)
-          end
-        else
-          do_write_item(item)
-        end
-      else
-        send_item(item)
-      end
+      return send_item(item) unless configuration.write_to_file
+
+      return do_write_item(item) unless configuration.use_async
+
+      MUTEX.synchronize { do_write_item(item) }
     rescue StandardError => e
       log_error '[Rollbar] Error processing the item: ' \
         "#{e.class}, #{e.message}. Item: #{item.payload.inspect}"
@@ -257,10 +253,7 @@ module Rollbar
             # The final payload has already been built.
             send_body(payload)
           else
-            item = Item.build_with(payload,
-                                   :notifier => self,
-                                   :configuration => configuration,
-                                   :logger => logger)
+            item = build_item_with_payload(payload)
 
             process_item(item)
           end
@@ -270,6 +263,12 @@ module Rollbar
           raise
         end
       end
+    end
+
+    def build_item_with_payload(payload)
+      Item.build_with(payload, :notifier => self,
+                               :configuration => configuration,
+                               :logger => logger)
     end
 
     def failsafe_initial_data(exception_reason)
@@ -303,19 +302,17 @@ module Rollbar
         'data' => failsafe_data
       }
 
-      begin
-        item = Item.build_with(failsafe_payload,
-                               :notifier => self,
-                               :configuration => configuration,
-                               :logger => logger)
-
-        process_item(item)
-        log_and_return_item_data(item)
-      rescue StandardError => e
-        log_error "[Rollbar] Error sending failsafe : #{e}"
-      end
+      process_failsafe_item(failsafe_payload)
 
       failsafe_payload
+    end
+
+    def process_failsafe_item(failsafe_payload)
+      item = build_item_with_payload(failsafe_payload)
+      process_item(item)
+      log_and_return_item_data(item)
+    rescue StandardError => e
+      log_error "[Rollbar] Error sending failsafe : #{e}"
     end
 
     def failsafe_add_original_error_data(payload_notifier, original_error)
@@ -417,13 +414,7 @@ module Rollbar
     end
 
     def call_before_process(options)
-      options = {
-        :level => options[:level],
-        :scope => scope_object,
-        :exception => options[:exception],
-        :message => options[:message],
-        :extra => options[:extra]
-      }
+      options = options_for_handler(options)
       handlers = configuration.before_process
 
       handlers.each do |handler|
@@ -440,30 +431,40 @@ module Rollbar
       end
     end
 
+    def options_for_handler(options)
+      {
+        :level => options[:level],
+        :scope => scope_object,
+        :exception => options[:exception],
+        :message => options[:message],
+        :extra => options[:extra]
+      }
+    end
+
     def extract_arguments(args)
-      message = nil
-      exception = nil
-      extra = nil
-      context = nil
+      message = exception = extra = context = nil
 
       args.each do |arg|
         if arg.is_a?(String)
           message = arg
         elsif arg.is_a?(Exception)
           exception = arg
-        elsif RUBY_PLATFORM == 'java' && arg.is_a?(java.lang.Throwable)
+        elsif java_exception?(arg)
           exception = arg
         elsif arg.is_a?(Hash)
           extra = arg
 
-          context = extra[:custom_data_method_context]
-          extra.delete :custom_data_method_context
+          context = extra.delete :custom_data_method_context
 
           extra = nil if extra.empty?
         end
       end
 
       [message, exception, extra, context]
+    end
+
+    def java_exception?(obj)
+      RUBY_PLATFORM == 'java' && obj.is_a?(java.lang.Throwable)
     end
 
     def lookup_exception_level(orig_level, exception, use_exception_level_filters)
@@ -530,35 +531,24 @@ module Rollbar
     # report including the exception traceback. If that fails, we'll fall back
     # to a more static failsafe response.
     def report_internal_error(exception, original_error = nil)
+      failsafe_message = ''
       log_error(
         '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
       )
 
       configuration.execute_hook(:on_report_internal_error, exception)
 
-      begin
-        item = build_item('error', nil, exception, { :internal => true }, nil)
-      rescue StandardError => e
-        send_failsafe('build_item in exception_data', e, original_error)
-        log_error "[Rollbar] Exception: #{exception}"
-        return
-      end
+      failsafe_message = 'build_item in exception_data'
+      item = build_item('error', nil, exception, { :internal => true }, nil)
 
-      begin
-        process_item(item)
-      rescue StandardError => e
-        send_failsafe('error in process_item', e, original_error)
-        log_error "[Rollbar] Item: #{item}"
-        return
-      end
+      failsafe_message = 'error in process_item'
+      process_item(item)
 
-      begin
-        log_instance_link(item['data'])
-      rescue StandardError => e
-        send_failsafe('error logging instance link', e, original_error)
-        log_error "[Rollbar] Item: #{item}"
-        nil
-      end
+      failsafe_message = 'error logging instance link'
+      log_instance_link(item['data'])
+    rescue StandardError => e
+      send_failsafe(failsafe_message, e, original_error)
+      log_error(item ? "[Rollbar] Item: #{item}" : "[Rollbar] Exception: #{exception}")
     end
 
     ## Payload building functions
@@ -640,17 +630,7 @@ module Rollbar
     end
 
     def do_post(uri, body, access_token)
-      proxy = http_proxy(uri)
-      http  = Net::HTTP.new(uri.host, uri.port, proxy.host, proxy.port, proxy.user,
-                            proxy.password)
-
-      http.open_timeout = configuration.open_timeout
-      http.read_timeout = configuration.request_timeout
-
-      if uri.scheme == 'https'
-        http.use_ssl = true
-        http.verify_mode = ssl_verify_mode
-      end
+      http = init_http(uri)
 
       request = Net::HTTP::Post.new(uri.request_uri)
 
@@ -662,6 +642,26 @@ module Rollbar
       end
 
       handle_net_retries { http.request(request) }
+    end
+
+    def init_http(uri)
+      proxy = http_proxy(uri)
+      http  = Net::HTTP.new(uri.host, uri.port, proxy.host, proxy.port, proxy.user,
+                            proxy.password)
+
+      init_http_timeouts(http)
+
+      if uri.scheme == 'https'
+        http.use_ssl = true
+        http.verify_mode = ssl_verify_mode
+      end
+
+      http
+    end
+
+    def init_http_timeouts(http)
+      http.open_timeout = configuration.open_timeout
+      http.read_timeout = configuration.request_timeout
     end
 
     def pack_ruby260_bytes(body)
@@ -756,11 +756,7 @@ module Rollbar
       body = item.dump
       return unless body
 
-      file_name = if configuration.files_with_pid_name_enabled
-                    configuration.filepath.gsub(EXTENSION_REGEXP, "_#{Process.pid}\\0")
-                  else
-                    configuration.filepath
-                  end
+      file_name = file_name_with_pid(configuration)
 
       begin
         @file ||= File.open(file_name, 'a')
@@ -772,6 +768,14 @@ module Rollbar
         log_info '[Rollbar] Success'
       rescue IOError => e
         log_error "[Rollbar] Error opening/writing to file: #{e}"
+      end
+    end
+
+    def file_name_with_pid(configuration)
+      if configuration.files_with_pid_name_enabled
+        configuration.filepath.gsub(EXTENSION_REGEXP, "_#{Process.pid}\\0")
+      else
+        configuration.filepath
       end
     end
 
@@ -791,34 +795,30 @@ module Rollbar
     end
 
     def failsafe_reason(message, exception)
-      body = ''
+      return failsafe_exception_reason(message, exception) if exception
 
-      if exception
-        begin
-          backtrace = exception.backtrace || []
-          nearest_frame = backtrace[0]
+      message.to_s
+    rescue StandardError
+      log_error('[Rollbar] Error building failsafe message')
+      ''
+    end
 
-          exception_info = exception.class.name
-          # #to_s and #message defaults to class.to_s.
-          # Add message only if add valuable info.
-          if exception.message != exception.class.to_s
-            exception_info += %[: "#{exception.message}"]
-          end
-          exception_info += " in #{nearest_frame}" if nearest_frame
+    def failsafe_exception_reason(message, exception)
+      backtrace = exception.backtrace || []
+      nearest_frame = backtrace[0]
 
-          body += "#{exception_info}: #{message}"
-        rescue StandardError
-          log_error('[Rollbar] Error building failsafe exception message')
-        end
-      else
-        begin
-          body += message.to_s
-        rescue StandardError
-          log_error('[Rollbar] Error building failsafe message')
-        end
+      exception_info = exception.class.name
+      # #to_s and #message defaults to class.to_s.
+      # Add message only if add valuable info.
+      if exception.message != exception.class.to_s
+        exception_info += %[: "#{exception.message}"]
       end
+      exception_info += " in #{nearest_frame}" if nearest_frame
 
-      body
+      "#{exception_info}: #{message}"
+    rescue StandardError
+      log_error('[Rollbar] Error building failsafe exception message')
+      ''
     end
 
     def failsafe_body(reason)

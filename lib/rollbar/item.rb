@@ -63,7 +63,22 @@ module Rollbar
     end
 
     def build_data
-      data = {
+      data = initial_data
+
+      build_optional_data(data)
+
+      Util.deep_merge(data, configuration.payload_options)
+      Util.deep_merge(data, scope)
+
+      # Our API doesn't allow null context values, so just delete
+      # the key if value is nil.
+      data.delete(:context) unless data[:context]
+
+      data
+    end
+
+    def initial_data
+      {
         :timestamp => Time.now.to_i,
         :environment => build_environment,
         :level => level,
@@ -77,24 +92,18 @@ module Rollbar
         },
         :body => build_body
       }
+    end
+
+    def build_optional_data(data)
       if configuration.project_gem_paths.any?
-        data[:project_package_paths] =
-          configuration.project_gem_paths
+        data[:project_package_paths] = configuration.project_gem_paths
       end
+
       data[:code_version] = configuration.code_version if configuration.code_version
-      if defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
-        data[:uuid] =
-          SecureRandom.uuid
-      end
 
-      Util.deep_merge(data, configuration.payload_options)
-      Util.deep_merge(data, scope)
+      return unless defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 
-      # Our API doesn't allow null context values, so just delete
-      # the key if value is nil.
-      data.delete(:context) unless data[:context]
-
-      data
+      data[:uuid] = SecureRandom.uuid
     end
 
     def configured_options
@@ -141,11 +150,8 @@ module Rollbar
         :host => host
       }
 
-      notifier.send_failsafe(
-        too_large_payload_string(attempts),
-        nil,
-        original_error
-      )
+      notifier.send_failsafe(too_large_payload_string(attempts), nil, original_error)
+
       logger.error('[Rollbar] Payload too large to be sent for UUID ' \
         "#{uuid}: #{Rollbar::JSON.dump(payload)}")
     end
