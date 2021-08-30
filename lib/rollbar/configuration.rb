@@ -62,6 +62,7 @@ module Rollbar
                   :transmit,
                   :uncaught_exception_level,
                   :user_ip_obfuscator_secret,
+                  :user_ip_rack_env_key,
                   :scrub_headers,
                   :sidekiq_threshold,
                   :sidekiq_use_scoped_block,
@@ -156,6 +157,7 @@ module Rollbar
       @collect_user_ip = true
       @anonymize_user_ip = false
       @user_ip_obfuscator_secret = nil
+      @user_ip_rack_env_key = nil
       @backtrace_cleaner = nil
       @hooks = {
         :on_error_response => nil, # params: response
