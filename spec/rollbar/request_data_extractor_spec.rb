@@ -163,10 +163,12 @@ describe Rollbar::RequestDataExtractor do
                                   'HTTP_HOST' => 'localhost:81',
                                   'HTTP_X_FORWARDED_FOR' => x_forwarded_for,
                                   'HTTP_X_REAL_IP' => x_real_ip,
+                                  'HTTP_CF_CONNECTING_IP' => cf_connecting_ip,
                                   'REMOTE_ADDR' => '3.3.3.3',
                                   'CONTENT_TYPE' => 'application/json',
                                   'CONTENT_LENGTH' => 20)
       end
+      let(:cf_connecting_ip) { '4.3.2.1' }
 
       context 'with public client IP' do
         let(:x_forwarded_for) { '2.2.2.2, 3.3.3.3' }
@@ -188,6 +190,18 @@ describe Rollbar::RequestDataExtractor do
           result = subject.extract_request_data_from_rack(env)
 
           expect(result[:headers]['X-Real-Ip']).to be_eql('2.2.2.2')
+        end
+
+        context 'with config.user_ip_rack_env_key set' do
+          before do
+            Rollbar.configuration.user_ip_rack_env_key = 'HTTP_CF_CONNECTING_IP'
+          end
+
+          it 'extracts from the correct key' do
+            result = subject.extract_request_data_from_rack(env)
+
+            expect(result[:user_ip]).to be_eql(cf_connecting_ip)
+          end
         end
 
         context 'with collect_user_ip configuration option disabled' do
