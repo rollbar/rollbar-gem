@@ -44,8 +44,8 @@ module Rollbar
         proc { extract_person_data_from_controller(env) }
       end
 
-      def framework_error(_env)
-        nil
+      def framework_error(env)
+        env['rack.exception']
       end
     end
   end

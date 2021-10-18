@@ -121,6 +121,19 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
       end
     end
 
+    context 'for a framework reported error' do
+      let(:exception) { kind_of(SinatraDummy::DummyError) }
+      let(:env) { Rack::MockRequest.env_for('/', 'sinatra.error' => exception) }
+      let(:mock_app) { MockApp.new }
+      let(:middleware) { described_class.new(mock_app) }
+
+      it 'reports the error' do
+        expect(Rollbar).to receive(:log).with(*expected_report_args)
+
+        middleware.call(env)
+      end
+    end
+
     context 'if the middleware itself fails' do
       let(:exception) { Exception.new }
 
