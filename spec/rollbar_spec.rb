@@ -1197,6 +1197,104 @@ describe Rollbar do
         expect(original_message).to be_eql(message)
       end
     end
+
+    context 'with internal error' do
+      let(:message) { 'original_error' }
+      let(:exception) { StandardError.new(message) }
+
+      after(:all) do
+        Rollbar.configure do |config|
+          config.ignore_internal_errors = [
+            'Net::ReadTimeout',
+            'Net::OpenTimeout',
+            'SocketError'
+          ]
+        end
+      end
+
+      context 'when internal error is not ignored' do
+        it 'should report internal error' do
+          allow(Rollbar.notifier)
+            .to receive(:build_item)
+            .and_raise(StandardError.new('internal error'))
+
+          expect(Rollbar.notifier).to receive(:process_item).and_call_original
+          Rollbar.error(exception)
+
+          original_error = Rollbar.last_report[:notifier][:diagnostic][:original_error]
+          expect(original_error[:message]).to be_eql(message)
+        end
+      end
+
+      context 'when internal error is ignored' do
+        it 'should not report internal error' do
+          allow(Rollbar.notifier)
+            .to receive(:build_item)
+            .and_raise(Net::ReadTimeout.new('internal error'))
+
+          expect(Rollbar.notifier).not_to receive(:process_item)
+          Rollbar.error(exception)
+        end
+      end
+
+      context 'when internal error is subclass of ignored error class' do
+        it 'should not report internal error' do
+          Rollbar.configure do |config|
+            config.ignore_internal_errors = ['StandardError']
+          end
+
+          allow(Rollbar.notifier)
+            .to receive(:build_item)
+            .and_raise(RuntimeError.new('internal error'))
+
+          expect(Rollbar.notifier).not_to receive(:process_item)
+          Rollbar.error(exception)
+        end
+      end
+
+      context 'when set to ignore all internal errors' do
+        it 'should not report internal error' do
+          Rollbar.configure do |config|
+            config.ignore_internal_errors = true
+          end
+
+          allow(Rollbar.notifier)
+            .to receive(:build_item)
+            .and_raise(RuntimeError.new('internal error'))
+
+          expect(Rollbar.notifier).not_to receive(:process_item)
+          Rollbar.error(exception)
+        end
+      end
+
+      context 'when ignored error class is unknown' do
+        it 'should report internal error' do
+          Rollbar.configure do |config|
+            config.ignore_internal_errors = ['Net::Foo']
+          end
+
+          allow(Rollbar.notifier)
+            .to receive(:build_item)
+            .and_raise(RuntimeError.new('internal error'))
+
+          expect(Rollbar.notifier).to receive(:process_item).and_call_original
+          Rollbar.error(exception)
+        end
+
+        it 'should continue matching the list' do
+          Rollbar.configure do |config|
+            config.ignore_internal_errors = ['Net::Foo', 'StandardError']
+          end
+
+          allow(Rollbar.notifier)
+            .to receive(:build_item)
+            .and_raise(RuntimeError.new('internal error'))
+
+          expect(Rollbar.notifier).not_to receive(:process_item)
+          Rollbar.error(exception)
+        end
+      end
+    end
   end
 
   # Backwards
