@@ -34,6 +34,7 @@ module Rollbar
                   :files_processed_size,
                   :files_with_pid_name_enabled,
                   :framework,
+                  :ignore_internal_errors,
                   :ignored_person_ids,
                   :js_enabled,
                   :js_options,
@@ -112,6 +113,11 @@ module Rollbar
       }
       @failover_handlers = []
       @framework = 'Plain'
+      @ignore_internal_errors = [
+        'Net::ReadTimeout',
+        'Net::OpenTimeout',
+        'SocketError'
+      ]
       @ignored_person_ids = []
       @host = nil
       @payload_options = {}

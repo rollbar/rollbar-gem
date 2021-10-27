@@ -531,6 +531,8 @@ module Rollbar
     # report including the exception traceback. If that fails, we'll fall back
     # to a more static failsafe response.
     def report_internal_error(exception, original_error = nil)
+      return if skip_reporting_internal_error(exception)
+
       failsafe_message = ''
       log_error(
         '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
@@ -549,6 +551,23 @@ module Rollbar
     rescue StandardError => e
       send_failsafe(failsafe_message, e, original_error)
       log_error(item ? "[Rollbar] Item: #{item}" : "[Rollbar] Exception: #{exception}")
+    end
+
+    def skip_reporting_internal_error(exception)
+      return true if configuration.ignore_internal_errors == true
+
+      configuration.ignore_internal_errors.each do |error_name|
+        begin
+          error_cls = error_name.split('::').reduce(Module, :const_get)
+          return true if exception.class <= error_cls
+        rescue NameError
+          # Ignore errors and continue matching.
+          # It's possible for a class name in the list to not be resolvable,
+          # and this is ok.
+        end
+      end
+
+      false
     end
 
     ## Payload building functions
