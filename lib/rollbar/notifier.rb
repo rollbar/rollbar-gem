@@ -902,7 +902,7 @@ module Rollbar
 
       uuid_url = Util.uuid_rollbar_url(data, configuration)
       info_message = "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
-      if configuration.async_handler
+      if configuration.use_async && configuration.async_handler
         async_handler = configuration.async_handler.class == Class ? configuration.async_handler : configuration.async_handler.class
         info_message += ". With async handler = #{async_handler}"
       end
