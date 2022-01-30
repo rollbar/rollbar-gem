@@ -1798,6 +1798,16 @@ describe Rollbar do
         Rollbar.configure(&:use_sucker_punch)
         Rollbar.error(exception)
       end
+
+      it "shows 'Rollbar::Delay::SuckerPunch' on the log" do
+        Rollbar.configure do |config|
+          config.use_sucker_punch
+          config.transmit = false
+        end
+
+        expect(Rollbar.notifier).to receive(:log_info).with(/With async handler = Rollbar::Delay::SuckerPunch/)
+        Rollbar.notifier.info('info', 'foo bar')
+      end
     end
 
     describe '#use_shoryuken', :if => defined?(Shoryuken) do
@@ -1807,6 +1817,16 @@ describe Rollbar do
 
         Rollbar.configure(&:use_shoryuken)
         Rollbar.error(exception)
+      end
+
+      it "shows 'Rollbar::Delay::Shoryuken' on the log" do
+        Rollbar.configure do |config|
+          config.use_shoryuken
+          config.transmit = false
+        end
+
+        expect(Rollbar.notifier).to receive(:log_info).with(/With async handler = Rollbar::Delay::Shoryuken/)
+        Rollbar.notifier.info('info', 'foo bar')
       end
     end
 
@@ -1827,6 +1847,16 @@ describe Rollbar do
         end
 
         Rollbar.error(exception)
+      end
+
+      it "shows 'Rollbar::Delay::Sidekiq' on the log" do
+        Rollbar.configure do |config|
+          config.use_sidekiq
+          config.transmit = false
+        end
+
+        expect(Rollbar.notifier).to receive(:log_info).with(/With async handler = Rollbar::Delay::Sidekiq/)
+        Rollbar.notifier.info('info', 'foo bar')
       end
     end
 
@@ -1862,6 +1892,16 @@ describe Rollbar do
         sleep(1) # More reliable than Thread.pass to let the thread set its priority.
         expect(thread.priority).to eq(custom_priority)
         thread.join
+      end
+
+      it "shows 'Rollbar::Delay::Thread' on the log" do
+        Rollbar.configure do |config|
+          config.use_thread
+          config.transmit = false
+        end
+
+        expect(Rollbar.notifier).to receive(:log_info).with(/With async handler = Rollbar::Delay::Thread/)
+        Rollbar.notifier.info('info', 'foo bar')
       end
     end
   end
