@@ -1812,9 +1812,9 @@ describe Rollbar do
 
     describe '#use_sidekiq', :if => defined?(Sidekiq) do
       it 'should instanciate sidekiq delayer with custom values' do
-        Rollbar::Delay::Sidekiq.should_receive(:new).with('queue' => 'test_queue')
+        Rollbar::Delay::Sidekiq.should_receive(:new).with({ 'queue' => 'test_queue' })
         config = Rollbar::Configuration.new
-        config.use_sidekiq 'queue' => 'test_queue'
+        config.use_sidekiq({ 'queue' => 'test_queue' })
       end
 
       it 'should send the payload to sidekiq delayer' do

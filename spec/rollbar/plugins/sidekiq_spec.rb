@@ -64,7 +64,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       it 'constructs scope from msg' do
         allow(rollbar).to receive(:error)
         expect(Rollbar).to receive(:scope).with(
-          :framework => "Sidekiq: #{Sidekiq::VERSION}"
+          { :framework => "Sidekiq: #{Sidekiq::VERSION}" }
         ) { rollbar }
 
         described_class.handle_exception(msg, exception)
