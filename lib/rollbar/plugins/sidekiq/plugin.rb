@@ -50,7 +50,8 @@ module Rollbar
     def self.scrub_params(params)
       options = {
         :params => params,
-        :config => Rollbar.configuration.scrub_fields
+        :config => Rollbar.configuration.scrub_fields,
+        :whitelist => Rollbar.configuration.scrub_whitelist
       }
 
       Rollbar::Scrubbers::Params.call(options)
