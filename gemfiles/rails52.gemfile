@@ -31,7 +31,6 @@ gem 'sucker_punch', '~> 2.0'
 # We need last sinatra that uses rack 2.x and ruby 2.5.x
 gem 'sinatra', :git => 'https://github.com/sinatra/sinatra', :tag =>'v2.1.0'
 
-gem 'codacy-coverage'
 gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'

@@ -40,7 +40,6 @@ gem 'sinatra'
 
 gem 'nokogiri', '~> 1.6.0' if Gem::Version.new(RUBY_VERSION) <= Gem::Version.new('2.0')
 
-gem 'codacy-coverage'
 gem 'simplecov', '<= 0.17.1'
 gem 'sucker_punch', '~> 2.0'
 gem 'webmock', :require => false

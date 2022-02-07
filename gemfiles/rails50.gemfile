@@ -29,7 +29,6 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
-gem 'codacy-coverage'
 gem 'simplecov', '<= 0.17.1'
 gem 'sucker_punch', '~> 2.0'
 
