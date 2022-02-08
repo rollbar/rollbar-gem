@@ -28,7 +28,6 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
-gem 'codacy-coverage'
 gem 'rexml', '<= 3.2.4'
 gem 'shoryuken'
 gem 'simplecov', '<= 0.17.1'

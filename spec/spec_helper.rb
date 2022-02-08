@@ -1,19 +1,13 @@
 begin
   require 'simplecov'
-  require 'codacy-coverage'
 
   SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-    SimpleCov::Formatter::HTMLFormatter,
-    Codacy::Formatter
+    SimpleCov::Formatter::HTMLFormatter
   ]
 
   SimpleCov.start do
     add_filter '/spec/'
   end
-
-  # Skip Codacy when running locally, to display the Simplecov summary in the console
-  # and write an updated coverage/index.html
-  Codacy::Reporter.start if Codacy::Formatter.new.send :should_run?
 rescue LoadError
   # Skip loading
 end

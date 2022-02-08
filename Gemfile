@@ -43,7 +43,6 @@ platforms :rbx do
 end
 
 gem 'capistrano', :require => false
-gem 'codacy-coverage'
 gem 'shoryuken'
 gem 'simplecov'
 gem 'sucker_punch', '~> 2.0'
