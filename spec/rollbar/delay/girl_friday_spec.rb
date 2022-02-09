@@ -1,11 +1,15 @@
 require 'spec_helper'
 
-# require girl_friday in the test instead in the implementation
-# just to let the user decide to load it or not
-require 'girl_friday'
-require 'rollbar/delay/girl_friday'
+describe Rollbar::Delay::GirlFriday,
+         :if => Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.5.0') do
 
-describe Rollbar::Delay::GirlFriday do
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.5.0')
+    # require girl_friday in the test instead in the implementation
+    # to let the user decide to load it or not
+    require 'girl_friday'
+    require 'rollbar/delay/girl_friday'
+  end
+
   before do
     ::GirlFriday::WorkQueue.immediate!
   end
