@@ -115,4 +115,8 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: Rspec
-        run: bundle exec rspec
+        run: |
+          export BUNDLE_GEMFILE=${{ matrix.gemfile }}
+          bundle config path vendor/bundle
+          bundle config gemfile ${{ matrix.gemfile }}
+          bundle exec rspec
