@@ -14,6 +14,12 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
   end
 
+  class PassingJob
+    def do_job_please!(_a, _b)
+      Rollbar.log("A job!")
+    end
+  end
+
   before do
     Delayed::Backend::Test.prepare_worker
 
@@ -46,6 +52,57 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       expect(payload['data'][:request]['handler'])
         .to include({ :args => [:foo, :bar], :method_name => :do_job_please! })
+    end
+  end
+
+  describe 'scope within job' do
+    context 'when Rollbar.configuration.dj_use_scoped_block is false (default)' do
+      before do
+        Rollbar.configuration.dj_use_scoped_block = false
+      end
+
+      it 'does not wrap job in .scoped block' do
+        expect(Rollbar).not_to receive(:scoped).and_call_original
+        PassingJob.new.delay.do_job_please!(:foo, :bar)
+      end
+
+      it 'does not include job data in scope' do
+        job_scope = nil
+
+        Rollbar.stub(:log) do |_msg|
+          job_scope = Rollbar.scope_object
+          nil
+        end
+
+        PassingJob.new.delay.do_job_please!(:foo, :bar)
+
+        expect(job_scope).not_to have_key(:request)
+      end
+    end
+
+    context 'when Rollbar.configuration.dj_use_scoped_block is true' do
+      before do
+        Rollbar.configuration.dj_use_scoped_block = true
+      end
+
+      it 'wraps job in .scoped block' do
+        expect(Rollbar).to receive(:scoped).and_call_original
+        PassingJob.new.delay.do_job_please!(:foo, :bar)
+      end
+
+      it 'includes job data in scope' do
+        job_scope = nil
+
+        Rollbar.stub(:log) do |_msg|
+          job_scope = Rollbar.scope_object
+          nil
+        end
+
+        PassingJob.new.delay.do_job_please!(:foo, :bar)
+
+        expect(job_scope).to have_key(:request)
+        expect(job_scope[:request]).to include("name" => "PassingJob#do_job_please!")
+      end
     end
   end
 

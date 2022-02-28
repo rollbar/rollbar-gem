@@ -22,6 +22,7 @@ module Rollbar
                   :disable_monkey_patch,
                   :disable_rack_monkey_patch,
                   :dj_threshold,
+                  :dj_use_scoped_block,
                   :enable_error_context,
                   :enabled,
                   :endpoint,
@@ -102,6 +103,7 @@ module Rollbar
       @disable_rack_monkey_patch = false
       @enable_error_context = true
       @dj_threshold = 0
+      @dj_use_scoped_block = false
       @async_skip_report_handler = nil
       @enabled = nil # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
