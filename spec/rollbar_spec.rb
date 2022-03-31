@@ -607,6 +607,19 @@ describe Rollbar do
         notifier.warning(exception, 'description', extra_data)
       end
 
+      it 'should report using warn method with a warning level' do
+        expect(notifier).to receive(:report).with('warning', nil, exception, nil, nil)
+        notifier.warn(exception)
+
+        expect(notifier).to receive(:report).with('warning', 'description', exception,
+                                                  nil, nil)
+        notifier.warn(exception, 'description')
+
+        expect(notifier).to receive(:report).with('warning', 'description', exception,
+                                                  extra_data, nil)
+        notifier.warn(exception, 'description', extra_data)
+      end
+
       it 'should report with an error level' do
         expect(notifier).to receive(:report).with('error', nil, exception, nil, nil)
         notifier.error(exception)
