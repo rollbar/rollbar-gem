@@ -14,7 +14,7 @@ shared_examples 'secure_headers' do
     new_body = response.body.join
 
     expect(new_body)
-      .to include('<script type="text/javascript" nonce="lorem-ipsum-nonce">')
+      .to include('<script nonce="lorem-ipsum-nonce">')
     expect(new_body).to include("var _rollbarConfig = #{json_options};")
     expect(new_body).to include(snippet)
   end
@@ -27,7 +27,7 @@ shared_examples 'secure_headers' do
     _, _, response = subject.call(env)
     new_body = response.body.join
 
-    expect(new_body).to include('<script type="text/javascript">')
+    expect(new_body).to include('<script>')
     expect(new_body).to include("var _rollbarConfig = #{json_options};")
     expect(new_body).to include(snippet)
   end
@@ -48,7 +48,7 @@ describe Rollbar::Middleware::Js do
 <html>
   <head>
     <link rel="stylesheet" href="url" type="text/css" media="screen" />
-    <script type="text/javascript" src="foo"></script>
+    <script src="foo"></script>
   </head>
   <body>
     <h1>Testing the middleware</h1>
@@ -60,7 +60,7 @@ describe Rollbar::Middleware::Js do
     <<-HTML
 <html>
   <head><link rel="stylesheet" href="url" type="text/css" media="screen" />
-    <script type="text/javascript" src="foo"></script>
+    <script src="foo"></script>
   </head>
   <body>
     <h1>Testing the middleware</h1>
@@ -74,7 +74,7 @@ describe Rollbar::Middleware::Js do
   <head>
     <meta charset="UTF-8"/>
     <link rel="stylesheet" href="url" type="text/css" media="screen" />
-    <script type="text/javascript" src="foo"></script>
+    <script src="foo"></script>
   </head>
   <body>
     <h1>Testing the middleware</h1>
@@ -89,7 +89,7 @@ describe Rollbar::Middleware::Js do
     <meta content="origin" id="mref" name="referrer">
     <link rel="stylesheet" href="url" type="text/css" media="screen" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <script type="text/javascript" src="foo"></script>
+    <script src="foo"></script>
   </head>
   <body>
     <h1>Testing the middleware</h1>
@@ -262,7 +262,7 @@ describe Rollbar::Middleware::Js do
           _, _, response = subject.call(env)
           new_body = response.body.join
 
-          expect(new_body).to include('<script type="text/javascript">')
+          expect(new_body).to include('<script>')
           expect(new_body).to include("var _rollbarConfig = #{json_options};")
           expect(new_body).to include(snippet)
         end
