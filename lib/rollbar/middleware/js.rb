@@ -141,7 +141,7 @@ module Rollbar
 
         # MUST use the Ruby JSON encoder (JSON#generate).
         # See lib/rollbar/middleware/js/json_value
-        json = ::JSON.generate(js_config)
+        json = ::JSON.generate(js_config, Rollbar::JSON::JsOptionsState.new)
 
         script_tag("var _rollbarConfig = #{json};", env)
       end

@@ -118,7 +118,7 @@ describe Rollbar::Middleware::Js do
   let(:json_options) do
     # MUST use the Ruby JSON encoder (JSON#generate).
     # See lib/rollbar/middleware/js/json_value
-    ::JSON.generate(config[:options])
+    ::JSON.generate(config[:options], Rollbar::JSON::JsOptionsState.new)
   end
 
   shared_examples "doesn't add the snippet or config", :add_js => false do
@@ -408,7 +408,8 @@ describe Rollbar::Middleware::Js do
           { 'Content-Type' => content_type }
         end
         let(:json_value) do
-          Rollbar::JSON::Value.new('function(){ alert("bar") }').to_json
+          Rollbar::JSON::Value.new('function(){ alert("bar") }')
+            .to_json(Rollbar::JSON::JsOptionsState.new)
         end
 
         context 'using Ruby JSON encoder' do
