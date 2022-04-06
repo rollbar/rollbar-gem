@@ -6,7 +6,7 @@ is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == '
 
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
-gem 'rails', '~> 6.1.5'
+gem 'rails', '~> 7.0.2.3'
 gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
 
 gem 'rspec-rails', '~> 4.0.2'
@@ -28,7 +28,7 @@ gem 'sucker_punch', '~> 2.0'
 gem 'sinatra', :git => 'https://github.com/sinatra/sinatra', :tag =>'v2.1.0'
 
 gem 'database_cleaner'
-gem 'delayed_job', '4.1.9', :require => false
+gem 'delayed_job', '4.1.10', :require => false
 gem 'generator_spec'
 gem 'redis'
 gem 'resque'
