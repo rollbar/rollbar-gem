@@ -13,7 +13,7 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-GEMFILE_RAILS_VERSION = '~> 6.1.3'.freeze
+GEMFILE_RAILS_VERSION = '~> 6.1.5'.freeze
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
 gem 'jruby-openssl', :platform => :jruby
