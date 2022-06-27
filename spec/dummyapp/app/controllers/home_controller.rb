@@ -29,11 +29,19 @@ class HomeController < ApplicationController
   def cause_exception_with_locals
     foo = false
 
+    enumerator_using_fibers if params[:test_fibers]
+
     (0..2).each do |index|
       foo = Post
 
       build_hash_with_locals(foo, index)
     end
+  end
+
+  def enumerator_using_fibers
+    # Calling each without a block returns an Iterator.
+    # Calling #next on the iterator causes execution on a fiber.
+    [1, 2, 3].each.next
   end
 
   def build_hash_with_locals(foo, _index)

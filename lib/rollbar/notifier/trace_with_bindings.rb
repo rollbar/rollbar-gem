@@ -55,12 +55,20 @@ module Rollbar
 
       def frame(trace)
         {
-          :binding => trace.binding,
+          :binding => binding(trace),
           :defined_class => trace.defined_class,
           :method_id => trace.method_id,
           :path => trace.path,
           :lineno => trace.lineno
         }
+      end
+
+      def binding(trace)
+        trace.binding
+      rescue StandardError
+        # Ruby internals will raise if we're on a Fiber,
+        # since bindings aren't valid on Fibers.
+        nil
       end
     end
   end
