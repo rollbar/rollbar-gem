@@ -27,7 +27,7 @@ Version < 2.19.0 is compatible with Ruby >= 1.8.7.
 
 ### Ruby 2.6.0
 
-> WARNING: Ruby 2.6.0 introduced a new bug bug ([#15472 -
+> WARNING: Ruby 2.6.0 introduced a new bug ([#15472 -
 Invalid JSON data being sent from Net::HTTP in some cases with Ruby 2.6.0](https://bugs.ruby-lang.org/issues/15472)) that may result in the Rollbar API returning an error when an exception is reported.  (See [rollbar-gem issue #797](https://github.com/rollbar/rollbar-gem/issues/797)).
 
 > UPDATE: This bug is fixed in Ruby 2.6.1, and rollbar-gem has a safe workaround in version >= 2.19.0.
