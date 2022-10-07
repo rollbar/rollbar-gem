@@ -214,7 +214,7 @@ module Rollbar
       return {} unless correct_method
       return {} unless json_request?(rack_req)
 
-      raw_body = rack_req.body.read
+      raw_body = read_raw_body(rack_req.body)
       begin
         Rollbar::JSON.load(raw_body)
       rescue StandardError
@@ -222,8 +222,15 @@ module Rollbar
       end
     rescue StandardError
       {}
-    ensure
-      rack_req.body.rewind
+    end
+
+    def read_raw_body(body)
+      return {} unless body.respond_to?(:rewind)
+
+      body.rewind
+      raw_body = body.read
+      body.rewind
+      raw_body
     end
 
     def json_request?(rack_req)
