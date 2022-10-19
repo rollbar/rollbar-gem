@@ -354,6 +354,47 @@ describe Rollbar::RequestDataExtractor do
       end
     end
 
+    context 'with non-rewindable input' do
+      let(:params) { { 'key' => 'value' } }
+      let(:body) { params.to_json }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  'CONTENT_TYPE' => 'application/json',
+                                  :method => 'POST')
+      end
+
+      # According to Rack 3.0 "The input stream must respond to gets, each, and read"
+      # https://github.com/rack/rack/blob/3.0.0/SPEC.rdoc#the-input-stream-
+      let(:non_rewindable_input) do
+        Class.new do
+          def initialize(body)
+            @body = body
+          end
+
+          def gets
+            @body
+          end
+
+          def read
+            @body
+          end
+
+          def each
+            yield(@body)
+          end
+        end
+      end
+
+      before do
+        env['rack.input'] = non_rewindable_input.new(body)
+      end
+
+      it 'skips extracting the body' do
+        result = subject.extract_request_data_from_rack(env)
+        expect(result[:body]).to be_eql('{}')
+      end
+    end
+
     context 'with POST params' do
       let(:params) { { 'key' => 'value' } }
       let(:env) do
