@@ -1,12 +1,34 @@
-# Rollbar-gem
+<p align="center">
+  <img alt="rollbar-logo" src="https://user-images.githubusercontent.com/3300063/207964480-54eda665-d6fe-4527-ba51-b0ab3f41f10b.png" />
+</p>
+
+<h1 align="center">Rollbar Ruby Gem</h1>
+
+<p align="center">
+  <strong>Proactively discover, predict, and resolve errors in real-time with <a href="https://rollbar.com">Rollbar’s</a> error monitoring platform. <a href="https://rollbar.com/signup/">Start tracking errors today</a>!</strong>
+</p>
+
+
 ![Build Status](https://github.com/rollbar/rollbar-gem/workflows/Rollbar-gem%20CI/badge.svg?tag=latest)
 [![Gem Version](https://badge.fury.io/rb/rollbar.svg)](http://badge.fury.io/rb/rollbar)
 [![SemVer](https://api.dependabot.com/badges/compatibility_score?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&target-version=latest)](https://dependabot.com/compatibility-score.html?dependency-name=rollbar&package-manager=bundler&version-scheme=semver&new-version=latest)
 
 
+---
+
 [Rollbar](https://rollbar.com) is a real-time exception reporting service for Ruby and other languages. The Rollbar service will alert you of problems with your code and help you understand them in a ways never possible before. We love it and we hope you will too.
 
 Rollbar-gem is the SDK for Ruby apps and includes support for apps using Rails, Sinatra, Rack, plain Ruby, and other frameworks.
+
+
+## Key benefits of using Rollbar Ruby Gem are:
+
+- **Frameworks:** Rollbar Ruby Gem supports popular Ruby frameworks such as <a href="https://docs.rollbar.com/docs/rails">Rails</a>, <a href="https://docs.rollbar.com/docs/sinatra">Sinatra</a>, <a href="https://docs.rollbar.com/docs/grape">Grape</a> and more.
+- **Integrations:** Rollbar Ruby has integrations for <a href="https://docs.rollbar.com/docs/resque-integration">Resque</a>, <a href="https://docs.rollbar.com/docs/activejob-integration">ActiveJob</a>, <a href="https://docs.rollbar.com/docs/using-with-rollbar-agent">rollbar-agent</a>, <a href="https://docs.rollbar.com/docs/sidekiq-integration">Sidekiq</a> and more!
+- **Automatic error grouping:** Rollbar aggregates Occurrences caused by the same error into Items that represent application issues. <a href="https://docs.rollbar.com/docs/grouping-occurrences">Learn more about reducing log noise</a>.
+- **Advanced search:** Filter items by many different properties. <a href="https://docs.rollbar.com/docs/search-items">Learn more about search</a>.
+- **Customizable notifications:** Rollbar supports several messaging and incident management tools where your team can get notified about errors and important events by real-time alerts. <a href="https://docs.rollbar.com/docs/notifications">Learn more about Rollbar notifications</a>.
+
 
 ## Setup Instructions
 
