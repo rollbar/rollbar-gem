@@ -66,7 +66,7 @@ else
   gem 'delayed_job', '~> 4.1', :require => false
 end
 gem 'generator_spec'
-gem 'redis'
+gem 'redis', '<= 4.8.0'
 gem 'resque', '< 2.0.0'
 gem 'rubocop', '1.15.0', :require => false # pin specific version, update manually
 gem 'rubocop-performance', :require => false

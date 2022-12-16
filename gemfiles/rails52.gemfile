@@ -34,7 +34,7 @@ gem 'sinatra', :git => 'https://github.com/sinatra/sinatra', :tag =>'v2.1.0'
 gem 'database_cleaner'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
-gem 'redis'
+gem 'redis', '<= 4.8.0'
 gem 'resque'
 gem 'secure_headers', '~> 6.3.2', :require => false
 gem 'simplecov', '<= 0.17.1'
