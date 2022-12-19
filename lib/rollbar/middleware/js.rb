@@ -134,6 +134,7 @@ module Rollbar
 
       def config_js_tag(env)
         require 'json'
+        require 'rollbar/middleware/js/json_value'
 
         js_config = Rollbar::Util.deep_copy(config[:options])
 
