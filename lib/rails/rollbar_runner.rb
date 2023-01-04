@@ -11,19 +11,6 @@ APP_PATH = File.expand_path(
 
 module Rails
   class RollbarRunner
-    class GemResolver
-      def railties_gem
-        Gem::Specification.find_by_name('railties')
-      end
-    end
-
-    class LegacyGemResolver
-      def railties_gem
-        searcher = Gem::GemPathSearcher.new
-        searcher.find('rails')
-      end
-    end
-
     attr_reader :command
 
     def initialize
@@ -75,12 +62,7 @@ module Rails
     end
 
     def railties_gem
-      resolver_class = if Gem::Specification.respond_to?(:find_by_name)
-                         GemResolver
-                       else
-                         LegacyGemResolver
-                       end
-      gem = resolver_class.new.railties_gem
+      gem = Gem::Specification.find_by_name('railties')
 
       abort 'railties gem not found' unless gem
 

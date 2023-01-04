@@ -5,13 +5,8 @@ module Rollbar
     end
 
     def self.setup
-      if String.instance_methods.include?(:encode)
-        require 'rollbar/encoding/encoder'
-        self.encoding_class = Rollbar::Encoding::Encoder
-      else
-        require 'rollbar/encoding/legacy_encoder'
-        self.encoding_class = Rollbar::Encoding::LegacyEncoder
-      end
+      require 'rollbar/encoding/encoder'
+      self.encoding_class = Rollbar::Encoding::Encoder
     end
 
     def self.encode(object)
