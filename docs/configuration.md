@@ -59,10 +59,10 @@ end
 
 ### default_logger
 
-**Default** `Logger.new(STDERR)`
+**Default** `lambda { Logger.new(STDERR) }`
 
 What logger to use for printing debugging and informational messages during
-operation.
+operation. Expects a callable object that returns a logger interface.
 
 ### logger_level
 
