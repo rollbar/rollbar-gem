@@ -488,11 +488,15 @@ module Rollbar
       return unless exception
 
       filter = configuration.exception_level_filters[exception.class.name]
-      if filter.respond_to?(:call)
+      level = if filter.respond_to?(:call)
         filter.call(exception)
       else
         filter
       end
+
+      return level if level && !level.empty?
+
+      configuration.exception_level_filter&.call(exception)
     end
 
     def report(level, message, exception, extra, context)
