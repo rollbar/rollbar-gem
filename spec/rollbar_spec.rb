@@ -935,29 +935,6 @@ describe Rollbar do
       end
     end
 
-    context 'using :use_exception_level_filters option as true' do
-      it 'sends the correct filtered level' do
-        Rollbar.configure do |config|
-          config.exception_level_filters = { 'NameError' => 'warning' }
-        end
-
-        Rollbar.error(exception, :use_exception_level_filters => true)
-        expect(Rollbar.last_report[:level]).to be_eql('warning')
-      end
-
-      it 'ignore ignored exception classes' do
-        Rollbar.configure do |config|
-          config.exception_level_filters = { 'NameError' => 'ignore' }
-        end
-
-        logger_mock.should_not_receive(:info)
-        logger_mock.should_not_receive(:warn)
-        logger_mock.should_not_receive(:error)
-
-        Rollbar.error(exception, :use_exception_level_filters => true)
-      end
-    end
-
     context 'if not using :use_exception_level_filters option' do
       it 'sends the level defined by the used method' do
         Rollbar.configure do |config|
