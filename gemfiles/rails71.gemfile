@@ -6,7 +6,7 @@ is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == '
 
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'jruby-openssl', :platform => :jruby
-gem 'rails', '~> 7.0.8'
+gem 'rails', '~> 7.1.0'
 gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
 
 gem 'rspec-rails', '~> 6.0.3'

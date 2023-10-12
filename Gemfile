@@ -1,6 +1,6 @@
 # This Gemfile is compatible with Ruby 2.5.0 or greater. To test with
 # earlier Rubies, use the appropriate Gemfile from the ./gemfiles/ dir.
-ruby '>= 2.5.0'
+ruby '3.2.2'
 
 source 'https://rubygems.org'
 
@@ -13,7 +13,7 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-GEMFILE_RAILS_VERSION = '~> 6.1.5'.freeze
+GEMFILE_RAILS_VERSION = '~> 7.1.0'.freeze
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
 gem 'jruby-openssl', :platform => :jruby
@@ -21,8 +21,10 @@ gem 'rails', GEMFILE_RAILS_VERSION
 gem 'rake'
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'rspec-rails', '~> 3.4'
-else
+elsif GEMFILE_RAILS_VERSION < '7.0'
   gem 'rspec-rails', '~> 4.0.2'
+else
+  gem 'rspec-rails', '~> 6.0.3'
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'

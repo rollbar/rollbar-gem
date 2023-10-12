@@ -4,7 +4,7 @@ module Rollbar
       module ShowExceptions
         include ExceptionReporter
 
-        def render_exception_with_rollbar(env, exception)
+        def render_exception_with_rollbar(env, exception, wrapper = nil)
           key = 'action_dispatch.show_detailed_exceptions'
 
           if exception.is_a?(ActionController::RoutingError) && env[key]
@@ -15,7 +15,12 @@ module Rollbar
             end
           end
 
-          render_exception_without_rollbar(env, exception)
+          # Rails 7.1 changes the method signature for render_exception.
+          if self.class.instance_method(:render_exception_without_rollbar).arity == 2
+            render_exception_without_rollbar(env, exception)
+          else
+            render_exception_without_rollbar(env, exception, wrapper)
+          end
         end
 
         def call_with_rollbar(env)
