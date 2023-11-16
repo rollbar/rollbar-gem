@@ -651,6 +651,9 @@ module Rollbar
     def do_post(uri, body, access_token)
       http = init_http(uri)
 
+      # Add the following line to disable SSL verification
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
       request = Net::HTTP::Post.new(uri.request_uri)
 
       request.body = pack_ruby260_bytes(body)
