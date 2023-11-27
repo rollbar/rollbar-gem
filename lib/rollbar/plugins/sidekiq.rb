@@ -12,7 +12,7 @@ Rollbar.plugins.define('sidekiq >= 3') do
         chain.add Rollbar::Sidekiq::ResetScope
       end
 
-      config.error_handlers << proc do |e, context|
+      config.error_handlers << proc do |e, context, _sidekiq_config = nil|
         Rollbar::Sidekiq.handle_exception(context, e)
       end
     end
