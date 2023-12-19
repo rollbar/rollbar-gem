@@ -38,7 +38,6 @@ gem 'rack', '2.1.2' if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.3')
 gem 'database_cleaner', '~> 1.8.4'
 gem 'delayed_job', :require => false
 gem 'generator_spec'
-gem 'girl_friday', '>= 0.11.1'
 gem 'redis', '<= 3.3.5'
 gem 'resque'
 gem 'secure_headers', '~> 6.3.2', :require => false

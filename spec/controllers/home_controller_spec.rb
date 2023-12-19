@@ -337,7 +337,9 @@ describe HomeController do
       it 'should include locals in extra data' do
         logger_mock.should_receive(:info).with('[Rollbar] Success').once
 
-        expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+        expect {
+          get '/cause_exception_with_locals?test_fibers=true'
+        }.to raise_exception(NoMethodError)
 
         frames = Rollbar.last_report[:body][:trace][:frames]
 

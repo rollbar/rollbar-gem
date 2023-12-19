@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'rollbar/configuration'
 require 'rollbar/item'
 require 'rollbar/lazy_store'
+require 'rollbar/middleware/js/json_value'
 
 describe Rollbar::Item do
   let(:notifier) { double('notifier', :safely => safely_notifier) }
@@ -908,6 +909,23 @@ describe Rollbar::Item do
 
           item.dump
         end
+      end
+    end
+
+    context 'with js function options' do
+      let(:payload) do
+        {
+          :js_options => {
+            :checkIgnore => Rollbar::JSON::Value.new('function(){ alert("bar") }')
+          }
+        }
+      end
+      let(:item) { Rollbar::Item.build_with(payload) }
+
+      it 'stringifies the js function' do
+        json = item.dump
+
+        expect(json).to include(%q["function(){ alert("bar") }"])
       end
     end
   end

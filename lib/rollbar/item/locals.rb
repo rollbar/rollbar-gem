@@ -32,6 +32,8 @@ module Rollbar
         end
 
         def locals_for(frame)
+          return {} unless frame
+
           {}.tap do |hash|
             frame.local_variables.map do |var|
               hash[var] = prepare_value(frame.local_variable_get(var))

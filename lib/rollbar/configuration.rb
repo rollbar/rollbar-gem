@@ -326,7 +326,7 @@ module Rollbar
     def send_extra_frame_data=(value)
       unless SEND_EXTRA_FRAME_DATA_OPTIONS.include?(value)
         logger.warning(
-          "Wrong 'send_extra_frame_data' value, :none, :app or :full is expected"
+          "Wrong 'send_extra_frame_data' value, :none, :app or :all is expected"
         )
 
         return

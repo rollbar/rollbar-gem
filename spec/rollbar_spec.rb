@@ -2,7 +2,6 @@
 
 require 'logger'
 require 'socket'
-require 'girl_friday'
 require 'redis'
 require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
@@ -606,6 +605,19 @@ describe Rollbar do
         expect(notifier).to receive(:report).with('warning', 'description', exception,
                                                   extra_data, nil)
         notifier.warning(exception, 'description', extra_data)
+      end
+
+      it 'should report using warn method with a warning level' do
+        expect(notifier).to receive(:report).with('warning', nil, exception, nil, nil)
+        notifier.warn(exception)
+
+        expect(notifier).to receive(:report).with('warning', 'description', exception,
+                                                  nil, nil)
+        notifier.warn(exception, 'description')
+
+        expect(notifier).to receive(:report).with('warning', 'description', exception,
+                                                  extra_data, nil)
+        notifier.warn(exception, 'description', extra_data)
       end
 
       it 'should report with an error level' do
@@ -1599,7 +1611,10 @@ describe Rollbar do
 
     let(:logger_mock) { double('Rails.logger').as_null_object }
 
-    it 'should send the payload using the default asynchronous handler girl_friday' do
+    it 'should send the payload using the default asynchronous handler girl_friday',
+       :if => Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.5.0') do
+      require 'girl_friday'
+
       logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
       logger_mock.should_receive(:info).with('[Rollbar] Sending item')
       logger_mock.should_receive(:info).with('[Rollbar] Sending json')
