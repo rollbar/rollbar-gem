@@ -49,7 +49,7 @@ module Rollbar
         logger.info opts[:desc] if opts[:desc]
         yield
       rescue StandardError => e
-        log_error logger, "Error reporting to Rollbar: #{e.inspect}"
+        log_error logger, "Error reporting to Rollbar: #{e.inspect}, #{e.backtrace}"
       end
 
       def deploy_update(capistrano, logger, dry_run, opts = {})
