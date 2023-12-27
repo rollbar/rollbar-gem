@@ -33,8 +33,8 @@ Rollbar.plugins.define('active_job') do
                                          Rollbar::ActiveJob)
         end
         # Rails >= 6.0
-        if defined?(ActionMailer::MailDeliveryJob)
-          ActionMailer::MailDeliveryJob.send(:include, Rollbar::ActiveJob)
+        if defined?(ActionMailer::Base)
+          ActionMailer::Base.send(:include, Rollbar::ActiveJob)
         end
       end
     end
