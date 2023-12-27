@@ -51,7 +51,7 @@ describe Rollbar::ActiveJob do
 
   it 'scrubs all arguments if job has `log_arguments` disabled' do
     allow(TestJob).to receive(:log_arguments?).and_return(false)
-     
+
     expected_params = {
       :job => 'TestJob',
       :job_id => job_id,
@@ -63,6 +63,20 @@ describe Rollbar::ActiveJob do
       TestJob.new(1, 2, 3).perform(exception, job_id)
     rescue StandardError
       nil
+    end
+  end
+
+  context 'disabled in config' do
+    subject { Rollbar.plugins.get('active_job') }
+    before do
+      subject.unload!
+
+      # Configur will load all plugins after applying the config.
+      Rollbar.configure { |c| c.disable_action_mailer_monkey_patch = true }
+    end
+
+    it "isn't loaded" do
+      expect(subject.loaded).to eq(false)
     end
   end
 

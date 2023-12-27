@@ -18,6 +18,7 @@ module Rollbar
                   :custom_data_method,
                   :default_logger,
                   :delayed_job_enabled,
+                  :disable_action_mailer_monkey_patch,
                   :disable_core_monkey_patch,
                   :disable_monkey_patch,
                   :disable_rack_monkey_patch,
@@ -99,6 +100,7 @@ module Rollbar
       @logger_level = :info
       @delayed_job_enabled = true
       @disable_monkey_patch = false
+      @disable_action_mailer_monkey_patch = false
       @disable_core_monkey_patch = false
       @disable_rack_monkey_patch = false
       @enable_error_context = true
