@@ -27,14 +27,11 @@ Rollbar.plugins.define('active_job') do
 
     if defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
       ActiveSupport.on_load(:action_mailer) do
-        # Automatically add to ActionMailer::DeliveryJob
-        if defined?(ActionMailer::DeliveryJob)
+        if defined?(ActionMailer::MailDeliveryJob) # Rails >= 6.0
+          ActionMailer::Base.send(:include, Rollbar::ActiveJob)
+        elsif defined?(ActionMailer::DeliveryJob) # Rails < 6.0
           ActionMailer::DeliveryJob.send(:include,
                                          Rollbar::ActiveJob)
-        end
-        # Rails >= 6.0
-        if defined?(ActionMailer::Base)
-          ActionMailer::Base.send(:include, Rollbar::ActiveJob)
         end
       end
     end
