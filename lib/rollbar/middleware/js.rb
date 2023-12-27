@@ -134,6 +134,7 @@ module Rollbar
 
       def config_js_tag(env)
         require 'json'
+        require 'rollbar/middleware/js/json_value'
 
         js_config = Rollbar::Util.deep_copy(config[:options])
 
@@ -141,7 +142,7 @@ module Rollbar
 
         # MUST use the Ruby JSON encoder (JSON#generate).
         # See lib/rollbar/middleware/js/json_value
-        json = ::JSON.generate(js_config)
+        json = ::JSON.generate(js_config, Rollbar::JSON::JsOptionsState.new)
 
         script_tag("var _rollbarConfig = #{json};", env)
       end
@@ -166,10 +167,9 @@ module Rollbar
       def script_tag(content, env)
         nonce = rails5_nonce(env) || secure_headers_nonce(env)
         script_tag_content = if nonce
-                               "\n<script type=\"text/javascript\" " \
-                                 "nonce=\"#{nonce}\">#{content}</script>"
+                               "\n<script nonce=\"#{nonce}\">#{content}</script>"
                              else
-                               "\n<script type=\"text/javascript\">#{content}</script>"
+                               "\n<script>#{content}</script>"
                              end
 
         html_safe_if_needed(script_tag_content)

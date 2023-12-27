@@ -27,5 +27,9 @@ if defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
       ActionMailer::DeliveryJob.send(:include,
                                      Rollbar::ActiveJob)
     end
+    # Rails >= 6.0
+    if defined?(ActionMailer::MailDeliveryJob)
+      ActionMailer::MailDeliveryJob.send(:include, Rollbar::ActiveJob)
+    end
   end
 end

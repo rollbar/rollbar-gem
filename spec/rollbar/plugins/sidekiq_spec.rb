@@ -64,7 +64,7 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       it 'constructs scope from msg' do
         allow(rollbar).to receive(:error)
         expect(Rollbar).to receive(:scope).with(
-          :framework => "Sidekiq: #{Sidekiq::VERSION}"
+          { :framework => "Sidekiq: #{Sidekiq::VERSION}" }
         ) { rollbar }
 
         described_class.handle_exception(msg, exception)
@@ -102,6 +102,35 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
           'secret' => /\*+/,
           'password' => /\*+/,
           'password_confirmation' => /\*+/
+        )
+      end
+    end
+
+    context 'with scrub_whitelist configured' do
+      let(:ctx_hash) do
+        {
+          :context => 'Job raised exception',
+          :job => job_hash
+        }
+      end
+
+      before do
+        reconfigure_notifier
+        allow(Rollbar.configuration)
+          .to receive(:scrub_fields)
+          .and_return(:scrub_all)
+        allow(Rollbar.configuration)
+          .to receive(:scrub_whitelist)
+          .and_return([:queue, :class])
+      end
+
+      it 'does not scrub the whitelisted fields' do
+        described_class.handle_exception(ctx_hash, exception)
+
+        expect(Rollbar.last_report[:request][:params]).to be_eql_hash_with_regexes(
+          'class' => job_hash['class'],
+          'queue' => job_hash['queue'],
+          'jid' => /\*+/
         )
       end
     end

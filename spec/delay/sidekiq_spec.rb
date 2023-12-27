@@ -13,7 +13,7 @@ rescue LoadError
 end
 
 describe Rollbar::Delay::Sidekiq do
-  let(:payload) { anything }
+  let(:payload) {{ 'foo' => 'bar' }}
 
   describe '#perform' do
     it 'performs payload' do
