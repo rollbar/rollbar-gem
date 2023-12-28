@@ -80,7 +80,7 @@ describe Rollbar::ActiveJob do
     end
   end
 
-  context 'using ActionMailer::DeliveryJob', :if => defined?(ActionMailer::DeliveryJob) do
+  context 'using ActionMailer::DeliveryJob', :if => Gem::Version.new(Rails.version) < Gem::Version.new('6.0') do
     include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
     class TestMailer < ActionMailer::Base
