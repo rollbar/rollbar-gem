@@ -14,11 +14,16 @@ Rollbar.plugins.define('active_job') do
                      arguments
                    end
 
-            Rollbar.error(exception,
-                          :job => self.class.name,
-                          :job_id => job_id,
-                          :use_exception_level_filters => true,
-                          :arguments => args)
+            job_data = {
+              :job => self.class.name,
+              :use_exception_level_filters => true,
+              :arguments => args
+            }
+
+            # job_id isn't present when this is a mailer class.
+            job_data[:job_id] = job_id if defined?(job_id)
+
+            Rollbar.error(exception, job_data)
             raise exception
           end
         end
