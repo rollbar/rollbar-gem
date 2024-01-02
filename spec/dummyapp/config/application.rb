@@ -58,5 +58,9 @@ module Dummy
     if Gem::Version.new(Rails.version) >= Gem::Version.new('4.2.0')
       config.active_job.queue_adapter = :inline
     end
+
+    if Gem::Version.new(Rails.version) >= Gem::Version.new('6.0.0')
+      config.load_defaults 6.0
+    end
   end
 end
