@@ -22,59 +22,46 @@ describe Rollbar::ActiveJob do
     end
   end
 
+  class TestMailer < ActionMailer::Base
+    attr_accessor :arguments
+
+    def test_email(*_arguments)
+      error = StandardError.new('oh no')
+      raise(error)
+    end
+  end
+
   before { reconfigure_notifier }
 
   let(:exception) { StandardError.new('oh no') }
   let(:job_id) { '123' }
   let(:argument) { 12 }
-
-  it 'reports the error to Rollbar' do
-    expected_params = {
+  let(:expected_params) do
+    {
       :job => 'TestJob',
       :job_id => job_id,
       :use_exception_level_filters => true,
       :arguments => [argument]
     }
-    expect(Rollbar).to receive(:error).with(exception, expected_params)
-    begin
-      TestJob.new(argument).perform(exception, job_id)
-    rescue StandardError
-      nil
+  end
+
+  shared_examples 'an ActiveMailer plugin' do
+    it 'reraises the error so the job backend can handle the failure and retry' do
+      expect do
+        TestJob.new(argument).perform(exception, job_id)
+      end.to raise_error exception
     end
-  end
 
-  it 'reraises the error so the job backend can handle the failure and retry' do
-    expect do
-      TestJob.new(argument).perform(exception, job_id)
-    end.to raise_error exception
-  end
+    it 'scrubs all arguments if job has `log_arguments` disabled' do
+      allow(TestJob).to receive(:log_arguments?).and_return(false)
 
-  it 'scrubs all arguments if job has `log_arguments` disabled' do
-    allow(TestJob).to receive(:log_arguments?).and_return(false)
-     
-    expected_params = {
-      :job => 'TestJob',
-      :job_id => job_id,
-      :use_exception_level_filters => true,
-      :arguments => ['******', '******', '******']
-    }
-    expect(Rollbar).to receive(:error).with(exception, expected_params)
-    begin
-      TestJob.new(1, 2, 3).perform(exception, job_id)
-    rescue StandardError
-      nil
-    end
-  end
-
-  context 'using ActionMailer::DeliveryJob', :if => defined?(ActionMailer::DeliveryJob) do
-    include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
-
-    class TestMailer < ActionMailer::Base
-      attr_accessor :arguments
-
-      def test_email(*_arguments)
-        error = StandardError.new('oh no')
-        raise(error)
+      expected_params[:job_id] = job_id
+      expected_params[:arguments] = ['******', '******', '******']
+      expect(Rollbar).to receive(:error).with(exception, expected_params)
+      begin
+        TestJob.new(1, 2, 3).perform(exception, job_id)
+      rescue StandardError
+        nil
       end
     end
 
@@ -85,7 +72,36 @@ describe Rollbar::ActiveJob do
       end.to have_enqueued_job.on_queue('mailers')
     end
 
-    it 'reports the error to Rollbar' do
+    context 'disabled in config' do
+      subject { Rollbar.plugins.get('active_job') }
+      before do
+        subject.unload!
+
+        # Configur will load all plugins after applying the config.
+        Rollbar.configure { |c| c.disable_action_mailer_monkey_patch = true }
+      end
+
+      it "isn't loaded" do
+        expect(subject.loaded).to eq(false)
+      end
+    end
+  end
+
+  context 'using ActionMailer::DeliveryJob', :if => Gem::Version.new(Rails.version) < Gem::Version.new('6.0') do
+    include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
+
+    it_behaves_like 'an ActiveMailer plugin'
+
+    it 'reports the job error to Rollbar' do
+      expect(Rollbar).to receive(:error).with(exception, expected_params)
+      begin
+        TestJob.new(argument).perform(exception, job_id)
+      rescue StandardError
+        nil
+      end
+    end
+
+    it 'reports the mailer error to Rollbar' do
       expected_params = {
         :job => 'ActionMailer::DeliveryJob',
         :use_exception_level_filters => true,
@@ -135,6 +151,35 @@ describe Rollbar::ActiveJob do
       end
       Rollbar.last_report[:body][:trace][:extra][:arguments][3]['user_id']
              .should match(/^*+$/)
+    end
+  end
+
+  context 'using ActionMailer::MailDeliveryJob', :if => Gem::Version.new(Rails.version) >= Gem::Version.new('6.0') do
+    include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
+
+    let(:expected_params) do
+      {
+        :job => 'TestJob',
+        :use_exception_level_filters => true
+      }
+    end
+
+    it_behaves_like 'an ActiveMailer plugin'
+
+    it 'reports the error to Rollbar' do
+      expected_params.delete(:job)
+
+      # In 6+, the re-raise in the plugin will cause the rescue_from to be called twice.
+      expect(Rollbar).to receive(:error).twice.with(kind_of(StandardError),
+                                              hash_including(expected_params))
+
+      perform_enqueued_jobs do
+        begin
+          TestMailer.test_email(argument).deliver_later
+        rescue StandardError => e
+          nil
+        end
+      end
     end
   end
 end
