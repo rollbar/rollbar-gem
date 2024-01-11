@@ -22,15 +22,6 @@ describe Rollbar::ActiveJob do
     end
   end
 
-  class TestMailer < ActionMailer::Base
-    attr_accessor :arguments
-
-    def test_email(*_arguments)
-      error = StandardError.new('oh no')
-      raise(error)
-    end
-  end
-
   before { reconfigure_notifier }
 
   let(:exception) { StandardError.new('oh no') }
@@ -50,19 +41,6 @@ describe Rollbar::ActiveJob do
       expect do
         TestJob.new(argument).perform(exception, job_id)
       end.to raise_error exception
-    end
-
-    it 'scrubs all arguments if job has `log_arguments` disabled' do
-      allow(TestJob).to receive(:log_arguments?).and_return(false)
-
-      expected_params[:job_id] = job_id
-      expected_params[:arguments] = ['******', '******', '******']
-      expect(Rollbar).to receive(:error).with(exception, expected_params)
-      begin
-        TestJob.new(1, 2, 3).perform(exception, job_id)
-      rescue StandardError
-        nil
-      end
     end
 
     it 'job is created' do
@@ -88,6 +66,15 @@ describe Rollbar::ActiveJob do
   end
 
   context 'using ActionMailer::DeliveryJob', :if => Gem::Version.new(Rails.version) < Gem::Version.new('6.0') do
+    class TestMailer < ActionMailer::Base
+      attr_accessor :arguments
+
+      def test_email(*_arguments)
+        error = StandardError.new('oh no')
+        raise(error)
+      end
+    end
+
     include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
     it_behaves_like 'an ActiveMailer plugin'
@@ -115,6 +102,19 @@ describe Rollbar::ActiveJob do
         rescue StandardError
           nil
         end
+      end
+    end
+
+    it 'scrubs all arguments if job has `log_arguments` disabled' do
+      allow(TestJob).to receive(:log_arguments?).and_return(false)
+
+      expected_params[:job_id] = job_id
+      expected_params[:arguments] = ['******', '******', '******']
+      expect(Rollbar).to receive(:error).with(exception, expected_params)
+      begin
+        TestJob.new(1, 2, 3).perform(exception, job_id)
+      rescue StandardError
+        nil
       end
     end
 
@@ -155,12 +155,22 @@ describe Rollbar::ActiveJob do
   end
 
   context 'using ActionMailer::MailDeliveryJob', :if => Gem::Version.new(Rails.version) >= Gem::Version.new('6.0') do
+    class ParentMailer < ActionMailer::Base; end
+
+    class TestMailer2 < ParentMailer
+      def test_email(*_arguments)
+        error = StandardError.new('oh no')
+        raise(error)
+      end
+    end
+
     include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
     let(:expected_params) do
       {
         :job => 'TestJob',
-        :use_exception_level_filters => true
+        :use_exception_level_filters => true,
+        :action => 'test_email'
       }
     end
 
@@ -169,13 +179,12 @@ describe Rollbar::ActiveJob do
     it 'reports the error to Rollbar' do
       expected_params.delete(:job)
 
-      # In 6+, the re-raise in the plugin will cause the rescue_from to be called twice.
-      expect(Rollbar).to receive(:error).twice.with(kind_of(StandardError),
+      expect(Rollbar).to receive(:error).with(kind_of(StandardError),
                                               hash_including(expected_params))
 
       perform_enqueued_jobs do
         begin
-          TestMailer.test_email(argument).deliver_later
+          TestMailer2.test_email(argument).deliver_later
         rescue StandardError => e
           nil
         end
