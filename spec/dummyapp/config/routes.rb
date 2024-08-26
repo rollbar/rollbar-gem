@@ -4,6 +4,8 @@ Dummy::Application.routes.draw do
     member { post :start_session }
   end
 
+  match '/handle_rails_error' => 'home#handle_rails_error', :via => [:get, :post]
+  match '/record_rails_error' => 'home#record_rails_error', :via => [:get, :post]
   match '/cause_exception' => 'home#cause_exception', :via => [:get, :post]
   match '/cause_exception_with_locals' => 'home#cause_exception_with_locals',
         :via => [:get, :post]

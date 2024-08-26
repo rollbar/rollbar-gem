@@ -297,6 +297,71 @@ describe HomeController do
     end
   end
 
+  describe 'rails error subscriber', :type => 'request' do
+    let(:notifier) { Rollbar.notifier }
+
+    before do
+      Rollbar.configure do |config|
+        config.enable_rails_error_subscriber = true
+      end
+    end
+
+    after do
+      Rollbar.configure do |config|
+        config.enable_rails_error_subscriber = false
+      end
+    end
+
+    context 'when Rails Error Subscriber is enabled', if: ::Rails.gem_version >= ::Gem::Version.new('7.1.0') do
+      it '`handle` should not raise an error and report a warning via rails error subscriber' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+
+        expect(Rollbar).to receive(:log) do |level, _, extra|
+          expect(extra[:custom_data_method_context]).to be_eql('application')
+          expect(level.to_s).to be_eql('warning')
+        end
+
+        get '/handle_rails_error'
+      end
+
+      it '`report` should raise an error and report an error via rails error subscriber' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+
+        expect(Rollbar).to receive(:log) do |level, _, extra|
+          expect(extra[:custom_data_method_context]).to be_eql('application')
+          expect(level.to_s).to be_eql('error')
+        end
+
+        expect do
+          get '/record_rails_error'
+        end.to raise_exception(RuntimeError, 'Record Rails error')
+      end
+
+      it 'uncaught exception should raise an error and report an error via rails error subscriber' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+
+        expect(Rollbar).to receive(:log) do |level, _, extra|
+          expect(extra[:custom_data_method_context]).to be_eql('application.action_dispatch')
+          expect(level.to_s).to be_eql('error')
+        end
+
+        expect do
+          get '/cause_exception'
+        end.to raise_exception(NameError, 'Uncaught Rails error')
+      end
+    end
+
+    context 'when Rails Error Subscriber is enabled in unsupported Rails', if: ::Rails.gem_version < ::Gem::Version.new('7.1.0') do
+      it 'uncaught exception should raise an error and report via middleware' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+
+        expect do
+          get '/cause_exception'
+        end.to raise_exception(NameError, 'Uncaught Rails error')
+      end
+    end
+  end
+
   describe 'configuration.locals', :type => 'request',
                                    :if => RUBY_VERSION >= '2.3.0' &&
                                           !(defined?(RUBY_ENGINE) &&

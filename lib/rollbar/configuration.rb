@@ -76,6 +76,7 @@ module Rollbar
                   :web_base,
                   :write_to_file
     attr_reader :before_process,
+                :enable_rails_error_subscriber,
                 :logger_level,
                 :project_gem_paths,
                 :send_extra_frame_data,
@@ -104,6 +105,7 @@ module Rollbar
       @disable_core_monkey_patch = false
       @disable_rack_monkey_patch = false
       @enable_error_context = true
+      @enable_rails_error_subscriber = false
       @dj_threshold = 0
       @dj_use_scoped_block = false
       @async_skip_report_handler = nil
@@ -335,6 +337,20 @@ module Rollbar
       end
 
       @send_extra_frame_data = value
+    end
+
+    def enable_rails_error_subscriber=(enable)
+      return if !defined?(::Rails) || ::Rails.gem_version < ::Gem::Version.new('7.1.0')
+
+      if @enable_rails_error_subscriber && !enable
+        ::Rails.error.unsubscribe(Rollbar::ErrorSubscriber)
+      end
+
+      if !@enable_rails_error_subscriber && enable
+        ::Rails.error.subscribe(Rollbar::ErrorSubscriber.new)
+      end
+
+      @enable_rails_error_subscriber = enable
     end
 
     # allow params to be read like a hash
