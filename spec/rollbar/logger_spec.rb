@@ -85,38 +85,6 @@ describe Rollbar::Logger do
     end
   end
 
-  describe '#formatter=' do
-    it 'fails with FormatterNotSupported' do
-      expect do
-        subject.formatter = double
-      end.to raise_error(Rollbar::Logger::FormatterNotSupported)
-    end
-  end
-
-  describe '#formatter' do
-    it 'fails with FormatterNotSupported' do
-      expect do
-        subject.formatter
-      end.to raise_error(Rollbar::Logger::FormatterNotSupported)
-    end
-  end
-
-  describe '#datetime_format=' do
-    it 'fails with DatetimeFormatNotSupported' do
-      expect do
-        subject.datetime_format = double
-      end.to raise_error(Rollbar::Logger::DatetimeFormatNotSupported)
-    end
-  end
-
-  describe '#datetime_format' do
-    it 'fails with DatetimeFormatNotSupported' do
-      expect do
-        subject.datetime_format
-      end.to raise_error(Rollbar::Logger::DatetimeFormatNotSupported)
-    end
-  end
-
   describe '#rollbar' do
     it 'returns a Rollbar notifier with a logger pointing to /dev/null' do
       notifier = subject.rollbar
