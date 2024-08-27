@@ -303,18 +303,35 @@ describe HomeController do
     before do
       Rollbar.configure do |config|
         config.enable_rails_error_subscriber = true
+        config.capture_uncaught = nil
       end
     end
 
     after do
       Rollbar.configure do |config|
         config.enable_rails_error_subscriber = false
+        config.capture_uncaught = nil
       end
     end
 
     context 'when Rails Error Subscriber is enabled', if: ::Rails.gem_version >= ::Gem::Version.new('7.1.0') do
       it '`handle` should not raise an error and report a warning via rails error subscriber' do
         logger_mock.should_receive(:info).with('[Rollbar] Success').never
+
+        expect(Rollbar).to receive(:log) do |level, _, extra|
+          expect(extra[:custom_data_method_context]).to be_eql('application')
+          expect(level.to_s).to be_eql('warning')
+        end
+
+        get '/handle_rails_error'
+      end
+
+      it '`handle` should report a warning via rails error subscriber when capture_uncaught is false' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+
+        Rollbar.configure do |config|
+          config.capture_uncaught = false
+        end
 
         expect(Rollbar).to receive(:log) do |level, _, extra|
           expect(extra[:custom_data_method_context]).to be_eql('application')
@@ -344,6 +361,20 @@ describe HomeController do
           expect(extra[:custom_data_method_context]).to be_eql('application.action_dispatch')
           expect(level.to_s).to be_eql('error')
         end
+
+        expect do
+          get '/cause_exception'
+        end.to raise_exception(NameError, 'Uncaught Rails error')
+      end
+
+      it 'uncaught exception should not report an error when capture_uncaught is not set' do
+        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+
+        Rollbar.configure do |config|
+          config.capture_uncaught = false
+        end
+
+        expect(Rollbar).to receive(:log).never
 
         expect do
           get '/cause_exception'
