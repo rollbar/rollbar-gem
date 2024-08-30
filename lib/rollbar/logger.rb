@@ -17,12 +17,10 @@ module Rollbar
   class Logger < ::Logger
     class Error < RuntimeError; end
 
-    class DatetimeFormatNotSupported < Error; end
-
-    class FormatterNotSupported < Error; end
-
     def initialize
-      @level = ERROR
+      super(nil)
+
+      self.level = ERROR
     end
 
     def add(severity, message = nil, progname = nil)
@@ -37,22 +35,6 @@ module Rollbar
 
     def <<(message)
       error(message)
-    end
-
-    def formatter=(_)
-      raise(FormatterNotSupported)
-    end
-
-    def formatter
-      raise(FormatterNotSupported)
-    end
-
-    def datetime_format=(_)
-      raise(DatetimeFormatNotSupported)
-    end
-
-    def datetime_format
-      raise(DatetimeFormatNotSupported)
     end
 
     # Returns a Rollbar::Notifier instance with the current global scope and

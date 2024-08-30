@@ -85,45 +85,13 @@ describe Rollbar::Logger do
     end
   end
 
-  describe '#formatter=' do
-    it 'fails with FormatterNotSupported' do
-      expect do
-        subject.formatter = double
-      end.to raise_error(Rollbar::Logger::FormatterNotSupported)
-    end
-  end
-
-  describe '#formatter' do
-    it 'fails with FormatterNotSupported' do
-      expect do
-        subject.formatter
-      end.to raise_error(Rollbar::Logger::FormatterNotSupported)
-    end
-  end
-
-  describe '#datetime_format=' do
-    it 'fails with DatetimeFormatNotSupported' do
-      expect do
-        subject.datetime_format = double
-      end.to raise_error(Rollbar::Logger::DatetimeFormatNotSupported)
-    end
-  end
-
-  describe '#datetime_format' do
-    it 'fails with DatetimeFormatNotSupported' do
-      expect do
-        subject.datetime_format
-      end.to raise_error(Rollbar::Logger::DatetimeFormatNotSupported)
-    end
-  end
-
   describe '#rollbar' do
     it 'returns a Rollbar notifier with a logger pointing to /dev/null' do
       notifier = subject.rollbar
       logger = notifier.configuration.logger
       logdev = logger.instance_eval { @logdev }
 
-      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0')
+      if Gem::Version.new(Logger::VERSION) >= Gem::Version.new('1.4.3')
         # The Logger class no longer creates a LogDevice when the device is `File::NULL`
         # See: ruby/ruby@f3e12caa088cc893a54bc2810ff511e4c89b322b
         expect(logdev).to be_nil
