@@ -28,6 +28,7 @@ module Rollbar
                   :enabled,
                   :endpoint,
                   :environment,
+                  :exception_level_filter,
                   :exception_level_filters,
                   :failover_handlers,
                   :filepath,
@@ -112,6 +113,7 @@ module Rollbar
       @enabled = nil # set to true when configure is called
       @endpoint = DEFAULT_ENDPOINT
       @environment = nil
+      @exception_level_filter = nil
       @exception_level_filters = {
         'ActiveRecord::RecordNotFound' => 'warning',
         'AbstractController::ActionNotFound' => 'warning',
