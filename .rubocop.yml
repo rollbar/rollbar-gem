@@ -156,8 +156,6 @@ Performance/InefficientHashSearch:
 
 Performance/OpenStruct:
   Enabled: true
-  Exclude:
-    - spec/**/*
 
 Performance/RangeInclude:
   Enabled: true
