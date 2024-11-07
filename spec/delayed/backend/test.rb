@@ -1,4 +1,3 @@
-require 'ostruct'
 require 'delayed_job'
 require 'delayed/backend/base'
 

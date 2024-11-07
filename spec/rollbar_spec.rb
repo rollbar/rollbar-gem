@@ -7,7 +7,6 @@ require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
 require 'rollbar/item'
-require 'ostruct'
 
 require 'spec_helper'
 
@@ -242,7 +241,7 @@ describe Rollbar do
           notifier.configuration = configuration
           allow_any_instance_of(Net::HTTP)
             .to receive(:request)
-            .and_return(OpenStruct.new(:code => 500, :body => 'Error'))
+            .and_return(double(code: 500, body: 'Error'))
           @uri = URI.parse(Rollbar::Configuration::DEFAULT_ENDPOINT)
         end
 
@@ -1518,7 +1517,7 @@ describe Rollbar do
     before do
       allow_any_instance_of(Net::HTTP)
         .to receive(:request)
-        .and_return(OpenStruct.new(:code => 200, :body => 'Success'))
+        .and_return(double(code: 200, body: 'Success'))
       @env_vars = clear_proxy_env_vars
     end
 
