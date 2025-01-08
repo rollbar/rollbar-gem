@@ -39,14 +39,14 @@ jobs:
             ruby-version: 3.0.7
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Start Redis
-        uses: supercharge/redis-github-action@1.1.0
+        uses: supercharge/redis-github-action@1.8.0
         with:
-          redis-version: 4
+          redis-version: 6
 
       - name: Setup Ruby > 2.0
         uses: ruby/setup-ruby@v1
