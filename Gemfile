@@ -13,9 +13,9 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-GEMFILE_RAILS_VERSION = '~> 7.1.0'.freeze
-gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
-gem 'jruby-openssl', :platform => :jruby
+GEMFILE_RAILS_VERSION = '~> 7.2.0'.freeze
+gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
+gem 'jruby-openssl', platform: :jruby
 gem 'rails', GEMFILE_RAILS_VERSION
 gem 'rake'
 if GEMFILE_RAILS_VERSION < '6.0'
@@ -27,9 +27,9 @@ else
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
-  gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
+  gem 'sqlite3', '< 1.4.0', platform: [:ruby, :mswin, :mingw]
 else
-  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
+  gem 'sqlite3', '~> 1.4', platform: [:ruby, :mswin, :mingw]
 end
 
 gem 'sidekiq', '>= 6.4.0'
@@ -38,10 +38,9 @@ platforms :rbx do
   gem 'minitest'
   gem 'racc'
   gem 'rubinius-developer_tools'
-  gem 'rubysl', '~> 2.0' if RUBY_VERSION.start_with?('2')
 end
 
-gem 'capistrano', :require => false
+gem 'capistrano', require: false
 gem 'shoryuken'
 gem 'simplecov'
 gem 'sucker_punch', '~> 2.0'
@@ -62,16 +61,16 @@ elsif GEMFILE_RAILS_VERSION < '5.0'
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'
-  gem 'delayed_job', :require => false
+  gem 'delayed_job', require: false
 else
-  gem 'delayed_job', '~> 4.1', :require => false
+  gem 'delayed_job', '~> 4.1', require: false
 end
 gem 'generator_spec'
 gem 'redis', '<= 4.8.0'
 gem 'resque', '< 2.0.0'
-gem 'rubocop', '1.15.0', :require => false # pin specific version, update manually
-gem 'rubocop-performance', :require => false
-gem 'secure_headers', '~> 6.3.2', :require => false
+gem 'rubocop', '1.15.0', require: false # pin specific version, update manually
+gem 'rubocop-performance', require: false
+gem 'secure_headers', '~> 6.3.2', require: false
 gem 'sinatra'
-gem 'webmock', :require => false
+gem 'webmock', require: false
 gemspec
