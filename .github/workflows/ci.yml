@@ -19,6 +19,14 @@ jobs:
           - gemfiles/rails60.gemfile
           - gemfiles/rails61.gemfile
         include:
+          - gemfile: gemfiles/rails80.gemfile
+            ruby-version: 3.4.1
+          - gemfile: gemfiles/rails80.gemfile
+            ruby-version: 3.3.6
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.3.6
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.2.6
           - gemfile: gemfiles/rails71.gemfile
             ruby-version: 3.2.6
           - gemfile: gemfiles/rails71.gemfile
