@@ -38,11 +38,7 @@ if ENV['TRAVIS_JDK_VERSION'] == 'oraclejdk7'
   Rollbar::Configuration::DEFAULT_ENDPOINT = 'https://api-alt.rollbar.com/api/1/item/'.freeze
 end
 
-if Gem::Version.new(Rails.version) < Gem::Version.new('5.0')
-  Rake::Task['dummy:db:setup'].invoke
-else
-  Rake::Task['dummy:db:test:prepare'].invoke
-end
+Rake::Task['dummy:db:test:prepare'].invoke
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 
