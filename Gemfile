@@ -15,7 +15,6 @@ is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == '
 
 GEMFILE_RAILS_VERSION = '~> 7.1.0'.freeze
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
-gem 'appraisal'
 gem 'jruby-openssl', :platform => :jruby
 gem 'rails', GEMFILE_RAILS_VERSION
 gem 'rake'
