@@ -1,6 +1,6 @@
 # This Gemfile is compatible with Ruby 2.5.0 or greater. To test with
 # earlier Rubies, use the appropriate Gemfile from the ./gemfiles/ dir.
-ruby '3.2.2'
+ruby '3.3.6'
 
 source 'https://rubygems.org'
 
