@@ -42,15 +42,8 @@ jobs:
 
       - name: Setup Ruby > 2.0
         uses: ruby/setup-ruby@v1
-        if: ${{ matrix.ruby-version != '2.0.0' }}
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Rails 4.2 ensure bundler version
-        if: ${{ matrix.gemfile == 'gemfiles/rails42.gemfile' }}
-        run: |
-          gem uninstall bundler
-          gem install bundler -v '< 2.0.0'
 
       - name: Bundle Install
         run: |
