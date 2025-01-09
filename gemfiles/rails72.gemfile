@@ -1,0 +1,50 @@
+require 'rubygems/version'
+
+source 'https://rubygems.org'
+
+is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
+
+gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
+gem 'jruby-openssl', platform: :jruby
+gem 'rails', '~> 7.2.2'
+gem 'sqlite3', platform: [:ruby, :mswin, :mingw]
+
+gem 'rspec-rails'
+
+gem 'rake'
+
+gem 'sidekiq'
+
+platforms :rbx do
+  gem 'minitest'
+  gem 'racc'
+  gem 'rubinius-developer_tools'
+end
+
+gem 'sucker_punch'
+
+gem 'sinatra'
+
+gem 'database_cleaner'
+gem 'delayed_job', '~> 4.1.13', require: false
+gem 'generator_spec'
+gem 'redis'
+gem 'resque'
+gem 'secure_headers', require: false
+gem 'simplecov'
+
+unless is_jruby
+  # JRuby doesn't support fork, which is required for this test helper.
+  gem 'rspec-command'
+end
+
+gem 'mime-types'
+
+gem 'webmock', require: false
+
+gem 'aws-sdk-sqs'
+gem 'shoryuken'
+
+gem 'capistrano', require: false
+
+gemspec path: '../'

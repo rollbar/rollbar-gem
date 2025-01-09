@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        ruby-version: [2.5.3, 2.6.0, 2.6.6, 2.7.2]
+        ruby-version: [2.5.9, 2.6.0, 2.6.10, 2.7.8]
         gemfile:
           - gemfiles/rails50.gemfile
           - gemfiles/rails51.gemfile
@@ -19,38 +19,39 @@ jobs:
           - gemfiles/rails60.gemfile
           - gemfiles/rails61.gemfile
         include:
+          - gemfile: gemfiles/rails80.gemfile
+            ruby-version: 3.4.1
+          - gemfile: gemfiles/rails80.gemfile
+            ruby-version: 3.3.6
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.3.6
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.2.6
           - gemfile: gemfiles/rails71.gemfile
-            ruby-version: 3.2.2
+            ruby-version: 3.2.6
           - gemfile: gemfiles/rails71.gemfile
-            ruby-version: 3.1.1
+            ruby-version: 3.1.6
           - gemfile: gemfiles/rails70.gemfile
-            ruby-version: 3.1.1
+            ruby-version: 3.1.6
           - gemfile: gemfiles/rails70.gemfile
-            ruby-version: 3.0.3
+            ruby-version: 3.0.7
           - gemfile: gemfiles/rails61.gemfile
-            ruby-version: 3.0.3
+            ruby-version: 3.0.7
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Start Redis
-        uses: supercharge/redis-github-action@1.1.0
+        uses: supercharge/redis-github-action@1.8.0
         with:
-          redis-version: 4
+          redis-version: 6
 
       - name: Setup Ruby > 2.0
         uses: ruby/setup-ruby@v1
-        if: ${{ matrix.ruby-version != '2.0.0' }}
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Rails 4.2 ensure bundler version
-        if: ${{ matrix.gemfile == 'gemfiles/rails42.gemfile' }}
-        run: |
-          gem uninstall bundler
-          gem install bundler -v '< 2.0.0'
 
       - name: Bundle Install
         run: |

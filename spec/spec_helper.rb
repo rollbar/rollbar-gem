@@ -1,9 +1,8 @@
 begin
   require 'simplecov'
 
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-    SimpleCov::Formatter::HTMLFormatter
-  ]
+  SimpleCov.formatter =
+    SimpleCov::Formatter::MultiFormatter.new([SimpleCov::Formatter::HTMLFormatter])
 
   SimpleCov.start do
     add_filter '/spec/'
@@ -38,11 +37,7 @@ if ENV['TRAVIS_JDK_VERSION'] == 'oraclejdk7'
   Rollbar::Configuration::DEFAULT_ENDPOINT = 'https://api-alt.rollbar.com/api/1/item/'.freeze
 end
 
-if Gem::Version.new(Rails.version) < Gem::Version.new('5.0')
-  Rake::Task['dummy:db:setup'].invoke
-else
-  Rake::Task['dummy:db:test:prepare'].invoke
-end
+Rake::Task['dummy:db:test:prepare'].invoke
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 

@@ -104,6 +104,6 @@ class HomeController < ApplicationController
   end
 
   def recursive_current_user
-    Rollbar.error('Recurisve call to rollbar')
+    Rollbar.error('Recursive call to rollbar')
   end
 end
