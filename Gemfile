@@ -13,11 +13,12 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-GEMFILE_RAILS_VERSION = '~> 7.2.0'.freeze
+GEMFILE_RAILS_VERSION = '~> 8.0.0'.freeze
 gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
 gem 'jruby-openssl', platform: :jruby
 gem 'rails', GEMFILE_RAILS_VERSION
 gem 'rake'
+
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'rspec-rails', '~> 3.4'
 elsif GEMFILE_RAILS_VERSION < '7.0'
@@ -26,7 +27,9 @@ else
   gem 'rspec-rails', '~> 6.0.3'
 end
 
-if GEMFILE_RAILS_VERSION < '6.0'
+if GEMFILE_RAILS_VERSION >= '8.0'
+  gem 'sqlite3', '~> 2.0', platform: [:ruby, :mswin, :mingw]
+elsif GEMFILE_RAILS_VERSION < '6.0'
   gem 'sqlite3', '< 1.4.0', platform: [:ruby, :mswin, :mingw]
 else
   gem 'sqlite3', '~> 1.4', platform: [:ruby, :mswin, :mingw]
@@ -65,6 +68,7 @@ if GEMFILE_RAILS_VERSION < '6.0'
 else
   gem 'delayed_job', '~> 4.1', require: false
 end
+
 gem 'generator_spec'
 gem 'redis', '<= 4.8.0'
 gem 'resque', '< 2.0.0'
