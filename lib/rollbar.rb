@@ -37,7 +37,7 @@ module Rollbar
     def notifier
       # Use the global instance @root_notifier so we don't fall
       # in a infinite loop
-      Thread.current[:_rollbar_notifier] ||= LoggerNotifier.new(@root_notifier)
+      Thread.current[:_rollbar_notifier] ||= LoggerNotifier.new(@root_notifier) # Forked Update: use overridden notifier class
     end
 
     def notifier=(notifier)

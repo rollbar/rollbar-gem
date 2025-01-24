@@ -1,18 +1,32 @@
 require "rollbar/notifier"
 require "json"
 
+# This overrides the Notifier in the original rollbar-gem.
+#
+# It overrides two methods:
+#  1. #send_using_eventmachine(body)
+#  2. #send_body(body)
+# These two methods are the last methods called before messages are sent to the Rollbar server.
+#
+# The override allows for the injection of code that sends messages to the application log
+#  before sending the messages to the Rollbar server.
+#
 module Rollbar
 	class LoggerNotifier < Notifier
+    # This is an override of a method in the original rollbar-gem.
     def send_using_eventmachine(body)
       format_and_log(body)
       super(body)
     end
 
+    # This is an override of a method in the original rollbar-gem.
     def send_body(body)
       format_and_log(body)
       super(body)
     end
 
+    # This method takes the messages meant to be sent to Rollbar's server and logs them to the application log,
+    #  where the Datadog agent will pick up the messages and send them to Datadog.
     def format_and_log(body)
       body_hash = ::JSON.parse(body)
 
