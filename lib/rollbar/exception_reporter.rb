@@ -39,7 +39,7 @@ module Rollbar
 
     def exception_data(exception)
       Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception,
-                  :use_exception_level_filters => true) #Forked update: add indicator for uncaught exceptions
+                  :use_exception_level_filters => true, :uncaught_error => true) #Forked update: add indicator for uncaught exceptions
     end
   end
 end
