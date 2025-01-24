@@ -17,7 +17,8 @@ require 'rollbar/configuration'
 require 'rollbar/logger_proxy'
 require 'rollbar/exceptions'
 require 'rollbar/lazy_store'
-require 'rollbar/notifier'
+#require 'rollbar/notifier'
+require "rollbar/justworks_notifier"
 
 # The Rollbar module. It stores a Rollbar::Notifier per thread and
 # provides some module methods in order to use the current thread notifier.
@@ -37,7 +38,7 @@ module Rollbar
     def notifier
       # Use the global instance @root_notifier so we don't fall
       # in a infinite loop
-      Thread.current[:_rollbar_notifier] ||= Notifier.new(@root_notifier)
+      Thread.current[:_rollbar_notifier] ||= LoggerNotifier.new(@root_notifier)
     end
 
     def notifier=(notifier)
