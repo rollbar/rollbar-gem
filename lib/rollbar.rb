@@ -17,8 +17,7 @@ require 'rollbar/configuration'
 require 'rollbar/logger_proxy'
 require 'rollbar/exceptions'
 require 'rollbar/lazy_store'
-#require 'rollbar/notifier'
-require "rollbar/justworks_notifier"
+require "rollbar/logger_notifier"
 
 # The Rollbar module. It stores a Rollbar::Notifier per thread and
 # provides some module methods in order to use the current thread notifier.
