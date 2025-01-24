@@ -31,6 +31,7 @@ module Rollbar
       body_hash = ::JSON.parse(body)
 
       # Skip logging to application logger for Datadog to pick up. Datadog is already configured to log uncaught errors directly.
+      return if body_hash.dig("data", "body", "trace", "extra", "uncaught_error")
       return if body_hash.dig("data", "body", "message", "extra", "uncaught_error")
 
       level = body_hash.dig("data", "level")
