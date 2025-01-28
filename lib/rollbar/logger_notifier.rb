@@ -15,14 +15,24 @@ module Rollbar
 	class LoggerNotifier < Notifier
     # This is an override of a method in the original rollbar-gem.
     def send_using_eventmachine(body)
-      format_and_log(body)
-      super(body)
+      begin
+        format_and_log(body)
+      rescue => e
+        ::Rails.logger.error("Error in Rollbar::LoggerNotifier#send_using_eventmachine: #{e.message}")
+      ensure
+        super(body)
+      end
     end
 
     # This is an override of a method in the original rollbar-gem.
     def send_body(body)
-      format_and_log(body)
-      super(body)
+      begin
+        format_and_log(body)
+      rescue => e
+        ::Rails.logger.error("Error in Rollbar::LoggerNotifier#send_body: #{e.message}")
+      ensure
+        super(body)
+      end
     end
 
     # This method takes the messages meant to be sent to Rollbar's server and logs them to the application log,
