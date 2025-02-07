@@ -27,6 +27,10 @@ else
   gem 'rspec-rails', '~> 6.0.3'
 end
 
+if GEMFILE_RAILS_VERSION < '7.1'
+  gem 'concurrent-ruby', '1.3.4'
+end
+
 if GEMFILE_RAILS_VERSION < '6.0'
   gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 else
