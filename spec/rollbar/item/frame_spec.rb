@@ -48,7 +48,11 @@ foo13
         '/lib/action_controller/metal/implicit_render.rb'
       end
       let(:frame) do
-        "#{filepath}:7:in `send_action'"
+        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+          "#{filepath}:7:in 'send_action'"
+        else
+          "#{filepath}:7:in `send_action'"
+        end
       end
       let(:options) do
         { :configuration => configuration }
@@ -235,7 +239,11 @@ foo13
 
           context 'having less pre lines than maximum' do
             let(:frame) do
-              "#{filepath}:3:in `send_action'"
+              if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+                "#{filepath}:3:in 'send_action'"
+              else
+                "#{filepath}:3:in `send_action'"
+              end
             end
 
             it 'returns up to 2 pre lines' do
@@ -257,7 +265,11 @@ foo13
 
           context 'having less post lines than maximum' do
             let(:frame) do
-              "#{filepath}:11:in `send_action'"
+              if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+                "#{filepath}:11:in 'send_action'"
+              else
+                "#{filepath}:11:in `send_action'"
+              end
             end
 
             it 'returns up to 2 post lines' do

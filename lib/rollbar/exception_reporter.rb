@@ -27,7 +27,8 @@ module Rollbar
     end
 
     def capture_uncaught?
-      Rollbar.configuration.capture_uncaught != false
+      Rollbar.configuration.capture_uncaught != false &&
+        !Rollbar.configuration.enable_rails_error_subscriber
     end
 
     def log_exception_message(exception)

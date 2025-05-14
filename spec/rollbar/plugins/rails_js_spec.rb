@@ -21,7 +21,7 @@ describe ApplicationController, :type => 'request' do
       get '/test_rollbar_js'
 
       snippet_from_submodule = File.read(
-        File.expand_path('../../../../rollbar.js/dist/rollbar.snippet.js', __FILE__)
+        File.expand_path('../../../../data/rollbar.snippet.js', __FILE__)
       )
 
       expect(response.body).to include(

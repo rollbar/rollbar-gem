@@ -18,7 +18,11 @@ module Rollbar
 
       def to_h
         # parse the line
-        match = frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
+        match = if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+                  frame.match(/(.*):(\d+)(?::in '([^']+)')?/)
+                else
+                  frame.match(/(.*):(\d+)(?::in `([^']+)')?/)
+                end
 
         return unknown_frame unless match
 

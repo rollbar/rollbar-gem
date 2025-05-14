@@ -22,8 +22,22 @@ class HomeController < ApplicationController
     render :json => {}
   end
 
+  def handle_rails_error
+    Rails.error.handle do
+      raise 'Handle Rails error'
+    end
+
+    render :json => {}
+  end
+
+  def record_rails_error
+    Rails.error.record do
+      raise 'Record Rails error'
+    end
+  end
+
   def cause_exception
-    _foo = bar
+    raise NameError, 'Uncaught Rails error'
   end
 
   def cause_exception_with_locals

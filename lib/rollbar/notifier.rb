@@ -9,7 +9,6 @@ require 'rollbar/delay/thread'
 require 'rollbar/logger_proxy'
 require 'rollbar/item'
 require 'rollbar/notifier/trace_with_bindings'
-require 'ostruct'
 
 module Rollbar
   # The notifier class. It has the core functionality

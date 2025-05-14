@@ -48,7 +48,11 @@ describe HomeController do
       trace = body[:trace] || body[:trace_chain][0]
 
       trace[:exception][:class].should eq('NoMethodError')
-      trace[:exception][:message].should =~ /^undefined method `-'/
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+        trace[:exception][:message].should =~ /^undefined method '-'/
+      else
+        trace[:exception][:message].should =~ /^undefined method `-'/
+      end
     end
   end
 end

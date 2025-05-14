@@ -358,8 +358,13 @@ describe Rollbar::Item do
       end
 
       let(:pattern) do
-        /^(undefined\ local\ variable\ or\ method\ `bar'|
-          undefined\ method\ `bar'\ on\ an\ instance\ of)/x
+        if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+          /^(undefined\ local\ variable\ or\ method\ 'bar'|
+            undefined\ method\ 'bar'\ on\ an\ instance\ of)/x
+        else
+          /^(undefined\ local\ variable\ or\ method\ `bar'|
+            undefined\ method\ `bar'\ on\ an\ instance\ of)/x
+        end
       end
 
       it 'should build valid exception data' do

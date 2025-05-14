@@ -1,6 +1,6 @@
 # This Gemfile is compatible with Ruby 2.5.0 or greater. To test with
 # earlier Rubies, use the appropriate Gemfile from the ./gemfiles/ dir.
-ruby '3.2.2'
+ruby '3.4.1'
 
 source 'https://rubygems.org'
 
@@ -25,6 +25,10 @@ elsif GEMFILE_RAILS_VERSION < '7.0'
   gem 'rspec-rails', '~> 4.0.2'
 else
   gem 'rspec-rails', '~> 6.0.3'
+end
+
+if GEMFILE_RAILS_VERSION < '7.1'
+  gem 'concurrent-ruby', '1.3.4'
 end
 
 if GEMFILE_RAILS_VERSION < '6.0'

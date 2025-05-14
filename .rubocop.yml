@@ -65,9 +65,9 @@ Style/FrozenStringLiteralComment:
   Enabled: false
 
 Style/HashSyntax:
-  EnforcedStyle: hash_rockets
+  EnforcedStyle: no_mixed_keys
   SupportedStyles:
-    - hash_rockets
+    - no_mixed_keys
 
 Style/Lambda:
   Enabled: false
@@ -156,8 +156,6 @@ Performance/InefficientHashSearch:
 
 Performance/OpenStruct:
   Enabled: true
-  Exclude:
-    - spec/**/*
 
 Performance/RangeInclude:
   Enabled: true

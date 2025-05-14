@@ -79,3 +79,11 @@ Rollbar.plugins.define('rails-rollbar.js') do
     Rollbar::Js::Frameworks::Rails.new.load(self)
   end
 end
+
+Rollbar.plugins.define('rails-error-subscriber') do
+  dependency { defined?(Rails::VERSION) && Rails::VERSION::MAJOR >= 7 }
+
+  execute! do
+    require 'rollbar/plugins/rails/error_subscriber'
+  end
+end
