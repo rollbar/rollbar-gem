@@ -3,6 +3,7 @@
 require 'logger'
 require 'socket'
 require 'redis'
+require 'active_support'
 require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
@@ -791,12 +792,13 @@ describe Rollbar do
     end
 
     it 'should report exceptions without person or request data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       Rollbar.error(exception)
     end
 
     it 'should not report anything when disabled' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
         config.enabled = false
@@ -806,7 +808,8 @@ describe Rollbar do
     end
 
     it 'should report exceptions without person or request data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       Rollbar.error(exception)
     end
 
@@ -857,6 +860,7 @@ describe Rollbar do
             config.exception_level_filters = { 'NameError' => 'ignore' }
           end
 
+          logger_mock.should_not_receive(:debug)
           logger_mock.should_not_receive(:info)
           logger_mock.should_not_receive(:warn)
           logger_mock.should_not_receive(:error)
@@ -891,6 +895,7 @@ describe Rollbar do
           config.exception_level_filters = { 'NameError' => 'ignore' }
         end
 
+        logger_mock.should_not_receive(:debug)
         logger_mock.should_not_receive(:info)
         logger_mock.should_not_receive(:warn)
         logger_mock.should_not_receive(:error)
@@ -905,7 +910,13 @@ describe Rollbar do
           }
         end
 
-        logger_mock.should_receive(:info)
+        logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
+        logger_mock.should_receive(:info).with(
+          a_string_matching(
+            /^\[Rollbar\] Details: \S+ \(only available if report was successful\)$/
+          )
+        ).once
         logger_mock.should_not_receive(:warn)
         logger_mock.should_not_receive(:error)
 
@@ -949,6 +960,7 @@ describe Rollbar do
           config.exception_level_filters = { 'NameError' => 'ignore' }
         end
 
+        logger_mock.should_not_receive(:debug)
         logger_mock.should_not_receive(:info)
         logger_mock.should_not_receive(:warn)
         logger_mock.should_not_receive(:error)
@@ -981,7 +993,8 @@ describe Rollbar do
     # Skip jruby 1.9+ (https://github.com/jruby/jruby/issues/2373)
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (RUBY_VERSION !~ /^1\.9/)
       it 'should work with an IO object as rack.errors' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success')
+        logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
         Rollbar.error(exception, :env => { :"rack.errors" => IO.new(2, File::WRONLY) })
       end
@@ -999,6 +1012,7 @@ describe Rollbar do
         config.ignored_person_ids += [1]
       end
 
+      logger_mock.should_not_receive(:debug)
       logger_mock.should_not_receive(:info)
       logger_mock.should_not_receive(:warn)
       logger_mock.should_not_receive(:error)
@@ -1051,7 +1065,13 @@ describe Rollbar do
                    .with(exception)
                    .at_least(:once)
                    .and_return('info')
-      logger_mock.should_receive(:info)
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
+      logger_mock.should_receive(:info).with(
+        a_string_matching(
+          /^\[Rollbar\] Details: \S+ \(only available if report was successful\)$/
+        )
+      )
       logger_mock.should_not_receive(:warn)
       logger_mock.should_not_receive(:error)
 
@@ -1324,13 +1344,13 @@ describe Rollbar do
     end
 
     it 'should report simple messages' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       Rollbar.error('Test message')
     end
 
     it 'should not report anything when disabled' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Success')
       Rollbar.configure do |config|
         config.enabled = false
       end
@@ -1343,7 +1363,8 @@ describe Rollbar do
     end
 
     it 'should report messages with extra data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       Rollbar.debug(
         'Test message with extra data',
         'debug',
@@ -1369,33 +1390,35 @@ describe Rollbar do
       expect(logger_mock).to_not receive(:error).with(
         /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./
       )
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       Rollbar.error('Test message with circular extra data', a)
     end
 
     it 'should be able to report form validation errors when they are present' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       user.errors.add(:example, 'error')
       user.report_validation_errors_to_rollbar
     end
 
     it 'should not report form validation errors when they are not present' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Success')
       user.errors.clear
       user.report_validation_errors_to_rollbar
     end
 
     it 'should report messages with extra data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       Rollbar.info('Test message with extra data', :foo => 'bar',
                                                    :hash => { :a => 123, :b => 'xyz' })
     end
 
     it 'should report messages with request, person data and extra data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       request_data = {
         :params => { :foo => 'bar' }
@@ -1458,16 +1481,16 @@ describe Rollbar do
     let(:logger_mock) { double('Rails.logger').as_null_object }
 
     it 'should send the payload over the network by default' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Writing payload to file')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending item').once
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Writing payload to file')
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       Rollbar.error(exception)
     end
 
     it 'should save the payload to a file if set without file for each pid' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Sending item')
-      logger_mock.should_receive(:info).with('[Rollbar] Writing item to file').once
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:debug).with('[Rollbar] Writing item to file').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       filepath = ''
 
@@ -1487,9 +1510,9 @@ describe Rollbar do
     end
 
     it 'should save the payload to a file if set with file for each pid' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Sending item')
-      logger_mock.should_receive(:info).with('[Rollbar] Writing item to file').once
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Sending item')
+      logger_mock.should_receive(:debug).with('[Rollbar] Writing item to file').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       filepath = ''
 
@@ -1614,10 +1637,10 @@ describe Rollbar do
        :if => Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.5.0') do
       require 'girl_friday'
 
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending json').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       Rollbar.configure do |config|
         config.use_async = true
@@ -1633,10 +1656,10 @@ describe Rollbar do
     end
 
     it 'should send the payload using a user-supplied asynchronous handler' do
-      logger_mock.should_receive(:info).with('Custom async handler called')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with('Custom async handler called').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending json').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       Rollbar.configure do |config|
         config.use_async = true
@@ -1650,9 +1673,9 @@ describe Rollbar do
     end
 
     it 'should send the payload as a json string when async_object_payload is false' do
-      logger_mock.should_receive(:info).with('payload class: String')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with('payload class: String').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending json').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       Rollbar.configure do |config|
         config.use_async = true
@@ -1678,10 +1701,10 @@ describe Rollbar do
                  .with('not serialized when async_json_payload is not set')
 
       # Verify payload is received as a hash and converted to json.
-      logger_mock.should_receive(:info).with('payload class: Hash')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending item')
-      logger_mock.should_receive(:info).with('[Rollbar] Sending json')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with('payload class: Hash').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending json').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       Rollbar.configure do |config|
         config.use_async = true
@@ -1718,7 +1741,7 @@ describe Rollbar do
       end
 
       it 'sends a payload generated as String, not as a Hash' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success')
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
         Rollbar.error(exception)
       end
@@ -1806,7 +1829,7 @@ describe Rollbar do
 
     describe '#use_sucker_punch', :if => defined?(SuckerPunch) do
       it 'should send the payload to sucker_punch delayer' do
-        logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+        logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item').once
         expect(Rollbar::Delay::SuckerPunch).to receive(:call)
 
         Rollbar.configure(&:use_sucker_punch)
@@ -1816,7 +1839,7 @@ describe Rollbar do
 
     describe '#use_shoryuken', :if => defined?(Shoryuken) do
       it 'should send the payload to shoryuken delayer' do
-        logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
+        logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item').once
         expect(Rollbar::Delay::Shoryuken).to receive(:call)
 
         Rollbar.configure(&:use_shoryuken)
@@ -2064,8 +2087,8 @@ describe Rollbar do
         config.logger = logger_mock
       end
 
-      logger_mock.should_receive(:info).with('[Rollbar] Sending item').once
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
       scoped_notifier.send(:report_internal_error, exception)
     end
   end
