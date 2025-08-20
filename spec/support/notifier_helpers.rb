@@ -6,6 +6,7 @@ module NotifierHelpers
       # special test access token
       config.access_token = test_access_token
       config.logger = ::Rails.logger
+      config.logger_level = :debug
       config.root = ::Rails.root
       config.framework = "Rails: #{::Rails::VERSION::STRING}"
       config.open_timeout = 60
@@ -22,6 +23,7 @@ module NotifierHelpers
 
     Rollbar.preconfigure do |config|
       config.logger = rails_logger
+      config.logger_level = :debug
       config.environment = defined?(::Rails.env) && ::Rails.env ||
                            defined?(RAILS_ENV) && RAILS_ENV
       config.root = defined?(::Rails.root) && ::Rails.root ||

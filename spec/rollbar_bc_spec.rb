@@ -23,14 +23,14 @@ describe Rollbar do
     end
 
     it 'should report simple messages' do
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
 
       Rollbar.report_message('Test message')
     end
 
     it 'should not report anything when disabled' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Success')
 
       Rollbar.configure do |config|
         config.enabled = false
@@ -40,7 +40,7 @@ describe Rollbar do
     end
 
     it 'should report messages with extra data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
       Rollbar.report_message(
         'Test message with extra data',
         'debug',
@@ -58,20 +58,20 @@ describe Rollbar do
       expect(logger_mock).to_not receive(:error).with(
         /\[Rollbar\] Reporting internal error encountered while sending data to Rollbar./
       )
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
 
       Rollbar.error('Test message with circular extra data', a)
     end
 
     it 'should be able to report form validation errors when they are present' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
       user.errors.add(:example, 'error')
       user.report_validation_errors_to_rollbar
     end
 
     it 'should not report form validation errors when they are not present' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Success')
       user.errors.clear
       user.report_validation_errors_to_rollbar
     end
@@ -98,8 +98,8 @@ describe Rollbar do
 
     it 'should report simple messages' do
       allow(Rollbar).to receive(:notifier).and_return(notifier)
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
       Rollbar.report_message_with_request('Test message')
 
       Rollbar.last_report[:request].should be_nil
@@ -109,8 +109,8 @@ describe Rollbar do
     it 'should report messages with request, person data and extra data' do
       Rollbar.last_report = nil
 
-      logger_mock.should_receive(:info).with('[Rollbar] Scheduling item')
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Scheduling item')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
 
       request_data = {
         :params => { :foo => 'bar' }
@@ -156,12 +156,12 @@ describe Rollbar do
     let(:logger_mock) { double('Rails.logger').as_null_object }
 
     it 'should report exceptions without person or request data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
       Rollbar.report_exception(@exception)
     end
 
     it 'should not report anything when disabled' do
-      logger_mock.should_not_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_not_receive(:debug).with('[Rollbar] Success')
       Rollbar.configure do |config|
         config.enabled = false
       end
@@ -196,7 +196,12 @@ describe Rollbar do
     end
 
     it 'should report exceptions with request and person data' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
+      logger_mock.should_receive(:info).with(
+        a_string_matching(
+          /^\[Rollbar\] Details: \S+ \(only available if report was successful\)$/
+        )
+      ).once
       request_data = {
         :params => { :foo => 'bar' },
         :url => 'http://localhost/',
@@ -217,7 +222,12 @@ describe Rollbar do
     # Skip jruby 1.9+ (https://github.com/jruby/jruby/issues/2373)
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && (RUBY_VERSION !~ /^1\.9/)
       it 'should work with an IO object as rack.errors' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success')
+        logger_mock.should_receive(:debug).with('[Rollbar] Success')
+        logger_mock.should_receive(:info).with(
+          a_string_matching(
+            /^\[Rollbar\] Details: \S+ \(only available if report was successful\)$/
+          )
+        ).once
 
         request_data = {
           :params => { :foo => 'bar' },
@@ -245,6 +255,7 @@ describe Rollbar do
         config.exception_level_filters = { 'NameError' => 'ignore' }
       end
 
+      logger_mock.should_not_receive(:debug)
       logger_mock.should_not_receive(:info)
       logger_mock.should_not_receive(:error)
 
@@ -256,6 +267,7 @@ describe Rollbar do
         config.ignored_person_ids += [1]
       end
 
+      logger_mock.should_not_receive(:debug)
       logger_mock.should_not_receive(:info)
       logger_mock.should_not_receive(:error)
 
@@ -302,7 +314,12 @@ describe Rollbar do
                    .with(@exception)
                    .at_least(:once)
                    .and_return('info')
-      logger_mock.should_receive(:info)
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
+      logger_mock.should_receive(:info).with(
+        a_string_matching(
+          /^\[Rollbar\] Details: \S+ \(only available if report was successful\)$/
+        )
+      ).once
       logger_mock.should_not_receive(:error)
 
       Rollbar.report_exception(@exception)

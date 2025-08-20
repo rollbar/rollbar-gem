@@ -607,11 +607,10 @@ module Rollbar
     def eventmachine_callback(req)
       req.callback do
         if req.response_header.status == 200
-          log_info '[Rollbar] Success'
+          log_debug '[Rollbar] Success'
         else
           log_warning '[Rollbar] Got unexpected status code from Rollbar.io api: ' \
-            "#{req.response_header.status}"
-          log_info "[Rollbar] Response: #{req.response}"
+            "#{req.response_header.status}, response: #{req.response}"
         end
       end
     end
@@ -619,14 +618,14 @@ module Rollbar
     def eventmachine_errback(req)
       req.errback do
         log_warning(
-          "[Rollbar] Call to API failed, status code: #{req.response_header.status}"
+          "[Rollbar] Call to API failed, status code: #{req.response_header.status}, "\
+            "response: #{req.response}"
         )
-        log_info "[Rollbar] Error's response: #{req.response}"
       end
     end
 
     def send_item(item)
-      log_info '[Rollbar] Sending item'
+      log_debug '[Rollbar] Sending item'
 
       body = item.dump
       return unless body
@@ -640,7 +639,7 @@ module Rollbar
     end
 
     def send_body(body)
-      log_info '[Rollbar] Sending json'
+      log_debug '[Rollbar] Sending json'
 
       uri = URI.parse(configuration.endpoint)
 
@@ -750,12 +749,12 @@ module Rollbar
 
     def handle_response(response)
       if response.code == '200'
-        log_info '[Rollbar] Success'
+        log_debug '[Rollbar] Success'
       else
         log_warning(
-          "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}"
+          "[Rollbar] Got unexpected status code from Rollbar api: #{response.code}, " \
+            "response: #{response.body}"
         )
-        log_info "[Rollbar] Response: #{response.body}"
         configuration.execute_hook(:on_error_response, response)
       end
     end
@@ -769,7 +768,7 @@ module Rollbar
     end
 
     def do_write_item(item)
-      log_info '[Rollbar] Writing item to file'
+      log_debug '[Rollbar] Writing item to file'
 
       body = item.dump
       return unless body
@@ -783,7 +782,7 @@ module Rollbar
         @file.flush
         update_file(@file, file_name)
 
-        log_info '[Rollbar] Success'
+        log_debug '[Rollbar] Success'
       rescue IOError => e
         log_error "[Rollbar] Error opening/writing to file: #{e}"
       end
@@ -846,7 +845,7 @@ module Rollbar
     def schedule_item(item)
       return unless item
 
-      log_info '[Rollbar] Scheduling item'
+      log_debug '[Rollbar] Scheduling item'
 
       if configuration.use_async
         process_async_item(item)
