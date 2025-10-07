@@ -249,7 +249,7 @@ describe HomeController do
 
   describe "GET 'index'" do
     it 'should be successful and report two messages' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success').twice
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').twice
       get 'index'
       expect(response.status).to eq(200)
     end
@@ -257,14 +257,14 @@ describe HomeController do
 
   describe "'report_exception'", :type => 'request' do
     it 'should raise a NameError and report an exception after a GET' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       get '/report_exception'
       expect(response.status).to eq(200)
     end
 
     it 'should raise a NameError and have PUT params in the reported exception' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
 
       send_req(:put, '/report_exception', wrap_process_args(:putparam => 'putval'))
 
@@ -274,7 +274,7 @@ describe HomeController do
 
     context 'using deprecated report_exception' do
       it 'reports the errors successfully' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success')
+        logger_mock.should_receive(:debug).with('[Rollbar] Success')
 
         send_req(:put, '/deprecated_report_exception',
                  wrap_process_args(:putparam => 'putval'))
@@ -285,7 +285,7 @@ describe HomeController do
     end
 
     it 'should raise a NameError and have JSON POST params' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success')
+      logger_mock.should_receive(:debug).with('[Rollbar] Success')
       @request.env['HTTP_ACCEPT'] = 'application/json'
 
       params = { :jsonparam => 'jsonval' }.to_json
@@ -316,7 +316,7 @@ describe HomeController do
 
     context 'when Rails Error Subscriber is enabled', if: ::Rails.gem_version >= ::Gem::Version.new('7.1.0') do
       it '`handle` should not raise an error and report a warning via rails error subscriber' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').never
 
         expect(Rollbar).to receive(:log) do |level, _, extra|
           expect(extra[:custom_data_method_context]).to be_eql('application')
@@ -327,7 +327,7 @@ describe HomeController do
       end
 
       it '`handle` should report a warning via rails error subscriber when capture_uncaught is false' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').never
 
         Rollbar.configure do |config|
           config.capture_uncaught = false
@@ -342,7 +342,7 @@ describe HomeController do
       end
 
       it '`report` should raise an error and report an error via rails error subscriber' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').never
 
         expect(Rollbar).to receive(:log) do |level, _, extra|
           expect(extra[:custom_data_method_context]).to be_eql('application')
@@ -355,7 +355,7 @@ describe HomeController do
       end
 
       it 'uncaught exception should raise an error and report an error via rails error subscriber' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').never
 
         expect(Rollbar).to receive(:log) do |level, _, extra|
           expect(extra[:custom_data_method_context]).to be_eql('application.action_dispatch')
@@ -368,7 +368,7 @@ describe HomeController do
       end
 
       it 'uncaught exception should not report an error when capture_uncaught is not set' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').never
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').never
 
         Rollbar.configure do |config|
           config.capture_uncaught = false
@@ -384,7 +384,7 @@ describe HomeController do
 
     context 'when Rails Error Subscriber is enabled in unsupported Rails', if: ::Rails.gem_version < ::Gem::Version.new('7.1.0') do
       it 'uncaught exception should raise an error and report via middleware' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
         expect do
           get '/cause_exception'
@@ -431,7 +431,7 @@ describe HomeController do
       end
 
       it 'should include locals in extra data' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
         expect {
           get '/cause_exception_with_locals?test_fibers=true'
@@ -468,7 +468,7 @@ describe HomeController do
       end
 
       it 'should not include locals in extra data' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
         expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
         expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql(nil)
@@ -478,7 +478,7 @@ describe HomeController do
 
   describe "'cause_exception'", :type => 'request' do
     it 'should raise an uncaught exception and report a message' do
-      logger_mock.should_receive(:info).with('[Rollbar] Success').once
+      logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
       expect { get '/cause_exception' }.to raise_exception(NameError)
     end
@@ -517,7 +517,7 @@ describe HomeController do
       end
 
       it 'middleware should catch the exception and only report to rollbar once' do
-        logger_mock.should_receive(:info).with('[Rollbar] Success').once
+        logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
         get '/cause_exception'
       end

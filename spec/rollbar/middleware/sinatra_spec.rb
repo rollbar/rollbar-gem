@@ -280,7 +280,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
         end
 
         it 'should include locals in extra data' do
-          logger_mock.should_receive(:info).with('[Rollbar] Success').once
+          logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
           expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
 
@@ -315,7 +315,7 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
         end
 
         it 'should not include locals in extra data' do
-          logger_mock.should_receive(:info).with('[Rollbar] Success').once
+          logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
           expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
           expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql(nil)
