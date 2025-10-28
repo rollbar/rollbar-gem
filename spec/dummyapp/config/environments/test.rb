@@ -6,6 +6,7 @@ Dummy::Application.configure do
   # your test database is "scratch space" for the test suite and is wiped
   # and recreated between test runs. Don't rely on the data there!
   config.cache_classes = true
+  config.eager_load = false
 
   # Configure static asset server for tests with Cache-Control for performance
   config.serve_static_assets = true
@@ -19,7 +20,11 @@ Dummy::Application.configure do
   config.action_controller.perform_caching = false
 
   # Raise exceptions instead of rendering exception templates
-  config.action_dispatch.show_exceptions = false
+  if Gem::Version.new(Rails.version) < Gem::Version.new('7.2.0')
+    config.action_dispatch.show_exceptions = false
+  else
+    config.action_dispatch.show_exceptions = :none
+  end
 
   # Disable request forgery protection in test environment
   config.action_controller.allow_forgery_protection = false
