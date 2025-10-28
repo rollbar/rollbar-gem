@@ -433,9 +433,9 @@ describe HomeController do
       it 'should include locals in extra data' do
         logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
-        expect {
+        expect do
           get '/cause_exception_with_locals?test_fibers=true'
-        }.to raise_exception(NoMethodError)
+        end.to raise_exception(NoMethodError)
 
         frames = Rollbar.last_report[:body][:trace][:frames]
 
@@ -454,9 +454,13 @@ describe HomeController do
 
         expect(frames[-3][:locals]).to be_eql(locals[2])
         expect(frames[-4][:locals]).to be_eql(locals[3])
-        # Frames: -5, -6 are not app frames, and have different contents in
-        # different Ruby versions.
-        expect(frames[-7][:locals]).to be_eql(locals[4])
+        # Frames: -5 (and -6 in rails < 8.0) are not app frames, and have different
+        # contents in different Ruby versions.
+        if Gem::Version.new(Rails.version) >= Gem::Version.new('8.0.0')
+          expect(frames[-6][:locals]).to be_eql(locals[4])
+        else
+          expect(frames[-7][:locals]).to be_eql(locals[4])
+        end
       end
     end
 
@@ -470,7 +474,9 @@ describe HomeController do
       it 'should not include locals in extra data' do
         logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
-        expect { get '/cause_exception_with_locals' }.to raise_exception(NoMethodError)
+        expect do
+          get '/cause_exception_with_locals'
+        end.to raise_exception(NoMethodError)
         expect(Rollbar.last_report[:body][:trace][:frames][-1][:locals]).to be_eql(nil)
       end
     end
@@ -480,7 +486,9 @@ describe HomeController do
     it 'should raise an uncaught exception and report a message' do
       logger_mock.should_receive(:debug).with('[Rollbar] Success').once
 
-      expect { get '/cause_exception' }.to raise_exception(NameError)
+      expect do
+        get '/cause_exception'
+      end.to raise_exception(NameError)
     end
 
     context 'with capture_uncaught == false' do
@@ -491,7 +499,9 @@ describe HomeController do
 
         expect(Rollbar).to_not receive(:log)
 
-        expect { get '/cause_exception' }.to raise_exception(NameError)
+        expect do
+          get '/cause_exception'
+        end.to raise_exception(NameError)
       end
     end
 
@@ -513,7 +523,11 @@ describe HomeController do
                    Dummy::Application.env_defaults
                  end
 
-        config['action_dispatch.show_exceptions'] = false
+        if Gem::Version.new(Rails.version) < Gem::Version.new('7.2.0')
+          config['action_dispatch.show_exceptions'] = false
+        else
+          config['action_dispatch.show_exceptions'] = :none
+        end
       end
 
       it 'middleware should catch the exception and only report to rollbar once' do
@@ -661,7 +675,9 @@ describe HomeController do
     before { get '/set_session_data' }
 
     it 'reports the session data' do
-      expect { get '/use_session_data' }.to raise_exception(NoMethodError)
+      expect do
+        get '/use_session_data'
+      end.to raise_exception(NoMethodError)
 
       session_data = Rollbar.last_report[:request][:session]
 
@@ -669,7 +685,9 @@ describe HomeController do
     end
 
     it 'scrubs session id by default from the request' do
-      expect { get '/use_session_data' }.to raise_exception(NoMethodError)
+      expect do
+        get '/use_session_data'
+      end.to raise_exception(NoMethodError)
 
       expect(Rollbar.last_report[:request][:session]['session_id']).to match('\*{3,8}')
     end

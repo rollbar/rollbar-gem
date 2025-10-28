@@ -301,9 +301,13 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
 
           expect(frames[-3][:locals]).to be_eql(locals[2])
           expect(frames[-4][:locals]).to be_eql(locals[3])
-          # Frames: -5, -6 are not app frames, and have different contents in
-          # different Ruby versions.
-          expect(frames[-7][:locals]).to be_eql(locals[4])
+          # Frames: -5 (and -6 in rails < 8.0) are not app frames, and have different
+          # contents in different Ruby versions.
+          if Gem::Version.new(Rails.version) >= Gem::Version.new('8.0.0')
+            expect(frames[-6][:locals]).to be_eql(locals[4])
+          else
+            expect(frames[-7][:locals]).to be_eql(locals[4])
+          end
         end
       end
 

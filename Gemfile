@@ -1,6 +1,6 @@
 # This Gemfile is compatible with Ruby 2.5.0 or greater. To test with
 # earlier Rubies, use the appropriate Gemfile from the ./gemfiles/ dir.
-ruby '3.4.1'
+ruby '3.4.7'
 
 source 'https://rubygems.org'
 
@@ -13,28 +13,31 @@ ENV['CURRENT_GEMFILE'] ||= __FILE__
 
 is_jruby = defined?(JRUBY_VERSION) || (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
 
-GEMFILE_RAILS_VERSION = '~> 7.1.0'.freeze
+GEMFILE_RAILS_VERSION = '8.1.0'.freeze
+GEM_VERSION_RAILS = Gem::Version.new(GEMFILE_RAILS_VERSION)
 gem 'activerecord-jdbcsqlite3-adapter', :platform => :jruby
 gem 'appraisal'
 gem 'jruby-openssl', :platform => :jruby
 gem 'rails', GEMFILE_RAILS_VERSION
 gem 'rake'
-if GEMFILE_RAILS_VERSION < '6.0'
+if GEM_VERSION_RAILS < Gem::Version.new('6.0')
   gem 'rspec-rails', '~> 3.4'
-elsif GEMFILE_RAILS_VERSION < '7.0'
+elsif GEM_VERSION_RAILS < Gem::Version.new('7.0')
   gem 'rspec-rails', '~> 4.0.2'
 else
   gem 'rspec-rails', '~> 6.0.3'
 end
 
-if GEMFILE_RAILS_VERSION < '7.1'
+if GEM_VERSION_RAILS < Gem::Version.new('7.1')
   gem 'concurrent-ruby', '1.3.4'
 end
 
-if GEMFILE_RAILS_VERSION < '6.0'
+if GEM_VERSION_RAILS < Gem::Version.new('8.0')
+  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
+elsif GEM_VERSION_RAILS < Gem::Version.new('6.0')
   gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
 else
-  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
+  gem 'sqlite3', '~> 2.1', :platform => [:ruby, :mswin, :mingw]
 end
 
 gem 'sidekiq', '>= 6.4.0'
@@ -58,15 +61,15 @@ end
 
 gem 'aws-sdk-sqs'
 
-if GEMFILE_RAILS_VERSION >= '5.2'
+if GEM_VERSION_RAILS >= Gem::Version.new('5.2')
   gem 'database_cleaner'
-elsif GEMFILE_RAILS_VERSION.between?('5.0', '5.2')
-  gem 'database_cleaner', '~> 1.8.4'
-elsif GEMFILE_RAILS_VERSION < '5.0'
+elsif GEM_VERSION_RAILS < Gem::Version.new('5.0')
   gem 'database_cleaner', '~> 1.0.0'
+else
+  gem 'database_cleaner', '~> 1.8.4'
 end
 
-if GEMFILE_RAILS_VERSION < '6.0'
+if GEM_VERSION_RAILS < Gem::Version.new('6.0')
   gem 'delayed_job', :require => false
 else
   gem 'delayed_job', '~> 4.1', :require => false
