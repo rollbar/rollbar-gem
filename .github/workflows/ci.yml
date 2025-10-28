@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        ruby-version: [2.5.3, 2.6.0, 2.6.6, 2.7.2]
+        ruby-version: [2.5.9, 2.6.0, 2.6.10, 2.7.8]
         gemfile:
           - gemfiles/rails50.gemfile
           - gemfiles/rails51.gemfile
@@ -19,12 +19,18 @@ jobs:
           - gemfiles/rails60.gemfile
           - gemfiles/rails61.gemfile
         include:
+          - gemfile: gemfiles/rails81.gemfile
+            ruby-version: 3.4.7
+          - gemfile: gemfiles/rails81.gemfile
+            ruby-version: 3.3.10
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.4.7
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.3.10
           - gemfile: gemfiles/rails71.gemfile
-            ruby-version: 3.4.1
+            ruby-version: 3.4.7
           - gemfile: gemfiles/rails71.gemfile
-            ruby-version: 3.2.2
-          - gemfile: gemfiles/rails71.gemfile
-            ruby-version: 3.1.1
+            ruby-version: 3.3.10
           - gemfile: gemfiles/rails70.gemfile
             ruby-version: 3.1.1
           - gemfile: gemfiles/rails70.gemfile

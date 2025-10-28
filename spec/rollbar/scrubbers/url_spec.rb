@@ -20,27 +20,47 @@ describe Rollbar::Scrubbers::URL do
   describe '#call' do
     context 'cannot scrub URLs' do
       let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
+      let(:new_url) { 'http://user@foo.com/some-interesting-path#fragment' }
 
       it 'returns the URL without any change' do
-        expect(subject.call(options)).to be_eql(url)
+        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.3.10')
+          expect(subject.call(options)).to be_eql(url)
+        else
+          # Starting in 3.3.10, Ruby removes the password field.
+          expect(subject.call(options)).to be_eql(new_url)
+        end
       end
     end
 
     context 'with ruby different from 1.8' do
       context 'without data to be scrubbed' do
         let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
+        let(:new_url) { 'http://user@foo.com/some-interesting-path#fragment' }
 
         it 'returns the URL without any change' do
-          expect(subject.call(options)).to be_eql(url)
+          if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.3.10')
+            expect(subject.call(options)).to be_eql(url)
+          else
+            # Starting in 3.3.10, Ruby removes the password field.
+            expect(subject.call(options)).to be_eql(new_url)
+          end
         end
 
         context 'with arrays in params' do
           let(:url) do
             'http://user:password@foo.com/some-interesting-path?foo[]=1&foo[]=2'
           end
+          let(:new_url) do
+            'http://user@foo.com/some-interesting-path?foo[]=1&foo[]=2'
+          end
 
           it 'returns the URL without any change' do
-            expect(subject.call(options)).to be_eql(url)
+            if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.3.10')
+              expect(subject.call(options)).to be_eql(url)
+            else
+              # Starting in 3.3.10, Ruby removes the password field.
+              expect(subject.call(options)).to be_eql(new_url)
+            end
           end
         end
       end
@@ -59,8 +79,14 @@ describe Rollbar::Scrubbers::URL do
 
         it 'returns the URL without any change' do
           expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting-path#fragment}
+          expected_new_url = %r{http://\*{3,8}@foo.com/some-interesting-path#fragment}
 
-          expect(subject.call(options)).to match(expected_url)
+          if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.3.10')
+            expect(subject.call(options)).to match(expected_url)
+          else
+            # Starting in 3.3.10, Ruby removes the password field.
+            expect(subject.call(options)).to match(expected_new_url)
+          end
         end
       end
 
@@ -181,9 +207,15 @@ describe Rollbar::Scrubbers::URL do
       context 'with ruby different from 1.8' do
         context 'cannot scrub URLs' do
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
+          let(:new_url) { 'http://user@foo.com/some-interesting-path#fragment' }
 
           it 'returns the URL without any change' do
-            expect(subject.call(options)).to be_eql(url)
+            if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.3.10')
+              expect(subject.call(options)).to be_eql(url)
+            else
+              # Starting in 3.3.10, Ruby removes the password field.
+              expect(subject.call(options)).to be_eql(new_url)
+            end
           end
         end
 
@@ -201,10 +233,15 @@ describe Rollbar::Scrubbers::URL do
           let(:url) { 'http://user:password@foo.com/some-interesting-path#fragment' }
 
           it 'returns the URL without any change' do
-            expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/
-              some-interesting-path#fragment}x
+            expected_url = %r{http://\*{3,8}:\*{3,8}@foo.com/some-interesting-path#fragment}x
+            expected_new_url = %r{http://\*{3,8}@foo.com/some-interesting-path#fragment}x
 
-            expect(subject.call(options)).to match(expected_url)
+            if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.3.10')
+              expect(subject.call(options)).to match(expected_url)
+            else
+              # Starting in 3.3.10, Ruby removes the password field.
+              expect(subject.call(options)).to match(expected_new_url)
+            end
           end
         end
 
