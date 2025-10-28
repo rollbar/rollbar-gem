@@ -122,10 +122,10 @@ module Rollbar
       end
 
       def join_body(response)
-        response.to_enum.reduce('') do |acc, fragment|
+        response.to_enum.reduce([]) do |acc, fragment|
           acc << fragment.to_s
           acc
-        end
+        end.join("")
       end
 
       def close_old_response(response)
