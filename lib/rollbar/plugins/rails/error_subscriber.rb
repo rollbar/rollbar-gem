@@ -10,6 +10,8 @@ module Rollbar
       # Rails auto injected context
       extra[:controller] = extra[:controller].class.name if extra[:controller]&.respond_to?(:class)
       extra[:job] = extra[:job].class.name if extra[:job]&.respond_to?(:class)
+      extra[:is_uncaught] = !handled
+      extra[:use_exception_level_filters] = !handled
 
       Rollbar.log(severity, error, extra)
     end

@@ -132,6 +132,7 @@ module Rollbar
 
       message, exception, extra, context = extract_arguments(args)
       use_exception_level_filters = use_exception_level_filters?(extra)
+      is_uncaught = uncaught?(extra)
 
       return 'ignored' if ignored?(exception, use_exception_level_filters) ||
                           ignore_before_process?(level, exception, message, extra)
@@ -139,7 +140,9 @@ module Rollbar
       level = lookup_exception_level(level, exception,
                                      use_exception_level_filters)
 
-      ret = report_with_rescue(level, message, exception, extra, context)
+      ret = report_with_rescue(
+        level, message, exception, extra, context, is_uncaught
+      )
 
       raise(exception) if configuration.raise_on_error && exception
 
@@ -157,8 +160,8 @@ module Rollbar
       true
     end
 
-    def report_with_rescue(level, message, exception, extra, context)
-      report(level, message, exception, extra, context)
+    def report_with_rescue(level, message, exception, extra, context, is_uncaught)
+      report(level, message, exception, extra, context, is_uncaught)
     rescue StandardError, SystemStackError => e
       original_error = {
         :message => message,
@@ -412,6 +415,12 @@ module Rollbar
       configuration.use_exception_level_filters_default
     end
 
+    def uncaught?(options)
+      option_value = options && options.delete(:is_uncaught)
+
+      !!option_value
+    end
+
     def call_before_process(options)
       options = options_for_handler(options)
       handlers = configuration.before_process
@@ -494,7 +503,7 @@ module Rollbar
       end
     end
 
-    def report(level, message, exception, extra, context)
+    def report(level, message, exception, extra, context, is_uncaught)
       unless message || exception || extra
         log_error(
           '[Rollbar] Tried to send a report with no message, exception or extra data.'
@@ -503,7 +512,7 @@ module Rollbar
         return 'error'
       end
 
-      item = build_item(level, message, exception, extra, context)
+      item = build_item(level, message, exception, extra, context, is_uncaught)
 
       return 'ignored' if item.ignored?
 
@@ -540,7 +549,7 @@ module Rollbar
       configuration.execute_hook(:on_report_internal_error, exception)
 
       failsafe_message = 'build_item in exception_data'
-      item = build_item('error', nil, exception, { :internal => true }, nil)
+      item = build_item('error', nil, exception, { :internal => true }, nil, false)
 
       failsafe_message = 'error in process_item'
       process_item(item)
@@ -571,7 +580,7 @@ module Rollbar
 
     ## Payload building functions
 
-    def build_item(level, message, exception, extra, context)
+    def build_item(level, message, exception, extra, context, is_uncaught)
       options = {
         :level => level,
         :message => message,
@@ -581,7 +590,8 @@ module Rollbar
         :logger => logger,
         :scope => scope_object,
         :notifier => self,
-        :context => context
+        :context => context,
+        :is_uncaught => is_uncaught
       }
 
       item = Item.new(options)

@@ -37,7 +37,7 @@ describe HomeController do
 
   context 'rollbar base_data' do
     it 'should have the Rails environment' do
-      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil, false)
       data['data'][:environment].should eq(::Rails.env)
     end
 
@@ -46,7 +46,7 @@ describe HomeController do
         config.environment = 'dev'
       end
 
-      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil, false)
       data['data'][:environment].should eq('dev')
     end
 
@@ -55,7 +55,7 @@ describe HomeController do
       ::Rails.env = ''
       preconfigure_rails_notifier
 
-      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil)
+      data = Rollbar.notifier.send(:build_item, 'error', 'message', nil, nil, nil, false)
       data['data'][:environment].should eq('unspecified')
 
       ::Rails.env = old_env

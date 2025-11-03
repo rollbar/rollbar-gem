@@ -38,8 +38,12 @@ module Rollbar
     end
 
     def exception_data(exception)
-      Rollbar.log(Rollbar.configuration.uncaught_exception_level, exception,
-                  :use_exception_level_filters => true)
+      Rollbar.log(
+        Rollbar.configuration.uncaught_exception_level,
+        exception,
+        :is_uncaught => true,
+        :use_exception_level_filters => true
+      )
     end
   end
 end
