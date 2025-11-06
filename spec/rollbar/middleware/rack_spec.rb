@@ -21,7 +21,11 @@ describe Rollbar::Middleware::Rack, :reconfigure_notifier => true do
   end
 
   let(:expected_report_args) do
-    [uncaught_level, exception, { :use_exception_level_filters => true }]
+    [
+      uncaught_level,
+      exception,
+      { :is_uncaught => true, :use_exception_level_filters => true }
+    ]
   end
 
   describe '#call' do

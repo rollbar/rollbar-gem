@@ -24,7 +24,7 @@ module Rollbar
     attr_writer :payload
 
     attr_reader :level, :message, :exception, :extra, :configuration, :scope, :logger,
-                :notifier, :context
+                :notifier, :context, :is_uncaught
 
     def_delegators :payload, :[]
 
@@ -47,6 +47,7 @@ module Rollbar
       @payload = nil
       @notifier = options[:notifier]
       @context = options[:context]
+      @is_uncaught = options[:is_uncaught]
     end
 
     def payload
@@ -100,6 +101,11 @@ module Rollbar
       end
 
       data[:code_version] = configuration.code_version if configuration.code_version
+
+      if is_uncaught
+        data[:attributes] ||= []
+        data[:attributes] << { :key => 'is_uncaught', :value => 'true' }
+      end
 
       return unless defined?(SecureRandom) && SecureRandom.respond_to?(:uuid)
 

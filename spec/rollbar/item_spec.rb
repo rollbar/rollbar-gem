@@ -35,7 +35,8 @@ describe Rollbar::Item do
       :logger => logger,
       :scope => scope,
       :notifier => notifier,
-      :context => context
+      :context => context,
+      :is_uncaught => true
     }
   end
 
@@ -128,6 +129,11 @@ describe Rollbar::Item do
       configuration.environment = 'overridden'
 
       payload['data'][:environment].should eq('overridden')
+    end
+
+    it 'should have the is_uncaught attribute' do
+      payload['data'][:attributes][0][:key].should eq('is_uncaught')
+      payload['data'][:attributes][0][:value].should eq('true')
     end
 
     it 'should not have custom data under default configuration' do

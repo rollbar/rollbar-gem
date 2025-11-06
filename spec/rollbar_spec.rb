@@ -158,7 +158,9 @@ describe Rollbar do
       end
 
       it 'should report a simple message' do
-        expect(notifier).to receive(:report).with('error', 'test message', nil, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'error', 'test message', nil, nil, nil, false
+        )
         notifier.log('error', 'test message')
       end
 
@@ -166,12 +168,14 @@ describe Rollbar do
         extra_data = { :key => 'value', :hash => { :inner_key => 'inner_value' } }
 
         expect(notifier).to receive(:report).with('error', 'test message', nil,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.log('error', 'test message', extra_data)
       end
 
       it 'should report an exception' do
-        expect(notifier).to receive(:report).with('error', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'error', nil, exception, nil, nil, false
+        )
         notifier.log('error', exception)
       end
 
@@ -179,13 +183,13 @@ describe Rollbar do
         extra_data = { :key => 'value', :hash => { :inner_key => 'inner_value' } }
 
         expect(notifier).to receive(:report).with('error', nil, exception, extra_data,
-                                                  nil)
+                                                  nil, false)
         notifier.log('error', exception, extra_data)
       end
 
       it 'should report an exception with a description' do
         expect(notifier).to receive(:report).with('error', 'exception description',
-                                                  exception, nil, nil)
+                                                  exception, nil, nil, false)
         notifier.log('error', exception, 'exception description')
       end
 
@@ -193,7 +197,7 @@ describe Rollbar do
         extra_data = { :key => 'value', :hash => { :inner_key => 'inner_value' } }
 
         expect(notifier).to receive(:report).with('error', 'exception description',
-                                                  exception, extra_data, nil)
+                                                  exception, extra_data, nil, false)
         notifier.log('error', exception, extra_data, 'exception description')
       end
 
@@ -434,7 +438,9 @@ describe Rollbar do
           }
 
           expect(handler).to receive(:call).with(options)
-          expect(notifier).to receive(:report).with(level, message, exception, extra, nil)
+          expect(notifier).to receive(:report).with(
+            level, message, exception, extra, nil, false
+          )
 
           notifier.log(level, message, exception, extra)
         end
@@ -569,80 +575,90 @@ describe Rollbar do
       let(:extra_data) { { :key => 'value', :hash => { :inner_key => 'inner_value' } } }
 
       it 'should report with a debug level' do
-        expect(notifier).to receive(:report).with('debug', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'debug', nil, exception, nil, nil, false
+        )
         notifier.debug(exception)
 
         expect(notifier).to receive(:report).with('debug', 'description', exception, nil,
-                                                  nil)
+                                                  nil, false)
         notifier.debug(exception, 'description')
 
         expect(notifier).to receive(:report).with('debug', 'description', exception,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.debug(exception, 'description', extra_data)
       end
 
       it 'should report with an info level' do
-        expect(notifier).to receive(:report).with('info', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with('info', nil, exception, nil, nil, false)
         notifier.info(exception)
 
         expect(notifier).to receive(:report).with('info', 'description', exception, nil,
-                                                  nil)
+                                                  nil, false)
         notifier.info(exception, 'description')
 
         expect(notifier).to receive(:report).with('info', 'description', exception,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.info(exception, 'description', extra_data)
       end
 
       it 'should report with a warning level' do
-        expect(notifier).to receive(:report).with('warning', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'warning', nil, exception, nil, nil, false
+        )
         notifier.warning(exception)
 
         expect(notifier).to receive(:report).with('warning', 'description', exception,
-                                                  nil, nil)
+                                                  nil, nil, false)
         notifier.warning(exception, 'description')
 
         expect(notifier).to receive(:report).with('warning', 'description', exception,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.warning(exception, 'description', extra_data)
       end
 
       it 'should report using warn method with a warning level' do
-        expect(notifier).to receive(:report).with('warning', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'warning', nil, exception, nil, nil, false
+        )
         notifier.warn(exception)
 
         expect(notifier).to receive(:report).with('warning', 'description', exception,
-                                                  nil, nil)
+                                                  nil, nil, false)
         notifier.warn(exception, 'description')
 
         expect(notifier).to receive(:report).with('warning', 'description', exception,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.warn(exception, 'description', extra_data)
       end
 
       it 'should report with an error level' do
-        expect(notifier).to receive(:report).with('error', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'error', nil, exception, nil, nil, false
+        )
         notifier.error(exception)
 
         expect(notifier).to receive(:report).with('error', 'description', exception, nil,
-                                                  nil)
+                                                  nil, false)
         notifier.error(exception, 'description')
 
         expect(notifier).to receive(:report).with('error', 'description', exception,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.error(exception, 'description', extra_data)
       end
 
       it 'should report with a critical level' do
-        expect(notifier).to receive(:report).with('critical', nil, exception, nil, nil)
+        expect(notifier).to receive(:report).with(
+          'critical', nil, exception, nil, nil, false
+        )
         notifier.critical(exception)
 
         expect(notifier).to receive(:report).with('critical', 'description', exception,
-                                                  nil, nil)
+                                                  nil, nil, false)
         notifier.critical(exception, 'description')
 
         expect(notifier).to receive(:report).with('critical', 'description', exception,
-                                                  extra_data, nil)
+                                                  extra_data, nil, false)
         notifier.critical(exception, 'description', extra_data)
       end
     end
@@ -743,7 +759,7 @@ describe Rollbar do
         expect(logger_mock).to receive(:error).with(message)
         expect(notifier).not_to receive(:schedule_payload)
 
-        result = notifier.send(:report, 'info', nil, nil, nil, nil)
+        result = notifier.send(:report, 'info', nil, nil, nil, nil, false)
         result.should == 'error'
       end
 
@@ -761,7 +777,7 @@ describe Rollbar do
 
         expect(notifier).not_to receive(:schedule_payload)
 
-        result = notifier.send(:report, 'info', 'message', nil, nil, nil)
+        result = notifier.send(:report, 'info', 'message', nil, nil, nil, false)
         result.should == 'ignored'
       end
     end
@@ -1947,7 +1963,7 @@ describe Rollbar do
         gem_spec.gem_dir if gem_spec
       end.compact
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil, false)['data']
       data[:project_package_paths].is_a?(Array).should eq(true)
       data[:project_package_paths].length.should eq(gem_paths.length)
 
@@ -1972,7 +1988,7 @@ describe Rollbar do
       gem_paths.any? { |path| path.include? 'rollbar-gem' }.should eq(true)
       gem_paths.any? { |path| path.include? 'rspec-rails' }.should eq(true)
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil, false)['data']
       data[:project_package_paths].is_a?(Array).should eq(true)
       data[:project_package_paths].length.should eq(gem_paths.length)
       (data[:project_package_paths] - gem_paths).length.should eq(0)
@@ -1985,7 +2001,7 @@ describe Rollbar do
         config.project_gems = gems
       end
 
-      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil)['data']
+      data = notifier.send(:build_item, 'info', 'test', nil, {}, nil, false)['data']
       data[:project_package_paths].is_a?(Array).should eq(true)
       data[:project_package_paths].length.should eq(1)
     end
