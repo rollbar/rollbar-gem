@@ -20,15 +20,19 @@ jobs:
           - gemfiles/rails61.gemfile
         include:
           - gemfile: gemfiles/rails81.gemfile
-            ruby-version: 3.4.7
+            ruby-version: 4.0.0
+          - gemfile: gemfiles/rails81.gemfile
+            ruby-version: 3.4.8
           - gemfile: gemfiles/rails81.gemfile
             ruby-version: 3.3.10
           - gemfile: gemfiles/rails72.gemfile
-            ruby-version: 3.4.7
+            ruby-version: 4.0.0
+          - gemfile: gemfiles/rails72.gemfile
+            ruby-version: 3.4.8
           - gemfile: gemfiles/rails72.gemfile
             ruby-version: 3.3.10
           - gemfile: gemfiles/rails71.gemfile
-            ruby-version: 3.4.7
+            ruby-version: 3.4.8
           - gemfile: gemfiles/rails71.gemfile
             ruby-version: 3.3.10
           - gemfile: gemfiles/rails70.gemfile
