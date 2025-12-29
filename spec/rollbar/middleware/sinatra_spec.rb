@@ -293,17 +293,29 @@ describe Rollbar::Middleware::Sinatra, :reconfigure_notifier => true do
           else
             expect(frames[-2][:method]).to be_eql('tap')
           end
-          if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0')
+          if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('4.0.0')
+            expect(frames[-2][:locals]).to be_eql(locals[1])
+          elsif Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0')
             expect(frames[-2][:locals]).to be_nil
           else
             expect(frames[-2][:locals]).to be_eql(locals[1])
           end
 
-          expect(frames[-3][:locals]).to be_eql(locals[2])
-          expect(frames[-4][:locals]).to be_eql(locals[3])
-          # Frames: -5 (and -6 in rails < 8.0) are not app frames, and have different
-          # contents in different Ruby versions.
-          if Gem::Version.new(Rails.version) >= Gem::Version.new('8.0.0')
+          if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('4.0.0')
+            expect(frames[-3][:locals]).to be_eql(locals[3])
+          else
+            expect(frames[-3][:locals]).to be_eql(locals[2])
+            expect(frames[-4][:locals]).to be_eql(locals[3])
+          end
+
+          # Skip non-app frames, which vary based on Ruby and Rails versions
+          if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('4.0.0')
+            if Gem::Version.new(Rails.version) >= Gem::Version.new('8.0.0')
+              expect(frames[-5][:locals]).to be_eql(locals[4])
+            else
+              expect(frames[-4][:locals]).to be_eql(locals[4])
+            end
+          elsif Gem::Version.new(Rails.version) >= Gem::Version.new('8.0.0')
             expect(frames[-6][:locals]).to be_eql(locals[4])
           else
             expect(frames[-7][:locals]).to be_eql(locals[4])

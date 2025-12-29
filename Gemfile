@@ -1,6 +1,6 @@
 # This Gemfile is compatible with Ruby 2.5.0 or greater. To test with
 # earlier Rubies, use the appropriate Gemfile from the ./gemfiles/ dir.
-ruby '3.4.7'
+ruby '4.0.0'
 
 source 'https://rubygems.org'
 
@@ -74,6 +74,11 @@ if GEM_VERSION_RAILS < Gem::Version.new('6.0')
 else
   gem 'delayed_job', '~> 4.1', :require => false
 end
+
+gem 'cgi' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.5.0')
+
+gem 'benchmark' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('4.0.0')
+
 gem 'generator_spec'
 gem 'redis', '<= 4.8.0'
 gem 'resque', '< 2.0.0'
