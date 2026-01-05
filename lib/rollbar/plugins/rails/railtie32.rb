@@ -9,8 +9,10 @@ module Rollbar
       require 'rollbar/middleware/rails/rollbar'
       require 'rollbar/middleware/rails/show_exceptions'
 
-      app.config.middleware.insert_after ActionDispatch::DebugExceptions,
-                                         Rollbar::Middleware::Rails::RollbarMiddleware
+      unless defined?(Rollbar::NO_RAILS_MIDDLEWARE) && Rollbar::NO_RAILS_MIDDLEWARE
+        app.config.middleware.insert_after ActionDispatch::DebugExceptions,
+                                           Rollbar::Middleware::Rails::RollbarMiddleware
+      end
       ActionDispatch::DebugExceptions.send(:include,
                                            Rollbar::Middleware::Rails::ShowExceptions)
     end
