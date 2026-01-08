@@ -134,10 +134,14 @@ describe Rollbar::Util do
     it 'should replace invalid utf8 values' do
       bad_key = force_to_ascii("inner \x92bad key")
 
+      class ObjClass; def to_s; "bad obj\255".force_encoding('ASCII-8BIT'); end; end
+      bad_obj = ObjClass.new
+
       payload = {
         :bad_value => force_to_ascii("bad value 1\255"),
         :bad_value2 => force_to_ascii("bad\255 value 2"),
         force_to_ascii("bad\255 key") => 'good value',
+        :bad_obj => bad_obj,
         :hash => {
           :inner_bad_value => force_to_ascii("\255\255bad value 3"),
           bad_key.to_sym => 'inner good value',
@@ -157,6 +161,7 @@ describe Rollbar::Util do
       payload_copy[:bad_value].should eq('bad value 1')
       payload_copy[:bad_value2].should eq('bad value 2')
       payload_copy['bad key'].should eq('good value')
+      payload_copy[:bad_obj].should eq('bad obj')
       payload_copy.keys.should_not include("bad\456 key")
       payload_copy[:hash][:inner_bad_value].should eq('bad value 3')
       payload_copy[:hash][:"inner bad key"].should eq('inner good value')
