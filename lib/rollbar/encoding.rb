@@ -10,11 +10,12 @@ module Rollbar
     end
 
     def self.encode(object)
-      can_be_encoded = object.is_a?(String) || object.is_a?(Symbol)
-
-      return object unless can_be_encoded
-
-      encoding_class.new(object).encode
+      case object
+      when Numeric, TrueClass, FalseClass, NilClass
+        object
+      else
+        encoding_class.new(object).encode
+      end
     end
   end
 end
