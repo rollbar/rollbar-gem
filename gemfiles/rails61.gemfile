@@ -32,7 +32,7 @@ gem 'database_cleaner'
 gem 'delayed_job', '4.1.9', :require => false
 gem 'generator_spec'
 gem 'redis', '<= 4.8.0'
-gem 'resque'
+gem 'resque', '2.7.0'
 gem 'secure_headers', '~> 6.3.2', :require => false
 gem 'simplecov'
 
