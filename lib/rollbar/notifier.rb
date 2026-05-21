@@ -909,9 +909,12 @@ module Rollbar
       return unless data[:uuid]
 
       uuid_url = Util.uuid_rollbar_url(data, configuration)
-      log_info(
-        "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
-      )
+      info_message = "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
+      if configuration.use_async && configuration.async_handler
+        async_handler = configuration.async_handler.class == Class ? configuration.async_handler : configuration.async_handler.class
+        info_message += ". With async handler = #{async_handler}"
+      end
+      log_info(info_message)
     end
 
     def via_failsafe?(item)
