@@ -454,6 +454,63 @@ describe Rollbar::Middleware::Js do
       end
     end
 
+    context 'with exclude_paths config' do
+      let(:body) { [html] }
+      let(:status) { 200 }
+      let(:headers) do
+        { 'Content-Type' => content_type }
+      end
+      let(:config) do
+        {
+          :enabled => true,
+          :options => { :foo => :bar },
+          :exclude_paths => ['/api-docs', %r{\A/health}]
+        }
+      end
+
+      context 'when PATH_INFO matches a String entry by prefix' do
+        let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+        include_examples "doesn't add the snippet or config"
+      end
+
+      context 'when PATH_INFO matches a Regexp entry' do
+        let(:env) { { 'PATH_INFO' => '/health/check' } }
+
+        include_examples "doesn't add the snippet or config"
+      end
+
+      context 'when PATH_INFO does not match any entry' do
+        let(:env) { { 'PATH_INFO' => '/dashboard' } }
+
+        it 'adds the config and the snippet to the response' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+        end
+      end
+
+      context 'when exclude_paths is not set' do
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar }
+          }
+        end
+        let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+        it 'adds the config and the snippet to the response' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+        end
+      end
+    end
+
     context 'having the config disabled', :add_js => false do
       let(:body) { ['foobar'] }
       let(:status) { 302 }
