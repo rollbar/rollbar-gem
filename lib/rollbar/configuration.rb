@@ -39,6 +39,7 @@ module Rollbar
                   :ignore_internal_errors,
                   :ignored_person_ids,
                   :js_enabled,
+                  :js_exclude_paths,
                   :js_options,
                   :host,
                   :locals,
@@ -139,6 +140,7 @@ module Rollbar
       @net_retries = 3
       @root = nil
       @js_enabled = false
+      @js_exclude_paths = []
       @js_options = {}
       @locals = {}
       @scrub_fields = [:passwd, :password, :password_confirmation, :secret,
