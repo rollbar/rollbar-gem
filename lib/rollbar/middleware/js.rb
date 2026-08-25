@@ -56,7 +56,7 @@ module Rollbar
 
         path = env['PATH_INFO'].to_s
         exclude_paths.any? do |matcher|
-          matcher.is_a?(Regexp) ? matcher.match?(path) : path.start_with?(matcher.to_s)
+          matcher.is_a?(Regexp) ? matcher.match(path) : path.start_with?(matcher.to_s)
         end
       end
 
