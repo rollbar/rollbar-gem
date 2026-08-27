@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rollbar-gem
+  description: "Exception tracking and logging from Ruby to Rollbar"
+  annotations:
+    github.com/project-slug: justworkshr/rollbar-gem
+    tags:
+    - ruby
+spec:
+  lifecycle: production
+  type: library
+  owner: security
