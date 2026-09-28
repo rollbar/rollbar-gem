@@ -58,7 +58,7 @@ module Rollbar
           if matcher.is_a?(Regexp)
             matcher.match(path)
           else
-            prefix = matcher.to_s
+            prefix = matcher.to_s.chomp('/')
             path == prefix || path.start_with?("#{prefix}/")
           end
         end

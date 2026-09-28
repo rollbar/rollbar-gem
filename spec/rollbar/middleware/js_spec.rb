@@ -541,6 +541,28 @@ describe Rollbar::Middleware::Js do
         end
       end
 
+      context 'when a String entry has a trailing slash' do
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar },
+            :exclude_paths => ['/api-docs/']
+          }
+        end
+
+        context 'and PATH_INFO is the entry without the slash' do
+          let(:env) { { 'PATH_INFO' => '/api-docs' } }
+
+          include_examples "doesn't add the snippet or config"
+        end
+
+        context 'and PATH_INFO is below the entry' do
+          let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+          include_examples "doesn't add the snippet or config"
+        end
+      end
+
       context 'when exclude_paths is a bare String instead of an Array' do
         let(:config) do
           {

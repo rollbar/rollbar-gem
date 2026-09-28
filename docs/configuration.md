@@ -168,7 +168,8 @@ entry, `Rollbar::Middleware::Js` skips injecting the rollbar.js config/snippet
 (`SCRIPT_NAME` + `PATH_INFO`), so this also works for paths served by a
 mounted Rack engine. A `String` entry matches that exact path or anything
 under it (`'/api-docs'` matches `/api-docs` and `/api-docs/index.html`, but
-not `/api-docs-internal`); use a `Regexp` for other matching needs. Only
+not `/api-docs-internal`). A trailing slash on a `String` entry is ignored.
+Use a `Regexp` for other matching needs. Only
 takes effect when `js_enabled` is `true`.
 
 ```ruby
