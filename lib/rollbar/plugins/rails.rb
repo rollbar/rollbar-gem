@@ -51,7 +51,8 @@ Rollbar.plugins.define('rails-rollbar.js') do
 
                     config = {
                       :options => Rollbar.configuration.js_options,
-                      :enabled => Rollbar.configuration.js_enabled
+                      :enabled => Rollbar.configuration.js_enabled,
+                      :exclude_paths => Rollbar.configuration.js_exclude_paths
                     }
                     ::Rails.configuration.middleware.use(::Rollbar::Middleware::Js,
                                                          config)

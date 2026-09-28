@@ -454,6 +454,157 @@ describe Rollbar::Middleware::Js do
       end
     end
 
+    context 'with exclude_paths config' do
+      let(:body) { [html] }
+      let(:status) { 200 }
+      let(:headers) do
+        { 'Content-Type' => content_type }
+      end
+      let(:config) do
+        {
+          :enabled => true,
+          :options => { :foo => :bar },
+          :exclude_paths => ['/api-docs', %r{\A/health}]
+        }
+      end
+
+      context 'when PATH_INFO matches a String entry by prefix' do
+        let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+        include_examples "doesn't add the snippet or config"
+      end
+
+      context 'when PATH_INFO matches a Regexp entry' do
+        let(:env) { { 'PATH_INFO' => '/health/check' } }
+
+        include_examples "doesn't add the snippet or config"
+      end
+
+      context 'when PATH_INFO does not match any entry' do
+        let(:env) { { 'PATH_INFO' => '/dashboard' } }
+
+        it 'adds the config and the snippet to the response' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+        end
+      end
+
+      context 'when exclude_paths is not set' do
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar }
+          }
+        end
+        let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+        it 'adds the config and the snippet to the response' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+        end
+      end
+
+      context 'when PATH_INFO only shares a string prefix with an entry' do
+        let(:env) { { 'PATH_INFO' => '/api-docs-internal' } }
+
+        it 'adds the config and the snippet to the response' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+        end
+      end
+
+      context 'when exclude_paths contains blank entries' do
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar },
+            :exclude_paths => [nil, '', '/api-docs']
+          }
+        end
+        let(:env) { { 'PATH_INFO' => '/dashboard' } }
+
+        it 'ignores the blank entries and adds the config and the snippet' do
+          _, _, response = subject.call(env)
+          new_body = response.body.join
+
+          expect(new_body).to include(snippet)
+          expect(new_body).to include(json_options)
+        end
+      end
+
+      context 'when a String entry has a trailing slash' do
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar },
+            :exclude_paths => ['/api-docs/']
+          }
+        end
+
+        context 'and PATH_INFO is the entry without the slash' do
+          let(:env) { { 'PATH_INFO' => '/api-docs' } }
+
+          include_examples "doesn't add the snippet or config"
+        end
+
+        context 'and PATH_INFO is below the entry' do
+          let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+          include_examples "doesn't add the snippet or config"
+        end
+      end
+
+      context 'when exclude_paths is a bare String instead of an Array' do
+        let(:config) do
+          {
+            :enabled => true,
+            :options => { :foo => :bar },
+            :exclude_paths => '/api-docs'
+          }
+        end
+
+        context 'and PATH_INFO matches it' do
+          let(:env) { { 'PATH_INFO' => '/api-docs/index.html' } }
+
+          include_examples "doesn't add the snippet or config"
+        end
+
+        context 'and PATH_INFO does not match it' do
+          let(:env) { { 'PATH_INFO' => '/dashboard' } }
+
+          it 'adds the config and the snippet to the response' do
+            _, _, response = subject.call(env)
+            new_body = response.body.join
+
+            expect(new_body).to include(snippet)
+            expect(new_body).to include(json_options)
+          end
+        end
+      end
+
+      context 'when the request is dispatched through a mounted engine' do
+        let(:app) do
+          proc do |request_env|
+            request_env['SCRIPT_NAME'] = "#{request_env['SCRIPT_NAME']}/api-docs"
+            request_env['PATH_INFO'] = request_env['PATH_INFO'].delete_prefix('/api-docs')
+            [status, headers, body]
+          end
+        end
+        let(:env) { { 'SCRIPT_NAME' => '', 'PATH_INFO' => '/api-docs/index.html' } }
+
+        include_examples "doesn't add the snippet or config"
+      end
+    end
+
     context 'having the config disabled', :add_js => false do
       let(:body) { ['foobar'] }
       let(:status) { 302 }

@@ -22,10 +22,11 @@ module Rollbar
       end
 
       def call(env)
+        request_path = "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}"
         app_result = app.call(env)
 
         begin
-          return app_result unless add_js?(env, app_result[1])
+          return app_result unless add_js?(env, app_result[1], request_path)
 
           response_string = add_js(env, app_result[2])
           build_response(env, app_result, response_string)
@@ -44,9 +45,27 @@ module Rollbar
         !!config[:enabled]
       end
 
-      def add_js?(env, headers)
+      def add_js?(env, headers, request_path)
         enabled? && !env[JS_IS_INJECTED_KEY] &&
-          html?(headers) && !attachment?(headers) && !streaming?(env)
+          html?(headers) && !attachment?(headers) && !streaming?(env) &&
+          !excluded_path?(request_path)
+      end
+
+      def excluded_path?(path)
+        Array(config[:exclude_paths]).any? do |matcher|
+          next false if blank_matcher?(matcher)
+
+          if matcher.is_a?(Regexp)
+            matcher.match(path)
+          else
+            prefix = matcher.to_s.chomp('/')
+            path == prefix || path.start_with?("#{prefix}/")
+          end
+        end
+      end
+
+      def blank_matcher?(matcher)
+        matcher.nil? || (matcher.respond_to?(:empty?) && matcher.empty?)
       end
 
       def html?(headers)

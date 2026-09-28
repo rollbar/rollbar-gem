@@ -158,6 +158,27 @@ The hostname (reported to Rollbar as `server.host`). When nil, the value of `Soc
 Ids of people whose reports you wish to ignore. Only works in conjunction with a
 properly defined `person_method` or `person_id_method`.
 
+### js_exclude_paths
+
+**Default** `[]`
+
+An array of `String` or `Regexp` entries. When a request's path matches any
+entry, `Rollbar::Middleware::Js` skips injecting the rollbar.js config/snippet
+`<script>` tags into that response. Matched against the full request path
+(`SCRIPT_NAME` + `PATH_INFO`), so this also works for paths served by a
+mounted Rack engine. A `String` entry matches that exact path or anything
+under it (`'/api-docs'` matches `/api-docs` and `/api-docs/index.html`, but
+not `/api-docs-internal`). A trailing slash on a `String` entry is ignored.
+Use a `Regexp` for other matching needs. Only
+takes effect when `js_enabled` is `true`.
+
+```ruby
+Rollbar.configure do |config|
+  config.js_enabled = true
+  config.js_exclude_paths = ['/api-docs', %r{\A/health}]
+end
+```
+
 ### logger
 
 The logger to use *instead of* the default logger. Especially useful when you
