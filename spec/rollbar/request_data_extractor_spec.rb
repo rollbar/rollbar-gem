@@ -322,6 +322,27 @@ describe Rollbar::RequestDataExtractor do
       end
     end
 
+    context 'with JSON POST body containing invalid UTF-8' do
+      let(:body) { "{\"key\":\"\xAE\"}".b }
+      let(:env) do
+        Rack::MockRequest.env_for('/?foo=bar',
+                                  'CONTENT_TYPE' => 'application/json',
+                                  :input => body,
+                                  :method => 'POST')
+      end
+
+      it 'does not raise and serializes a valid body' do
+        result = nil
+
+        expect { result = subject.extract_request_data_from_rack(env) }
+          .not_to raise_error
+
+        expect(result[:body]).to be_kind_of(String)
+        expect(result[:body].encoding).to be_eql(Encoding::UTF_8)
+        expect(result[:body]).to be_valid_encoding
+      end
+    end
+
     context 'with JSON DELETE body' do
       let(:params) { { 'key' => 'value' } }
       let(:body) { params.to_json }
