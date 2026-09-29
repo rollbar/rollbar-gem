@@ -594,6 +594,58 @@ describe Rollbar::Scrubbers::Params do
         include_examples 'scrubs params in various datatypes', [/\Apass.*word\z/]
       end
     end
+
+    # https://github.com/rollbar/rollbar-gem/issues/997
+    context 'with the same object referenced more than once' do
+      let(:scrub_config) { [:password] }
+      let(:reference) { { :key => 'value', :password => 'the-password' } }
+      let(:list) { [reference] }
+      let(:params) do
+        { :key1 => reference, :key2 => reference, :list1 => list, :list2 => list }
+      end
+
+      it 'returns scrubbed copies, never the original objects' do
+        result = subject.call(options)
+
+        [result[:key1], result[:key2], result[:list1][0], result[:list2][0]].each do |h|
+          expect(h).not_to be(reference)
+          expect(h[:key]).to eq('value')
+          expect(h[:password]).to match(/\*+/)
+        end
+        expect(result[:list2]).not_to be(list)
+        expect(reference[:password]).to eq('the-password')
+      end
+    end
+
+    context 'with a circular reference' do
+      let(:scrub_config) { [:password] }
+      let(:params) do
+        a = { :password => 'the-password' }
+        a[:self] = a
+        a
+      end
+
+      it 'does not leak the original object into the result' do
+        result = subject.call(options)
+
+        expect(result[:self]).to be(result)
+        expect(result[:self]).not_to be(params)
+        expect(result[:password]).to match(/\*+/)
+      end
+    end
+
+    context 'with a Hash inside a nested Array' do
+      let(:scrub_config) { [:password] }
+      let(:params) { { :list => [[{ :password => 'the-password' }]] } }
+
+      it 'copies and scrubs it' do
+        result = subject.call(options)
+
+        expect(result[:list][0]).not_to be(params[:list][0])
+        expect(result[:list][0][0][:password]).to match(/\*+/)
+        expect(params[:list][0][0][:password]).to eq('the-password')
+      end
+    end
   end
 end
 

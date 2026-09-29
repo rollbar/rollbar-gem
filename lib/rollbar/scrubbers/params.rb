@@ -63,42 +63,53 @@ module Rollbar
                    end.join('|'))
       end
 
+      # Always returns a new object and never modifies `params`. The copy of
+      # each container is memoized (and registered before recursing), so a
+      # container referenced more than once, or in a cycle, maps to its copy
+      # instead of leaking the caller's original object into the payload.
       def scrub(params, options)
-        return params if @scrubbed_objects[params]
-
-        @scrubbed_objects[params] = true
-
-        fields_regex = options[:fields_regex]
-        scrub_all = options[:scrub_all]
-        whitelist_regex = options[:whitelist]
-
+        return @scrubbed_objects[params] if @scrubbed_objects.key?(params)
         return scrub_array(params, options) if params.is_a?(Array)
 
-        params.to_hash.inject({}) do |result, (key, value)|
-          encoded_key = Rollbar::Encoding.encode(key).to_s
-          result[key] = if (fields_regex === encoded_key) &&
-                           !(whitelist_regex === encoded_key)
-                          scrub_value(value)
-                        elsif value.is_a?(Hash)
-                          scrub(value, options)
-                        elsif scrub_all && !(whitelist_regex === encoded_key)
-                          scrub_value(value)
-                        elsif value.is_a?(Array)
-                          scrub_array(value, options)
-                        elsif skip_value?(value)
-                          "Skipped value of class '#{value.class.name}'"
-                        else
-                          rollbar_filtered_param_value(value)
-                        end
+        result = @scrubbed_objects[params] = {}
 
-          result
+        params.to_hash.each do |key, value|
+          result[key] = scrub_hash_value(key, value, options)
+        end
+
+        result
+      end
+
+      def scrub_hash_value(key, value, options)
+        encoded_key = Rollbar::Encoding.encode(key).to_s
+        whitelisted = options[:whitelist] === encoded_key
+
+        if (options[:fields_regex] === encoded_key) && !whitelisted
+          scrub_value(value)
+        elsif value.is_a?(Hash)
+          scrub(value, options)
+        elsif options[:scrub_all] && !whitelisted
+          scrub_value(value)
+        elsif value.is_a?(Array)
+          scrub_array(value, options)
+        elsif skip_value?(value)
+          "Skipped value of class '#{value.class.name}'"
+        else
+          rollbar_filtered_param_value(value)
         end
       end
 
       def scrub_array(array, options)
-        array.map do |value|
-          value.is_a?(Hash) ? scrub(value, options) : rollbar_filtered_param_value(value)
+        return @scrubbed_objects[array] if @scrubbed_objects.key?(array)
+
+        result = @scrubbed_objects[array] = []
+
+        array.each do |value|
+          nested = value.is_a?(Hash) || value.is_a?(Array)
+          result << (nested ? scrub(value, options) : rollbar_filtered_param_value(value))
         end
+
+        result
       end
 
       def scrub_value(value)
