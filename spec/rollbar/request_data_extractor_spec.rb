@@ -91,6 +91,37 @@ describe Rollbar::RequestDataExtractor do
       expect(result).to be_kind_of(Hash)
     end
 
+    context 'with precompiled Rails parameter filters' do
+      let(:env) do
+        env = Rack::MockRequest.env_for('/login?token=the-token&user_email=foo@bar.com',
+                                        'HTTP_HOST' => 'localhost:81')
+        env['rack.session'] = { '_csrf_token' => 'the-csrf-token' }
+        env['action_dispatch.parameter_filter'] = filters
+        env
+      end
+      let(:filters) do
+        raw = [:passw, :email, :token]
+        precompiled = ActiveSupport::ParameterFilter.precompile_filters(raw)
+        raise 'filters were not precompiled' if precompiled == raw
+
+        precompiled
+      end
+
+      before do
+        skip 'Rails < 7.1' unless defined?(ActiveSupport::ParameterFilter) &&
+                                  ActiveSupport::ParameterFilter
+                                  .respond_to?(:precompile_filters)
+      end
+
+      it 'scrubs GET params and session' do
+        result = subject.extract_request_data_from_rack(env)
+
+        expect(result[:GET]['token']).to match(/\A\*+\z/)
+        expect(result[:GET]['user_email']).to match(/\A\*+\z/)
+        expect(result[:session]['_csrf_token']).to match(/\A\*+\z/)
+      end
+    end
+
     context 'with scrub headers set' do
       let(:scrub_headers) do
         %w[HTTP_UPPER_CASE_HEADER http-lower-case-header Mixed-CASE-header]
