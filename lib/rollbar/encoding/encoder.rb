@@ -22,7 +22,8 @@ module Rollbar
         encoded_value = if encoding == ::Encoding::UTF_8 && value.valid_encoding?
                           value
                         else
-                          force_encoding(value).encode(
+                          value = force_encoding(value)
+                          value.encode(
                             *encoding_args(value),
                             # Ruby 2.7 requires this to look like keyword args,
                             # and Ruby 1.9.3 doesn't understand keyword args, so
@@ -43,7 +44,8 @@ module Rollbar
         return value if value.frozen?
 
         if value.encoding == ::Encoding::UTF_8
-          value.force_encoding(detect_encoding(value))
+          # Re-tag a copy: the string may belong to the caller's payload.
+          value = value.dup.force_encoding(detect_encoding(value))
         end
 
         value

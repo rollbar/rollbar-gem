@@ -71,5 +71,16 @@ describe Rollbar::Encoding::Encoder do
         expect(value).to include(expected)
       end
     end
+
+    # https://github.com/rollbar/rollbar-gem/issues/997
+    context 'with invalid UTF-8 in a string owned by the caller' do
+      let(:object) { "caf\xE9 au lait".dup }
+
+      it 'does not change the encoding of the original string' do
+        expect(subject.encode).to be_eql('caf au lait')
+        expect(object.encoding).to be(::Encoding::UTF_8)
+        expect(object.valid_encoding?).to be(false)
+      end
+    end
   end
 end
