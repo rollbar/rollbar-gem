@@ -80,9 +80,8 @@ module Rollbar
           when :dropping then return
           end
 
-          spawn_threads_reaper
-
           begin
+            spawn_threads_reaper
             thread = new.call(payload)
           rescue StandardError
             release_slot

@@ -123,6 +123,17 @@ describe Rollbar::Delay::Thread do
         expect { described_class.call(payload) }.to raise_error(ThreadError)
         expect(described_class.pending_count).to eq(0)
       end
+
+      it 'releases the slot if the reaper thread cannot be created' do
+        # A fresh subclass hasn't spawned its reaper yet, like the first
+        # report in a process.
+        handler = Class.new(described_class)
+        handler.options = { :max_queue => 1 }
+        allow(::Thread).to receive(:start).and_raise(ThreadError)
+
+        expect { handler.call(payload) }.to raise_error(ThreadError)
+        expect(handler.pending_count).to eq(0)
+      end
     end
 
     context 'without max_queue option' do
