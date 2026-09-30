@@ -341,9 +341,10 @@ Sends each report from its own background `Thread`. Accepts these options:
 
 - `priority`: priority of the reporting threads. **Default** `1`.
 - `max_queue`: maximum number of reports that may be pending (spawned but not
-  yet sent) at once. When the limit is reached, new reports are dropped and a
-  warning is logged, so an application reporting errors in a tight loop can't
-  spawn an unbounded number of threads. **Default** `nil` (unbounded).
+  yet sent) at once. When the limit is reached, new reports are dropped, so an
+  application reporting errors in a tight loop can't spawn an unbounded number
+  of threads. One warning is logged each time the queue fills up. Dropped
+  reports are not passed to `failover_handlers`. **Default** `nil` (unbounded).
 
 ```ruby
 Rollbar.configure do |config|

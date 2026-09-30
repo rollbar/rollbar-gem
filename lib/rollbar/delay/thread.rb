@@ -13,12 +13,72 @@ module Rollbar
 
       SLOTS_MUTEX = Mutex.new
 
+      # Counts the reports a handler class has in flight, so .call can bound
+      # them with the max_queue option.
+      class Slots
+        def initialize
+          @mutex = Mutex.new
+        end
+
+        # Returns :acquired, or :queue_full for the first item dropped since
+        # the queue filled up and :dropping for the ones after it, so a tight
+        # error loop logs one warning instead of one per dropped item.
+        def acquire(max)
+          @mutex.synchronize do
+            reset_after_fork
+
+            if max && @pending >= max
+              return :dropping if @dropping
+
+              @dropping = true
+              return :queue_full
+            end
+
+            @pending += 1
+            :acquired
+          end
+        end
+
+        def release
+          # Clamped at zero: instances can also be called directly, without
+          # going through .call and acquiring a slot.
+          @mutex.synchronize do
+            reset_after_fork
+            @pending = [@pending - 1, 0].max
+            @dropping = false
+          end
+        end
+
+        def pending
+          @mutex.synchronize do
+            reset_after_fork
+            @pending
+          end
+        end
+
+        private
+
+        # A forked child inherits the parent's count, but not the threads
+        # holding those slots, so their `ensure` never runs in the child to
+        # give the slots back. Start the count over in each new process.
+        def reset_after_fork
+          return if @pid == Process.pid
+
+          @pid = Process.pid
+          @pending = 0
+          @dropping = false
+        end
+      end
+
       class << self
         attr_writer :options
         attr_reader :reaper
 
         def call(payload)
-          return log_queue_full unless acquire_slot
+          case slots.acquire(max_queue)
+          when :queue_full then return log_queue_full
+          when :dropping then return
+          end
 
           spawn_threads_reaper
 
@@ -38,15 +98,11 @@ module Rollbar
         end
 
         def pending_count
-          SLOTS_MUTEX.synchronize { @pending_count || 0 }
+          slots.pending
         end
 
         def release_slot
-          # Clamped at zero: instances can also be called directly, without
-          # going through .call and acquiring a slot.
-          SLOTS_MUTEX.synchronize do
-            @pending_count = [(@pending_count || 0) - 1, 0].max
-          end
+          slots.release
         end
 
         private
@@ -55,20 +111,15 @@ module Rollbar
           options[:max_queue]
         end
 
-        def acquire_slot
-          SLOTS_MUTEX.synchronize do
-            @pending_count ||= 0
-            return false if max_queue && @pending_count >= max_queue
-
-            @pending_count += 1
-            true
-          end
+        # Lazily set per class, so subclasses get their own count.
+        def slots
+          SLOTS_MUTEX.synchronize { @slots ||= Slots.new }
         end
 
         def log_queue_full
           Rollbar.log_warning(
             "[Rollbar] Thread queue is full (max_queue: #{max_queue}). " \
-              'Dropping item.'
+              'Dropping items until a pending report finishes.'
           )
           nil
         end

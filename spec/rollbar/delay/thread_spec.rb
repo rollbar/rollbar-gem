@@ -47,7 +47,8 @@ describe Rollbar::Delay::Thread do
 
       it 'drops items once max_queue threads are pending' do
         expect(Rollbar).to receive(:log_warning)
-          .with('[Rollbar] Thread queue is full (max_queue: 2). Dropping item.')
+          .with('[Rollbar] Thread queue is full (max_queue: 2). ' \
+                'Dropping items until a pending report finishes.')
 
         threads = Array.new(3) { described_class.call(payload) }
 
@@ -60,6 +61,48 @@ describe Rollbar::Delay::Thread do
         threads.compact.each(&:join)
 
         expect(described_class.pending_count).to eq(0)
+      end
+
+      it 'logs one warning each time the queue fills up' do
+        expect(Rollbar).to receive(:log_warning).twice
+
+        threads = Array.new(2) { described_class.call(payload) }
+        expect(Array.new(3) { described_class.call(payload) }).to all(be_nil)
+
+        release << :go
+        Timeout.timeout(5) { sleep 0.01 while described_class.pending_count == 2 }
+        threads << described_class.call(payload)
+        expect(threads.last).to be_a(::Thread)
+        expect(described_class.call(payload)).to be_nil
+
+        2.times { release << :go }
+        threads.each(&:join)
+      end
+
+      it 'does not carry pending slots into a forked child',
+         :if => Process.respond_to?(:fork) do
+        threads = Array.new(2) { described_class.call(payload) }
+        reader, writer = IO.pipe
+
+        pid = fork do
+          reader.close
+          release << :go
+          count = described_class.pending_count
+          thread = described_class.call(payload)
+          thread.join if thread
+          writer.write("#{count} #{thread.class}")
+          writer.close
+          exit!(0)
+        end
+
+        writer.close
+        Process.wait(pid)
+        expect(reader.read).to eq('0 Thread')
+        reader.close
+
+        expect(described_class.pending_count).to eq(2)
+        2.times { release << :go }
+        threads.each(&:join)
       end
 
       it 'accepts items again once pending threads finish' do
