@@ -346,8 +346,9 @@ Sends each report from its own background `Thread`. Accepts these options:
   of threads. One warning is logged each time the queue fills up. Dropped
   reports are not passed to `failover_handlers`. The count is guarded by a
   `Mutex`, which can't be locked inside a signal (`trap`) handler, so reports
-  sent from one go to `failover_handlers` instead. **Default** `nil`
-  (unbounded).
+  sent from one go to `failover_handlers` instead. If no failover handlers are
+  configured (the default), those reports are dropped and an error is logged.
+  **Default** `nil` (unbounded).
 
 ```ruby
 Rollbar.configure do |config|

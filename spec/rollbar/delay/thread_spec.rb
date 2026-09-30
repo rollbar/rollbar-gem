@@ -155,6 +155,32 @@ describe Rollbar::Delay::Thread do
         expect { handler.call(payload) }.to raise_error(ThreadError)
         expect(handler.pending_count).to eq(0)
       end
+
+      it 'raises from a signal handler without taking a slot',
+         :if => Signal.list.key?('USR2') do
+        # The Mutex can't be locked in trap context, so .call raises and
+        # Notifier#process_async_item falls through to failover_handlers.
+        item = payload
+        handler = described_class
+        result = Queue.new
+        previous = trap('USR2') do
+          begin
+            result << handler.call(item)
+          rescue StandardError => e
+            result << e
+          end
+        end
+
+        begin
+          Process.kill('USR2', Process.pid)
+          error = Timeout.timeout(5) { result.pop }
+        ensure
+          trap('USR2', previous)
+        end
+
+        expect(error).to be_a(ThreadError)
+        expect(described_class.pending_count).to eq(0)
+      end
     end
 
     context 'without max_queue option' do
