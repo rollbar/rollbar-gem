@@ -335,6 +335,22 @@ SSL connection problems.
 When `true` indicates you wish to send data to Rollbar asynchronously. If
 installed, uses `girl_friday`, otherwise defaults to `Thread`.
 
+### use_thread
+
+Sends each report from its own background `Thread`. Accepts these options:
+
+- `priority`: priority of the reporting threads. **Default** `1`.
+- `max_queue`: maximum number of reports that may be pending (spawned but not
+  yet sent) at once. When the limit is reached, new reports are dropped and a
+  warning is logged, so an application reporting errors in a tight loop can't
+  spawn an unbounded number of threads. **Default** `nil` (unbounded).
+
+```ruby
+Rollbar.configure do |config|
+  config.use_thread(max_queue: 5)
+end
+```
+
 ### use_eventmachine
 
 **Default** `false`

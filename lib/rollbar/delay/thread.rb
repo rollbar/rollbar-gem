@@ -11,14 +11,24 @@ module Rollbar
 
       DEFAULT_PRIORITY = 1
 
+      SLOTS_MUTEX = Mutex.new
+
       class << self
         attr_writer :options
         attr_reader :reaper
 
         def call(payload)
+          return log_queue_full unless acquire_slot
+
           spawn_threads_reaper
 
-          thread = new.call(payload)
+          begin
+            thread = new.call(payload)
+          rescue StandardError
+            release_slot
+            raise
+          end
+
           threads << thread
           thread
         end
@@ -27,7 +37,41 @@ module Rollbar
           @options || {}
         end
 
+        def pending_count
+          SLOTS_MUTEX.synchronize { @pending_count || 0 }
+        end
+
+        def release_slot
+          # Clamped at zero: instances can also be called directly, without
+          # going through .call and acquiring a slot.
+          SLOTS_MUTEX.synchronize do
+            @pending_count = [(@pending_count || 0) - 1, 0].max
+          end
+        end
+
         private
+
+        def max_queue
+          options[:max_queue]
+        end
+
+        def acquire_slot
+          SLOTS_MUTEX.synchronize do
+            @pending_count ||= 0
+            return false if max_queue && @pending_count >= max_queue
+
+            @pending_count += 1
+            true
+          end
+        end
+
+        def log_queue_full
+          Rollbar.log_warning(
+            "[Rollbar] Thread queue is full (max_queue: #{max_queue}). " \
+              'Dropping item.'
+          )
+          nil
+        end
 
         def threads
           @threads ||= Queue.new
@@ -87,6 +131,8 @@ module Rollbar
             #
             # If users want to handle this in some way they
             # can provide a more custom Thread based implementation
+          ensure
+            self.class.release_slot
           end
         end
       end
