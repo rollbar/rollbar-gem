@@ -26,9 +26,14 @@ describe Rollbar::Delay::Thread do
       end
 
       it 'releases its queue slot' do
-        described_class.call(payload).join
+        begin
+          described_class.options = { :max_queue => 1 }
+          described_class.call(payload).join
 
-        expect(described_class.pending_count).to eq(0)
+          expect(described_class.pending_count).to eq(0)
+        ensure
+          described_class.options = nil
+        end
       end
     end
 
@@ -117,6 +122,22 @@ describe Rollbar::Delay::Thread do
         expect(described_class.pending_count).to eq(0)
       end
 
+      it 'does not let a direct instance call free a pending slot' do
+        direct_payload = { :key => 'direct' }
+        allow(Rollbar).to receive(:process_from_async_handler) do |item|
+          release.pop unless item == direct_payload
+        end
+
+        threads = Array.new(2) { described_class.call(payload) }
+        described_class.new.call(direct_payload).join
+
+        expect(described_class.pending_count).to eq(2)
+        expect(described_class.call(payload)).to be_nil
+
+        2.times { release << :go }
+        threads.each(&:join)
+      end
+
       it 'releases the slot if the thread cannot be created' do
         allow(::Thread).to receive(:new).and_raise(ThreadError)
 
@@ -154,6 +175,32 @@ describe Rollbar::Delay::Thread do
 
         10.times { release << :go }
         threads.each(&:join)
+      end
+
+      it 'can be called from a signal handler',
+         :if => Signal.list.key?('USR2') do
+        # Resolved up front: `let` memoizes behind a Mutex too.
+        item = payload
+        handler = described_class
+        result = Queue.new
+        previous = trap('USR2') do
+          begin
+            result << handler.call(item)
+          rescue StandardError => e
+            result << e
+          end
+        end
+
+        begin
+          Process.kill('USR2', Process.pid)
+          thread = Timeout.timeout(5) { result.pop }
+        ensure
+          trap('USR2', previous)
+        end
+
+        expect(thread).to be_a(::Thread)
+        release << :go
+        thread.join
       end
     end
   end

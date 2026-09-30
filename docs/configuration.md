@@ -344,7 +344,10 @@ Sends each report from its own background `Thread`. Accepts these options:
   yet sent) at once. When the limit is reached, new reports are dropped, so an
   application reporting errors in a tight loop can't spawn an unbounded number
   of threads. One warning is logged each time the queue fills up. Dropped
-  reports are not passed to `failover_handlers`. **Default** `nil` (unbounded).
+  reports are not passed to `failover_handlers`. The count is guarded by a
+  `Mutex`, which can't be locked inside a signal (`trap`) handler, so reports
+  sent from one go to `failover_handlers` instead. **Default** `nil`
+  (unbounded).
 
 ```ruby
 Rollbar.configure do |config|

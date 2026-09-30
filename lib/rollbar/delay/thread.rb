@@ -40,9 +40,6 @@ module Rollbar
         end
 
         def release
-          # Clamped at zero, so an instance called directly (which never
-          # acquired a slot) can't push the count negative. Direct calls still
-          # aren't bounded by max_queue: only .call acquires slots.
           @mutex.synchronize do
             reset_after_fork
             @pending = [@pending - 1, 0].max
@@ -76,16 +73,17 @@ module Rollbar
         attr_reader :reaper
 
         def call(payload)
-          case slots.acquire(max_queue)
-          when :queue_full then return log_queue_full
-          when :dropping then return
-          end
+          # Without max_queue there is nothing to count, so skip the Mutex:
+          # it can't be locked from a signal (trap) handler.
+          holds_slot = !max_queue.nil?
+          return if holds_slot && !acquire_slot
 
           begin
             spawn_threads_reaper
-            thread = new.call(payload)
+            thread = new.tap { |handler| handler.holds_slot = holds_slot }
+                        .call(payload)
           rescue StandardError
-            release_slot
+            release_slot if holds_slot
             raise
           end
 
@@ -116,12 +114,16 @@ module Rollbar
           SLOTS_MUTEX.synchronize { @slots ||= Slots.new }
         end
 
-        def log_queue_full
-          Rollbar.log_warning(
-            "[Rollbar] Thread queue is full (max_queue: #{max_queue}). " \
-              'Dropping items until a pending report finishes.'
-          )
-          nil
+        def acquire_slot
+          case slots.acquire(max_queue)
+          when :acquired then true
+          when :queue_full
+            Rollbar.log_warning(
+              "[Rollbar] Thread queue is full (max_queue: #{max_queue}). " \
+                'Dropping items until a pending report finishes.'
+            )
+            false
+          end
         end
 
         def threads
@@ -164,12 +166,21 @@ module Rollbar
         end
       end
 
+      # Set by .call when it took a max_queue slot for this report. Only then
+      # does the thread give a slot back, so an instance called directly can't
+      # free a slot that another report still holds.
+      attr_writer :holds_slot
+
       def priority
         self.class.options[:priority] || DEFAULT_PRIORITY
       end
 
+      # Subclasses that override this and use max_queue must call
+      # self.class.release_slot when a report with holds_slot finishes, or
+      # the queue fills up and stays full.
       def call(payload)
         priority = self.priority
+        holds_slot = @holds_slot
 
         ::Thread.new do
           begin
@@ -183,7 +194,7 @@ module Rollbar
             # If users want to handle this in some way they
             # can provide a more custom Thread based implementation
           ensure
-            self.class.release_slot
+            self.class.release_slot if holds_slot
           end
         end
       end
