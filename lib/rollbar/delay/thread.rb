@@ -40,8 +40,9 @@ module Rollbar
         end
 
         def release
-          # Clamped at zero: instances can also be called directly, without
-          # going through .call and acquiring a slot.
+          # Clamped at zero, so an instance called directly (which never
+          # acquired a slot) can't push the count negative. Direct calls still
+          # aren't bounded by max_queue: only .call acquires slots.
           @mutex.synchronize do
             reset_after_fork
             @pending = [@pending - 1, 0].max
