@@ -155,8 +155,10 @@ describe Rollbar::Scrubbers::URL do
           end
 
           # The anchors in "^a|b|c$" only bind the first and last names, so a
-          # name in the middle matches anywhere in the key. Regexp and Proc
-          # entries at the edges must not move :secret onto an edge.
+          # name in the middle matches anywhere in the key. Each Regexp or Proc
+          # keeps its slot in the list, so :secret stays in the middle and
+          # matches my_secret_key. Dropping the entry would move :secret onto
+          # an edge and stop scrubbing my_secret_key.
           [
             [:password, :secret, /email/],
             [/email/, :secret, :password],
@@ -166,7 +168,7 @@ describe Rollbar::Scrubbers::URL do
             context "when scrub_fields is #{scrub_fields.inspect}" do
               let(:options) { super().merge(:scrub_fields => scrub_fields) }
 
-              it 'keeps matching the name as it did without the Regexp or Proc' do
+              it 'keeps the name anchored as when the Regexp or Proc held its slot' do
                 expect(subject.call(options)).to match(expected_url)
               end
             end
