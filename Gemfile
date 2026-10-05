@@ -28,17 +28,9 @@ else
   gem 'rspec-rails', '~> 6.0.3'
 end
 
-if GEM_VERSION_RAILS < Gem::Version.new('7.1')
-  gem 'concurrent-ruby', '1.3.4'
-end
-
-if GEM_VERSION_RAILS < Gem::Version.new('8.0')
-  gem 'sqlite3', '~> 1.4', :platform => [:ruby, :mswin, :mingw]
-elsif GEM_VERSION_RAILS < Gem::Version.new('6.0')
-  gem 'sqlite3', '< 1.4.0', :platform => [:ruby, :mswin, :mingw]
-else
-  gem 'sqlite3', '~> 2.1', :platform => [:ruby, :mswin, :mingw]
-end
+# Older Rails versions pin concurrent-ruby and sqlite3 in their own
+# ./gemfiles/railsXX.gemfile. Only declare patched versions here.
+gem 'sqlite3', '~> 2.9', '>= 2.9.5', :platform => [:ruby, :mswin, :mingw]
 
 gem 'sidekiq', '>= 6.4.0'
 
@@ -81,10 +73,10 @@ gem 'benchmark' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('4.0.0')
 
 gem 'generator_spec'
 gem 'redis', '<= 4.8.0'
-gem 'resque', '< 2.0.0'
+gem 'resque', '>= 2.6.0'
 gem 'rubocop', '1.15.0', :require => false # pin specific version, update manually
 gem 'rubocop-performance', :require => false
-gem 'secure_headers', '~> 6.3.2', :require => false
+gem 'secure_headers', '~> 7.3', :require => false
 gem 'sinatra'
 gem 'webmock', :require => false
 gemspec

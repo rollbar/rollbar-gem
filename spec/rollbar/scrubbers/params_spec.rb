@@ -271,6 +271,125 @@ describe Rollbar::Scrubbers::Params do
           expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
+
+      context 'with Hash-like objects that are not Hash subclasses' do
+        let(:hash_like_class) do
+          Class.new do
+            def initialize(hash)
+              @hash = hash
+            end
+
+            def to_hash
+              @hash
+            end
+          end
+        end
+
+        let(:params) do
+          {
+            :foo => 'bar',
+            :body => hash_like_class.new(:user => 'the-user',
+                                         :password => 'the-password'),
+            :list => [hash_like_class.new(:secret => 'the-secret', :foo => 'bar')]
+          }
+        end
+        let(:result) do
+          {
+            :foo => 'bar',
+            :body => { :user => 'the-user', :password => /\*+/ },
+            :list => [{ :secret => /\*+/, :foo => 'bar' }]
+          }
+        end
+
+        it 'scrubs the nested parameters' do
+          scrubbed = subject.call(options)
+
+          expect(scrubbed[:body]).to be_eql_hash_with_regexes(result[:body])
+          expect(scrubbed[:list].first).to be_eql_hash_with_regexes(result[:list].first)
+        end
+      end
+
+      context 'with ActionController::Parameters' do
+        let(:raw_params) do
+          {
+            'user' => 'the-user',
+            'password' => 'the-password',
+            'nested' => { 'secret' => 'the-secret' }
+          }
+        end
+        let(:expected) do
+          {
+            'user' => 'the-user',
+            'password' => /\*+/,
+            'nested' => { 'secret' => /\*+/ }
+          }
+        end
+
+        context 'when not permitted' do
+          let(:params) { { :body => ActionController::Parameters.new(raw_params) } }
+
+          it 'scrubs the nested parameters' do
+            expect(subject.call(options)[:body]).to be_eql_hash_with_regexes(expected)
+          end
+        end
+
+        context 'when permitted' do
+          let(:params) do
+            {
+              :body => ActionController::Parameters.new(raw_params)
+                                                   .permit(:user, :password,
+                                                           :nested => [:secret])
+            }
+          end
+
+          it 'scrubs the nested parameters' do
+            expect(subject.call(options)[:body]).to be_eql_hash_with_regexes(expected)
+          end
+        end
+
+        context 'when passed as the top-level params' do
+          let(:params) { ActionController::Parameters.new(raw_params) }
+
+          it 'scrubs the parameters' do
+            expect(subject.call(options)).to be_eql_hash_with_regexes(expected)
+          end
+        end
+      end
+
+      context 'with Regexp extra fields' do
+        let(:options) do
+          {
+            :params => params,
+            :config => scrub_config,
+            :extra_fields => extra_fields
+          }
+        end
+        let(:params) do
+          {
+            :foo => 'bar',
+            :api_token => 'the-token',
+            :user_email => 'foo@bar.com',
+            :CaseSensitive => 'value',
+            :casesensitive => 'value'
+          }
+        end
+        # Same shape as Rails' action_dispatch.parameter_filter when
+        # config.precompile_filter_parameters is enabled (Rails 7.1+ default).
+        let(:extra_fields) { [/(?i:token)|(?i:email)/, /\ACaseSensitive\z/, -> {}] }
+        let(:result) do
+          {
+            :foo => 'bar',
+            :api_token => /\*+/,
+            :user_email => /\*+/,
+            :CaseSensitive => /\*+/,
+            :casesensitive => 'value'
+          }
+        end
+
+        it 'scrubs the parameters matching the regexps' do
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+        end
+      end
     end
 
     context 'with :scrub_all option' do

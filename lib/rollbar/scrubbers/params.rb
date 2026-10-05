@@ -44,12 +44,20 @@ module Rollbar
       end
 
       def build_fields_regex(config, extra_fields)
-        fields = config.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
-        fields += Array(extra_fields)
+        fields = config.find_all { |f| field_name?(f) }
+        # extra_fields may hold Regexps, e.g. Rails' action_dispatch.parameter_filter,
+        # which is a single precompiled Regexp when precompile_filter_parameters is on.
+        fields += Array(extra_fields).find_all { |f| f.is_a?(Regexp) || field_name?(f) }
 
         return unless fields.any?
 
-        Regexp.new(fields.map { |val| Regexp.escape(val.to_s).to_s }.join('|'), true)
+        Regexp.new(fields.map do |val|
+                     val.is_a?(Regexp) ? val.to_s : Regexp.escape(val.to_s)
+                   end.join('|'), true)
+      end
+
+      def field_name?(field)
+        field.is_a?(String) || field.is_a?(Symbol)
       end
 
       def build_whitelist_regex(whitelist)
@@ -73,7 +81,7 @@ module Rollbar
 
         result = @scrubbed_objects[params] = {}
 
-        params.to_hash.each do |key, value|
+        to_scrubbable_hash(params).each do |key, value|
           result[key] = scrub_hash_value(key, value, options)
         end
 
@@ -86,7 +94,7 @@ module Rollbar
 
         if (options[:fields_regex] === encoded_key) && !whitelisted
           scrub_value(value)
-        elsif value.is_a?(Hash)
+        elsif hash_like?(value)
           scrub(value, options)
         elsif options[:scrub_all] && !whitelisted
           scrub_value(value)
@@ -105,11 +113,25 @@ module Rollbar
         result = @scrubbed_objects[array] = []
 
         array.each do |value|
-          nested = value.is_a?(Hash) || value.is_a?(Array)
+          nested = hash_like?(value) || value.is_a?(Array)
           result << (nested ? scrub(value, options) : rollbar_filtered_param_value(value))
         end
 
         result
+      end
+
+      # Objects that implement implicit Hash conversion without being a Hash,
+      # e.g. ActionController::Parameters, must be recursed into too.
+      def hash_like?(value)
+        value.is_a?(Hash) || value.respond_to?(:to_hash)
+      end
+
+      def to_scrubbable_hash(value)
+        return value if value.is_a?(Hash)
+        # ActionController::Parameters#to_hash raises for unpermitted params.
+        return value.to_unsafe_h if value.respond_to?(:to_unsafe_h)
+
+        value.to_hash
       end
 
       def scrub_value(value)
