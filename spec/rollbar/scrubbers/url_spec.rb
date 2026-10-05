@@ -143,6 +143,35 @@ describe Rollbar::Scrubbers::URL do
             end
           end
         end
+
+        context 'with String names between the edges of the list' do
+          let(:url) do
+            'http://foo.com/some-interesting-path' \
+            '?my_secret_key=foo&secret_key=bar&id=1#fragment'
+          end
+          let(:expected_url) do
+            %r{http://foo.com/some-interesting-path
+              \?my_secret_key=\*{3,8}&secret_key=\*{3,8}&id=1#fragment}x
+          end
+
+          # The anchors in "^a|b|c$" only bind the first and last names, so a
+          # name in the middle matches anywhere in the key. Regexp and Proc
+          # entries at the edges must not move :secret onto an edge.
+          [
+            [:password, :secret, /email/],
+            [/email/, :secret, :password],
+            [:password, :secret, ->(_k, v) { v }],
+            [->(_k, v) { v }, :secret, :password]
+          ].each do |scrub_fields|
+            context "when scrub_fields is #{scrub_fields.inspect}" do
+              let(:options) { super().merge(:scrub_fields => scrub_fields) }
+
+              it 'keeps matching the name as it did without the Regexp or Proc' do
+                expect(subject.call(options)).to match(expected_url)
+              end
+            end
+          end
+        end
       end
 
       context 'with no-random scrub length' do

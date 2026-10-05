@@ -70,9 +70,14 @@ module Rollbar
       # The built regex will also match array params like 'user_ids[]'.
       # Regexp fields, e.g. entries copied from Rails' filter_parameters, are
       # matched on their own terms so their position in the list doesn't change
-      # what they match. Procs and other non-matchable entries are skipped.
+      # what they match. Procs are never matched.
+      #
+      # In "^a|b|c$" the anchors only bind the first and last names, so Regexp
+      # and Proc entries keep their slot in the list as a never-matching
+      # placeholder. That leaves the String/Symbol names anchored exactly as
+      # before, so this scrubs a superset of what it used to.
       def build_regex(fields)
-        names = fields.find_all { |field| field.is_a?(String) || field.is_a?(Symbol) }
+        names = fields.map { |f| f.is_a?(Regexp) || f.is_a?(Proc) ? '(?!)' : f }
         fields_or = names.map { |field| "#{field}(\\[\\])?" }.join('|')
 
         Regexp.union(Regexp.new("^#{fields_or}$"), *fields.grep(Regexp))
