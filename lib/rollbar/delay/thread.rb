@@ -11,14 +11,82 @@ module Rollbar
 
       DEFAULT_PRIORITY = 1
 
+      SLOTS_MUTEX = Mutex.new
+
+      # Counts the reports a handler class has in flight, so .call can bound
+      # them with the max_queue option.
+      class Slots
+        def initialize
+          @mutex = Mutex.new
+        end
+
+        # Returns :acquired, or :queue_full for the first item dropped since
+        # the queue filled up and :dropping for the ones after it, so a tight
+        # error loop logs one warning instead of one per dropped item.
+        def acquire(max)
+          @mutex.synchronize do
+            reset_after_fork
+
+            if max && @pending >= max
+              return :dropping if @dropping
+
+              @dropping = true
+              return :queue_full
+            end
+
+            @pending += 1
+            :acquired
+          end
+        end
+
+        def release
+          @mutex.synchronize do
+            reset_after_fork
+            @pending = [@pending - 1, 0].max
+            @dropping = false
+          end
+        end
+
+        def pending
+          @mutex.synchronize do
+            reset_after_fork
+            @pending
+          end
+        end
+
+        private
+
+        # A forked child inherits the parent's count, but not the threads
+        # holding those slots, so their `ensure` never runs in the child to
+        # give the slots back. Start the count over in each new process.
+        def reset_after_fork
+          return if @pid == Process.pid
+
+          @pid = Process.pid
+          @pending = 0
+          @dropping = false
+        end
+      end
+
       class << self
         attr_writer :options
         attr_reader :reaper
 
         def call(payload)
-          spawn_threads_reaper
+          # Without max_queue there is nothing to count, so skip the Mutex:
+          # it can't be locked from a signal (trap) handler.
+          holds_slot = !max_queue.nil?
+          return if holds_slot && !acquire_slot
 
-          thread = new.call(payload)
+          begin
+            spawn_threads_reaper
+            thread = new.tap { |handler| handler.holds_slot = holds_slot }
+                        .call(payload)
+          rescue StandardError
+            release_slot if holds_slot
+            raise
+          end
+
           threads << thread
           thread
         end
@@ -27,7 +95,36 @@ module Rollbar
           @options || {}
         end
 
+        def pending_count
+          slots.pending
+        end
+
+        def release_slot
+          slots.release
+        end
+
         private
+
+        def max_queue
+          options[:max_queue]
+        end
+
+        # Lazily set per class, so subclasses get their own count.
+        def slots
+          SLOTS_MUTEX.synchronize { @slots ||= Slots.new }
+        end
+
+        def acquire_slot
+          case slots.acquire(max_queue)
+          when :acquired then true
+          when :queue_full
+            Rollbar.log_warning(
+              "[Rollbar] Thread queue is full (max_queue: #{max_queue}). " \
+                'Dropping items until a pending report finishes.'
+            )
+            false
+          end
+        end
 
         def threads
           @threads ||= Queue.new
@@ -69,12 +166,21 @@ module Rollbar
         end
       end
 
+      # Set by .call when it took a max_queue slot for this report. Only then
+      # does the thread give a slot back, so an instance called directly can't
+      # free a slot that another report still holds.
+      attr_writer :holds_slot
+
       def priority
         self.class.options[:priority] || DEFAULT_PRIORITY
       end
 
+      # Subclasses that override this and use max_queue must call
+      # self.class.release_slot when a report with holds_slot finishes, or
+      # the queue fills up and stays full.
       def call(payload)
         priority = self.priority
+        holds_slot = @holds_slot
 
         ::Thread.new do
           begin
@@ -87,6 +193,8 @@ module Rollbar
             #
             # If users want to handle this in some way they
             # can provide a more custom Thread based implementation
+          ensure
+            self.class.release_slot if holds_slot
           end
         end
       end
