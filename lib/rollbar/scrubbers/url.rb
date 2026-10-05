@@ -68,10 +68,14 @@ module Rollbar
 
       # Builds a regex to match with any of the received fields.
       # The built regex will also match array params like 'user_ids[]'.
+      # Regexp fields, e.g. entries copied from Rails' filter_parameters, are
+      # matched on their own terms so their position in the list doesn't change
+      # what they match. Procs and other non-matchable entries are skipped.
       def build_regex(fields)
-        fields_or = fields.map { |field| "#{field}(\\[\\])?" }.join('|')
+        names = fields.find_all { |field| field.is_a?(String) || field.is_a?(Symbol) }
+        fields_or = names.map { |field| "#{field}(\\[\\])?" }.join('|')
 
-        Regexp.new("^#{fields_or}$")
+        Regexp.union(Regexp.new("^#{fields_or}$"), *fields.grep(Regexp))
       end
 
       def filter_user(user, scrub_user, randomize_scrub_length)

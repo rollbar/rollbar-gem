@@ -122,6 +122,37 @@ describe Rollbar::RequestDataExtractor do
       end
     end
 
+    # https://github.com/rollbar/rollbar-gem/issues/1103
+    context 'with Regexp entries in scrub_fields' do
+      let(:env) do
+        Rack::MockRequest.env_for('/signup?email=foo@bar.com&first_name=Foo&id=1',
+                                  'HTTP_HOST' => 'localhost:81',
+                                  :method => 'POST',
+                                  :params => { 'user_email' => 'foo@bar.com',
+                                               'last_name' => 'Bar',
+                                               'plan' => 'free' })
+      end
+
+      before do
+        # Same shape as Rails.application.config.filter_parameters, which may
+        # mix Symbols, Regexps and Procs.
+        allow(Rollbar.configuration).to receive(:scrub_fields)
+          .and_return([:password, /email/, /name\z/i, ->(_k, v) { v }])
+      end
+
+      it 'scrubs GET params, POST params and the URL' do
+        result = subject.extract_request_data_from_rack(env)
+
+        expect(result[:GET]['email']).to match(/\A\*+\z/)
+        expect(result[:GET]['first_name']).to match(/\A\*+\z/)
+        expect(result[:GET]['id']).to eq('1')
+        expect(result[:POST]['user_email']).to match(/\A\*+\z/)
+        expect(result[:POST]['last_name']).to match(/\A\*+\z/)
+        expect(result[:POST]['plan']).to eq('free')
+        expect(result[:url]).to match(/\?email=\*+&first_name=\*+&id=1\z/)
+      end
+    end
+
     context 'with scrub headers set' do
       let(:scrub_headers) do
         %w[HTTP_UPPER_CASE_HEADER http-lower-case-header Mixed-CASE-header]

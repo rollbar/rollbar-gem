@@ -118,6 +118,33 @@ describe Rollbar::Scrubbers::URL do
         end
       end
 
+      # https://github.com/rollbar/rollbar-gem/issues/1103
+      context 'with Regexp scrub fields' do
+        let(:url) do
+          'http://foo.com/some-interesting-path' \
+          '?user_email=foo@bar.com&email=baz@bar.com&first_name=Foo&id=1#fragment'
+        end
+        let(:expected_url) do
+          %r{http://foo.com/some-interesting-path
+            \?user_email=\*{3,8}&email=\*{3,8}&first_name=\*{3,8}&id=1#fragment}x
+        end
+
+        [
+          [/email/, /name/, :password],
+          [:password, /email/, /name/],
+          [:password, /email/, /name/, :secret],
+          [/email/, ->(_k, v) { v }, /name/]
+        ].each do |scrub_fields|
+          context "when scrub_fields is #{scrub_fields.inspect}" do
+            let(:options) { super().merge(:scrub_fields => scrub_fields) }
+
+            it 'scrubs the params matching the regexps regardless of their position' do
+              expect(subject.call(options)).to match(expected_url)
+            end
+          end
+        end
+      end
+
       context 'with no-random scrub length' do
         let(:options) do
           {
