@@ -118,6 +118,86 @@ describe Rollbar::Scrubbers::URL do
         end
       end
 
+      # https://github.com/rollbar/rollbar-gem/issues/1103
+      context 'with Regexp scrub fields' do
+        let(:url) do
+          'http://foo.com/some-interesting-path' \
+          '?user_email=foo@bar.com&email=baz@bar.com&first_name=Foo&id=1#fragment'
+        end
+        let(:expected_url) do
+          %r{http://foo.com/some-interesting-path
+            \?user_email=\*{3,8}&email=\*{3,8}&first_name=\*{3,8}&id=1#fragment}x
+        end
+
+        [
+          [/email/, /name/, :password],
+          [:password, /email/, /name/],
+          [:password, /email/, /name/, :secret],
+          [/email/, ->(_k, v) { v }, /name/]
+        ].each do |scrub_fields|
+          context "when scrub_fields is #{scrub_fields.inspect}" do
+            let(:options) { super().merge(:scrub_fields => scrub_fields) }
+
+            it 'scrubs the params matching the regexps regardless of their position' do
+              expect(subject.call(options)).to match(expected_url)
+            end
+          end
+        end
+
+        context 'with String names between the edges of the list' do
+          let(:url) do
+            'http://foo.com/some-interesting-path' \
+            '?my_secret_key=foo&secret_key=bar&id=1#fragment'
+          end
+          let(:expected_url) do
+            %r{http://foo.com/some-interesting-path
+              \?my_secret_key=\*{3,8}&secret_key=\*{3,8}&id=1#fragment}x
+          end
+
+          # The anchors in "^a|b|c$" only bind the first and last names, so a
+          # name in the middle matches anywhere in the key. Each Regexp or Proc
+          # keeps its slot in the list, so :secret stays in the middle and
+          # matches my_secret_key. Dropping the entry would move :secret onto
+          # an edge and stop scrubbing my_secret_key.
+          [
+            [:password, :secret, /email/],
+            [/email/, :secret, :password],
+            [:password, :secret, ->(_k, v) { v }],
+            [->(_k, v) { v }, :secret, :password]
+          ].each do |scrub_fields|
+            context "when scrub_fields is #{scrub_fields.inspect}" do
+              let(:options) { super().merge(:scrub_fields => scrub_fields) }
+
+              it 'keeps the name anchored as when the Regexp or Proc held its slot' do
+                expect(subject.call(options)).to match(expected_url)
+              end
+            end
+          end
+        end
+
+        context 'with array params' do
+          let(:url) do
+            'http://foo.com/some-interesting-path' \
+            '?first_name[]=Foo&first_name[]=Bar&LAST_NAME[]=Baz' \
+            '&first_name_initial[]=F&id[]=1#fragment'
+          end
+          let(:expected_url) do
+            %r{http://foo.com/some-interesting-path
+              \?first_name\[\]=\*{3,8}&first_name\[\]=\*{3,8}&LAST_NAME\[\]=\*{3,8}
+              &first_name_initial\[\]=F&id\[\]=1\#fragment}x
+          end
+          let(:options) do
+            super().merge(:scrub_fields => [:password, /\Afirst_name\z/, /last_name\z/i])
+          end
+
+          # Array params keep their brackets in the query, so end-anchored
+          # Regexps must also match the key without them, as names do.
+          it 'scrubs the params matching the regexps, honoring their anchors and flags' do
+            expect(subject.call(options)).to match(expected_url)
+          end
+        end
+      end
+
       context 'with no-random scrub length' do
         let(:options) do
           {

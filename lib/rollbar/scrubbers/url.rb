@@ -67,11 +67,21 @@ module Rollbar
       end
 
       # Builds a regex to match with any of the received fields.
-      # The built regex will also match array params like 'user_ids[]'.
+      # The built regex will also match array params like 'user_ids[]' for
+      # String/Symbol names; filter_key? handles them for Regexp fields.
+      # Regexp fields, e.g. entries copied from Rails' filter_parameters, are
+      # matched on their own terms so their position in the list doesn't change
+      # what they match. Procs are never matched.
+      #
+      # In "^a|b|c$" the anchors only bind the first and last names, so Regexp
+      # and Proc entries keep their slot in the list as a never-matching
+      # placeholder. That leaves the String/Symbol names anchored exactly as
+      # before, so this scrubs a superset of what it used to.
       def build_regex(fields)
-        fields_or = fields.map { |field| "#{field}(\\[\\])?" }.join('|')
+        names = fields.map { |f| f.is_a?(Regexp) || f.is_a?(Proc) ? '(?!)' : f }
+        fields_or = names.map { |field| "#{field}(\\[\\])?" }.join('|')
 
-        Regexp.new("^#{fields_or}$")
+        Regexp.union(Regexp.new("^#{fields_or}$"), *fields.grep(Regexp))
       end
 
       def filter_user(user, scrub_user, randomize_scrub_length)
@@ -126,8 +136,12 @@ module Rollbar
         end
       end
 
+      # Array param keys keep their brackets, e.g. 'first_name[]'. Names match
+      # them through their own (\[\])? suffix, but a Regexp field can't be given
+      # one, so it is also tried against the key without the brackets.
       def filter_key?(key, regex, scrub_all, whitelist)
-        !(whitelist === key) && (scrub_all || regex === key)
+        !(whitelist === key) &&
+          (scrub_all || regex === key || regex === key.chomp('[]'))
       end
 
       def filtered_value(value, randomize_scrub_length)
