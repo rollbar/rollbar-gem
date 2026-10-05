@@ -92,4 +92,21 @@ describe Rollbar::Util::Hash do
     expect(new_hash['b']['a']).to start_with('removed circular reference')
     expect(new_hash['b']['list'].first).to start_with('removed circular reference')
   end
+
+  context 'with a deeply shared structure' do
+    let(:value) do
+      x = { :leaf => 1 }
+      30.times { x = { :a => x, :b => x } }
+      { :root => x }
+    end
+
+    it 'stops copying repeated references once the limit is reached' do
+      new_hash = described_class.deep_stringify_keys(value)
+      json = Rollbar::JSON.dump(new_hash)
+
+      expect(json).to include(Rollbar::Util::ReferenceTracker::REPEATED_REFERENCE_MARKER)
+      expect(json).not_to include('removed circular reference')
+      expect(json.scan('"leaf"').size).to be < 20_000
+    end
+  end
 end

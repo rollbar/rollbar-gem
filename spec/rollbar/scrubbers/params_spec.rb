@@ -734,6 +734,32 @@ describe Rollbar::Scrubbers::Params do
         expect(result[:list2]).not_to be(list)
         expect(reference[:password]).to eq('the-password')
       end
+
+      it 'returns a separate copy for each reference' do
+        result = subject.call(options)
+
+        expect(result[:key1]).not_to be(result[:key2])
+        expect(result[:list1]).not_to be(result[:list2])
+        expect(result[:list1][0]).not_to be(result[:list2][0])
+      end
+    end
+
+    context 'with a deeply shared structure' do
+      let(:scrub_config) { [:password] }
+      let(:params) do
+        x = { :password => 'the-password' }
+        30.times { x = { :a => x, :b => x } }
+        { :root => x }
+      end
+
+      it 'stops copying repeated references once the limit is reached' do
+        json = Rollbar::JSON.dump(subject.call(options))
+        marker = Rollbar::Util::ReferenceTracker::REPEATED_REFERENCE_MARKER
+
+        expect(json).to include(marker)
+        expect(json).not_to include('the-password')
+        expect(json.scan('"password"').size).to be < 20_000
+      end
     end
 
     context 'with a circular reference' do

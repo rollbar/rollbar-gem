@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'rollbar/scrubbers'
+require 'rollbar/util/reference_tracker'
 
 module Rollbar
   module Scrubbers
@@ -22,7 +23,7 @@ module Rollbar
         params = options[:params]
         return {} unless params
 
-        @scrubbed_objects = {}.compare_by_identity
+        @tracker = Rollbar::Util::ReferenceTracker.new
 
         config = options[:config]
         extra_fields = options[:extra_fields]
@@ -71,21 +72,20 @@ module Rollbar
                    end.join('|'))
       end
 
-      # Always returns a new object and never modifies `params`. The copy of
-      # each container is memoized (and registered before recursing), so a
-      # container referenced more than once, or in a cycle, maps to its copy
-      # instead of leaking the caller's original object into the payload.
+      # Always returns a new object and never modifies `params`. A container
+      # referenced more than once gets its own copy at each occurrence, so a
+      # later in-place change to one copy (e.g. Util.deep_merge in
+      # Item#build_extra) can't show up under the other keys. In a cycle, the
+      # container maps to the copy being built, so the caller's original object
+      # never leaks into the payload.
       def scrub(params, options)
-        return @scrubbed_objects[params] if @scrubbed_objects.key?(params)
         return scrub_array(params, options) if params.is_a?(Array)
 
-        result = @scrubbed_objects[params] = {}
-
-        to_scrubbable_hash(params).each do |key, value|
-          result[key] = scrub_hash_value(key, value, options)
+        copy_container(params, {}) do |result|
+          to_scrubbable_hash(params).each do |key, value|
+            result[key] = scrub_hash_value(key, value, options)
+          end
         end
-
-        result
       end
 
       def scrub_hash_value(key, value, options)
@@ -108,16 +108,26 @@ module Rollbar
       end
 
       def scrub_array(array, options)
-        return @scrubbed_objects[array] if @scrubbed_objects.key?(array)
+        copy_container(array, []) do |result|
+          array.each do |value|
+            result << if hash_like?(value) || value.is_a?(Array)
+                        scrub(value, options)
+                      else
+                        rollbar_filtered_param_value(value)
+                      end
+          end
+        end
+      end
 
-        result = @scrubbed_objects[array] = []
-
-        array.each do |value|
-          nested = hash_like?(value) || value.is_a?(Array)
-          result << (nested ? scrub(value, options) : rollbar_filtered_param_value(value))
+      # Yields `copy` to be filled in, registered first so a cycle maps to it.
+      def copy_container(container, copy)
+        return @tracker.copy_of(container) if @tracker.circular?(container)
+        unless @tracker.copy_allowed?(container)
+          return Rollbar::Util::ReferenceTracker::REPEATED_REFERENCE_MARKER
         end
 
-        result
+        @tracker.track(container, copy) { yield copy }
+        copy
       end
 
       # Objects that implement implicit Hash conversion without being a Hash,
