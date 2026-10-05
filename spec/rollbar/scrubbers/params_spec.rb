@@ -390,6 +390,34 @@ describe Rollbar::Scrubbers::Params do
           expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
+
+      context 'with Regexp scrub fields' do
+        let(:scrub_config) { [:secret, /email/, /\ACaseSensitive\z/] }
+        let(:params) do
+          {
+            :foo => 'bar',
+            :secret => 'the-secret',
+            :user_email => 'foo@bar.com',
+            :nested => { :email_address => 'foo@bar.com' },
+            :CaseSensitive => 'value',
+            :casesensitive => 'value'
+          }
+        end
+        let(:result) do
+          {
+            :foo => 'bar',
+            :secret => /\*+/,
+            :user_email => /\*+/,
+            :nested => { :email_address => /\*+/ },
+            :CaseSensitive => /\*+/,
+            :casesensitive => 'value'
+          }
+        end
+
+        it 'scrubs the parameters matching the regexps' do
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+        end
+      end
     end
 
     context 'with :scrub_all option' do

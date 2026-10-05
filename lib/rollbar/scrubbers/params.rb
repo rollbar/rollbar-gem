@@ -44,10 +44,11 @@ module Rollbar
       end
 
       def build_fields_regex(config, extra_fields)
-        fields = config.find_all { |f| field_name?(f) }
-        # extra_fields may hold Regexps, e.g. Rails' action_dispatch.parameter_filter,
-        # which is a single precompiled Regexp when precompile_filter_parameters is on.
-        fields += Array(extra_fields).find_all { |f| f.is_a?(Regexp) || field_name?(f) }
+        # Both may hold Regexps: scrub_fields so it can be set from Rails'
+        # filter_parameters, and extra_fields because it is Rails'
+        # action_dispatch.parameter_filter, which is a single precompiled Regexp
+        # when precompile_filter_parameters is on.
+        fields = (config + Array(extra_fields)).find_all { |f| scrub_field?(f) }
 
         return unless fields.any?
 
@@ -56,8 +57,8 @@ module Rollbar
                    end.join('|'), true)
       end
 
-      def field_name?(field)
-        field.is_a?(String) || field.is_a?(Symbol)
+      def scrub_field?(field)
+        field.is_a?(String) || field.is_a?(Symbol) || field.is_a?(Regexp)
       end
 
       def build_whitelist_regex(whitelist)
