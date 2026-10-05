@@ -66,16 +66,18 @@ module Rollbar
         uri.to_s
       end
 
-      # Builds a regex to match with any of the received fields.
+      # Builds a matcher for any of the received fields.
       # The built regex will also match array params like 'user_ids[]'.
-      # Regexp fields are matched as given, like Rails' filter_parameters.
+      # Regexp fields are matched as given, like Rails' filter_parameters, against
+      # each name in the key as Rack would parse it, so /\A.+_token\z/ matches
+      # 'api_token[]' ('api_token') and 'user[api_token]' ('user', 'api_token').
       # Other entries Rails allows there, such as lambdas, are ignored.
       def build_regex(fields)
-        regexes = fields.grep(Regexp)
         names = fields.find_all { |f| f.is_a?(String) || f.is_a?(Symbol) }
-        fields_or = names.map { |field| "#{field}(\\[\\])?" }.join('|')
+        names_regex = Regexp.new("^#{names.map { |f| "#{f}(\\[\\])?" }.join('|')}$")
+        regex = Regexp.union(fields.grep(Regexp))
 
-        Regexp.union(Regexp.new("^#{fields_or}$"), *regexes)
+        ->(key) { names_regex === key || key.scan(/[^\[\]]+/).any? { |k| regex === k } }
       end
 
       def filter_user(user, scrub_user, randomize_scrub_length)

@@ -140,6 +140,30 @@ describe Rollbar::Scrubbers::URL do
 
           expect(subject.call(options)).to match(expected_url)
         end
+
+        context 'with array and nested params' do
+          let(:options) do
+            {
+              :url => url,
+              :scrub_fields => [:password, /email/, /\A.+_token\z/],
+              :scrub_user => false,
+              :scrub_password => false,
+              :randomize_scrub_length => true
+            }
+          end
+          let(:url) do
+            'http://foo.com/some-interesting-path?api_token[]=s3cret' \
+            '&user[api_token]=s3cret&user[name]=foo&token_count=1#fragment'
+          end
+
+          it 'matches the regexps against each param name' do
+            expected_url = %r{http://foo.com/some-interesting-path\?
+              api_token\[\]=\*{3,8}&user\[api_token\]=\*{3,8}
+              &user\[name\]=foo&token_count=1#fragment}x
+
+            expect(subject.call(options)).to match(expected_url)
+          end
+        end
       end
 
       context 'with no-random scrub length' do
