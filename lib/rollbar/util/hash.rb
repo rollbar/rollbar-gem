@@ -1,54 +1,33 @@
+require 'rollbar/util/reference_tracker'
+
 module Rollbar
   module Util
     module Hash # :nodoc:
-      def self.deep_stringify_keys(hash, seen = {})
-        seen.compare_by_identity
-        return if seen[hash]
+      # Returns a copy of `hash` with all keys converted to strings. The input
+      # is never modified.
+      #
+      # Only true cycles are replaced. An object that is merely referenced more
+      # than once (e.g. the same hash under two keys) is not circular and is
+      # copied at each occurrence, up to the limit in ReferenceTracker.
+      def self.deep_stringify_keys(hash, tracker = ReferenceTracker.new)
+        tracker.track(hash) do
+          hash.reduce({}) do |h, (key, value)|
+            h[key.to_s] = map_value(value, :deep_stringify_keys, tracker)
 
-        seen[hash] = true
-        replace_seen_children(hash, seen)
-
-        hash.reduce({}) do |h, (key, value)|
-          h[key.to_s] = map_value(value, :deep_stringify_keys, seen)
-
-          h
+            h
+          end
         end
       end
 
-      def self.map_value(thing, meth, seen)
-        case thing
-        when ::Hash
-          send(meth, thing, seen)
-        when Array
-          if seen[thing]
-            thing
-          else
-            seen[thing] = true
-            replace_seen_children(thing, seen)
-            thing.map { |v| map_value(v, meth, seen) }
-          end
-        else
-          thing
+      def self.map_value(thing, meth, tracker)
+        return thing unless thing.is_a?(::Hash) || thing.is_a?(Array)
+        return "removed circular reference: #{thing}" if tracker.circular?(thing)
+        unless tracker.copy_allowed?(thing)
+          return ReferenceTracker::REPEATED_REFERENCE_MARKER
         end
-      end
+        return send(meth, thing, tracker) if thing.is_a?(::Hash)
 
-      def self.replace_seen_children(thing, seen)
-        case thing
-        when ::Hash
-          thing.keys.each do |key| # rubocop:disable Style/HashEachMethods
-            if seen[thing[key]]
-              thing[key] =
-                "removed circular reference: #{thing[key]}"
-            end
-          end
-        when Array
-          thing.each_with_index do |_, i|
-            if seen[thing[i]]
-              thing[i] =
-                "removed circular reference: #{thing[i]}"
-            end
-          end
-        end
+        tracker.track(thing) { thing.map { |v| map_value(v, meth, tracker) } }
       end
     end
   end

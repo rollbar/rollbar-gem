@@ -158,8 +158,10 @@ module Rollbar
 
       notifier.send_failsafe(too_large_payload_string(attempts), nil, original_error)
 
+      # `payload` may contain cycles, which JSON can't represent, and
+      # `stringified_payload` has already been truncated in place.
       logger.error('[Rollbar] Payload too large to be sent for UUID ' \
-        "#{uuid}: #{Rollbar::JSON.dump(payload)}")
+        "#{uuid}: #{Rollbar::JSON.dump(Util::Hash.deep_stringify_keys(payload))}")
     end
 
     def too_large_payload_string(attempts)
