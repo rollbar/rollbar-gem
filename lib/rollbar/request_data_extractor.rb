@@ -4,6 +4,7 @@ require 'tempfile'
 require 'rollbar/scrubbers'
 require 'rollbar/scrubbers/url'
 require 'rollbar/scrubbers/params'
+require 'rollbar/util'
 require 'rollbar/util/ip_obfuscator'
 require 'rollbar/util/ip_anonymizer'
 require 'rollbar/json'
@@ -91,14 +92,23 @@ module Rollbar
     def mergeable_raw_body_params(rack_req)
       raw_body_params = rollbar_raw_body_params(rack_req)
 
-      case raw_body_params
-      when Hash
-        raw_body_params
-      when Array
-        { 'body.multi' => raw_body_params }
-      else
-        { 'body.value' => raw_body_params }
-      end
+      params = case raw_body_params
+               when Hash
+                 raw_body_params
+               when Array
+                 { 'body.multi' => raw_body_params }
+               else
+                 { 'body.value' => raw_body_params }
+               end
+
+      # The request body is serialized to JSON right here in the extractor,
+      # before the payload-wide UTF-8 pass in Rollbar::Item runs. A parsed
+      # body carrying invalid UTF-8 (e.g. a malformed request) would make that
+      # serialization raise JSON::GeneratorError and mask the original error
+      # being reported, so normalize the encoding up front.
+      Rollbar::Util.enforce_valid_utf8(params)
+
+      params
     end
 
     def rollbar_request_method(env)
