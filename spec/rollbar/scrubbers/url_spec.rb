@@ -174,6 +174,28 @@ describe Rollbar::Scrubbers::URL do
             end
           end
         end
+
+        context 'with array params' do
+          let(:url) do
+            'http://foo.com/some-interesting-path' \
+            '?first_name[]=Foo&first_name[]=Bar&LAST_NAME[]=Baz' \
+            '&first_name_initial[]=F&id[]=1#fragment'
+          end
+          let(:expected_url) do
+            %r{http://foo.com/some-interesting-path
+              \?first_name\[\]=\*{3,8}&first_name\[\]=\*{3,8}&LAST_NAME\[\]=\*{3,8}
+              &first_name_initial\[\]=F&id\[\]=1\#fragment}x
+          end
+          let(:options) do
+            super().merge(:scrub_fields => [:password, /\Afirst_name\z/, /last_name\z/i])
+          end
+
+          # Array params keep their brackets in the query, so end-anchored
+          # Regexps must also match the key without them, as names do.
+          it 'scrubs the params matching the regexps, honoring their anchors and flags' do
+            expect(subject.call(options)).to match(expected_url)
+          end
+        end
       end
 
       context 'with no-random scrub length' do

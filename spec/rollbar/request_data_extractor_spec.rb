@@ -151,6 +151,21 @@ describe Rollbar::RequestDataExtractor do
         expect(result[:POST]['plan']).to eq('free')
         expect(result[:url]).to match(/\?email=\*+&first_name=\*+&id=1\z/)
       end
+
+      context 'with array params in the query' do
+        let(:env) do
+          Rack::MockRequest.env_for('/signup?first_name[]=Foo&first_name[]=Bar&id=1',
+                                    'HTTP_HOST' => 'localhost:81')
+        end
+
+        it 'scrubs them in both the GET params and the URL' do
+          result = subject.extract_request_data_from_rack(env)
+
+          expect(result[:GET]['first_name']).to match(/\A\*+\z/)
+          expect(result[:url])
+            .to match(/\?first_name\[\]=\*+&first_name\[\]=\*+&id=1\z/)
+        end
+      end
     end
 
     context 'with scrub headers set' do
