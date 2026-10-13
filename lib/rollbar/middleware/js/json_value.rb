@@ -15,7 +15,24 @@
 #
 module Rollbar
   module JSON
-    class JsOptionsState < ::JSON::State; end
+    class JsOptionsState < ::JSON::State
+      GENERATING_KEY = :_rollbar_js_options_state_generating
+
+      # json >= 2.17 no longer passes this state object through to #to_json;
+      # nested calls get a fresh ::JSON::State instead. Flag the generation
+      # so Value#to_json can still tell it's being encoded for the js config.
+      def generate(*args)
+        previous = Thread.current[GENERATING_KEY]
+        Thread.current[GENERATING_KEY] = true
+        super
+      ensure
+        Thread.current[GENERATING_KEY] = previous
+      end
+
+      def self.generating?
+        Thread.current[GENERATING_KEY] == true
+      end
+    end
 
     class Value # :nodoc:
       attr_accessor :value
@@ -26,7 +43,8 @@ module Rollbar
 
       def to_json(opts = {})
         # Return the raw value if this is from the js middleware
-        return value if opts.class == Rollbar::JSON::JsOptionsState
+        return value if opts.class == Rollbar::JSON::JsOptionsState ||
+                        Rollbar::JSON::JsOptionsState.generating?
 
         # Otherwise convert to a string
         %Q["#{value}"]
