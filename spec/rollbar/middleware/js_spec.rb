@@ -417,6 +417,20 @@ describe Rollbar::Middleware::Js do
             expect(json_value).to be_a(String)
           end
 
+          it 'emits js functions unquoted' do
+            expect(json_options).to include('"checkIgnore":function(){ alert("bar") }')
+
+            _, _, response = subject.call(env)
+
+            expect(response.body.join)
+              .to include('"checkIgnore":function(){ alert("bar") }')
+          end
+
+          it 'quotes js functions outside of JsOptionsState generation' do
+            expect(::JSON.generate(config[:options]))
+              .to include('"checkIgnore":"function(){ alert("bar") }"')
+          end
+
           it 'adds the config and the snippet to the response' do
             res_status, res_headers, response = subject.call(env)
             new_body = response.body.join
