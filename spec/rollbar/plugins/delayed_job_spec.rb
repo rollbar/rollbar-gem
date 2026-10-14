@@ -131,6 +131,39 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
         expect(job_scope).to have_key(:request)
         expect(job_scope[:request]).to include("name" => "PassingJob#do_job_please!")
       end
+
+      context 'with an ActiveJob job using the delayed_job adapter' do
+        class ScopedDelayedActiveJob < ActiveJob::Base
+          include Rollbar::ActiveJob
+
+          cattr_accessor :scope_during_perform
+
+          def perform
+            self.class.scope_during_perform = Rollbar.scope_object.dup
+          end
+        end
+
+        # Stands in for ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper,
+        # which doesn't load on every Rails version this suite runs against.
+        class ActiveJobWrapper
+          attr_accessor :job_data
+
+          def initialize(job_data)
+            @job_data = job_data
+          end
+
+          def perform
+            ActiveJob::Base.execute(job_data)
+          end
+        end
+
+        it 'keeps the job data in scope' do
+          Delayed::Job.enqueue(ActiveJobWrapper.new(ScopedDelayedActiveJob.new.serialize))
+
+          expect(ScopedDelayedActiveJob.scope_during_perform[:request]['handler'])
+            .to include('job_class' => 'ScopedDelayedActiveJob')
+        end
+      end
     end
   end
 

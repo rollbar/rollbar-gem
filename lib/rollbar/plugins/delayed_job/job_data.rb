@@ -73,6 +73,9 @@ module Rollbar
             'attributes' => scrub(payload_attributes(payload_object))
           }
         end
+      rescue SystemStackError
+        # as_json recurses forever on objects with circular references
+        { 'class' => payload_object.class.name }
       end
 
       def payload_attributes(payload_object)

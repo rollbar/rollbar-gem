@@ -7,8 +7,14 @@ module Rollbar
     # The previous scope is restored afterwards. This wraps perform_now rather
     # than using around_perform because rescue_from handlers run outside the
     # perform callbacks.
+    #
+    # Jobs run by the Sidekiq or delayed_job integrations keep their scope,
+    # since those set it up for the job (see sidekiq_use_scoped_block and
+    # dj_use_scoped_block).
     module ResetScope
       def perform_now(*args, &block)
+        return super if Rollbar::JobIntegration.within?
+
         Rollbar.scoped do
           Rollbar.reset_notifier!
 

@@ -230,5 +230,21 @@ describe Rollbar::ActiveJob do
 
       expect(Rollbar.scope_object[:person]).to eq(:id => 1)
     end
+
+    context 'when run by one of the Rollbar job integrations' do
+      it 'keeps the scope set up for the job' do
+        Rollbar::JobIntegration.within { ScopedTestJob.perform_now(false) }
+
+        expect(ScopedTestJob.scope_during_perform[:request]).to eq(:url => '/users/1')
+      end
+
+      it 'reports the job error with that scope' do
+        expect do
+          Rollbar::JobIntegration.within { ScopedTestJob.perform_now(true) }
+        end.to raise_error(StandardError, 'oh no')
+
+        expect(Rollbar.last_report[:request]).to eq(:url => '/users/1')
+      end
+    end
   end
 end

@@ -48,11 +48,13 @@ module Rollbar
     def self.invoke_job_callback
       proc do |job, *args, &block|
         begin
-          if Rollbar.configuration.dj_use_scoped_block
-            data = Rollbar::Delayed.build_job_data(job)
-            Rollbar.scoped(:request => data) { block.call(job, *args) }
-          else
-            block.call(job, *args)
+          Rollbar::JobIntegration.within do
+            if Rollbar.configuration.dj_use_scoped_block
+              data = Rollbar::Delayed.build_job_data(job)
+              Rollbar.scoped(:request => data) { block.call(job, *args) }
+            else
+              block.call(job, *args)
+            end
           end
         rescue StandardError => e
           report(e, job)

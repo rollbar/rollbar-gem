@@ -78,6 +78,23 @@ describe Rollbar::Delayed::JobData, :reconfigure_notifier => true do
       end
     end
 
+    context 'with a job object that has circular references' do
+      let(:job) { ::Delayed::Backend::Test::Job.new('attempts' => 1) }
+
+      before do
+        stub_const('CircularJob', Class.new { attr_accessor :parent })
+
+        payload_object = CircularJob.new
+        payload_object.parent = payload_object
+
+        allow(job).to receive(:payload_object).and_return(payload_object)
+      end
+
+      it 'sends only the job class' do
+        expect(subject.to_hash['handler']).to eq('class' => 'CircularJob')
+      end
+    end
+
     context 'with a Struct job object' do
       let(:job) { ::Delayed::Backend::Test::Job.new('attempts' => 1) }
 
