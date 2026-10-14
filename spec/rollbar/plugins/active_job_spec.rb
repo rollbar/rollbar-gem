@@ -190,5 +190,36 @@ describe Rollbar::ActiveJob do
         end
       end
     end
+
+    it 'reports the error only once' do
+      expect(Rollbar).to receive(:error).once
+
+      perform_enqueued_jobs do
+        begin
+          TestMailer2.test_email(argument).deliver_later
+        rescue StandardError
+          nil
+        end
+      end
+    end
+
+    it 'reports ActiveJob::DeserializationError to Rollbar' do
+      user = User.create!(:email => 'deleted@example.com')
+
+      ActiveJob::Base.queue_adapter = :test
+      job = TestMailer2.test_email(user).deliver_later
+      user.destroy
+
+      expect(Rollbar).to receive(:error)
+        .once
+        .with(kind_of(ActiveJob::DeserializationError),
+              hash_including(:job => 'TestMailer2', :use_exception_level_filters => true))
+
+      # Run the job the way queue adapters do. On older Rails, perform_enqueued_jobs
+      # deserializes arguments before the job runs, bypassing rescue_from.
+      expect do
+        ActiveJob::Base.execute(job.serialize)
+      end.to raise_error(ActiveJob::DeserializationError)
+    end
   end
 end
