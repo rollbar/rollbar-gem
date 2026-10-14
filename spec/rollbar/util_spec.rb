@@ -18,6 +18,24 @@ describe Rollbar::Util do
       end
     end
 
+    context 'with false values' do
+      it 'merges them like any other value' do
+        result = Rollbar::Util.deep_merge({ :foo => true, :bar => { :baz => 1 } },
+                                          { :foo => false, :bar => { :baz => false },
+                                            :qux => false })
+
+        expect(result).to be_eql(:foo => false, :bar => { :baz => false }, :qux => false)
+      end
+    end
+
+    context 'with nil values' do
+      it 'keeps the existing value' do
+        result = Rollbar::Util.deep_merge({ :foo => 'bar' }, { :foo => nil })
+
+        expect(result).to be_eql(:foo => 'bar')
+      end
+    end
+
     context 'with circular data' do
       let(:data1) do
         { :foo => 'bar' }.tap do |a|

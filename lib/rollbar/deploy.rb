@@ -34,7 +34,7 @@ module Rollbar
       )
 
       request = ::Net::HTTP::Patch.new(uri.request_uri)
-      request.body = ::JSON.dump(:status => status.to_s, :comment => opts[:comment])
+      request.body = ::JSON.dump({ :status => status.to_s, :comment => opts[:comment] })
 
       send_request(opts, uri, request)
     end

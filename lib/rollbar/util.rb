@@ -102,7 +102,7 @@ module Rollbar
           hash1[k] = deep_merge(hash1[k], hash2[k], merged)
         elsif hash1[k].is_a?(Array) && hash2[k].is_a?(Array)
           hash1[k] += deep_copy(hash2[k])
-        elsif hash2[k]
+        elsif !hash2[k].nil?
           hash1[k] = deep_copy(hash2[k])
         end
       end
