@@ -380,6 +380,8 @@ module Rollbar
       @logger ||= LoggerProxy.new(configuration.logger)
     end
 
+    attr_writer :trace_with_bindings
+
     def trace_with_bindings
       @trace_with_bindings ||= TraceWithBindings.new
     end

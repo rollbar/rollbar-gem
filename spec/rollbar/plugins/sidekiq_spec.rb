@@ -197,6 +197,17 @@ describe Rollbar::Sidekiq, :reconfigure_notifier => false do
       expect { subject.call(nil, msg, nil, &middleware_block) }.to raise_error(exception)
     end
 
+    it 'runs the block within a job integration' do
+      within_job_integration = nil
+
+      subject.call(nil, msg, nil) do
+        within_job_integration = Rollbar::JobIntegration.within?
+      end
+
+      expect(within_job_integration).to be(true)
+      expect(Rollbar::JobIntegration.within?).to be(false)
+    end
+
     context 'when the block calls Rollbar.log without raising an error' do
       let(:middleware_block) { proc { Rollbar.log('warning', 'Danger, Will Robinson') } }
 

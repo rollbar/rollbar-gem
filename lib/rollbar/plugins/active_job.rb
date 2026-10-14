@@ -1,7 +1,41 @@
 module Rollbar
   # Report any uncaught errors in a job to Rollbar and reraise
   module ActiveJob
+    # Runs each job with an empty scope so it doesn't report data left over
+    # from whatever ran before it on the same thread, e.g. the person and
+    # request of a controller action when using the async or inline adapters.
+    # The previous scope is restored afterwards. This wraps perform_now rather
+    # than using around_perform because rescue_from handlers run outside the
+    # perform callbacks.
+    #
+    # Jobs run by the Sidekiq integration, or by the delayed_job one with
+    # dj_use_scoped_block, keep their scope, since those build it for the job
+    # starting from an empty one.
+    #
+    # The job's notifier shares the caller's locals tracer. When a job runs
+    # inline during a request with config.locals enabled, its exception frames
+    # are recorded by the tracer the request middleware enabled, so a new one
+    # would leave the job's error report without local variables.
+    module ResetScope
+      def perform_now(*args, &block)
+        return super if Rollbar::JobIntegration.within?
+
+        trace_with_bindings = Rollbar.notifier.trace_with_bindings
+
+        Rollbar.scoped do
+          Rollbar.reset_notifier!
+          Rollbar.notifier.trace_with_bindings = trace_with_bindings
+
+          super
+        end
+      end
+    end
+
     def self.included(base)
+      if defined?(::ActiveJob::Base) && base <= ::ActiveJob::Base
+        base.send :prepend, ResetScope
+      end
+
       base.send :rescue_from, Exception do |exception|
         job_data = {
           :job => self.class.name,

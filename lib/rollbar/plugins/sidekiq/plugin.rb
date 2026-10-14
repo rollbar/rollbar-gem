@@ -8,9 +8,13 @@ module Rollbar
       def call(_worker, msg, _queue, &block)
         Rollbar.reset_notifier! # clears scope
 
-        return yield unless Rollbar.configuration.sidekiq_use_scoped_block
-
-        Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg), &block)
+        Rollbar::JobIntegration.within do
+          if Rollbar.configuration.sidekiq_use_scoped_block
+            Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg), &block)
+          else
+            yield
+          end
+        end
       end
     end
 
@@ -61,9 +65,13 @@ module Rollbar
     def call(_worker, msg, _queue, &block)
       Rollbar.reset_notifier! # clears scope
 
-      return yield unless Rollbar.configuration.sidekiq_use_scoped_block
-
-      Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg), &block)
+      Rollbar::JobIntegration.within do
+        if Rollbar.configuration.sidekiq_use_scoped_block
+          Rollbar.scoped(Rollbar::Sidekiq.job_scope(msg), &block)
+        else
+          yield
+        end
+      end
     rescue Exception => e # rubocop:disable Lint/RescueException
       Rollbar::Sidekiq.handle_exception(msg, e)
       raise
