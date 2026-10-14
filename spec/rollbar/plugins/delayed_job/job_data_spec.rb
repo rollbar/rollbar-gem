@@ -131,6 +131,50 @@ describe Rollbar::Delayed::JobData, :reconfigure_notifier => true do
       end
     end
 
+    context 'without ActiveSupport loaded' do
+      let(:job) { ::Delayed::Backend::Test::Job.new('attempts' => 1) }
+
+      before do
+        allow(payload_object).to receive(:respond_to?).and_call_original
+        allow(payload_object).to receive(:respond_to?).with(:as_json).and_return(false)
+        allow(job).to receive(:payload_object).and_return(payload_object)
+      end
+
+      context 'with a Struct job object' do
+        let(:payload_object) do
+          stub_const('StructJob', Struct.new(:user_id))
+          StructJob.new(42)
+        end
+
+        it 'sends the struct members with string keys' do
+          expect(subject.to_hash['handler']).to eq(
+            'class' => 'StructJob',
+            'attributes' => { 'user_id' => 42 }
+          )
+        end
+      end
+
+      context 'with a custom job object' do
+        let(:payload_object) do
+          stub_const('IvarJob', Class.new do
+            def initialize(user_id, password)
+              @user_id = user_id
+              @password = password
+            end
+          end)
+          IvarJob.new(42, 'hunter2')
+        end
+
+        it 'sends its instance variables, scrubbed' do
+          handler = subject.to_hash['handler']
+
+          expect(handler['class']).to eq('IvarJob')
+          expect(handler['attributes']['user_id']).to eq(42)
+          expect(handler['attributes']['password']).to match(/\A\*+\z/)
+        end
+      end
+    end
+
     context 'with an ActiveJob job enqueued through the delayed_job adapter' do
       let(:job_data) do
         {

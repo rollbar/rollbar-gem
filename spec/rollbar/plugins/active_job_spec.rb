@@ -231,6 +231,41 @@ describe Rollbar::ActiveJob do
       expect(Rollbar.scope_object[:person]).to eq(:id => 1)
     end
 
+    context 'with locals enabled',
+            :if => RUBY_VERSION >= '2.3.0' &&
+                   !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
+      class LocalsTestJob < ActiveJob::Base
+        include Rollbar::ActiveJob
+
+        def perform
+          job_local = 'from the job'
+          raise StandardError, "oh no #{job_local}"
+        end
+      end
+
+      before do
+        Rollbar.configure do |config|
+          config.send_extra_frame_data = :all
+          config.locals = { :enabled => true }
+        end
+      end
+
+      it 'reports the locals of a job run inline, e.g. during a request' do
+        # As the Rails middleware does around each request
+        Rollbar.notifier.enable_locals
+        begin
+          expect { LocalsTestJob.perform_now }.to raise_error(StandardError)
+        ensure
+          Rollbar.notifier.disable_locals
+        end
+
+        frame = Rollbar.last_report[:body][:trace][:frames][-1]
+
+        expect(frame[:method]).to match(/perform/)
+        expect(frame[:locals]).to include(:job_local => 'from the job')
+      end
+    end
+
     context 'when run by one of the Rollbar job integrations' do
       it 'keeps the scope set up for the job' do
         Rollbar::JobIntegration.within { ScopedTestJob.perform_now(false) }

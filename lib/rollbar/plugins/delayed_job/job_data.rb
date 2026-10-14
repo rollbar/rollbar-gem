@@ -80,7 +80,10 @@ module Rollbar
 
       def payload_attributes(payload_object)
         return payload_object.as_json if payload_object.respond_to?(:as_json)
-        return payload_object.to_h if payload_object.is_a?(Struct)
+        if payload_object.is_a?(Struct)
+          # String keys, like as_json
+          return Hash[payload_object.each_pair.map { |name, value| [name.to_s, value] }]
+        end
 
         Hash[payload_object.instance_variables.map do |name|
           [name.to_s.delete('@'), payload_object.instance_variable_get(name)]

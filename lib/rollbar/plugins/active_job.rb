@@ -11,12 +11,20 @@ module Rollbar
     # Jobs run by the Sidekiq integration, or by the delayed_job one with
     # dj_use_scoped_block, keep their scope, since those build it for the job
     # starting from an empty one.
+    #
+    # The job's notifier shares the caller's locals tracer. When a job runs
+    # inline during a request with config.locals enabled, its exception frames
+    # are recorded by the tracer the request middleware enabled, so a new one
+    # would leave the job's error report without local variables.
     module ResetScope
       def perform_now(*args, &block)
         return super if Rollbar::JobIntegration.within?
 
+        trace_with_bindings = Rollbar.notifier.trace_with_bindings
+
         Rollbar.scoped do
           Rollbar.reset_notifier!
+          Rollbar.notifier.trace_with_bindings = trace_with_bindings
 
           super
         end
