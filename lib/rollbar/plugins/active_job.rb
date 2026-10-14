@@ -8,9 +8,8 @@ module Rollbar
     # than using around_perform because rescue_from handlers run outside the
     # perform callbacks.
     #
-    # Jobs run by the Sidekiq or delayed_job integrations keep their scope,
-    # since those set it up for the job (see sidekiq_use_scoped_block and
-    # dj_use_scoped_block).
+    # Jobs run by the Sidekiq integration, or by the delayed_job one with
+    # dj_use_scoped_block, keep their scope, since those set it up for the job.
     module ResetScope
       def perform_now(*args, &block)
         return super if Rollbar::JobIntegration.within?

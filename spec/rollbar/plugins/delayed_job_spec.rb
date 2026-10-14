@@ -106,6 +106,21 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
         expect(job_scope).not_to have_key(:request)
       end
+
+      it 'does not mark the job as run within a job integration' do
+        # With delay_jobs = false the job runs in the caller's thread, so
+        # Rollbar::ActiveJob still has to reset the caller's scope.
+        within_job_integration = nil
+
+        Rollbar.stub(:log) do |_msg|
+          within_job_integration = Rollbar::JobIntegration.within?
+          nil
+        end
+
+        PassingJob.new.delay.do_job_please!(:foo, :bar)
+
+        expect(within_job_integration).to be(false)
+      end
     end
 
     context 'when Rollbar.configuration.dj_use_scoped_block is true' do
