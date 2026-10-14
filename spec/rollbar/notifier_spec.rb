@@ -269,6 +269,99 @@ describe Rollbar::Notifier do
     end
   end
 
+  # https://github.com/rollbar/rollbar-gem/issues/1028
+  describe 'logging the instance link' do
+    let(:logger) do
+      Class.new do
+        attr_reader :messages
+
+        def initialize
+          @messages = []
+        end
+
+        %w[debug info warn error].each do |level|
+          define_method(level) { |message| @messages << [level.to_sym, message] }
+        end
+      end.new
+    end
+    let(:instance_link) do
+      /\A\[Rollbar\] Details: \S+ \(only available if report was successful\)\z/
+    end
+    let(:logger_level) { :info }
+
+    def instance_link_logs
+      logger.messages.select { |_level, message| message =~ instance_link }
+    end
+
+    before do
+      Rollbar.configure do |config|
+        config.access_token = 'abc123'
+        config.logger = logger
+        config.logger_level = logger_level
+        config.transmit = false
+      end
+    end
+
+    it 'logs at info level by default' do
+      Rollbar.error(StandardError.new('boom'))
+
+      expect(instance_link_logs.map(&:first)).to eq([:info])
+    end
+
+    context 'when instance_link_log_level is :warn' do
+      before { Rollbar.configuration.instance_link_log_level = :warn }
+
+      it 'logs at warn level' do
+        Rollbar.error(StandardError.new('boom'))
+
+        expect(instance_link_logs.map(&:first)).to eq([:warn])
+      end
+
+      context 'and logger_level is :warn' do
+        let(:logger_level) { :warn }
+
+        it 'still logs the instance link while other info logs stay silenced' do
+          Rollbar.configuration.log_payload = true
+
+          Rollbar.error(StandardError.new('boom'))
+
+          expect(instance_link_logs.map(&:first)).to eq([:warn])
+          expect(logger.messages.map(&:first)).to eq([:warn])
+        end
+      end
+    end
+
+    context 'when logger_level is :warn and instance_link_log_level is the default' do
+      let(:logger_level) { :warn }
+
+      it 'does not log the instance link' do
+        Rollbar.error(StandardError.new('boom'))
+
+        expect(instance_link_logs).to be_empty
+      end
+    end
+
+    context 'when instance_link_log_level is nil' do
+      before { Rollbar.configuration.instance_link_log_level = nil }
+
+      it 'does not log the instance link' do
+        Rollbar.error(StandardError.new('boom'))
+
+        expect(instance_link_logs).to be_empty
+      end
+    end
+
+    context 'when instance_link_log_level is set through a scoped configuration' do
+      it 'logs at the scoped level' do
+        Rollbar.scoped({}, :instance_link_log_level => :error) do
+          Rollbar.error(StandardError.new('boom'))
+        end
+
+        expect(instance_link_logs.map(&:first)).to eq([:error])
+      end
+    end
+  end
+
   describe '#send_failsafe' do
     subject(:send_failsafe) { described_class.new.send_failsafe(message, exception) }
     let(:message) { 'testing failsafe' }
