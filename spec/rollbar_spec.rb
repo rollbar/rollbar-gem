@@ -2148,6 +2148,15 @@ describe Rollbar do
       expect(Rollbar.notifier.object_id).to be_eql(current_notifier_id)
     end
 
+    it 'keeps false values in the scope' do
+      Rollbar.clear_notifier!
+      configure
+
+      Rollbar.scoped(:example => false) do
+        expect(Rollbar.notifier.scope_object[:example]).to be(false)
+      end
+    end
+
     context 'if the block fails' do
       let(:crashing_block) { proc { raise } }
 
