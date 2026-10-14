@@ -191,4 +191,44 @@ describe Rollbar::ActiveJob do
       end
     end
   end
+
+  context 'with an ActiveJob::Base job' do
+    class ScopedTestJob < ActiveJob::Base
+      include Rollbar::ActiveJob
+
+      cattr_accessor :scope_during_perform
+
+      def perform(fail)
+        self.class.scope_during_perform = Rollbar.scope_object.dup
+        raise StandardError, 'oh no' if fail
+      end
+    end
+
+    before do
+      Rollbar.scope!(:person => { :id => 1 }, :request => { :url => '/users/1' })
+    end
+
+    after { Rollbar.reset_notifier! }
+
+    it 'performs the job with a clean scope' do
+      ScopedTestJob.perform_now(false)
+
+      expect(ScopedTestJob.scope_during_perform).not_to have_key(:person)
+      expect(ScopedTestJob.scope_during_perform).not_to have_key(:request)
+    end
+
+    it 'does not report the scope of the caller with the job error' do
+      expect { ScopedTestJob.perform_now(true) }.to raise_error(StandardError, 'oh no')
+
+      expect(Rollbar.last_report[:body][:trace][:extra][:job]).to eq('ScopedTestJob')
+      expect(Rollbar.last_report).not_to have_key(:person)
+      expect(Rollbar.last_report).not_to have_key(:request)
+    end
+
+    it 'restores the scope of the caller afterwards' do
+      expect { ScopedTestJob.perform_now(true) }.to raise_error(StandardError)
+
+      expect(Rollbar.scope_object[:person]).to eq(:id => 1)
+    end
+  end
 end

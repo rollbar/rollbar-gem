@@ -1,7 +1,27 @@
 module Rollbar
   # Report any uncaught errors in a job to Rollbar and reraise
   module ActiveJob
+    # Runs each job with an empty scope so it doesn't report data left over
+    # from whatever ran before it on the same thread, e.g. the person and
+    # request of a controller action when using the async or inline adapters.
+    # The previous scope is restored afterwards. This wraps perform_now rather
+    # than using around_perform because rescue_from handlers run outside the
+    # perform callbacks.
+    module ResetScope
+      def perform_now(*args, &block)
+        Rollbar.scoped do
+          Rollbar.reset_notifier!
+
+          super
+        end
+      end
+    end
+
     def self.included(base)
+      if defined?(::ActiveJob::Base) && base <= ::ActiveJob::Base
+        base.send :prepend, ResetScope
+      end
+
       base.send :rescue_from, Exception do |exception|
         job_data = {
           :job => self.class.name,

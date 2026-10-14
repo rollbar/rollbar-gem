@@ -20,6 +20,16 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
   end
 
+  class FailingCustomJob
+    def initialize(user_id)
+      @user_id = user_id
+    end
+
+    def perform
+      will_crash_again!
+    end
+  end
+
   before do
     Delayed::Backend::Test.prepare_worker
 
@@ -52,6 +62,24 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
       expect(payload['data'][:request]['handler'])
         .to include({ :args => [:foo, :bar], :method_name => :do_job_please! })
+    end
+  end
+
+  context 'with a custom job object failing' do
+    it 'adds the job class and attributes as the handler' do
+      payload = nil
+
+      ::Rollbar::Item.any_instance.stub(:dump) do |item|
+        payload = item.payload
+        nil
+      end
+
+      Delayed::Job.enqueue(FailingCustomJob.new(42))
+
+      expect(payload['data'][:request]['handler']).to eq(
+        'class' => 'FailingCustomJob',
+        'attributes' => { 'user_id' => 42 }
+      )
     end
   end
 
