@@ -166,28 +166,75 @@ describe Rollbar::ActiveJob do
 
     include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
 
-    let(:expected_params) do
-      {
-        :job => 'TestJob',
-        :use_exception_level_filters => true,
-        :action => 'test_email'
-      }
-    end
-
     it_behaves_like 'an ActiveMailer plugin'
 
     it 'reports the error to Rollbar' do
-      expected_params.delete(:job)
-
-      expect(Rollbar).to receive(:error).with(kind_of(StandardError),
-                                              hash_including(expected_params))
+      expected_params = {
+        :job => 'ActionMailer::MailDeliveryJob',
+        :use_exception_level_filters => true
+      }
+      expect(Rollbar).to receive(:error).once.with(kind_of(StandardError),
+                                                   hash_including(expected_params))
 
       perform_enqueued_jobs do
         begin
           TestMailer2.test_email(argument).deliver_later
-        rescue StandardError => e
+        rescue StandardError
           nil
         end
+      end
+    end
+
+    it 'reraises unhandled mailer errors' do
+      expect do
+        ActionMailer::MailDeliveryJob.perform_now('TestMailer2', 'test_email',
+                                                  'deliver_now', :args => [argument])
+      end.to raise_error(StandardError, 'oh no')
+    end
+
+    context 'when the error is handled' do
+      before do
+        stub_const('DiscardedMailerError', Class.new(StandardError))
+        stub_const('RescuedByJobMailerError', Class.new(StandardError))
+        stub_const('RescuedByMailerError', Class.new(StandardError))
+
+        stub_const('HandlingDeliveryJob', Class.new(ActionMailer::MailDeliveryJob) do
+          discard_on DiscardedMailerError
+          rescue_from(RescuedByJobMailerError) { |_e| nil }
+        end)
+
+        stub_const('HandlingMailer', Class.new(ActionMailer::Base) do
+          self.delivery_job = HandlingDeliveryJob
+          rescue_from(RescuedByMailerError) { |_e| nil }
+
+          def test_email(error_class)
+            raise error_class.constantize, 'handled'
+          end
+        end)
+      end
+
+      %w[DiscardedMailerError RescuedByJobMailerError RescuedByMailerError].each do |name|
+        it "doesn't report #{name}" do
+          expect(Rollbar).not_to receive(:error)
+
+          expect do
+            perform_enqueued_jobs { HandlingMailer.test_email(name).deliver_later }
+          end.not_to raise_error
+        end
+      end
+
+      it 'reports errors the delivery job subclass does not handle' do
+        expected_params = {
+          :job => 'HandlingDeliveryJob',
+          :use_exception_level_filters => true
+        }
+        expect(Rollbar).to receive(:error).once.with(kind_of(ArgumentError),
+                                                     hash_including(expected_params))
+
+        expect do
+          HandlingDeliveryJob.perform_now('HandlingMailer', 'test_email', 'deliver_now',
+                                          :args => ['ArgumentError'])
+        end.to raise_error(ArgumentError)
       end
     end
   end
