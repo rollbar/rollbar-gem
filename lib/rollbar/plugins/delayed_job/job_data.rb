@@ -88,6 +88,10 @@ module Rollbar
       end
 
       def scrub(params)
+        # as_json may return a plain value, e.g. a String, which can't be
+        # scrubbed as params
+        return params unless params.is_a?(Array) || params.respond_to?(:to_hash)
+
         Rollbar::Scrubbers::Params.call(
           :params => params,
           :config => Rollbar.configuration.scrub_fields,

@@ -95,6 +95,26 @@ describe Rollbar::Delayed::JobData, :reconfigure_notifier => true do
       end
     end
 
+    context 'with a job object whose as_json is not a Hash' do
+      let(:job) { ::Delayed::Backend::Test::Job.new('attempts' => 1) }
+
+      before do
+        stub_const('StringJob', Class.new do
+          def as_json(*)
+            'string-job'
+          end
+        end)
+        allow(job).to receive(:payload_object).and_return(StringJob.new)
+      end
+
+      it 'sends the as_json value as the attributes' do
+        expect(subject.to_hash['handler']).to eq(
+          'class' => 'StringJob',
+          'attributes' => 'string-job'
+        )
+      end
+    end
+
     context 'with a Struct job object' do
       let(:job) { ::Delayed::Backend::Test::Job.new('attempts' => 1) }
 

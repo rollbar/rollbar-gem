@@ -9,7 +9,8 @@ module Rollbar
     # perform callbacks.
     #
     # Jobs run by the Sidekiq integration, or by the delayed_job one with
-    # dj_use_scoped_block, keep their scope, since those set it up for the job.
+    # dj_use_scoped_block, keep their scope, since those build it for the job
+    # starting from an empty one.
     module ResetScope
       def perform_now(*args, &block)
         return super if Rollbar::JobIntegration.within?
