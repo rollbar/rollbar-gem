@@ -70,6 +70,22 @@ operation. Expects a callable object that returns a logger interface.
 
 Regardless of what Logger you're using, Rollbar will not proxy logs to it if its less than this particular level.
 
+### instance_link_log_level
+
+**Default** `:info`
+
+The level at which Rollbar logs the `[Rollbar] Details: <url>` link after each
+report. One of `:debug`, `:info`, `:warn` or `:error`; set to `nil` to stop
+logging it.
+
+The link is still subject to `logger_level`, so to keep it while silencing
+Rollbar's other informational logs, raise both:
+
+```ruby
+config.logger_level = :warn
+config.instance_link_log_level = :warn
+```
+
 ### disable_monkey_patch
 
 **Default** `false`

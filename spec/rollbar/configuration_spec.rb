@@ -49,6 +49,42 @@ describe Rollbar::Configuration do
     end
   end
 
+  describe '#instance_link_log_level=' do
+    it 'defaults to :info' do
+      expect(subject.instance_link_log_level).to eq(:info)
+    end
+
+    it 'accepts every logger level' do
+      [:debug, :info, :warn, :error].each do |level|
+        subject.instance_link_log_level = level
+
+        expect(subject.instance_link_log_level).to eq(level)
+      end
+    end
+
+    it 'converts strings to symbols' do
+      subject.instance_link_log_level = 'warn'
+
+      expect(subject.instance_link_log_level).to eq(:warn)
+    end
+
+    it 'accepts nil and false to disable the log' do
+      subject.instance_link_log_level = nil
+      expect(subject.instance_link_log_level).to be_nil
+
+      subject.instance_link_log_level = false
+      expect(subject.instance_link_log_level).to be(false)
+    end
+
+    it 'raises on an unknown level' do
+      expect { subject.instance_link_log_level = :warning }
+        .to raise_error(ArgumentError, /instance_link_log_level/)
+      expect { subject.instance_link_log_level = Logger::WARN }
+        .to raise_error(ArgumentError, /instance_link_log_level/)
+      expect(subject.instance_link_log_level).to eq(:info)
+    end
+  end
+
   describe '#merge' do
     it 'returns a new object with overrided values' do
       subject.environment = 'foo'
