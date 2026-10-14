@@ -3,22 +3,14 @@ module Rollbar
   module ActiveJob
     def self.included(base)
       base.send :rescue_from, Exception do |exception|
-        job_data = {
-          :job => self.class.name,
-          :use_exception_level_filters => true
-        }
-
-        # When included in ActionMailer, the handler is called twice.
-        # This detects the execution that has the expected state.
-        if defined?(ActionMailer::Base) && self.class.ancestors.include?(ActionMailer::Base)
-          job_data[:action] = action_name
-          job_data[:params] = @params
-
-          Rollbar.error(exception, job_data)
-
-        # This detects other supported integrations.
-        elsif defined?(arguments)
-          job_data[:arguments] = Rollbar::ActiveJob.job_arguments(self)
+        # Mailer errors are reported by MailerDeliveryJob below, once the
+        # delivery job and the mailer have both declined to handle them.
+        if defined?(arguments)
+          job_data = {
+            :job => self.class.name,
+            :use_exception_level_filters => true,
+            :arguments => Rollbar::ActiveJob.job_arguments(self)
+          }
           job_data[:job_id] = job_id if defined?(job_id)
 
           Rollbar.error(exception, job_data)

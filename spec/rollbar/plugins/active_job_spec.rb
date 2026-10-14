@@ -65,6 +65,65 @@ describe Rollbar::ActiveJob do
     end
   end
 
+  # Runs a mail delivery job with the arguments `deliver_later` would enqueue.
+  # Unlike perform_enqueued_jobs, this lets an error the job re-raises reach
+  # the example instead of wrapping it in Minitest::UnexpectedError.
+  def perform_delivery(job_class, mailer, *args)
+    mail_delivery_job = defined?(ActionMailer::MailDeliveryJob) &&
+                        job_class <= ActionMailer::MailDeliveryJob
+    if mail_delivery_job
+      job_class.perform_now(mailer, 'test_email', 'deliver_now', :args => args)
+    else
+      job_class.perform_now(mailer, 'test_email', 'deliver_now', *args)
+    end
+  end
+
+  # Expects `delivery_job_class`, the ActionMailer delivery job under test.
+  shared_examples 'a mailer delivery job' do # rubocop:disable Metrics/BlockLength
+    before do
+      stub_const('DiscardedMailerError', Class.new(StandardError))
+      stub_const('RescuedByJobMailerError', Class.new(StandardError))
+      stub_const('RescuedByMailerError', Class.new(StandardError))
+
+      stub_const('HandlingDeliveryJob', Class.new(delivery_job_class) do
+        discard_on DiscardedMailerError
+        rescue_from(RescuedByJobMailerError) { |_e| nil }
+      end)
+
+      stub_const('HandlingMailer', Class.new(ActionMailer::Base) do
+        self.delivery_job = HandlingDeliveryJob
+        rescue_from(RescuedByMailerError) { |_e| nil }
+
+        def test_email(error_class)
+          raise error_class.constantize, 'handled'
+        end
+      end)
+    end
+
+    %w[DiscardedMailerError RescuedByJobMailerError RescuedByMailerError].each do |name|
+      it "doesn't report #{name}" do
+        expect(Rollbar).not_to receive(:error)
+
+        expect do
+          perform_enqueued_jobs { HandlingMailer.test_email(name).deliver_later }
+        end.not_to raise_error
+      end
+    end
+
+    it 'reports errors the delivery job subclass does not handle' do
+      expected_params = {
+        :job => 'HandlingDeliveryJob',
+        :use_exception_level_filters => true
+      }
+      expect(Rollbar).to receive(:error).once.with(kind_of(ArgumentError),
+                                                   hash_including(expected_params))
+
+      expect do
+        perform_delivery(HandlingDeliveryJob, 'HandlingMailer', 'ArgumentError')
+      end.to raise_error(ArgumentError, 'handled')
+    end
+  end
+
   context 'using ActionMailer::DeliveryJob', :if => Gem::Version.new(Rails.version) < Gem::Version.new('6.0') do
     class TestMailer < ActionMailer::Base
       attr_accessor :arguments
@@ -192,50 +251,63 @@ describe Rollbar::ActiveJob do
       end.to raise_error(StandardError, 'oh no')
     end
 
-    context 'when the error is handled' do
-      before do
-        stub_const('DiscardedMailerError', Class.new(StandardError))
-        stub_const('RescuedByJobMailerError', Class.new(StandardError))
-        stub_const('RescuedByMailerError', Class.new(StandardError))
+    it 'reports once when the mailer includes Rollbar::ActiveJob' do
+      stub_const('IncludingMailer', Class.new(ActionMailer::Base) do
+        include Rollbar::ActiveJob
 
-        stub_const('HandlingDeliveryJob', Class.new(ActionMailer::MailDeliveryJob) do
-          discard_on DiscardedMailerError
-          rescue_from(RescuedByJobMailerError) { |_e| nil }
-        end)
-
-        stub_const('HandlingMailer', Class.new(ActionMailer::Base) do
-          self.delivery_job = HandlingDeliveryJob
-          rescue_from(RescuedByMailerError) { |_e| nil }
-
-          def test_email(error_class)
-            raise error_class.constantize, 'handled'
-          end
-        end)
-      end
-
-      %w[DiscardedMailerError RescuedByJobMailerError RescuedByMailerError].each do |name|
-        it "doesn't report #{name}" do
-          expect(Rollbar).not_to receive(:error)
-
-          expect do
-            perform_enqueued_jobs { HandlingMailer.test_email(name).deliver_later }
-          end.not_to raise_error
+        def test_email(*_arguments)
+          raise StandardError, 'oh no'
         end
-      end
+      end)
 
-      it 'reports errors the delivery job subclass does not handle' do
-        expected_params = {
-          :job => 'HandlingDeliveryJob',
-          :use_exception_level_filters => true
-        }
-        expect(Rollbar).to receive(:error).once.with(kind_of(ArgumentError),
-                                                     hash_including(expected_params))
+      expect(Rollbar).to receive(:error).once.with(
+        kind_of(StandardError), hash_including(:job => 'ActionMailer::MailDeliveryJob')
+      )
 
-        expect do
-          HandlingDeliveryJob.perform_now('HandlingMailer', 'test_email', 'deliver_now',
-                                          :args => ['ArgumentError'])
-        end.to raise_error(ArgumentError)
-      end
+      expect do
+        perform_delivery(ActionMailer::MailDeliveryJob, 'IncludingMailer', argument)
+      end.to raise_error(StandardError, 'oh no')
+    end
+
+    it_behaves_like 'a mailer delivery job' do
+      let(:delivery_job_class) { ActionMailer::MailDeliveryJob }
+    end
+  end
+
+  # Rails 6.x ships both job classes. Apps that haven't switched
+  # `delivery_job` to MailDeliveryJob still deliver through DeliveryJob.
+  context 'using the legacy ActionMailer::DeliveryJob on Rails 6.x',
+          :if => Gem::Version.new(Rails.version) >= Gem::Version.new('6.0') &&
+                 Gem::Version.new(Rails.version) < Gem::Version.new('7.0') do
+    include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
+
+    # DeliveryJob logs a deprecation warning every time it runs on Rails 6.x.
+    around { |example| ActiveSupport::Deprecation.silence { example.run } }
+
+    it 'reports the error to Rollbar' do
+      stub_const('LegacyMailer', Class.new(ActionMailer::Base) do
+        self.delivery_job = ActionMailer::DeliveryJob
+
+        def test_email(*_arguments)
+          raise StandardError, 'oh no'
+        end
+      end)
+
+      expected_params = {
+        :job => 'ActionMailer::DeliveryJob',
+        :use_exception_level_filters => true,
+        :arguments => ['LegacyMailer', 'test_email', 'deliver_now', 12]
+      }
+      expect(Rollbar).to receive(:error).once.with(kind_of(StandardError),
+                                                   hash_including(expected_params))
+
+      expect do
+        perform_delivery(ActionMailer::DeliveryJob, 'LegacyMailer', argument)
+      end.to raise_error(StandardError, 'oh no')
+    end
+
+    it_behaves_like 'a mailer delivery job' do
+      let(:delivery_job_class) { ActionMailer::DeliveryJob }
     end
   end
 end
