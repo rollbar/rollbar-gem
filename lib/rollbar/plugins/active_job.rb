@@ -8,13 +8,22 @@ module Rollbar
           :use_exception_level_filters => true
         }
 
-        # When included in ActionMailer, the handler is called twice.
-        # This detects the execution that has the expected state.
+        # When included in ActionMailer, errors raised by the mailer instance
+        # hit this handler twice: once on the instance, and again on the mailer
+        # class when MailDeliveryJob re-handles the re-raised error.
         if defined?(ActionMailer::Base) && self.class.ancestors.include?(ActionMailer::Base)
           job_data[:action] = action_name
           job_data[:params] = @params
 
           Rollbar.error(exception, job_data)
+          Rollbar::ActiveJob.mark_reported_by_mailer(exception)
+
+        # Errors raised before a mailer instance exists, such as
+        # ActiveJob::DeserializationError, only reach the mailer class.
+        elsif defined?(ActionMailer::Base) && is_a?(Class) && self <= ActionMailer::Base
+          unless Rollbar::ActiveJob.reported_by_mailer?(exception)
+            Rollbar.error(exception, job_data.merge(:job => name))
+          end
 
         # This detects other supported integrations.
         elsif defined?(arguments)
@@ -31,6 +40,16 @@ module Rollbar
 
         raise exception
       end
+    end
+
+    def self.mark_reported_by_mailer(exception)
+      return if exception.frozen?
+
+      exception.instance_variable_set(:@_rollbar_reported_by_mailer, true)
+    end
+
+    def self.reported_by_mailer?(exception)
+      exception.instance_variable_get(:@_rollbar_reported_by_mailer)
     end
   end
 end
