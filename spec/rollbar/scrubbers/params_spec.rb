@@ -390,6 +390,45 @@ describe Rollbar::Scrubbers::Params do
           expect(subject.call(options)).to be_eql_hash_with_regexes(result)
         end
       end
+
+      # https://github.com/rollbar/rollbar-gem/issues/1103
+      context 'with Regexp scrub fields' do
+        # Same shape as Rails.application.config.filter_parameters, which may
+        # mix Symbols, Regexps and Procs.
+        let(:scrub_config) { [:password, /email/, /\Afirst_name\z/, ->(_k, v) { v }] }
+        let(:params) do
+          {
+            :password => 'the-password',
+            :user_email => 'foo@bar.com',
+            :first_name => 'Foo',
+            :first_name_initial => 'F',
+            :FIRST_NAME => 'FOO',
+            :user => {
+              :email => 'foo@bar.com',
+              :id => 1
+            },
+            :contacts => [{ :work_email => 'foo@work.com', :phone => '555' }]
+          }
+        end
+        let(:result) do
+          {
+            :password => /\*+/,
+            :user_email => /\*+/,
+            :first_name => /\*+/,
+            :first_name_initial => 'F',
+            :FIRST_NAME => 'FOO',
+            :user => {
+              :email => /\*+/,
+              :id => 1
+            },
+            :contacts => [{ :work_email => /\*+/, :phone => '555' }]
+          }
+        end
+
+        it 'scrubs the params matching the regexps, honoring their anchors and flags' do
+          expect(subject.call(options)).to be_eql_hash_with_regexes(result)
+        end
+      end
     end
 
     context 'with :scrub_all option' do
