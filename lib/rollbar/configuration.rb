@@ -3,6 +3,7 @@ require 'logger'
 module Rollbar
   class Configuration
     SEND_EXTRA_FRAME_DATA_OPTIONS = [:none, :app, :all].freeze
+    INSTANCE_LINK_LOG_LEVELS = [:debug, :info, :warn, :error].freeze
 
     attr_accessor :access_token,
                   :anonymize_user_ip,
@@ -78,6 +79,7 @@ module Rollbar
                   :write_to_file
     attr_reader :before_process,
                 :enable_rails_error_subscriber,
+                :instance_link_log_level,
                 :logger_level,
                 :project_gem_paths,
                 :send_extra_frame_data,
@@ -100,6 +102,7 @@ module Rollbar
       @custom_data_method = nil
       @default_logger = lambda { ::Logger.new($stderr) }
       @logger_level = :info
+      @instance_link_log_level = :info
       @delayed_job_enabled = true
       @disable_monkey_patch = false
       @disable_action_mailer_monkey_patch = false
@@ -366,6 +369,18 @@ module Rollbar
                       else
                         level
                       end
+    end
+
+    def instance_link_log_level=(level)
+      level = level.to_sym if level.respond_to?(:to_sym)
+
+      if level && !INSTANCE_LINK_LOG_LEVELS.include?(level)
+        raise ArgumentError,
+              "Wrong 'instance_link_log_level' value #{level.inspect}, " \
+              "one of #{INSTANCE_LINK_LOG_LEVELS.inspect} or nil is expected"
+      end
+
+      @instance_link_log_level = level
     end
 
     def logger
