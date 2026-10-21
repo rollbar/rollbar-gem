@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'rollbar/scrubbers'
+require 'rollbar/util/reference_tracker'
 
 module Rollbar
   module Scrubbers
@@ -22,7 +23,7 @@ module Rollbar
         params = options[:params]
         return {} unless params
 
-        @scrubbed_objects = {}.compare_by_identity
+        @tracker = Rollbar::Util::ReferenceTracker.new
 
         config = options[:config]
         extra_fields = options[:extra_fields]
@@ -71,42 +72,62 @@ module Rollbar
                    end.join('|'))
       end
 
+      # Always returns a new object and never modifies `params`. A container
+      # referenced more than once gets its own copy at each occurrence, so a
+      # later in-place change to one copy (e.g. Util.deep_merge in
+      # Item#build_extra) can't show up under the other keys. In a cycle, the
+      # container maps to the copy being built, so the caller's original object
+      # never leaks into the payload.
       def scrub(params, options)
-        return params if @scrubbed_objects[params]
-
-        @scrubbed_objects[params] = true
-
-        fields_regex = options[:fields_regex]
-        scrub_all = options[:scrub_all]
-        whitelist_regex = options[:whitelist]
-
         return scrub_array(params, options) if params.is_a?(Array)
 
-        to_scrubbable_hash(params).inject({}) do |result, (key, value)|
-          encoded_key = Rollbar::Encoding.encode(key).to_s
-          result[key] = if (fields_regex === encoded_key) &&
-                           !(whitelist_regex === encoded_key)
-                          scrub_value(value)
-                        elsif hash_like?(value)
-                          scrub(value, options)
-                        elsif scrub_all && !(whitelist_regex === encoded_key)
-                          scrub_value(value)
-                        elsif value.is_a?(Array)
-                          scrub_array(value, options)
-                        elsif skip_value?(value)
-                          "Skipped value of class '#{value.class.name}'"
-                        else
-                          rollbar_filtered_param_value(value)
-                        end
+        copy_container(params, {}) do |result|
+          to_scrubbable_hash(params).each do |key, value|
+            result[key] = scrub_hash_value(key, value, options)
+          end
+        end
+      end
 
-          result
+      def scrub_hash_value(key, value, options)
+        encoded_key = Rollbar::Encoding.encode(key).to_s
+        whitelisted = options[:whitelist] === encoded_key
+
+        if (options[:fields_regex] === encoded_key) && !whitelisted
+          scrub_value(value)
+        elsif hash_like?(value)
+          scrub(value, options)
+        elsif options[:scrub_all] && !whitelisted
+          scrub_value(value)
+        elsif value.is_a?(Array)
+          scrub_array(value, options)
+        elsif skip_value?(value)
+          "Skipped value of class '#{value.class.name}'"
+        else
+          rollbar_filtered_param_value(value)
         end
       end
 
       def scrub_array(array, options)
-        array.map do |value|
-          hash_like?(value) ? scrub(value, options) : rollbar_filtered_param_value(value)
+        copy_container(array, []) do |result|
+          array.each do |value|
+            result << if hash_like?(value) || value.is_a?(Array)
+                        scrub(value, options)
+                      else
+                        rollbar_filtered_param_value(value)
+                      end
+          end
         end
+      end
+
+      # Yields `copy` to be filled in, registered first so a cycle maps to it.
+      def copy_container(container, copy)
+        return @tracker.copy_of(container) if @tracker.circular?(container)
+        unless @tracker.copy_allowed?(container)
+          return Rollbar::Util::ReferenceTracker::REPEATED_REFERENCE_MARKER
+        end
+
+        @tracker.track(container, copy) { yield copy }
+        copy
       end
 
       # Objects that implement implicit Hash conversion without being a Hash,

@@ -460,7 +460,9 @@ module Rollbar
         elsif java_exception?(arg)
           exception = arg
         elsif arg.is_a?(Hash)
-          extra = arg
+          # Internal option keys are deleted from extra here and in #log, so
+          # work on a copy: the caller's hash may be frozen or reused.
+          extra = arg.dup
 
           context = extra.delete :custom_data_method_context
 

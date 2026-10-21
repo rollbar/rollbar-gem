@@ -148,6 +148,24 @@ describe Rollbar::Item do
       payload['data'][:body][:message][:extra][:b][2].should eq(4)
     end
 
+    # https://github.com/rollbar/rollbar-gem/issues/997
+    context 'with custom data referencing a hash under two keys' do
+      let(:shared) { { :id => 1 } }
+      let(:extra) { { :order => { :step => 'charge' } } }
+
+      it 'merges extra data only under its own key' do
+        configuration.custom_data_method = lambda do
+          { :order => shared, :previous_order => shared }
+        end
+
+        merged = payload['data'][:body][:message][:extra]
+
+        merged[:order].should eq(:id => 1, :step => 'charge')
+        merged[:previous_order].should eq(:id => 1)
+        shared.should eq(:id => 1)
+      end
+    end
+
     context 'ActiveSupport >= 4.1',
             :if => Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1') do
       it 'should have correct configured_options object' do
@@ -449,6 +467,22 @@ describe Rollbar::Item do
           trace[:exception][:message].should match(pattern)
           trace[:extra][:key].should eq('value')
           trace[:extra][:hash].should eq({ :inner_key => 'inner_value' })
+        end
+      end
+
+      # https://github.com/rollbar/rollbar-gem/issues/997
+      context 'with error context and extra data referencing a hash twice' do
+        let(:shared) { { :id => 1 } }
+        let(:extra) { { :order => shared, :previous_order => shared } }
+
+        it 'merges the error context only under its own key' do
+          exception.rollbar_context = { :order => { :step => 'charge' } }
+
+          trace = payload['data'][:body][:trace]
+
+          trace[:extra][:order].should eq(:id => 1, :step => 'charge')
+          trace[:extra][:previous_order].should eq(:id => 1)
+          shared.should eq(:id => 1)
         end
       end
 
@@ -919,6 +953,22 @@ describe Rollbar::Item do
           expect(logger).to receive(:error).with(log_message)
 
           item.dump
+        end
+      end
+
+      # https://github.com/rollbar/rollbar-gem/issues/997
+      context 'with circular data in the payload' do
+        it 'logs the payload with the cycle replaced' do
+          circular = { 'foo' => 'bar' }
+          circular['self'] = circular
+          payload['data']['custom'] = circular
+
+          allow(notifier).to receive(:send_failsafe)
+          expect(logger).to receive(:error)
+            .with(/Payload too large.*"self":"removed circular reference/)
+
+          expect(item.dump).to be_nil
+          expect(circular['self']).to be(circular)
         end
       end
     end
