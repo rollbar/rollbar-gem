@@ -269,6 +269,28 @@ describe Rollbar::ActiveJob do
       end.to raise_error(StandardError, 'oh no')
     end
 
+    it 'reports ActiveJob::DeserializationError to Rollbar' do
+      user = User.create!(:email => 'deleted@example.com')
+
+      ActiveJob::Base.queue_adapter = :test
+      job = TestMailer2.test_email(user).deliver_later
+      user.destroy
+
+      expected_params = {
+        :job => 'ActionMailer::MailDeliveryJob',
+        :use_exception_level_filters => true
+      }
+      expect(Rollbar).to receive(:error)
+        .once
+        .with(kind_of(ActiveJob::DeserializationError), hash_including(expected_params))
+
+      # Run the job the way queue adapters do. On older Rails, perform_enqueued_jobs
+      # deserializes arguments before calling perform_now, bypassing the wrapper.
+      expect do
+        ActiveJob::Base.execute(job.serialize)
+      end.to raise_error(ActiveJob::DeserializationError)
+    end
+
     it_behaves_like 'a mailer delivery job' do
       let(:delivery_job_class) { ActionMailer::MailDeliveryJob }
     end
