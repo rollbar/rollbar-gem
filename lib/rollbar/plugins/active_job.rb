@@ -3,36 +3,14 @@ module Rollbar
   module ActiveJob
     def self.included(base)
       base.send :rescue_from, Exception do |exception|
-        job_data = {
-          :job => self.class.name,
-          :use_exception_level_filters => true
-        }
-
-        # When included in ActionMailer, errors raised by the mailer instance
-        # hit this handler twice: once on the instance, and again on the mailer
-        # class when MailDeliveryJob re-handles the re-raised error.
-        if defined?(ActionMailer::Base) && self.class.ancestors.include?(ActionMailer::Base)
-          job_data[:action] = action_name
-          job_data[:params] = @params
-
-          Rollbar.error(exception, job_data)
-          Rollbar::ActiveJob.mark_reported_by_mailer(exception)
-
-        # Errors raised before a mailer instance exists, such as
-        # ActiveJob::DeserializationError, only reach the mailer class.
-        elsif defined?(ActionMailer::Base) && is_a?(Class) && self <= ActionMailer::Base
-          unless Rollbar::ActiveJob.reported_by_mailer?(exception)
-            Rollbar.error(exception, job_data.merge(:job => name))
-          end
-
-        # This detects other supported integrations.
-        elsif defined?(arguments)
-          job_data[:arguments] = \
-            if self.class.respond_to?(:log_arguments?) && !self.class.log_arguments?
-              arguments.map(&Rollbar::Scrubbers.method(:scrub_value))
-            else
-              arguments
-            end
+        # Mailer errors are reported by MailerDeliveryJob below, once the
+        # delivery job and the mailer have both declined to handle them.
+        if defined?(arguments)
+          job_data = {
+            :job => self.class.name,
+            :use_exception_level_filters => true,
+            :arguments => Rollbar::ActiveJob.job_arguments(self)
+          }
           job_data[:job_id] = job_id if defined?(job_id)
 
           Rollbar.error(exception, job_data)
@@ -42,14 +20,31 @@ module Rollbar
       end
     end
 
-    def self.mark_reported_by_mailer(exception)
-      return if exception.frozen?
-
-      exception.instance_variable_set(:@_rollbar_reported_by_mailer, true)
+    def self.job_arguments(job)
+      if job.class.respond_to?(:log_arguments?) && !job.class.log_arguments?
+        job.arguments.map(&Rollbar::Scrubbers.method(:scrub_value))
+      else
+        job.arguments
+      end
     end
 
-    def self.reported_by_mailer?(exception)
-      exception.instance_variable_get(:@_rollbar_reported_by_mailer)
+    # Reports errors from ActionMailer delivery jobs.
+    #
+    # This wraps `perform_now` instead of registering a `rescue_from` handler,
+    # so it only sees errors that weren't handled by the delivery job
+    # (`discard_on`, `retry_on`, `rescue_from`) or by the mailer's own
+    # `rescue_from` handlers, which the delivery job delegates to.
+    module MailerDeliveryJob
+      def perform_now
+        super
+      rescue Exception => e # rubocop:disable Lint/RescueException
+        Rollbar.error(e,
+                      :job => self.class.name,
+                      :job_id => job_id,
+                      :use_exception_level_filters => true,
+                      :arguments => Rollbar::ActiveJob.job_arguments(self))
+        raise
+      end
     end
   end
 end
@@ -62,10 +57,15 @@ Rollbar.plugins.define('active_job') do
     if defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
       ActiveSupport.on_load(:action_mailer) do
         if defined?(ActionMailer::MailDeliveryJob) # Rails >= 6.0
-          ActionMailer::Base.send(:include, Rollbar::ActiveJob)
-        elsif defined?(ActionMailer::DeliveryJob) # Rails < 6.0
-          ActionMailer::DeliveryJob.send(:include,
-                                         Rollbar::ActiveJob)
+          ActionMailer::MailDeliveryJob.send(:prepend,
+                                             Rollbar::ActiveJob::MailerDeliveryJob)
+        end
+
+        # Rails < 7.0. Also still used on Rails 6.x by apps that haven't
+        # switched `delivery_job` to MailDeliveryJob.
+        if defined?(ActionMailer::DeliveryJob)
+          ActionMailer::DeliveryJob.send(:prepend,
+                                         Rollbar::ActiveJob::MailerDeliveryJob)
         end
       end
     end
