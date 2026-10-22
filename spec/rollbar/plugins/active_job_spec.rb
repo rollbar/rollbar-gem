@@ -222,4 +222,95 @@ describe Rollbar::ActiveJob do
       end.to raise_error(ActiveJob::DeserializationError)
     end
   end
+
+  context 'with an ActiveJob::Base job' do
+    class ScopedTestJob < ActiveJob::Base
+      include Rollbar::ActiveJob
+
+      cattr_accessor :scope_during_perform
+
+      def perform(fail)
+        self.class.scope_during_perform = Rollbar.scope_object.dup
+        raise StandardError, 'oh no' if fail
+      end
+    end
+
+    before do
+      Rollbar.scope!(:person => { :id => 1 }, :request => { :url => '/users/1' })
+    end
+
+    after { Rollbar.reset_notifier! }
+
+    it 'performs the job with a clean scope' do
+      ScopedTestJob.perform_now(false)
+
+      expect(ScopedTestJob.scope_during_perform).not_to have_key(:person)
+      expect(ScopedTestJob.scope_during_perform).not_to have_key(:request)
+    end
+
+    it 'does not report the scope of the caller with the job error' do
+      expect { ScopedTestJob.perform_now(true) }.to raise_error(StandardError, 'oh no')
+
+      expect(Rollbar.last_report[:body][:trace][:extra][:job]).to eq('ScopedTestJob')
+      expect(Rollbar.last_report).not_to have_key(:person)
+      expect(Rollbar.last_report).not_to have_key(:request)
+    end
+
+    it 'restores the scope of the caller afterwards' do
+      expect { ScopedTestJob.perform_now(true) }.to raise_error(StandardError)
+
+      expect(Rollbar.scope_object[:person]).to eq(:id => 1)
+    end
+
+    context 'with locals enabled',
+            :if => RUBY_VERSION >= '2.3.0' &&
+                   !(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby') do
+      class LocalsTestJob < ActiveJob::Base
+        include Rollbar::ActiveJob
+
+        def perform
+          job_local = 'from the job'
+          raise StandardError, "oh no #{job_local}"
+        end
+      end
+
+      before do
+        Rollbar.configure do |config|
+          config.send_extra_frame_data = :all
+          config.locals = { :enabled => true }
+        end
+      end
+
+      it 'reports the locals of a job run inline, e.g. during a request' do
+        # As the Rails middleware does around each request
+        Rollbar.notifier.enable_locals
+        begin
+          expect { LocalsTestJob.perform_now }.to raise_error(StandardError)
+        ensure
+          Rollbar.notifier.disable_locals
+        end
+
+        frame = Rollbar.last_report[:body][:trace][:frames][-1]
+
+        expect(frame[:method]).to match(/perform/)
+        expect(frame[:locals]).to include(:job_local => 'from the job')
+      end
+    end
+
+    context 'when run by one of the Rollbar job integrations' do
+      it 'keeps the scope set up for the job' do
+        Rollbar::JobIntegration.within { ScopedTestJob.perform_now(false) }
+
+        expect(ScopedTestJob.scope_during_perform[:request]).to eq(:url => '/users/1')
+      end
+
+      it 'reports the job error with that scope' do
+        expect do
+          Rollbar::JobIntegration.within { ScopedTestJob.perform_now(true) }
+        end.to raise_error(StandardError, 'oh no')
+
+        expect(Rollbar.last_report[:request]).to eq(:url => '/users/1')
+      end
+    end
+  end
 end
