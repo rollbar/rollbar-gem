@@ -349,5 +349,32 @@ describe Rollbar::ActiveJob do
         ActiveJob::Base.execute(job.serialize)
       end.to raise_error(ActiveJob::DeserializationError)
     end
+
+    context 'when the delivery job also includes Rollbar::ActiveJob' do
+      class RollbarMailDeliveryJob < ActionMailer::MailDeliveryJob
+        include Rollbar::ActiveJob
+      end
+
+      class RollbarDeliveryMailer < TestMailer2
+        self.delivery_job = RollbarMailDeliveryJob
+      end
+
+      it 'reports ActiveJob::DeserializationError only once' do
+        user = User.create!(:email => 'deleted@example.com')
+
+        ActiveJob::Base.queue_adapter = :test
+        job = RollbarDeliveryMailer.test_email(user).deliver_later
+        user.destroy
+
+        expect(Rollbar).to receive(:error)
+          .once
+          .with(kind_of(ActiveJob::DeserializationError),
+                hash_including(:job => 'RollbarDeliveryMailer'))
+
+        expect do
+          ActiveJob::Base.execute(job.serialize)
+        end.to raise_error(ActiveJob::DeserializationError)
+      end
+    end
   end
 end

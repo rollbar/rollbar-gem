@@ -34,6 +34,7 @@ module Rollbar
         elsif defined?(ActionMailer::Base) && is_a?(Class) && self <= ActionMailer::Base
           unless Rollbar::ActiveJob.reported?(exception)
             Rollbar.error(exception, job_data.merge(:job => name))
+            Rollbar::ActiveJob.mark_reported(exception)
           end
 
         # This detects other supported integrations.
