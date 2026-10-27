@@ -2,6 +2,17 @@ module Rollbar
   # Report any uncaught errors in a job to Rollbar and reraise
   module ActiveJob
     def self.included(base)
+      # retry_on and discard_on are built on rescue_from, and Rails runs only the
+      # most recently declared handler that matches. A rescue_from Exception
+      # handler here would either hide those handlers or be hidden by them, so
+      # for jobs we wrap perform_now instead. That reports only the errors that
+      # escape the job: not a failed attempt that retry_on has rescheduled, but
+      # the error re-raised once its attempts are exhausted.
+      if defined?(::ActiveJob::Base) && base <= ::ActiveJob::Base
+        base.send(:prepend, PerformNow) unless base < PerformNow
+        return
+      end
+
       base.send :rescue_from, Exception do |exception|
         job_data = {
           :job => self.class.name,
@@ -16,40 +27,65 @@ module Rollbar
           job_data[:params] = @params
 
           Rollbar.error(exception, job_data)
-          Rollbar::ActiveJob.mark_reported_by_mailer(exception)
+          Rollbar::ActiveJob.mark_reported(exception)
 
         # Errors raised before a mailer instance exists, such as
         # ActiveJob::DeserializationError, only reach the mailer class.
         elsif defined?(ActionMailer::Base) && is_a?(Class) && self <= ActionMailer::Base
-          unless Rollbar::ActiveJob.reported_by_mailer?(exception)
+          unless Rollbar::ActiveJob.reported?(exception)
             Rollbar.error(exception, job_data.merge(:job => name))
           end
 
         # This detects other supported integrations.
         elsif defined?(arguments)
-          job_data[:arguments] = \
-            if self.class.respond_to?(:log_arguments?) && !self.class.log_arguments?
-              arguments.map(&Rollbar::Scrubbers.method(:scrub_value))
-            else
-              arguments
-            end
-          job_data[:job_id] = job_id if defined?(job_id)
-
-          Rollbar.error(exception, job_data)
+          Rollbar.error(exception, Rollbar::ActiveJob.job_data(self))
         end
 
         raise exception
       end
     end
 
-    def self.mark_reported_by_mailer(exception)
-      return if exception.frozen?
+    # Prepended to ActiveJob classes. See ActiveJob.included.
+    module PerformNow
+      def perform_now
+        super
+      rescue Exception => e # rubocop:disable Lint/RescueException
+        # The same error can escape more than one perform_now: MailDeliveryJob
+        # re-raises errors the mailer already reported, and adapters that run
+        # retries inline re-raise the last attempt's error through each
+        # earlier attempt.
+        unless Rollbar::ActiveJob.reported?(e)
+          Rollbar.error(e, Rollbar::ActiveJob.job_data(self))
+          Rollbar::ActiveJob.mark_reported(e)
+        end
 
-      exception.instance_variable_set(:@_rollbar_reported_by_mailer, true)
+        raise
+      end
     end
 
-    def self.reported_by_mailer?(exception)
-      exception.instance_variable_get(:@_rollbar_reported_by_mailer)
+    def self.job_data(job)
+      job_data = {
+        :job => job.class.name,
+        :use_exception_level_filters => true
+      }
+      job_data[:arguments] = \
+        if job.class.respond_to?(:log_arguments?) && !job.class.log_arguments?
+          job.arguments.map(&Rollbar::Scrubbers.method(:scrub_value))
+        else
+          job.arguments
+        end
+      job_data[:job_id] = job.job_id if job.respond_to?(:job_id)
+      job_data
+    end
+
+    def self.mark_reported(exception)
+      return if exception.frozen?
+
+      exception.instance_variable_set(:@_rollbar_reported_by_active_job, true)
+    end
+
+    def self.reported?(exception)
+      exception.instance_variable_get(:@_rollbar_reported_by_active_job)
     end
   end
 end
