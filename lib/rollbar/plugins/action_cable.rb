@@ -4,11 +4,11 @@ Rollbar.plugins.define('action_cable') do
   dependency { defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load) }
 
   execute do
-    require 'rollbar/plugins/action_cable/plugin'
-
     # Rails >= 6.0 runs this hook once ActionCable::Connection::Base is loaded,
-    # or straight away if it already is.
+    # or straight away if it already is. Require the patch only then: it pulls
+    # in Rack, which non-Rails apps that just use ActiveSupport may not have.
     ActiveSupport.on_load(:action_cable_connection) do
+      require 'rollbar/plugins/action_cable/plugin'
       Rollbar::ActionCable.patch!
     end
   end
