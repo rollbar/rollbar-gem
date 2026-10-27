@@ -279,6 +279,28 @@ describe Rollbar::ActiveJob do
 
         expect(run_job(IncludeThenRetryOnJob, 99)).to be_a(StandardError)
       end
+
+      context 'with the Rails error subscriber enabled',
+              :if => ::Rails.gem_version >= ::Gem::Version.new('7.1.0') do
+        before do
+          Rollbar.configure { |config| config.enable_rails_error_subscriber = true }
+        end
+
+        after do
+          Rollbar.configure { |config| config.enable_rails_error_subscriber = false }
+        end
+
+        # The Rails executor reports errors that escape the job to the error
+        # subscriber, after the plugin has already reported them.
+        [IncludeThenRetryOnJob, RetryOnThenIncludeJob].each do |job_class|
+          it "reports the final failure of #{job_class} once" do
+            expect(Rollbar).to receive(:error).once
+            expect(Rollbar).not_to receive(:log)
+
+            expect(run_job(job_class, 99).message).to eq('attempt 3 failed')
+          end
+        end
+      end
     end
   end
 
