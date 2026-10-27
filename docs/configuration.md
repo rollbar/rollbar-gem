@@ -94,6 +94,22 @@ Be careful using this option as it may caused unexpected behavior in some situat
 Disables monkey patches on Rack classes, `Rack::Builder` for now, maybe more
 at some point.
 
+### disable_action_cable_monkey_patch
+
+**Default** `false`
+
+Disables reporting of ActionCable errors. ActionCable rescues and logs every
+exception raised by a channel or connection, so Rollbar wraps it to report
+errors raised in `connect`, `disconnect`, `subscribed`, `unsubscribed` and
+channel actions (Rails 6.0+). Errors from `subscribed`, `unsubscribed` and
+channel actions that a `rescue_from` on your connection class handles are left
+to that handler and not reported, so an existing
+`rescue_from StandardError` that calls `Rollbar.error` won't report twice.
+
+Set this to `true` if you report ActionCable errors yourself some other way,
+for example by patching `ActionCable::Connection::Subscriptions`, and don't
+want the built-in reporting.
+
 ### delayed_job_enabled
 
 **Default** `true`
