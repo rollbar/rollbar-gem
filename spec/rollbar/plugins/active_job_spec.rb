@@ -372,30 +372,35 @@ describe Rollbar::ActiveJob do
       end.to raise_error(ActiveJob::DeserializationError)
     end
 
-    context 'when the delivery job also includes Rollbar::ActiveJob' do
-      class RollbarMailDeliveryJob < ActionMailer::MailDeliveryJob
-        include Rollbar::ActiveJob
-      end
+    # ActionMailer::MailDeliveryJob was added in Rails 6. A plain `if`, like the
+    # retry_on context, because the outer `:if` skips the examples but not the
+    # class definitions below.
+    if defined?(ActionMailer::MailDeliveryJob)
+      context 'when the delivery job also includes Rollbar::ActiveJob' do
+        class RollbarMailDeliveryJob < ActionMailer::MailDeliveryJob
+          include Rollbar::ActiveJob
+        end
 
-      class RollbarDeliveryMailer < TestMailer2
-        self.delivery_job = RollbarMailDeliveryJob
-      end
+        class RollbarDeliveryMailer < TestMailer2
+          self.delivery_job = RollbarMailDeliveryJob
+        end
 
-      it 'reports ActiveJob::DeserializationError only once' do
-        user = User.create!(:email => 'deleted@example.com')
+        it 'reports ActiveJob::DeserializationError only once' do
+          user = User.create!(:email => 'deleted@example.com')
 
-        ActiveJob::Base.queue_adapter = :test
-        job = RollbarDeliveryMailer.test_email(user).deliver_later
-        user.destroy
+          ActiveJob::Base.queue_adapter = :test
+          job = RollbarDeliveryMailer.test_email(user).deliver_later
+          user.destroy
 
-        expect(Rollbar).to receive(:error)
-          .once
-          .with(kind_of(ActiveJob::DeserializationError),
-                hash_including(:job => 'RollbarDeliveryMailer'))
+          expect(Rollbar).to receive(:error)
+            .once
+            .with(kind_of(ActiveJob::DeserializationError),
+                  hash_including(:job => 'RollbarDeliveryMailer'))
 
-        expect do
-          ActiveJob::Base.execute(job.serialize)
-        end.to raise_error(ActiveJob::DeserializationError)
+          expect do
+            ActiveJob::Base.execute(job.serialize)
+          end.to raise_error(ActiveJob::DeserializationError)
+        end
       end
     end
   end
