@@ -563,15 +563,21 @@ module Rollbar
     # Describes the internal error, and the error that was being reported when it
     # happened, so the log line is useful on its own.
     def internal_error_details(exception, original_error)
-      details = exception_info(exception)
+      details = describe_exception(exception)
       original_exception = original_error && original_error[:exception]
       if original_exception
-        details += " (while reporting #{exception_info(original_exception)})"
+        details += " (while reporting #{describe_exception(original_exception)})"
       end
 
       details
+    end
+
+    # Falls back to the class name for each exception separately, so a broken
+    # #message on one of them doesn't drop the description of the other.
+    def describe_exception(exception)
+      exception_info(exception)
     rescue StandardError
-      exception.class.name
+      exception.class.name.to_s
     end
 
     def skip_reporting_internal_error(exception)
