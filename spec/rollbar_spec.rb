@@ -2076,6 +2076,26 @@ describe Rollbar do
         end
       end
 
+      context 'when the original exception has a #message that overflows the stack' do
+        let(:original_exception) { StandardError.new }
+
+        before do
+          def original_exception.message
+            message
+          end
+        end
+
+        it 'does not raise into the caller and logs the internal error' do
+          expect(Rollbar.error(original_exception)).to eq('error')
+
+          expect(logger_mock).to have_received(:error).with(
+            a_string_matching(
+              /\A#{Regexp.escape(log_prefix)}SystemStackError: "stack level too deep" in .+ \(while reporting StandardError\)\z/ # rubocop:disable Layout/LineLength
+            )
+          ).once
+        end
+      end
+
       context 'without an original error' do
         it 'logs the class, message and nearest frame of the internal error' do
           begin

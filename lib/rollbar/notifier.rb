@@ -574,9 +574,11 @@ module Rollbar
 
     # Falls back to the class name for each exception separately, so a broken
     # #message on one of them doesn't drop the description of the other.
+    # SystemStackError is rescued too: report_with_rescue catches it while building
+    # the payload, and calling the same #message again here would raise it again.
     def describe_exception(exception)
       exception_info(exception)
-    rescue StandardError
+    rescue StandardError, SystemStackError
       exception.class.name.to_s
     end
 
