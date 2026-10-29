@@ -2015,6 +2015,118 @@ describe Rollbar do
         notifier.send(:report_internal_error, e)
       end
     end
+
+    # https://github.com/rollbar/rollbar-gem/issues/1030
+    context 'logging the internal error' do
+      let(:logger_mock) { double('Rails.logger').as_null_object }
+      let(:log_prefix) do
+        '[Rollbar] Reporting internal error encountered while sending data to Rollbar: '
+      end
+
+      before do
+        Rollbar.configure { |config| config.logger = logger_mock }
+        allow(logger_mock).to receive(:error)
+      end
+
+      context 'when building the item for the original exception fails' do
+        let(:original_exception) do
+          begin
+            raise StandardError, 'connection lost'
+          rescue StandardError => e
+            e
+          end
+        end
+
+        before do
+          # Stands in for anything that breaks while Rollbar builds the payload,
+          # e.g. a rollbar_context that queries a database in the middle of a failover.
+          def original_exception.rollbar_context
+            raise 'database unavailable'
+          end
+        end
+
+        it 'logs the internal error and the original error on the same line' do
+          expect(Rollbar.error(original_exception)).to eq('error')
+
+          expect(logger_mock).to have_received(:error).with(
+            a_string_matching(
+              /\A#{Regexp.escape(log_prefix)}RuntimeError: "database unavailable" in .+ \(while reporting StandardError: "connection lost" in .+\)\z/ # rubocop:disable Layout/LineLength
+            )
+          ).once
+        end
+      end
+
+      context 'when the original exception has a #message that raises' do
+        let(:original_exception) { StandardError.new }
+
+        before do
+          def original_exception.message
+            raise 'broken message'
+          end
+        end
+
+        it 'still logs the internal error in full' do
+          expect(Rollbar.error(original_exception)).to eq('error')
+
+          expect(logger_mock).to have_received(:error).with(
+            a_string_matching(
+              /\A#{Regexp.escape(log_prefix)}RuntimeError: "broken message" in .+ \(while reporting StandardError\)\z/ # rubocop:disable Layout/LineLength
+            )
+          ).once
+        end
+      end
+
+      context 'when the original exception has a #message that overflows the stack' do
+        let(:original_exception) { StandardError.new }
+
+        before do
+          def original_exception.message
+            message
+          end
+        end
+
+        it 'does not raise into the caller and logs the internal error' do
+          expect(Rollbar.error(original_exception)).to eq('error')
+
+          expect(logger_mock).to have_received(:error).with(
+            a_string_matching(
+              /\A#{Regexp.escape(log_prefix)}SystemStackError: "stack level too deep" in .+ \(while reporting StandardError\)\z/ # rubocop:disable Layout/LineLength
+            )
+          ).once
+        end
+      end
+
+      context 'without an original error' do
+        it 'logs the class, message and nearest frame of the internal error' do
+          begin
+            1 / 0
+          rescue ZeroDivisionError => e
+            notifier.send(:report_internal_error, e)
+          end
+
+          expect(logger_mock).to have_received(:error).with(
+            "#{log_prefix}ZeroDivisionError: \"divided by 0\" in #{e.backtrace[0]}"
+          )
+        end
+      end
+
+      context 'when describing the internal error fails' do
+        let(:exception) { StandardError.new }
+
+        before do
+          def exception.message
+            raise 'broken message'
+          end
+        end
+
+        it 'still logs the class of the internal error' do
+          notifier.send(:report_internal_error, exception)
+
+          expect(logger_mock).to have_received(:error)
+            .with("#{log_prefix}StandardError")
+        end
+      end
+    end
   end
 
   context 'send_failsafe' do

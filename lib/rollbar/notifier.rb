@@ -542,9 +542,8 @@ module Rollbar
       return if skip_reporting_internal_error(exception)
 
       failsafe_message = ''
-      log_error(
-        '[Rollbar] Reporting internal error encountered while sending data to Rollbar.'
-      )
+      log_error('[Rollbar] Reporting internal error encountered while sending data to ' \
+                "Rollbar: #{internal_error_details(exception, original_error)}")
 
       configuration.execute_hook(:on_report_internal_error, exception)
 
@@ -559,6 +558,28 @@ module Rollbar
     rescue StandardError => e
       send_failsafe(failsafe_message, e, original_error)
       log_error(item ? "[Rollbar] Item: #{item}" : "[Rollbar] Exception: #{exception}")
+    end
+
+    # Describes the internal error, and the error that was being reported when it
+    # happened, so the log line is useful on its own.
+    def internal_error_details(exception, original_error)
+      details = describe_exception(exception)
+      original_exception = original_error && original_error[:exception]
+      if original_exception
+        details += " (while reporting #{describe_exception(original_exception)})"
+      end
+
+      details
+    end
+
+    # Falls back to the class name for each exception separately, so a broken
+    # #message on one of them doesn't drop the description of the other.
+    # SystemStackError is rescued too: report_with_rescue catches it while building
+    # the payload, and calling the same #message again here would raise it again.
+    def describe_exception(exception)
+      exception_info(exception)
+    rescue StandardError, SystemStackError
+      exception.class.name.to_s
     end
 
     def skip_reporting_internal_error(exception)
@@ -831,21 +852,23 @@ module Rollbar
     end
 
     def failsafe_exception_reason(message, exception)
-      backtrace = exception.backtrace || []
-      nearest_frame = backtrace[0]
-
-      exception_info = exception.class.name
-      # #to_s and #message defaults to class.to_s.
-      # Add message only if add valuable info.
-      if exception.message != exception.class.to_s
-        exception_info += %[: "#{exception.message}"]
-      end
-      exception_info += " in #{nearest_frame}" if nearest_frame
-
-      "#{exception_info}: #{message}"
+      "#{exception_info(exception)}: #{message}"
     rescue StandardError
       log_error('[Rollbar] Error building failsafe exception message')
       ''
+    end
+
+    def exception_info(exception)
+      backtrace = exception.backtrace || []
+      nearest_frame = backtrace[0]
+
+      info = exception.class.name
+      # #to_s and #message defaults to class.to_s.
+      # Add message only if add valuable info.
+      info += %[: "#{exception.message}"] if exception.message != exception.class.to_s
+      info += " in #{nearest_frame}" if nearest_frame
+
+      info
     end
 
     def failsafe_body(reason)
