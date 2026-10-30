@@ -20,6 +20,16 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
   end
 
+  class FailingCustomJob
+    def initialize(user_id)
+      @user_id = user_id
+    end
+
+    def perform
+      will_crash_again!
+    end
+  end
+
   before do
     Delayed::Backend::Test.prepare_worker
 
@@ -55,6 +65,24 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
     end
   end
 
+  context 'with a custom job object failing' do
+    it 'adds the job class and attributes as the handler' do
+      payload = nil
+
+      ::Rollbar::Item.any_instance.stub(:dump) do |item|
+        payload = item.payload
+        nil
+      end
+
+      Delayed::Job.enqueue(FailingCustomJob.new(42))
+
+      expect(payload['data'][:request]['handler']).to eq(
+        'class' => 'FailingCustomJob',
+        'attributes' => { 'user_id' => 42 }
+      )
+    end
+  end
+
   describe 'scope within job' do
     context 'when Rollbar.configuration.dj_use_scoped_block is false (default)' do
       before do
@@ -77,6 +105,21 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
         PassingJob.new.delay.do_job_please!(:foo, :bar)
 
         expect(job_scope).not_to have_key(:request)
+      end
+
+      it 'does not mark the job as run within a job integration' do
+        # With delay_jobs = false the job runs in the caller's thread, so
+        # Rollbar::ActiveJob still has to reset the caller's scope.
+        within_job_integration = nil
+
+        Rollbar.stub(:log) do |_msg|
+          within_job_integration = Rollbar::JobIntegration.within?
+          nil
+        end
+
+        PassingJob.new.delay.do_job_please!(:foo, :bar)
+
+        expect(within_job_integration).to be(false)
       end
     end
 
@@ -102,6 +145,76 @@ describe Rollbar::Delayed, :reconfigure_notifier => true do
 
         expect(job_scope).to have_key(:request)
         expect(job_scope[:request]).to include("name" => "PassingJob#do_job_please!")
+      end
+
+      it "doesn't include the caller's scope" do
+        # With delay_jobs = false the job runs in the caller's thread
+        job_scope = nil
+
+        Rollbar.stub(:log) do |_msg|
+          job_scope = Rollbar.scope_object
+          nil
+        end
+
+        Rollbar.scoped(:person => { :id => 1 }, :request => { :url => '/users' }) do
+          PassingJob.new.delay.do_job_please!(:foo, :bar)
+        end
+
+        expect(job_scope).not_to have_key(:person)
+        expect(job_scope[:request]).not_to have_key(:url)
+        expect(job_scope[:request]).to include('name' => 'PassingJob#do_job_please!')
+      end
+
+      it "restores the caller's scope" do
+        Rollbar.scoped(:person => { :id => 1 }) do
+          PassingJob.new.delay.do_job_please!(:foo, :bar)
+
+          expect(Rollbar.scope_object[:person]).to eq(:id => 1)
+          expect(Rollbar.scope_object).not_to have_key(:request)
+        end
+      end
+
+      context 'with an ActiveJob job using the delayed_job adapter' do
+        class ScopedDelayedActiveJob < ActiveJob::Base
+          include Rollbar::ActiveJob
+
+          cattr_accessor :scope_during_perform
+
+          def perform
+            self.class.scope_during_perform = Rollbar.scope_object.dup
+          end
+        end
+
+        # Stands in for ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper,
+        # which doesn't load on every Rails version this suite runs against.
+        class ActiveJobWrapper
+          attr_accessor :job_data
+
+          def initialize(job_data)
+            @job_data = job_data
+          end
+
+          def perform
+            ActiveJob::Base.execute(job_data)
+          end
+        end
+
+        it 'keeps the job data in scope' do
+          Delayed::Job.enqueue(ActiveJobWrapper.new(ScopedDelayedActiveJob.new.serialize))
+
+          expect(ScopedDelayedActiveJob.scope_during_perform[:request]['handler'])
+            .to include('job_class' => 'ScopedDelayedActiveJob')
+        end
+
+        it "doesn't include the caller's scope" do
+          Rollbar.scoped(:person => { :id => 1 }) do
+            Delayed::Job.enqueue(
+              ActiveJobWrapper.new(ScopedDelayedActiveJob.new.serialize)
+            )
+          end
+
+          expect(ScopedDelayedActiveJob.scope_during_perform).not_to have_key(:person)
+        end
       end
     end
   end

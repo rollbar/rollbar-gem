@@ -14,6 +14,17 @@ describe Rollbar::Sidekiq::ResetScope, :reconfigure_notifier => false do
       subject.call(nil, nil, nil, &middleware_block)
     end
 
+    it 'runs the block within a job integration' do
+      within_job_integration = nil
+
+      subject.call(nil, nil, nil) do
+        within_job_integration = Rollbar::JobIntegration.within?
+      end
+
+      expect(within_job_integration).to be(true)
+      expect(Rollbar::JobIntegration.within?).to be(false)
+    end
+
     context 'when the block calls Rollbar.log without raising an error' do
       let(:middleware_block) { proc { Rollbar.log('warning', 'Danger, Will Robinson') } }
       let(:msg) { { 'class' => 'SomeWorker', 'queue' => 'default' } }

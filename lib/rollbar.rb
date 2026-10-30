@@ -16,6 +16,7 @@ require 'rollbar/plugins'
 require 'rollbar/configuration'
 require 'rollbar/logger_proxy'
 require 'rollbar/exceptions'
+require 'rollbar/job_integration'
 require 'rollbar/lazy_store'
 require 'rollbar/notifier'
 

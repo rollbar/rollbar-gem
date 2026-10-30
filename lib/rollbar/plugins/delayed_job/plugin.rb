@@ -49,8 +49,7 @@ module Rollbar
       proc do |job, *args, &block|
         begin
           if Rollbar.configuration.dj_use_scoped_block
-            data = Rollbar::Delayed.build_job_data(job)
-            Rollbar.scoped(:request => data) { block.call(job, *args) }
+            with_job_scope(job) { block.call(job, *args) }
           else
             block.call(job, *args)
           end
@@ -58,6 +57,22 @@ module Rollbar
           report(e, job)
 
           raise e
+        end
+      end
+    end
+
+    # Starts from an empty scope, as the Sidekiq integration does, so a job
+    # run in the caller's thread (delay_jobs = false) doesn't report the
+    # caller's person or request.
+    def self.with_job_scope(job)
+      data = build_job_data(job)
+
+      Rollbar::JobIntegration.within do
+        Rollbar.scoped do
+          Rollbar.reset_notifier!
+          Rollbar.scope!(:request => data)
+
+          yield
         end
       end
     end

@@ -1,3 +1,5 @@
+require 'rollbar/scrubbers/params'
+
 module Rollbar
   module Delayed
     class JobData
@@ -29,11 +31,75 @@ module Rollbar
       def handler_data
         payload_object = job.payload_object
 
-        return payload_object unless payload_object.respond_to?(:object)
+        return object_data(payload_object.object) if payload_object.respond_to?(:object)
 
-        object_data(payload_object.object)
+        # ActiveJob jobs enqueued through the delayed_job adapter
+        if payload_object.respond_to?(:job_data)
+          return active_job_data(payload_object.job_data)
+        end
+
+        payload_data(payload_object)
       rescue StandardError
         {}
+      end
+
+      def active_job_data(job_data)
+        return scrub(job_data) unless log_arguments_disabled?(job_data['job_class'])
+
+        scrubbed_arguments = Array(job_data['arguments']).map do |argument|
+          Rollbar::Scrubbers.scrub_value(argument)
+        end
+
+        scrub(job_data.merge('arguments' => scrubbed_arguments))
+      end
+
+      def log_arguments_disabled?(job_class_name)
+        job_class = Object.const_get(job_class_name.to_s)
+
+        job_class.respond_to?(:log_arguments?) && !job_class.log_arguments?
+      rescue NameError
+        false
+      end
+
+      # Custom job objects would otherwise be sent as their #to_s
+      # representation, e.g. "#<MyCustomJob:0x000056...>".
+      def payload_data(payload_object)
+        case payload_object
+        when ::Hash, Array, String, Numeric, Symbol, true, false, nil
+          payload_object
+        else
+          {
+            'class' => payload_object.class.name,
+            'attributes' => scrub(payload_attributes(payload_object))
+          }
+        end
+      rescue SystemStackError
+        # as_json recurses forever on objects with circular references
+        { 'class' => payload_object.class.name }
+      end
+
+      def payload_attributes(payload_object)
+        return payload_object.as_json if payload_object.respond_to?(:as_json)
+        if payload_object.is_a?(Struct)
+          # String keys, like as_json
+          return payload_object.to_h.transform_keys(&:to_s)
+        end
+
+        payload_object.instance_variables.map do |name|
+          [name.to_s.delete('@'), payload_object.instance_variable_get(name)]
+        end.to_h
+      end
+
+      def scrub(params)
+        # as_json may return a plain value, e.g. a String, which can't be
+        # scrubbed as params
+        return params unless params.is_a?(Array) || params.respond_to?(:to_hash)
+
+        Rollbar::Scrubbers::Params.call(
+          :params => params,
+          :config => Rollbar.configuration.scrub_fields,
+          :whitelist => Rollbar.configuration.scrub_whitelist
+        )
       end
 
       def object_data(object)
