@@ -154,6 +154,156 @@ describe Rollbar::ActiveJob do
     end
   end
 
+  # retry_on and discard_on were added in Rails 5.1. A plain `if` rather than
+  # `:if` metadata, because the job classes below are defined either way.
+  if Gem::Version.new(Rails.version) >= Gem::Version.new('5.1')
+    context 'with retry_on and discard_on (#1183)' do
+      module RetrySpecJob
+        def self.performed
+          @performed ||= []
+        end
+
+        def perform(failures)
+          RetrySpecJob.performed << executions
+          raise StandardError, "attempt #{executions} failed" if executions <= failures
+        end
+      end
+
+      class IncludeThenRetryOnJob < ActiveJob::Base
+        include Rollbar::ActiveJob
+        retry_on StandardError, :wait => 0, :attempts => 3
+        include RetrySpecJob
+      end
+
+      class RetryOnThenIncludeJob < ActiveJob::Base
+        retry_on StandardError, :wait => 0, :attempts => 3
+        include Rollbar::ActiveJob
+        include RetrySpecJob
+      end
+
+      class IncludeThenDiscardOnJob < ActiveJob::Base
+        include Rollbar::ActiveJob
+        discard_on StandardError
+        include RetrySpecJob
+      end
+
+      class DiscardOnThenIncludeJob < ActiveJob::Base
+        discard_on StandardError
+        include Rollbar::ActiveJob
+        include RetrySpecJob
+      end
+
+      class RollbarParentJob < ActiveJob::Base
+        include Rollbar::ActiveJob
+      end
+
+      class RollbarChildJob < RollbarParentJob
+        include Rollbar::ActiveJob
+        include RetrySpecJob
+      end
+
+      include ActiveJob::TestHelper if defined?(ActiveJob::TestHelper)
+
+      before do
+        ActiveJob::Base.queue_adapter = :test
+        RetrySpecJob.performed.clear
+      end
+
+      # Returns the error that escaped the job, if any. The test adapter runs each
+      # retry inside the previous attempt, so the final error is re-raised through
+      # every earlier attempt's perform_now. It's rescued inside the block because
+      # perform_enqueued_jobs can't log errors that escape it outside a TestCase.
+      def run_job(job_class, failures)
+        error = nil
+        perform_enqueued_jobs do
+          begin
+            job_class.perform_later(failures)
+          rescue StandardError => e
+            error = e
+          end
+        end
+        error
+      end
+
+      [IncludeThenRetryOnJob, RetryOnThenIncludeJob].each do |job_class|
+        context "with #{job_class}" do
+          it 'retries, then reports the final failure once' do
+            expect(Rollbar).to receive(:error).once.with(
+              having_attributes(:message => 'attempt 3 failed'),
+              hash_including(:job => job_class.name, :job_id => kind_of(String),
+                             :arguments => [99], :use_exception_level_filters => true)
+            )
+
+            expect(run_job(job_class, 99).message).to eq('attempt 3 failed')
+            expect(RetrySpecJob.performed).to eq([1, 2, 3])
+          end
+
+          it "doesn't report an attempt that retry_on reschedules" do
+            expect(Rollbar).not_to receive(:error)
+
+            job_class.new(99).perform_now
+
+            expect(RetrySpecJob.performed).to eq([1])
+            expect(enqueued_jobs.size).to eq(1)
+          end
+
+          it "doesn't report a job that succeeds on retry" do
+            expect(Rollbar).not_to receive(:error)
+
+            expect(run_job(job_class, 1)).to be_nil
+            expect(RetrySpecJob.performed).to eq([1, 2])
+          end
+        end
+      end
+
+      [IncludeThenDiscardOnJob, DiscardOnThenIncludeJob].each do |job_class|
+        it "doesn't report an error discarded by discard_on in #{job_class}" do
+          expect(Rollbar).not_to receive(:error)
+
+          expect { job_class.new(99).perform_now }.not_to raise_error
+        end
+      end
+
+      it 'reports once when included in both a job and its parent' do
+        expect(Rollbar).to receive(:error).once
+
+        expect { RollbarChildJob.new(99).perform_now }.to raise_error(StandardError)
+      end
+
+      it 'scrubs arguments if the job has `log_arguments` disabled',
+         :if => IncludeThenRetryOnJob.respond_to?(:log_arguments?) do
+        allow(IncludeThenRetryOnJob).to receive(:log_arguments?).and_return(false)
+
+        expect(Rollbar).to receive(:error)
+          .with(kind_of(StandardError), hash_including(:arguments => ['******']))
+
+        expect(run_job(IncludeThenRetryOnJob, 99)).to be_a(StandardError)
+      end
+
+      context 'with the Rails error subscriber enabled',
+              :if => ::Rails.gem_version >= ::Gem::Version.new('7.1.0') do
+        before do
+          Rollbar.configure { |config| config.enable_rails_error_subscriber = true }
+        end
+
+        after do
+          Rollbar.configure { |config| config.enable_rails_error_subscriber = false }
+        end
+
+        # The Rails executor reports errors that escape the job to the error
+        # subscriber, after the plugin has already reported them.
+        [IncludeThenRetryOnJob, RetryOnThenIncludeJob].each do |job_class|
+          it "reports the final failure of #{job_class} once" do
+            expect(Rollbar).to receive(:error).once
+            expect(Rollbar).not_to receive(:log)
+
+            expect(run_job(job_class, 99).message).to eq('attempt 3 failed')
+          end
+        end
+      end
+    end
+  end
+
   context 'using ActionMailer::MailDeliveryJob', :if => Gem::Version.new(Rails.version) >= Gem::Version.new('6.0') do
     class ParentMailer < ActionMailer::Base; end
 
@@ -220,6 +370,38 @@ describe Rollbar::ActiveJob do
       expect do
         ActiveJob::Base.execute(job.serialize)
       end.to raise_error(ActiveJob::DeserializationError)
+    end
+
+    # ActionMailer::MailDeliveryJob was added in Rails 6. A plain `if`, like the
+    # retry_on context, because the outer `:if` skips the examples but not the
+    # class definitions below.
+    if defined?(ActionMailer::MailDeliveryJob)
+      context 'when the delivery job also includes Rollbar::ActiveJob' do
+        class RollbarMailDeliveryJob < ActionMailer::MailDeliveryJob
+          include Rollbar::ActiveJob
+        end
+
+        class RollbarDeliveryMailer < TestMailer2
+          self.delivery_job = RollbarMailDeliveryJob
+        end
+
+        it 'reports ActiveJob::DeserializationError only once' do
+          user = User.create!(:email => 'deleted@example.com')
+
+          ActiveJob::Base.queue_adapter = :test
+          job = RollbarDeliveryMailer.test_email(user).deliver_later
+          user.destroy
+
+          expect(Rollbar).to receive(:error)
+            .once
+            .with(kind_of(ActiveJob::DeserializationError),
+                  hash_including(:job => 'RollbarDeliveryMailer'))
+
+          expect do
+            ActiveJob::Base.execute(job.serialize)
+          end.to raise_error(ActiveJob::DeserializationError)
+        end
+      end
     end
   end
 end
