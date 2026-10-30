@@ -929,10 +929,12 @@ module Rollbar
     alias log_warning log_warn
 
     def log_instance_link(data)
-      return unless data[:uuid]
+      level = configuration.instance_link_log_level
+      return unless data[:uuid] && level
 
       uuid_url = Util.uuid_rollbar_url(data, configuration)
-      log_info(
+      logger.log(
+        level,
         "[Rollbar] Details: #{uuid_url} (only available if report was successful)"
       )
     end
