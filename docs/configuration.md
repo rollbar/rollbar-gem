@@ -271,6 +271,13 @@ Fields to scrub out of the parsed request data. Will scrub from `GET`, `POST`,
 url, and several other locations. Does not currently recurse into the full
 payload.
 
+Supports regex entries, e.g. `[:password, /email/, /\A.+_token\z/]`, so it can
+be extended with Rails' filter parameters:
+
+```ruby
+config.scrub_fields |= Rails.application.config.filter_parameters
+```
+
 If set to `[:scrub_all]` it will scrub all fields. It will not scrub anything
 that is in the scrub_whitelist configuration array even if :scrub_all is true.
 
