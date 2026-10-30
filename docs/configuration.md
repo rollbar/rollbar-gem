@@ -274,6 +274,15 @@ payload.
 If set to `[:scrub_all]` it will scrub all fields. It will not scrub anything
 that is in the scrub_whitelist configuration array even if :scrub_all is true.
 
+Supports regex entries, e.g. `[:password, /email/, /\Afirst_name\z/]`, so
+Rails' parameter filters can be reused directly:
+
+```ruby
+config.scrub_fields |= Rails.application.config.filter_parameters
+```
+
+Proc entries, which `filter_parameters` also allows, are ignored.
+
 ### scrub_whitelist
 
 Set the list of fields to be whitelisted when `scrub_fields` is set to `[:scrub_all]`.
