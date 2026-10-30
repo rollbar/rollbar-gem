@@ -1412,6 +1412,81 @@ describe Rollbar do
       Rollbar.error('Test message with circular extra data', a)
     end
 
+    # https://github.com/rollbar/rollbar-gem/issues/997
+    context 'when extra data is reused or frozen' do
+      let(:sent_extras) { [] }
+      let(:reference) { { :key => 'value' } }
+      let(:shared) { { :key1 => reference, :key2 => reference } }
+      let(:expected_shared) do
+        { 'key1' => { 'key' => 'value' }, 'key2' => { 'key' => 'value' } }
+      end
+
+      before do
+        allow(Rollbar.notifier).to receive(:send_body) do |body|
+          sent_extras << JSON.parse(body)['data']['body']['message']['extra']
+        end
+        expect(logger_mock).not_to receive(:error)
+      end
+
+      it 'does not modify the payload and sends repeated references intact' do
+        payload = { :key1 => shared, :key2 => shared }
+        original = Marshal.load(Marshal.dump(payload))
+
+        Rollbar.log(:warning, 'Warning', :data => payload)
+
+        expect(payload).to eq(original)
+        expect(payload[:key2]).to be(shared)
+        expect(sent_extras).to eq(
+          [{ 'data' => { 'key1' => expected_shared, 'key2' => expected_shared } }]
+        )
+      end
+
+      it 'sends the item when repeated references are frozen' do
+        shared.freeze
+
+        Rollbar.log(:warning, 'Warning', :data => { :key1 => shared, :key2 => shared })
+
+        expect(sent_extras).to eq(
+          [{ 'data' => { 'key1' => expected_shared, 'key2' => expected_shared } }]
+        )
+      end
+
+      it 'accepts a frozen extra hash, including internal option keys' do
+        extra = {
+          :foo => 'bar',
+          :use_exception_level_filters => true,
+          :custom_data_method_context => 'ctx'
+        }.freeze
+
+        expect { Rollbar.info('Test message', extra) }.not_to raise_error
+        expect(sent_extras).to eq([{ 'foo' => 'bar' }])
+      end
+
+      it 'does not remove internal option keys from the caller hash' do
+        extra = {
+          :foo => 'bar',
+          :custom_data_method_context => 'ctx',
+          :is_uncaught => false
+        }
+
+        Rollbar.info('Test message', extra)
+
+        expect(extra.keys).to eq([:foo, :custom_data_method_context, :is_uncaught])
+        expect(sent_extras).to eq([{ 'foo' => 'bar' }])
+      end
+
+      it 'does not modify circular extra data' do
+        a = { :foo => 'bar' }
+        a[:self] = a
+
+        Rollbar.log(:warning, 'Warning', :data => a)
+
+        expect(a[:self]).to be(a)
+        expect(sent_extras.first['data']['self'])
+          .to start_with('removed circular reference')
+      end
+    end
+
     it 'should be able to report form validation errors when they are present' do
       logger_mock.should_receive(:debug).with('[Rollbar] Sending item').once
       logger_mock.should_receive(:debug).with('[Rollbar] Success').once
