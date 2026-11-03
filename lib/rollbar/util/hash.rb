@@ -22,7 +22,7 @@ module Rollbar
       def self.map_value(thing, meth, tracker)
         return thing unless thing.is_a?(::Hash) || thing.is_a?(Array)
         return "removed circular reference: #{thing}" if tracker.circular?(thing)
-        unless tracker.copy_allowed?(thing)
+        unless tracker.copy_allowed?(thing, thing.size)
           return ReferenceTracker::REPEATED_REFERENCE_MARKER
         end
         return send(meth, thing, tracker) if thing.is_a?(::Hash)

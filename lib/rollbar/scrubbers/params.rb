@@ -81,8 +81,9 @@ module Rollbar
       def scrub(params, options)
         return scrub_array(params, options) if params.is_a?(Array)
 
-        copy_container(params, {}) do |result|
-          to_scrubbable_hash(params).each do |key, value|
+        hash = to_scrubbable_hash(params)
+        copy_container(params, {}, hash.size) do |result|
+          hash.each do |key, value|
             result[key] = scrub_hash_value(key, value, options)
           end
         end
@@ -108,7 +109,7 @@ module Rollbar
       end
 
       def scrub_array(array, options)
-        copy_container(array, []) do |result|
+        copy_container(array, [], array.size) do |result|
           array.each do |value|
             result << if hash_like?(value) || value.is_a?(Array)
                         scrub(value, options)
@@ -120,9 +121,9 @@ module Rollbar
       end
 
       # Yields `copy` to be filled in, registered first so a cycle maps to it.
-      def copy_container(container, copy)
+      def copy_container(container, copy, size)
         return @tracker.copy_of(container) if @tracker.circular?(container)
-        unless @tracker.copy_allowed?(container)
+        unless @tracker.copy_allowed?(container, size)
           return Rollbar::Util::ReferenceTracker::REPEATED_REFERENCE_MARKER
         end
 

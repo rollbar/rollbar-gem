@@ -7,18 +7,21 @@ module Rollbar
     # A container on the current path from the root (an ancestor) is a true
     # cycle. A container that was seen before but is not an ancestor is only
     # referenced more than once. JSON can't represent sharing, so it is copied
-    # again at each occurrence. That re-copying is capped, so a deeply shared
-    # graph, e.g. `x = {}; 30.times { x = { :a => x, :b => x } }`, can't make
-    # the copy grow exponentially before truncation gets a chance to run.
+    # again at each occurrence. That re-copying is capped by the number of
+    # entries (hash pairs and array elements) it copies, so neither a deeply
+    # shared graph, e.g. `x = {}; 30.times { x = { :a => x, :b => x } }`, nor a
+    # wide hash referenced many times can make the copy grow far beyond the
+    # input before truncation gets a chance to run. At around 10 bytes of JSON
+    # each, 50,000 entries already fill the 512 KB payload limit.
     class ReferenceTracker
-      MAX_REPEATED_REFERENCES = 10_000
+      MAX_REPEATED_ENTRIES = 50_000
       REPEATED_REFERENCE_MARKER =
         'removed repeated reference: too many repeated references'.freeze
 
-      def initialize(max_repeated_references = MAX_REPEATED_REFERENCES)
+      def initialize(max_repeated_entries = MAX_REPEATED_ENTRIES)
         @ancestors = {}.compare_by_identity
         @seen = {}.compare_by_identity
-        @repeats_left = max_repeated_references
+        @entries_left = max_repeated_entries
       end
 
       def circular?(container)
@@ -30,12 +33,16 @@ module Rollbar
         @ancestors[container]
       end
 
-      # False once too many repeated references have been copied. Each visit
-      # to a container that was already seen counts against the limit.
-      def copy_allowed?(container)
+      # False if copying the `size` entries of a container that was already
+      # seen would go over the limit. A container seen for the first time is
+      # never charged, so the entries copied in total are bounded by the size
+      # of the input plus the limit, whatever the shape of the sharing.
+      def copy_allowed?(container, size)
         return true unless @seen.key?(container)
+        return false if size > @entries_left
 
-        (@repeats_left -= 1) >= 0
+        @entries_left -= size
+        true
       end
 
       # Marks `container` as an ancestor, mapped to `copy`, while the block

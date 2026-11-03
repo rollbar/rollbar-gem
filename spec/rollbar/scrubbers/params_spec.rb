@@ -762,6 +762,24 @@ describe Rollbar::Scrubbers::Params do
       end
     end
 
+    context 'with a wide hash referenced many times' do
+      let(:scrub_config) { [:password] }
+      let(:wide) do
+        (1..999).map { |i| [:"key#{i}", i] }.to_h.merge(:password => 'the-password')
+      end
+      let(:params) { { :rows => Array.new(10_000, wide) } }
+
+      it 'limits the repeated copies by the number of entries copied' do
+        tracker = Rollbar::Util::ReferenceTracker
+        rows = subject.call(options)[:rows]
+        copies = rows.select { |row| row.is_a?(Hash) }
+
+        expect(copies.size).to eq(1 + (tracker::MAX_REPEATED_ENTRIES / 1_000))
+        expect(copies.map { |row| row[:password] }).to all(match(/\A\*+\z/))
+        expect(rows.last).to eq(tracker::REPEATED_REFERENCE_MARKER)
+      end
+    end
+
     context 'with a circular reference' do
       let(:scrub_config) { [:password] }
       let(:params) do

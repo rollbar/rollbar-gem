@@ -109,4 +109,18 @@ describe Rollbar::Util::Hash do
       expect(json.scan('"leaf"').size).to be < 20_000
     end
   end
+
+  context 'with a wide hash referenced many times' do
+    let(:wide) { (1..1_000).map { |i| ["key#{i}", i] }.to_h }
+    let(:value) { { :rows => Array.new(10_000, wide) } }
+
+    it 'limits the repeated copies by the number of entries copied' do
+      tracker = Rollbar::Util::ReferenceTracker
+      rows = described_class.deep_stringify_keys(value)['rows']
+      copies = rows.count { |row| row.is_a?(::Hash) }
+
+      expect(copies).to eq(1 + (tracker::MAX_REPEATED_ENTRIES / 1_000))
+      expect(rows.last).to eq(tracker::REPEATED_REFERENCE_MARKER)
+    end
+  end
 end
