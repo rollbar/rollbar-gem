@@ -780,6 +780,54 @@ describe Rollbar::Scrubbers::Params do
       end
     end
 
+    context 'with a Hash-like object referenced many times' do
+      let(:scrub_config) { [:password] }
+      let(:conversions) { [] }
+      # Builds a fresh Hash, with a fresh 1,000-key Hash inside, on every call.
+      let(:hash_like) do
+        conversions = self.conversions
+        Object.new.tap do |object|
+          object.define_singleton_method(:to_hash) do
+            conversions << true
+            inner = (1..999).map { |i| [:"key#{i}", i] }.to_h
+            { :inner => inner.merge(:password => 'the-password') }
+          end
+        end
+      end
+      let(:params) { { :rows => Array.new(10_000, hash_like) } }
+
+      it 'converts it once and charges its nested entries to the limit' do
+        tracker = Rollbar::Util::ReferenceTracker
+        rows = subject.call(options)[:rows]
+        copies = rows.select { |row| row.is_a?(Hash) && row[:inner].is_a?(Hash) }
+
+        expect(conversions.size).to eq(1)
+        expect(copies.size).to eq(1 + (tracker::MAX_REPEATED_ENTRIES / 1_001))
+        expect(copies.map { |row| row[:inner][:password] }).to all(match(/\A\*+\z/))
+        expect(rows).to include(:inner => tracker::REPEATED_REFERENCE_MARKER)
+        expect(rows.last).to eq(tracker::REPEATED_REFERENCE_MARKER)
+      end
+    end
+
+    context 'with a circular reference through a Hash-like object' do
+      let(:scrub_config) { [:password] }
+      let(:hash_like) do
+        Object.new.tap do |object|
+          object.define_singleton_method(:to_hash) do
+            { :password => 'the-password', :self => self }
+          end
+        end
+      end
+      let(:params) { { :root => hash_like } }
+
+      it 'maps the cycle to the copy' do
+        root = subject.call(options)[:root]
+
+        expect(root[:self]).to be(root)
+        expect(root[:password]).to match(/\A\*+\z/)
+      end
+    end
+
     context 'with a circular reference' do
       let(:scrub_config) { [:password] }
       let(:params) do

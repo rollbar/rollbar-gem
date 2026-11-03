@@ -36,7 +36,9 @@ module Rollbar
       # False if copying the `size` entries of a container that was already
       # seen would go over the limit. A container seen for the first time is
       # never charged, so the entries copied in total are bounded by the size
-      # of the input plus the limit, whatever the shape of the sharing.
+      # of the input plus the limit, whatever the shape of the sharing. That
+      # holds as long as the caller passes the same container every time the
+      # same data repeats (see Scrubbers::Params#to_scrubbable_hash).
       def copy_allowed?(container, size)
         return true unless @seen.key?(container)
         return false if size > @entries_left

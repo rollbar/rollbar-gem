@@ -24,6 +24,7 @@ module Rollbar
         return {} unless params
 
         @tracker = Rollbar::Util::ReferenceTracker.new
+        @converted = {}.compare_by_identity
 
         config = options[:config]
         extra_fields = options[:extra_fields]
@@ -82,7 +83,7 @@ module Rollbar
         return scrub_array(params, options) if params.is_a?(Array)
 
         hash = to_scrubbable_hash(params)
-        copy_container(params, {}, hash.size) do |result|
+        copy_container(hash, {}, hash.size) do |result|
           hash.each do |key, value|
             result[key] = scrub_hash_value(key, value, options)
           end
@@ -137,8 +138,17 @@ module Rollbar
         value.is_a?(Hash) || value.respond_to?(:to_hash)
       end
 
+      # Converts each object only once per call, so the same object always
+      # yields the same Hash, nested Hashes included. Otherwise every repeat
+      # would get fresh nested Hashes, which @tracker would see as new and never
+      # charge against its limit.
       def to_scrubbable_hash(value)
         return value if value.is_a?(Hash)
+
+        @converted[value] ||= convert_to_hash(value)
+      end
+
+      def convert_to_hash(value)
         # ActionController::Parameters#to_hash raises for unpermitted params.
         return value.to_unsafe_h if value.respond_to?(:to_unsafe_h)
 

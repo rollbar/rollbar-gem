@@ -1914,6 +1914,27 @@ describe Rollbar do
               Rollbar.error(exception)
             end
           end
+
+          # https://github.com/rollbar/rollbar-gem/issues/997
+          context 'with all handlers failing and circular extra data' do
+            let(:handlers) { [proc { |_| raise 'this handler fails' }] }
+            let(:extra) do
+              circ = { :a => 1 }
+              circ[:self] = circ
+              { :circ => circ }
+            end
+
+            before { Rollbar.configuration.async_json_payload = true }
+
+            it 'logs the payload with the cycle replaced' do
+              expect(logger_mock).to receive(:error)
+                .with(/All failover handlers failed.*removed circular reference/)
+              expect(logger_mock).not_to receive(:error)
+                .with(/Reporting internal error/)
+
+              Rollbar.error(exception, extra)
+            end
+          end
         end
       end
     end

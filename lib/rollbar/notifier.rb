@@ -111,8 +111,8 @@ module Rollbar
     #
     # If the extra hash contains a symbol key :custom_data_method_context
     # the value of the key will be used as the context for
-    # configuration.custom_data_method and will be removed from the extra
-    # hash.
+    # configuration.custom_data_method and will be left out of the report's
+    # extra data. The caller's hash is not modified.
     #
     # @example
     #   begin
@@ -899,8 +899,9 @@ module Rollbar
         rescue StandardError
           next unless handler == failover_handlers.last
 
+          # item.payload may contain cycles, which JSON can't represent.
           log_error '[Rollbar] All failover handlers failed while processing ' \
-            "item: #{Rollbar::JSON.dump(item.payload)}"
+            "item: #{Rollbar::JSON.dump(Util::Hash.deep_stringify_keys(item.payload))}"
         end
       end
     end
