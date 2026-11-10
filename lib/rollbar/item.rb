@@ -7,6 +7,7 @@ rescue LoadError
   nil
 end
 
+require 'rollbar/exceptions'
 require 'rollbar/item/backtrace'
 require 'rollbar/util'
 require 'rollbar/encoding'
@@ -203,7 +204,13 @@ module Rollbar
     end
 
     def build_body
-      exception ? build_backtrace_body : build_message_body
+      if exception
+        build_backtrace_body
+      elsif configuration.populate_message_backtraces
+        build_message_backtrace_body
+      else
+        build_message_body
+      end
     end
 
     def build_backtrace_body
@@ -213,6 +220,17 @@ module Rollbar
                                 :configuration => configuration)
 
       backtrace.to_h
+    end
+
+    # The API doesn't accept a trace alongside a message body, so the message is
+    # sent as the message of a trace built from where it was reported.
+    def build_message_backtrace_body
+      message_exception = ReportedMessage.new(message || 'Empty message')
+      message_exception.set_backtrace(Backtrace.caller_backtrace)
+
+      Backtrace.new(message_exception,
+                    :extra => build_extra,
+                    :configuration => configuration).to_h
     end
 
     def build_extra

@@ -1131,17 +1131,18 @@ describe Rollbar do
 
       exception = Exception.new
 
-      Rollbar.error(exception)
+      line = __LINE__; Rollbar.error(exception) # rubocop:disable Style/Semicolon
 
       gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
       gem_lib_dir = "#{gem_dir}/lib"
       last_report = Rollbar.last_report
 
-      filepaths = last_report[:body][:trace][:frames].map do |frame|
-        frame[:filename]
-      end.reverse
+      frames = last_report[:body][:trace][:frames].reverse
+      filepaths = frames.map { |frame| frame[:filename] }
 
       expect(filepaths[0]).not_to include(gem_lib_dir)
+      expect(filepaths[0]).to eq(__FILE__)
+      expect(frames[0][:lineno]).to eq(line)
       expect(filepaths.any? { |filepath| filepath.include?(gem_dir) }).to eq true
     end
 
@@ -1461,6 +1462,76 @@ describe Rollbar do
       Rollbar.last_report[:request].should eq(request_data)
       Rollbar.last_report[:person].should eq(person_data)
       Rollbar.last_report[:body][:message][:extra][:extra_foo].should eq('extra_bar')
+    end
+
+    # https://github.com/rollbar/rollbar-gem/issues/568
+    context 'with populate_message_backtraces' do
+      let(:gem_lib_dir) { "#{Gem::Specification.find_by_name('rollbar').gem_dir}/lib" }
+
+      it 'sends no backtrace by default, even with populate_empty_backtraces' do
+        Rollbar.configure do |config|
+          config.populate_empty_backtraces = true
+        end
+
+        Rollbar.error('Test message')
+
+        body = Rollbar.last_report[:body]
+        expect(body[:message][:body]).to eq('Test message')
+        expect(body).not_to have_key(:trace)
+      end
+
+      context 'when enabled' do
+        before do
+          Rollbar.configure do |config|
+            config.populate_message_backtraces = true
+          end
+        end
+
+        it 'sends the message as a trace starting at the reporting line' do
+          line = __LINE__; Rollbar.error('Test message') # rubocop:disable Style/Semicolon
+
+          body = Rollbar.last_report[:body]
+          expect(body).not_to have_key(:message)
+          expect(body[:trace][:exception]).to eq(
+            :class => 'Rollbar::ReportedMessage', :message => 'Test message'
+          )
+
+          reporting_frame = body[:trace][:frames].last
+          expect(reporting_frame[:filename]).to eq(__FILE__)
+          expect(reporting_frame[:lineno]).to eq(line)
+          filenames = body[:trace][:frames].map { |frame| frame[:filename] }
+          expect(filenames.grep(/\A#{Regexp.escape(gem_lib_dir)}/)).to be_empty
+        end
+
+        it 'sends the extra data with the trace' do
+          Rollbar.info('Test message', :extra_foo => 'extra_bar')
+
+          trace = Rollbar.last_report[:body][:trace]
+          expect(trace[:exception][:message]).to eq('Test message')
+          expect(trace[:extra][:extra_foo]).to eq('extra_bar')
+        end
+
+        it 'uses a placeholder message when only extra data is reported' do
+          Rollbar.error(:extra_foo => 'extra_bar')
+
+          trace = Rollbar.last_report[:body][:trace]
+          expect(trace[:exception][:message]).to eq('Empty message')
+          expect(trace[:extra][:extra_foo]).to eq('extra_bar')
+        end
+
+        it 'does not change how exceptions are reported' do
+          exception = StandardError.new('oops')
+
+          Rollbar.error(exception, 'Test description')
+
+          trace = Rollbar.last_report[:body][:trace]
+          expect(trace[:exception]).to eq(
+            :class => 'StandardError', :message => 'oops',
+            :description => 'Test description'
+          )
+          expect(trace[:frames]).to eq([])
+        end
+      end
     end
   end
 

@@ -1,3 +1,5 @@
+require 'forwardable'
+
 require 'rollbar/item/frame'
 
 module Rollbar
@@ -104,14 +106,35 @@ module Rollbar
         end
         return [] unless configuration.populate_empty_backtraces
 
-        caller_backtrace = caller
-        caller_backtrace.shift while caller_backtrace[0].include?(rollbar_lib_gem_dir)
-        caller_backtrace
+        self.class.caller_backtrace
       end
 
-      def rollbar_lib_gem_dir
-        gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
-        "#{gem_dir}/lib"
+      class << self
+        # Returns the caller's backtrace without the frames at the top that are
+        # inside this gem, so it starts at the user's Rollbar.error line.
+        #
+        # Rollbar.error and the other module methods are Forwardable delegators,
+        # so their frames sit between the user's line and the gem's own frames.
+        def caller_backtrace
+          skipped_files = [rollbar_lib_gem_dir, forwardable_file]
+          caller_backtrace = caller
+          while caller_backtrace[0] &&
+                skipped_files.any? { |file| caller_backtrace[0].include?(file) }
+            caller_backtrace.shift
+          end
+          caller_backtrace
+        end
+
+        private
+
+        def forwardable_file
+          Forwardable.instance_method(:def_instance_delegator).source_location[0]
+        end
+
+        def rollbar_lib_gem_dir
+          gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
+          "#{gem_dir}/lib"
+        end
       end
     end
   end

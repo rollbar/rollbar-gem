@@ -52,6 +52,7 @@ module Rollbar
                   :person_method,
                   :person_username_method,
                   :populate_empty_backtraces,
+                  :populate_message_backtraces,
                   :proxy,
                   :raise_on_error,
                   :randomize_scrub_length,
@@ -134,6 +135,7 @@ module Rollbar
       @person_email_method = nil
       @project_gems = []
       @populate_empty_backtraces = false
+      @populate_message_backtraces = false
       @report_dj_data = true
       @open_timeout = 3
       @request_timeout = 3
