@@ -1531,6 +1531,25 @@ describe Rollbar do
           )
           expect(trace[:frames]).to eq([])
         end
+
+        it 'leaves the locals recorded for a raised exception untouched' do
+          Rollbar.configure do |config|
+            config.locals = { :enabled => true }
+            config.send_extra_frame_data = :all
+          end
+          # Matches every frame in this file, so a lookup would consume it.
+          recorded_frame = { :binding => binding, :path => __FILE__, :lineno => 1 }
+          exception_frames = [recorded_frame]
+          allow(Rollbar.notifier).to receive(:exception_bindings)
+            .and_return(exception_frames)
+
+          Rollbar.error('Test message')
+
+          reporting_frame = Rollbar.last_report[:body][:trace][:frames].last
+          expect(reporting_frame[:code]).to include("Rollbar.error('Test message')")
+          expect(reporting_frame[:locals]).to be_nil
+          expect(exception_frames).to eq([recorded_frame])
+        end
       end
     end
   end

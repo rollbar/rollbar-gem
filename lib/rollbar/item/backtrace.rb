@@ -5,7 +5,7 @@ require 'rollbar/item/frame'
 module Rollbar
   class Item
     class Backtrace
-      attr_reader :exception, :message, :extra, :configuration, :files
+      attr_reader :exception, :message, :extra, :configuration, :skip_locals, :files
 
       private :files
 
@@ -14,6 +14,7 @@ module Rollbar
         @message = options[:message]
         @extra = options[:extra]
         @configuration = options[:configuration]
+        @skip_locals = options[:skip_locals]
         @files = {}
       end
 
@@ -77,7 +78,8 @@ module Rollbar
       def map_frames(current_exception)
         frames = cleaned_backtrace(current_exception).map do |frame|
           Rollbar::Item::Frame.new(self, frame,
-                                   :configuration => configuration).to_h
+                                   :configuration => configuration,
+                                   :skip_locals => skip_locals).to_h
         end
         frames.reverse!
       end

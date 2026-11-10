@@ -250,6 +250,13 @@ reported from different places becomes separate items. Use
 [custom grouping rules](https://docs.rollbar.com/docs/grouping-occurrences)
 if you need a different grouping.
 
+A `transform` hook still receives the original message, but the payload body
+it can modify holds a `trace` instead of a `message`. Update any hook that
+edits `payload['data'][:body][:message]`.
+
+Local variables (`locals`) are not sent for these items. They are only
+recorded when an exception is raised, so none belong to a message.
+
 Exceptions you report are not affected; use `populate_empty_backtraces` for
 those.
 

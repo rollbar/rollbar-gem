@@ -224,13 +224,18 @@ module Rollbar
 
     # The API doesn't accept a trace alongside a message body, so the message is
     # sent as the message of a trace built from where it was reported.
+    #
+    # Locals are skipped: they are recorded when an exception is raised, so none
+    # belong to a message, and looking them up would consume the ones a later
+    # exception report in the same request needs.
     def build_message_backtrace_body
       message_exception = ReportedMessage.new(message || 'Empty message')
       message_exception.set_backtrace(Backtrace.caller_backtrace)
 
       Backtrace.new(message_exception,
                     :extra => build_extra,
-                    :configuration => configuration).to_h
+                    :configuration => configuration,
+                    :skip_locals => true).to_h
     end
 
     def build_extra
