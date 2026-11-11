@@ -8,6 +8,7 @@ require 'active_support/core_ext/object'
 require 'active_support/json/encoding'
 
 require 'rollbar/item'
+require 'rollbar/logger'
 
 require 'spec_helper'
 
@@ -1549,6 +1550,50 @@ describe Rollbar do
           expect(reporting_frame[:code]).to include("Rollbar.error('Test message')")
           expect(reporting_frame[:locals]).to be_nil
           expect(exception_frames).to eq([recorded_frame])
+        end
+
+        context 'when logged through Rollbar::Logger' do
+          let(:rollbar_logger) { Rollbar::Logger.new }
+          let(:reporting_frame) { Rollbar.last_report[:body][:trace][:frames].last }
+
+          it 'starts the trace at the logging line' do
+            line = __LINE__; rollbar_logger.error('Test message') # rubocop:disable Style/Semicolon
+
+            expect(reporting_frame[:filename]).to eq(__FILE__)
+            expect(reporting_frame[:lineno]).to eq(line)
+          end
+
+          it 'starts the trace at the logging line with <<' do
+            line = __LINE__; rollbar_logger << 'Test message' # rubocop:disable Style/Semicolon
+
+            expect(reporting_frame[:filename]).to eq(__FILE__)
+            expect(reporting_frame[:lineno]).to eq(line)
+          end
+
+          it 'starts at the logging line through ActiveSupport::BroadcastLogger' do
+            unless defined?(ActiveSupport::BroadcastLogger)
+              skip 'ActiveSupport::BroadcastLogger requires Rails 7.1+'
+            end
+            logger = ActiveSupport::BroadcastLogger.new(rollbar_logger)
+
+            line = __LINE__; logger.error('Test message') # rubocop:disable Style/Semicolon
+
+            expect(reporting_frame[:filename]).to eq(__FILE__)
+            expect(reporting_frame[:lineno]).to eq(line)
+          end
+
+          it 'starts at the logging line through ActiveSupport::Logger.broadcast' do
+            unless ActiveSupport::Logger.respond_to?(:broadcast)
+              skip 'ActiveSupport::Logger.broadcast is not available'
+            end
+            logger = ActiveSupport::Logger.new(File::NULL)
+            logger.extend(ActiveSupport::Logger.broadcast(rollbar_logger))
+
+            line = __LINE__; logger.error('Test message') # rubocop:disable Style/Semicolon
+
+            expect(reporting_frame[:filename]).to eq(__FILE__)
+            expect(reporting_frame[:lineno]).to eq(line)
+          end
         end
       end
     end

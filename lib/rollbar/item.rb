@@ -9,6 +9,7 @@ end
 
 require 'rollbar/exceptions'
 require 'rollbar/item/backtrace'
+require 'rollbar/item/caller_backtrace'
 require 'rollbar/util'
 require 'rollbar/encoding'
 require 'rollbar/truncation'
@@ -230,7 +231,7 @@ module Rollbar
     # exception report in the same request needs.
     def build_message_backtrace_body
       message_exception = ReportedMessage.new(message || 'Empty message')
-      message_exception.set_backtrace(Backtrace.caller_backtrace)
+      message_exception.set_backtrace(CallerBacktrace.backtrace)
 
       Backtrace.new(message_exception,
                     :extra => build_extra,

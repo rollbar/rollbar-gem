@@ -237,6 +237,8 @@ Rollbar load the traces before sending them.
 Messages, such as `Rollbar.error('Failed to create claim')`, are sent without a
 backtrace. Set `populate_message_backtraces` to `true` to send them with the
 backtrace of the line that reported them, so you can see where they came from.
+Messages logged through `Rollbar::Logger`, directly or broadcast from the Rails
+logger, start at the line that logged them.
 
 The Rollbar API doesn't accept a backtrace on a message, so each message is
 sent as an exception of class `Rollbar::ReportedMessage` with the message as
