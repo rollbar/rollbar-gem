@@ -6,7 +6,7 @@ module Rollbar
   class Item
     # Representation of the trace data per frame in the payload
     class Frame
-      attr_reader :backtrace, :frame, :configuration
+      attr_reader :backtrace, :frame, :configuration, :skip_locals
 
       MAX_CONTEXT_LENGTH = 4
 
@@ -14,6 +14,7 @@ module Rollbar
         @backtrace = backtrace
         @frame = frame
         @configuration = options[:configuration]
+        @skip_locals = options[:skip_locals]
       end
 
       def to_h
@@ -99,7 +100,7 @@ module Rollbar
       end
 
       def locals_data(filename, lineno)
-        return unless configuration.locals[:enabled]
+        return if skip_locals || !configuration.locals[:enabled]
 
         ::Rollbar::Item::Locals.locals_for_location(filename, lineno)
       end

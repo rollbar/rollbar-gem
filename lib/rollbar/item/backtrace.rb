@@ -1,9 +1,10 @@
+require 'rollbar/item/caller_backtrace'
 require 'rollbar/item/frame'
 
 module Rollbar
   class Item
     class Backtrace
-      attr_reader :exception, :message, :extra, :configuration, :files
+      attr_reader :exception, :message, :extra, :configuration, :skip_locals, :files
 
       private :files
 
@@ -12,6 +13,7 @@ module Rollbar
         @message = options[:message]
         @extra = options[:extra]
         @configuration = options[:configuration]
+        @skip_locals = options[:skip_locals]
         @files = {}
       end
 
@@ -75,7 +77,8 @@ module Rollbar
       def map_frames(current_exception)
         frames = cleaned_backtrace(current_exception).map do |frame|
           Rollbar::Item::Frame.new(self, frame,
-                                   :configuration => configuration).to_h
+                                   :configuration => configuration,
+                                   :skip_locals => skip_locals).to_h
         end
         frames.reverse!
       end
@@ -104,14 +107,7 @@ module Rollbar
         end
         return [] unless configuration.populate_empty_backtraces
 
-        caller_backtrace = caller
-        caller_backtrace.shift while caller_backtrace[0].include?(rollbar_lib_gem_dir)
-        caller_backtrace
-      end
-
-      def rollbar_lib_gem_dir
-        gem_dir = Gem::Specification.find_by_name('rollbar').gem_dir
-        "#{gem_dir}/lib"
+        CallerBacktrace.backtrace
       end
     end
   end

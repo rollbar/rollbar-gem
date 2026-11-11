@@ -230,6 +230,38 @@ manually initialized exception instead of a raised and rescued exception, the
 backtraces will be empty. Set `populate_empty_backtraces` to `true` to have
 Rollbar load the traces before sending them.
 
+### populate_message_backtraces
+
+**Default** `false`
+
+Messages, such as `Rollbar.error('Failed to create claim')`, are sent without a
+backtrace. Set `populate_message_backtraces` to `true` to send them with the
+backtrace of the line that reported them, so you can see where they came from.
+Messages logged through `Rollbar::Logger`, directly or broadcast from the Rails
+logger, start at the line that logged them.
+
+The Rollbar API doesn't accept a backtrace on a message, so each message is
+sent as an exception of class `Rollbar::ReportedMessage` with the message as
+its exception message. Its title in Rollbar is
+`Rollbar::ReportedMessage: Failed to create claim`. This also changes how
+those items are grouped. Messages are normally grouped by their text, while
+exceptions are grouped by their class and the files and methods in their
+backtrace. With this option enabled, messages reported from the same method
+are grouped into one item even if their text differs, and the same text
+reported from different places becomes separate items. Use
+[custom grouping rules](https://docs.rollbar.com/docs/grouping-occurrences)
+if you need a different grouping.
+
+A `transform` hook still receives the original message, but the payload body
+it can modify holds a `trace` instead of a `message`. Update any hook that
+edits `payload['data'][:body][:message]`.
+
+Local variables (`locals`) are not sent for these items. They are only
+recorded when an exception is raised, so none belong to a message.
+
+Exceptions you report are not affected; use `populate_empty_backtraces` for
+those.
+
 ### report_dj_data
 
 **Default** `true`
